@@ -38,7 +38,7 @@ time.sleep(2)
 #   VERSION
 #
 VERSION = "a"
-NUMBER = "v0.023"
+NUMBER = "v0.024"
 MAX_FPS = 120
 
 #

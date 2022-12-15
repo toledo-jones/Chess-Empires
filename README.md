@@ -8,6 +8,8 @@ https://drive.google.com/file/d/1vUxxwP95c_EvngJR9COm9I6hgr7oH8n9/view?usp=share
 -- fully playable windows .exe -- 
 https://drive.google.com/file/d/1UNGAStDAwMkB_XljZG76pZNnNQy9uhRm/view?usp=sharing
 
+-- more instructions -- 
+https://drive.google.com/file/d/1325kMNlT4kYsrup1i-0Qn3NX87jCL2X-/view?usp=sharing
 
 
 -- FEATURES -- 

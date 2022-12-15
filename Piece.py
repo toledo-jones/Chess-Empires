@@ -1150,10 +1150,10 @@ class Elephant(Piece):
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
         self.directions = (
-        Constant.TWO_UP_RIGHT, Constant.TWO_RIGHT_UP, Constant.TWO_DOWN_RIGHT, Constant.TWO_RIGHT_DOWN,
-        Constant.TWO_UP_LEFT, Constant.TWO_LEFT_UP, Constant.TWO_DOWN_LEFT, Constant.TWO_LEFT_DOWN,
-        Constant.THREE_UP_RIGHT, Constant.THREE_RIGHT_UP, Constant.THREE_DOWN_RIGHT, Constant.THREE_RIGHT_DOWN,
-        Constant.THREE_UP_LEFT, Constant.THREE_LEFT_UP, Constant.THREE_DOWN_LEFT, Constant.THREE_LEFT_DOWN)
+            Constant.TWO_UP_RIGHT, Constant.TWO_RIGHT_UP, Constant.TWO_DOWN_RIGHT, Constant.TWO_RIGHT_DOWN,
+            Constant.TWO_UP_LEFT, Constant.TWO_LEFT_UP, Constant.TWO_DOWN_LEFT, Constant.TWO_LEFT_DOWN,
+            Constant.THREE_UP_RIGHT, Constant.THREE_RIGHT_UP, Constant.THREE_DOWN_RIGHT, Constant.THREE_RIGHT_DOWN,
+            Constant.THREE_UP_LEFT, Constant.THREE_LEFT_UP, Constant.THREE_DOWN_LEFT, Constant.THREE_LEFT_DOWN)
         self.distance = 1
 
     def valid_moves(self, engine):
@@ -1416,8 +1416,8 @@ class GoldGeneral(Piece):
                            Constant.DOWN_LEFT)
         self.distance = -1
         self.knight_directions = (
-        Constant.TWO_UP_RIGHT, Constant.TWO_RIGHT_UP, Constant.TWO_DOWN_RIGHT, Constant.TWO_RIGHT_DOWN,
-        Constant.TWO_UP_LEFT, Constant.TWO_LEFT_UP, Constant.TWO_DOWN_LEFT, Constant.TWO_LEFT_DOWN)
+            Constant.TWO_UP_RIGHT, Constant.TWO_RIGHT_UP, Constant.TWO_DOWN_RIGHT, Constant.TWO_RIGHT_DOWN,
+            Constant.TWO_UP_LEFT, Constant.TWO_LEFT_UP, Constant.TWO_DOWN_LEFT, Constant.TWO_LEFT_DOWN)
         self.praying_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
                                    Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT, Constant.DOWN_LEFT)
         self.is_general = True

@@ -46,7 +46,7 @@ class Tile:
         self.protect_timer += 1
         if self.protect_timer > 0:
             self.protected = True
-            self.protected_image = Constant.IMAGES[color+"_protect"]
+            self.protected_image = Constant.IMAGES[color + "_protect"]
 
     def tick_protect_timer(self):
         self.protect_timer -= 1
@@ -61,7 +61,7 @@ class Tile:
         self.protected_by = None
 
     def protect(self, color):
-        self.protected_image = Constant.IMAGES[color+"_"+"protect"]
+        self.protected_image = Constant.IMAGES[color + "_" + "protect"]
         self.protected = True
         self.protect_timer = 2
         self.protected_by = color

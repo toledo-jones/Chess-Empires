@@ -1500,7 +1500,7 @@ class PerformLineDestroy(Ritual):
         self.col = self.previously_selected.col
         mouse_row, mouse_col = Constant.convert_pos(pygame.mouse.get_pos())
         self.up = range(self.row - 1, -1, -1), range(self.col, self.col+1)
-        self.down = range(self.row + 1, Constant.BOARD_HEIGHT_SQ), range(self.col, self.col+1)
+        self.down = range(self.row + 1, Constant.BOARD_HEIGHT_SQ), range(self.col, self.col + 1)
         self.right = range(self.row, self.row+1), range(self.col + 1, Constant.BOARD_WIDTH_SQ)
         self.left = range(self.row, self.row+1), range(self.col - 1, -1, -1)
 

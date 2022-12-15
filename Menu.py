@@ -809,25 +809,25 @@ class Hud(SideMenu):
             self.win.blit(Constant.IMAGES['gold_coin'], (self.counter_icon_display_x, self.coin_icon_display_y))
             white_coin_text = self.font.render(" : " + str(self.engine.players[self.engine.turn].gold), True,
                                                Constant.turn_to_color[self.engine.turn])
-            self.win.blit(white_coin_text, ((self.counter_icon_display_x + Constant.SQ_SIZE), self.coin_icon_display_y-self.text_vertical_offset))
+            self.win.blit(white_coin_text, ((self.counter_icon_display_x + Constant.SQ_SIZE), self.coin_icon_display_y - self.text_vertical_offset))
 
         # Wood Counter
         if not self.engine.players[self.engine.turn].wood == 0:
             self.win.blit(Constant.IMAGES['log'], (self.counter_icon_display_x, self.log_icon_display_y))
             white_log_text = self.font.render(" : " + str(self.engine.players[self.engine.turn].wood), True,
                                               Constant.turn_to_color[self.engine.turn])
-            self.win.blit(white_log_text, ((self.counter_icon_display_x + Constant.SQ_SIZE), self.log_icon_display_y-self.text_vertical_offset))
+            self.win.blit(white_log_text, ((self.counter_icon_display_x + Constant.SQ_SIZE), self.log_icon_display_y - self.text_vertical_offset))
 
         # Stone Counter
         if not self.engine.players[self.engine.turn].stone == 0:
             self.win.blit(Constant.IMAGES['stone'], (self.counter_icon_display_x, self.stone_icon_display_y))
             white_log_text = self.font.render(" : " + str(self.engine.players[self.engine.turn].stone), True,
                                               Constant.turn_to_color[self.engine.turn])
-            self.win.blit(white_log_text, ((self.counter_icon_display_x + Constant.SQ_SIZE), self.stone_icon_display_y-self.text_vertical_offset))
+            self.win.blit(white_log_text, ((self.counter_icon_display_x + Constant.SQ_SIZE), self.stone_icon_display_y - self.text_vertical_offset))
 
         # Prayer Counter
         if not self.engine.players[self.engine.turn].prayer == 0:
-            self.win.blit(Constant.MENU_ICONS['prayer'], (self.counter_icon_display_x, self.prayer_icon_display_y-self.text_vertical_offset))
+            self.win.blit(Constant.MENU_ICONS['prayer'], (self.counter_icon_display_x, self.prayer_icon_display_y - self.text_vertical_offset))
             self.win.blit(Constant.IMAGES['prayer_bar'], (self.prayer_bar_edge, self.prayer_bar_height))
             for x in range(self.engine.players[self.engine.turn].prayer):
                 new_edge = self.prayer_bar_end_edge + self.bar_end_width * (x)
@@ -840,20 +840,20 @@ class Hud(SideMenu):
             True,
             Constant.turn_to_color[self.engine.turn])
         self.win.blit(actions_remaining_text,
-                      ((self.counter_icon_display_x + Constant.SQ_SIZE), self.action_icon_display_y-self.text_vertical_offset))
+                      ((self.counter_icon_display_x + Constant.SQ_SIZE), self.action_icon_display_y - self.text_vertical_offset))
 
         # Unit Limit Counter
         self.win.blit(Constant.IMAGES['units'], (self.counter_icon_display_x, self.units_icon_display_y))
         t = str(self.engine.players[self.engine.turn].get_current_population()) + "/" + str(
             self.engine.players[self.engine.turn].get_piece_limit())
         units_text = self.font.render(" : " + t, True, Constant.turn_to_color[self.engine.turn])
-        self.win.blit(units_text, ((self.counter_icon_display_x + Constant.SQ_SIZE), self.units_icon_display_y-self.text_vertical_offset))
+        self.win.blit(units_text, ((self.counter_icon_display_x + Constant.SQ_SIZE), self.units_icon_display_y - self.text_vertical_offset))
 
         # Turn Counter
         self.win.blit(Constant.IMAGES['hour_glass'], (self.counter_icon_display_x, self.turn_icon_display_y))
         turn_number_text = " : " + str(self.engine.turn_count_display)
         text_surf = self.font.render(turn_number_text, True, Constant.turn_to_color[self.engine.turn])
-        self.win.blit(text_surf, (self.counter_icon_display_x + Constant.SQ_SIZE, self.turn_icon_display_y-self.text_vertical_offset))
+        self.win.blit(text_surf, (self.counter_icon_display_x + Constant.SQ_SIZE, self.turn_icon_display_y - self.text_vertical_offset))
 
     def mouse_move(self):
         pos = pygame.mouse.get_pos()

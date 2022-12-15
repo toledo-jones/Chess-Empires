@@ -73,7 +73,7 @@ class Engine:
 
         self.prayer_stone_rituals = []
         self.prayer_stone_rituals.append(self.generate_available_rituals(Constant.PRAYER_STONE_RITUALS,
-                                                                                       Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN))
+                                                                         Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN))
 
         self.events = []
         self.players = {}

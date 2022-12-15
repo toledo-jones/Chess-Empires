@@ -506,7 +506,8 @@ class ChangeTurn(GameEvent):
         protected_tiles = self.protected_tiles
         self.engine.tick_protected_tiles(protected_tiles)
         if self.engine.turn_count_actual == len(self.engine.prayer_stone_rituals) - 1:
-            self.engine.prayer_stone_rituals.append(self.engine.generate_available_rituals(Constant.PRAYER_STONE_RITUALS, Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN))
+            self.engine.prayer_stone_rituals.append(self.engine.generate_available_rituals(
+                Constant.PRAYER_STONE_RITUALS, Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN))
         if self.engine.turn_count_actual == len(self.engine.monolith_rituals) - 1:
             self.engine.monolith_rituals.append(self.engine.generate_available_rituals(Constant.MONOLITH_RITUALS, Constant.MAX_MONOLITH_RITUALS_PER_TURN))
         unused_pieces = self.engine.count_unused_pieces()

@@ -38,71 +38,13 @@ class Starting(State):
     def __init__(self, win, engine):
         super().__init__(win, engine)
         self.side_bar = StartMenu(win, engine)
-        a = (self.side_bar.menu_height * 1 / 5)
-        self.r = round((self.side_bar.menu_height - a))
-        self.b_display_x = Constant.BOARD_WIDTH_PX + round(
-            self.side_bar.menu_width - (self.side_bar.menu_width ** 1 / 4))
-        self.w_display_x = Constant.BOARD_WIDTH_PX + round(
-            self.side_bar.menu_width ** 1 / 3 - Constant.IMAGES['w_boat'].get_width())
-        self.display_y = Constant.SQ_SIZE * 6
 
-        self.w_piece_highlight = False
-        self.b_piece_highlight = False
-        self.randomize_resources_highlight = False
-        self.scale = Constant.BOAT_PIECE_SCALE
-        self.buffer = self.scale[0]
-        self.square = pygame.Surface((round(self.scale[0] * .8), round(self.scale[1] * .8)))
-        self.square_highlight_buffer = Constant.SQ_SIZE // 5
-        self.w_square_display_x = Constant.BOARD_WIDTH_PX
-        self.b_square_display_x = Constant.BOARD_WIDTH_PX + self.side_bar.menu_width - self.square.get_width()
-        self.square_display_y = self.display_y + self.square_highlight_buffer + Constant.SQ_SIZE // 10
-        self.resources_square = pygame.Surface((self.side_bar.menu_width, round(a)))
 
     def __repr__(self):
         return 'starting'
 
     def select(self, row, col):
         pass
-
-    def left_click(self):
-        #
-        #   Implementing a new selection screen here
-        #
-
-        for menu in self.engine.menus:
-            menu.left_click()
-        self.side_bar.left_click()
-        starting = False
-        pos = pygame.mouse.get_pos()
-
-        if pos[0] > Constant.BOARD_WIDTH_PX:
-            if pos[1] in range(self.display_y - self.buffer, self.display_y + self.buffer):
-                if pos[0] in range(self.w_display_x - self.buffer, self.w_display_x + self.buffer):
-                    self.engine.turn = 'w'
-                    starting = True
-                elif pos[0] in range(self.b_display_x - self.buffer, self.b_display_x + self.buffer):
-                    self.engine.turn = 'b'
-                    starting = True
-                if starting:
-                    self.engine.spawning = Constant.STARTING_PIECES[0]
-                    new_state = StartingSpawn(self.win, self.engine)
-
-                    #
-                    #   Here's where we break off for the starting piece selection menu
-                    #
-
-                    # new_state = SelectStartingPieces(self.win, self.engine)
-                    self.engine.set_state(new_state)
-            elif pos[1] in range(self.r, self.side_bar.menu_height):
-                self.engine.reset_board()
-                self.engine.starting_resources()
-                rand = random.randint(0, len(Constant.FACTION_NAMES) - 1)
-                Constant.FACTION = Constant.FACTION_NAMES[rand]
-                rand = random.randint(0, 2)
-                if rand == 0:
-                    Constant.INTRO_TEXT_COLOR = Constant.WHITE
-                else:
-                    Constant.INTRO_TEXT_COLOR = Constant.BLACK
 
     def right_click(self):
         self.engine.events = []
@@ -113,45 +55,15 @@ class Starting(State):
         new_state = Starting(self.win, self.engine)
         self.engine.set_state(new_state)
 
-    def mouse_move(self):
-        pos = pygame.mouse.get_pos()
-        if pos[0] > Constant.BOARD_WIDTH_PX:
-            if pos[1] in range(self.display_y - self.buffer, self.display_y + self.buffer):
-                if pos[0] in range(self.w_display_x - self.buffer, self.w_display_x + self.buffer):
-                    self.w_piece_highlight = True
-                else:
-                    self.w_piece_highlight = False
+    def left_click(self):
+        self.side_bar.left_click()
 
-                if pos[0] in range(self.b_display_x - self.buffer, self.b_display_x + self.buffer):
-                    self.b_piece_highlight = True
-                else:
-                    self.b_piece_highlight = False
-            else:
-                self.w_piece_highlight = False
-                self.b_piece_highlight = False
-            if pos[1] in range(self.r, self.side_bar.menu_height):
-                self.randomize_resources_highlight = True
-            else:
-                self.randomize_resources_highlight = False
-        else:
-            self.w_piece_highlight = False
-            self.b_piece_highlight = False
-            self.randomize_resources_highlight = False
+    def mouse_move(self):
+        self.side_bar.mouse_move()
 
     def draw(self):
         super().draw()
-
         self.side_bar.draw()
-        self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
-        self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
-        self.resources_square.set_alpha(Constant.HIGHLIGHT_ALPHA)
-        self.resources_square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
-        if self.b_piece_highlight:
-            self.win.blit(self.square, (self.b_square_display_x, self.square_display_y))
-        elif self.w_piece_highlight:
-            self.win.blit(self.square, (self.w_square_display_x, self.square_display_y))
-        elif self.randomize_resources_highlight:
-            self.win.blit(self.resources_square, (Constant.BOARD_WIDTH_PX, round(Constant.BOARD_HEIGHT_PX * 4 / 5)))
 
     def enter(self):
         pass

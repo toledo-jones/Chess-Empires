@@ -87,7 +87,7 @@ CASTLE_MENU_SPAWN_LIST = ['pawn', 'builder', 'pikeman', 'monk']
 BUILDER_MENU_SPAWN_LIST = ['quarry_1', 'prayer_stone', 'stable', 'monolith', 'castle', 'barracks', 'fortress']
 BARRACKS_MENU_SPAWN_LIST = ['queen', 'duke', 'jester', 'rook', 'bishop']
 
-DEFAULT_ACTIONS_REMAINING = 4
+DEFAULT_ACTIONS_REMAINING = 3
 ACTIONS_UPDATE_ON_SPAWN = False
 
 CASTLE_ADDITIONAL_ACTIONS = 1
@@ -595,44 +595,44 @@ def load_images():
     for image in images:
         scale = IMAGES_IMAGE_MODIFY[image]['SCALE']
         IMAGES[image] = pygame.transform.scale(pygame.image.load(os.path.join("resources/images", image + ".png")),
-                                               (scale[0], scale[1]))
+                                               (scale[0], scale[1])).convert_alpha()
     for resource in resources:
         scale = RESOURCES_IMAGE_MODIFY[resource]['SCALE']
         RESOURCES[resource] = pygame.transform.scale(
             pygame.image.load(os.path.join("resources/resources", resource + ".png")),
-            (scale[0], scale[1]))
+            (scale[0], scale[1])).convert_alpha()
     for menu_icon in menu_icons:
         scale = MENU_ICONS_IMAGE_MODIFY[menu_icon]['SCALE']
         MENU_ICONS[menu_icon] = pygame.transform.scale(
             pygame.image.load(os.path.join("resources/menu_icons", menu_icon + ".png")),
-            (scale[0], scale[1]))
+            (scale[0], scale[1])).convert_alpha()
 
     for piece in w_pieces:
         scale = PIECE_IMAGE_MODIFY[piece_color_to_type(piece)]['SCALE']
         W_PIECES[piece] = pygame.transform.scale(pygame.image.load(os.path.join("resources/pieces", piece + ".png")),
-                                                 (scale[0], scale[1]))
+                                                 (scale[0], scale[1])).convert_alpha()
     for piece in w_buildings:
         scale = PIECE_IMAGE_MODIFY[piece_color_to_type(piece)]['SCALE']
         W_BUILDINGS[piece] = pygame.transform.scale(pygame.image.load(os.path.join("resources/pieces", piece + ".png")),
-                                                    (scale[0], scale[1]))
+                                                    (scale[0], scale[1])).convert_alpha()
     for piece in b_pieces:
         scale = PIECE_IMAGE_MODIFY[piece_color_to_type(piece)]['SCALE']
         B_PIECES[piece] = pygame.transform.scale(pygame.image.load(os.path.join("resources/pieces", piece + ".png")),
-                                                 (scale[0], scale[1]))
+                                                 (scale[0], scale[1])).convert_alpha()
     for piece in b_buildings:
         scale = PIECE_IMAGE_MODIFY[piece_color_to_type(piece)]['SCALE']
         B_BUILDINGS[piece] = pygame.transform.scale(pygame.image.load(os.path.join("resources/pieces", piece + ".png")),
-                                                    (scale[0], scale[1]))
+                                                    (scale[0], scale[1])).convert_alpha()
 
     for ritual in w_prayer_rituals:
         scale = RITUAL_IMAGE_MODIFY[piece_color_to_type(ritual)]['SCALE']
         PRAYER_RITUALS[ritual] = pygame.transform.scale(
-            pygame.image.load(os.path.join("resources/prayer_rituals", ritual + ".png")), (scale[0], scale[1]))
+            pygame.image.load(os.path.join("resources/prayer_rituals", ritual + ".png")), (scale[0], scale[1])).convert_alpha()
 
     for ritual in b_prayer_rituals:
         scale = RITUAL_IMAGE_MODIFY[piece_color_to_type(ritual)]['SCALE']
         PRAYER_RITUALS[ritual] = pygame.transform.scale(
-            pygame.image.load(os.path.join("resources/prayer_rituals", ritual + ".png")), (scale[0], scale[1]))
+            pygame.image.load(os.path.join("resources/prayer_rituals", ritual + ".png")), (scale[0], scale[1])).convert_alpha()
 
 
 def piece_color_to_type(color_piece):

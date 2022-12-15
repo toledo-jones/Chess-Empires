@@ -577,14 +577,32 @@ class StartMenu(SideMenu):
         self.faction_text_display_y = self.your_text_display_y + Constant.SQ_SIZE
         self.w_boat = Constant.IMAGES['w_boat']
         self.b_boat = Constant.IMAGES['b_boat']
-        self.b_display_x = self.menu_width - (self.menu_width ** 1 / 3)
-        self.w_display_x = self.menu_width ** 1 / 3 - self.w_boat.get_width()
+        self.b_display_x = self.menu_width - round(self.menu_width ** 1 / 3)
+        self.w_display_x = 0
         self.boat_display_y = Constant.SQ_SIZE * 6
+        a = (self.menu_height * 1 / 5)
+        self.r = round((self.menu_height - a))
+        self.display_y = Constant.SQ_SIZE * 6
+
+        self.w_piece_highlight = False
+        self.b_piece_highlight = False
+        self.randomize_resources_highlight = False
+        self.scale = Constant.BOAT_PIECE_SCALE
+        self.buffer = self.scale[0]
+        self.square = pygame.Surface((round(self.scale[0] * .8), round(self.scale[1] * .8)))
+        self.square_highlight_buffer = Constant.SQ_SIZE // 5
+        self.w_square_display_x = 0
+        self.b_square_display_x = self.b_display_x
+        self.square_display_y = self.display_y + self.square_highlight_buffer + Constant.SQ_SIZE // 10
+        self.resources_square = pygame.Surface((self.menu_width, round(a)))
+        self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
+        self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
+        self.resources_square.set_alpha(Constant.HIGHLIGHT_ALPHA)
+        self.resources_square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
 
     def draw(self):
         self.menu.fill(Constant.MENU_COLOR)
         self.menu.blit(self.version_text_surf, (self.version_text_display_x, Constant.SQ_SIZE))
-        self.menu.blit(self.reset_map_image, (self.reset_map_display_x, Constant.BOARD_HEIGHT_PX - self.map_image_height))
         self.menu.blit(self.choose_text_surf, (self.choose_text_display_x, self.choose_text_display_y))
         self.menu.blit(self.your_text_surf, (self.choose_text_display_x, self.your_text_display_y))
         self.faction_text = Constant.FACTION
@@ -592,7 +610,80 @@ class StartMenu(SideMenu):
         self.menu.blit(self.faction_text_surf, (self.choose_text_display_x, self.faction_text_display_y))
         self.menu.blit(self.w_boat, (self.w_display_x, self.boat_display_y))
         self.menu.blit(self.b_boat, (self.b_display_x, self.boat_display_y))
-        self.win.blit(self.menu, (Constant.BOARD_WIDTH_SQ * Constant.SQ_SIZE, 0))
+        if self.b_piece_highlight:
+            self.menu.blit(self.square, (self.b_square_display_x, self.square_display_y))
+        elif self.w_piece_highlight:
+            self.menu.blit(self.square, (self.w_square_display_x, self.square_display_y))
+        elif self.randomize_resources_highlight:
+            self.menu.blit(self.resources_square, (0, round(Constant.BOARD_HEIGHT_PX * 4 / 5)))
+        self.menu.blit(self.reset_map_image,
+                       (self.reset_map_display_x, Constant.BOARD_HEIGHT_PX - self.map_image_height))
+
+        self.win.blit(self.menu, (Constant.BOARD_WIDTH_PX, 0))
+
+    def left_click(self):
+        starting = False
+        pos = pygame.mouse.get_pos()
+        if pos[0] > Constant.BOARD_WIDTH_PX:
+            menu_mouse_x_position = pos[0] - Constant.BOARD_WIDTH_PX
+            if pos[1] in range(self.display_y - self.buffer, self.display_y + self.buffer):
+                if menu_mouse_x_position in range(self.w_display_x - self.buffer, self.w_display_x + self.buffer):
+                    self.engine.turn = 'w'
+                    starting = True
+                    print("clicking white")
+                elif menu_mouse_x_position in range(self.b_display_x - self.buffer, self.b_display_x + self.buffer):
+                    self.engine.turn = 'b'
+                    starting = True
+                    print("clicking black")
+
+                if starting:
+                    self.engine.spawning = Constant.STARTING_PIECES[0]
+                    new_state = 'start spawn'
+
+                    #
+                    #   Here's where we break off for the starting piece selection menu
+                    #
+
+                    # new_state = SelectStartingPieces(self.win, self.engine)
+                    self.engine.set_state(new_state)
+            elif pos[1] in range(self.r, self.menu_height):
+                self.engine.reset_board()
+                self.engine.starting_resources()
+                rand = random.randint(0, len(Constant.FACTION_NAMES) - 1)
+                Constant.FACTION = Constant.FACTION_NAMES[rand]
+                rand = random.randint(0, 2)
+                if rand == 0:
+                    Constant.INTRO_TEXT_COLOR = Constant.WHITE
+                else:
+                    Constant.INTRO_TEXT_COLOR = Constant.BLACK
+
+    def mouse_move(self):
+        pos = pygame.mouse.get_pos()
+        if pos[0] > Constant.BOARD_WIDTH_PX:
+            menu_mouse_x_position = pos[0] - Constant.BOARD_WIDTH_PX
+            if pos[1] in range(self.display_y - self.buffer, self.display_y + self.buffer):
+                if menu_mouse_x_position in range(self.w_display_x - self.buffer, self.w_display_x + self.buffer):
+                    self.w_piece_highlight = True
+
+                else:
+                    self.w_piece_highlight = False
+
+                if menu_mouse_x_position in range(self.b_display_x - self.buffer, self.b_display_x + self.buffer):
+                    self.b_piece_highlight = True
+
+                else:
+                    self.b_piece_highlight = False
+            else:
+                self.w_piece_highlight = False
+                self.b_piece_highlight = False
+            if pos[1] in range(self.r, self.menu_height):
+                self.randomize_resources_highlight = True
+            else:
+                self.randomize_resources_highlight = False
+        else:
+            self.w_piece_highlight = False
+            self.b_piece_highlight = False
+            self.randomize_resources_highlight = False
 
 
 class SurrenderMenu(SideMenu):
@@ -702,18 +793,17 @@ class Hud(SideMenu):
         self.text_vertical_offset = self.font_size // 2 - Constant.MENU_ICONS['log'].get_height() // 2
         self.square = pygame.Surface((Constant.SIDE_MENU_WIDTH, round(Constant.SIDE_MENU_HEIGHT * .25)))
         self.title_bar_highlight = False
+        self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
+        self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
 
     def draw(self):
         self.menu.fill(Constant.MENU_COLOR)
+        if self.title_bar_highlight:
+            self.menu.blit(self.square, (0, 0))
         self.menu.blit(Constant.IMAGES[self.engine.turn + '_game_name'],
                        (self.title_icon_display_x, self.title_icon_display_y))
-
         self.win.blit(self.menu, (Constant.BOARD_WIDTH_PX, 0))
-        if self.title_bar_highlight:
-            self.win.blit(self.square, (Constant.BOARD_WIDTH_PX, 0))
 
-        self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
-        self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
         # Gold Counter
         if not self.engine.players[self.engine.turn].gold == 0:
             self.win.blit(Constant.IMAGES['gold_coin'], (self.counter_icon_display_x, self.coin_icon_display_y))

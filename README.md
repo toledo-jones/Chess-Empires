@@ -5,6 +5,10 @@ Pass & Play Chess Variant.
 https://drive.google.com/file/d/1vUxxwP95c_EvngJR9COm9I6hgr7oH8n9/view?usp=share_link
 
 
+-- fully playable windows .exe -- 
+https://drive.google.com/file/d/1UNGAStDAwMkB_XljZG76pZNnNQy9uhRm/view?usp=sharing
+
+
 
 -- FEATURES -- 
 

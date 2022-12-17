@@ -630,11 +630,9 @@ class StartMenu(SideMenu):
                 if menu_mouse_x_position in range(self.w_display_x - self.buffer, self.w_display_x + self.buffer):
                     self.engine.turn = 'w'
                     starting = True
-                    print("clicking white")
                 elif menu_mouse_x_position in range(self.b_display_x - self.buffer, self.b_display_x + self.buffer):
                     self.engine.turn = 'b'
                     starting = True
-                    print("clicking black")
 
                 if starting:
                     self.engine.spawning = Constant.STARTING_PIECES[0]

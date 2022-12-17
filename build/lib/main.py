@@ -1,8 +1,5 @@
-import pygame
-
-import Constant
 from Engine import Engine
-from State import Starting
+from State import *
 
 
 def main():
@@ -25,16 +22,16 @@ def main():
     while running:
         # EVENT LOOP
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            # LEFT CLICK x
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                engine.state[-1].left_click()
+            elif event.type == pygame.QUIT:
                 running = False
                 pygame.quit()
                 quit()
             # MOUSE MOVE:
             elif event.type == pygame.MOUSEMOTION:
                 engine.state[-1].mouse_move()
-            # LEFT CLICK:
-            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                engine.state[-1].left_click()
             # RIGHT CLICK
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
                 engine.state[-1].right_click()

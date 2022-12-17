@@ -39,7 +39,6 @@ class Starting(State):
         super().__init__(win, engine)
         self.side_bar = StartMenu(win, engine)
 
-
     def __repr__(self):
         return 'starting'
 
@@ -678,15 +677,15 @@ class Playing(State):
                     if p.get_color() is self.engine.turn:
                         if click_king():
                             pass
+                        elif click_pawn():
+                            pass
+                        elif click_monk():
+                            pass
                         elif p.actions_remaining > 0:
                             if self.engine.player_can_do_action(self.engine.turn):
                                 if click_castle():
                                     pass
-                                elif click_pawn():
-                                    pass
                                 elif click_barracks():
-                                    pass
-                                elif click_monk():
                                     pass
                                 elif click_fortress():
                                     pass

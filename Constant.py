@@ -87,17 +87,20 @@ CASTLE_MENU_SPAWN_LIST = ['pawn', 'builder', 'pikeman', 'monk']
 BUILDER_MENU_SPAWN_LIST = ['quarry_1', 'prayer_stone', 'stable', 'monolith', 'castle', 'barracks', 'fortress']
 BARRACKS_MENU_SPAWN_LIST = ['queen', 'duke', 'jester', 'rook', 'bishop']
 
-DEFAULT_ACTIONS_REMAINING = 3
+DEFAULT_ACTIONS_REMAINING = 1
 ACTIONS_UPDATE_ON_SPAWN = False
+MINING_COSTS_ACTION = False
+PRAYING_COSTS_ACTION = False
 
-CASTLE_ADDITIONAL_ACTIONS = 1
-BARRACKS_ADDITIONAL_ACTIONS = 1
-FORTRESS_ADDITIONAL_ACTIONS = 1
-STABLE_ADDITIONAL_ACTIONS = 1
-MONOLITH_ADDITIONAL_ACTIONS = 1
-PRAYER_STONE_ADDITIONAL_ACTIONS = 1
 
-DEFAULT_PIECE_LIMIT = 4
+CASTLE_ADDITIONAL_ACTIONS = 0
+BARRACKS_ADDITIONAL_ACTIONS = 0
+FORTRESS_ADDITIONAL_ACTIONS = 0
+STABLE_ADDITIONAL_ACTIONS = 0
+MONOLITH_ADDITIONAL_ACTIONS = 0
+PRAYER_STONE_ADDITIONAL_ACTIONS = 0
+
+DEFAULT_PIECE_LIMIT = 3
 PIECE_COSTS = {'king': {'log': 99, 'gold': 99, 'stone': 99},
                'quarry_1': {'log': 1, 'gold': 1, 'stone': 0},
                'pawn': {'log': 4, 'gold': 2, 'stone': 0},
@@ -357,8 +360,10 @@ b_pieces = ['b_king', 'b_queen', 'b_rook', 'b_bishop',
 b_buildings = ['b_castle', 'b_fortress', 'b_barracks',
                'b_wall', 'b_monolith', 'b_prayer_stone',
                'b_flag', 'b_barracks', 'b_war_tower', 'b_stable']
-w_prayer_rituals = ['w_gold_general', 'w_smite', 'w_destroy_resource', 'w_create_resource', 'w_teleport', 'w_swap', 'w_line_destroy', 'w_protect']
-b_prayer_rituals = ['b_gold_general', 'b_smite', 'b_destroy_resource', 'b_create_resource', 'b_teleport', 'b_swap', 'b_line_destroy', 'b_protect']
+w_prayer_rituals = ['w_gold_general', 'w_smite', 'w_destroy_resource', 'w_create_resource', 'w_teleport',
+                    'w_swap', 'w_line_destroy', 'w_protect']
+b_prayer_rituals = ['b_gold_general', 'b_smite', 'b_destroy_resource', 'b_create_resource', 'b_teleport', 'b_swap',
+                    'b_line_destroy', 'b_protect']
 images = ['icon', 'pickaxe', 'w_game_name', 'b_game_name', 'prayer', 'gold_coin', 'log', 'action', 'prayer_bar_end',
           'units', 'prayer', 'prayer_bar', 'stone', 'w_boat', 'b_boat', 'hour_glass', 'hammer', 'axe',
           'resources_button',

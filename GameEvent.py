@@ -289,7 +289,8 @@ class Mine(GameEvent):
                 engine.create_resource(self.mined.row, self.mined.col, DepletedQuarry(self.mined.row, self.mined.col))
             else:
                 engine.delete_resource(self.mined.row, self.mined.col)
-        engine.players[engine.turn].do_action()
+        if Constant.MINING_COSTS_ACTION:
+            engine.players[engine.turn].do_action()
         super().complete(engine)
 
     def undo(self, engine):
@@ -308,7 +309,8 @@ class Mine(GameEvent):
         engine.get_resource(row, col).sprite_id = self.sprite_id
         unused_pieces = engine.count_unused_pieces()
         engine.reset_unused_piece_highlight()
-        engine.players[engine.turn].undo_action()
+        if Constant.MINING_COSTS_ACTION:
+            engine.players[engine.turn].undo_action()
 
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
@@ -334,14 +336,16 @@ class Pray(GameEvent):
         self.play_random_sound_effect()
         self.praying_piece.actions_remaining -= 1
         engine.players[engine.turn].pray(self.prayed_on)
-        engine.players[engine.turn].do_action()
+        if Constant.PRAYING_COSTS_ACTION:
+            engine.players[engine.turn].do_action()
 
     def undo(self, engine):
         praying_piece = engine.get_occupying(self.praying_piece.row, self.praying_piece.col)
         praying_piece.actions_remaining += 1
         self.play_random_sound_effect()
         engine.players[engine.turn].un_pray(self.prayed_on)
-        engine.players[engine.turn].undo_action()
+        if Constant.PRAYING_COSTS_ACTION:
+            engine.players[engine.turn].undo_action()
         unused_pieces = engine.count_unused_pieces()
         engine.reset_unused_piece_highlight()
         for piece in unused_pieces:

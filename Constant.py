@@ -81,11 +81,11 @@ PRAYER_STONE_RITUALS = ['destroy_resource', 'create_resource', 'teleport', 'swap
 MAX_MONOLITH_RITUALS_PER_TURN = 3
 MAX_PRAYER_STONE_RITUALS_PER_TURN = 3
 
-STABLE_MENU_SPAWN_LIST = ['unicorn', 'elephant', 'knight']
+STABLE_MENU_SPAWN_LIST = ['unicorn', 'ram', 'elephant', 'knight']
 FORTRESS_MENU_SPAWN_LIST = ['rogue_rook', 'rogue_bishop', 'rogue_knight', 'rogue_pawn']
 CASTLE_MENU_SPAWN_LIST = ['pawn', 'builder', 'pikeman', 'monk']
 BUILDER_MENU_SPAWN_LIST = ['quarry_1', 'prayer_stone', 'stable', 'monolith', 'castle', 'barracks', 'fortress']
-BARRACKS_MENU_SPAWN_LIST = ['queen', 'duke', 'jester', 'rook', 'bishop']
+BARRACKS_MENU_SPAWN_LIST = ['queen', 'jester', 'rook', 'bishop']
 
 DEFAULT_ACTIONS_REMAINING = 1
 ACTIONS_UPDATE_ON_SPAWN = False
@@ -105,27 +105,29 @@ PIECE_COSTS = {'king': {'log': 99, 'gold': 99, 'stone': 99},
                'quarry_1': {'log': 0, 'gold': 2, 'stone': 0},
                'pawn': {'log': 4, 'gold': 2, 'stone': 0},
                'builder': {'log': 3, 'gold': 3, 'stone': 0},
-               'monk': {'log': 4, 'gold': 0, 'stone': 1},
+               'monk': {'log': 4, 'gold': 0, 'stone': 0},
                'pikeman': {'log': 0, 'gold': 3, 'stone': 2},
-               'castle': {'log': 8, 'gold': 8, 'stone': 0},
-               'stable': {'log': 12, 'gold': 0, 'stone': 12},
-               'barracks': {'log': 0, 'gold': 8, 'stone': 8},
+               'castle': {'log': 8, 'gold': 0, 'stone': 0},
+               'stable': {'log': 12, 'gold': 4, 'stone': 0},
+               'barracks': {'log': 0, 'gold': 8, 'stone': 0},
                'fortress': {'log': 0, 'gold': 12, 'stone': 12},
                'queen': {'log': 8, 'gold': 8, 'stone': 8},
                'rook': {'log': 0, 'gold': 6, 'stone': 6},
                'bishop': {'log': 0, 'gold': 3, 'stone': 1},
                'knight': {'log': 0, 'gold': 3, 'stone': 0},
-               'jester': {'log': 0, 'gold': 12, 'stone': 0},
-               'rogue_rook': {'log': 0, 'gold': 12, 'stone': 12},
-               'rogue_bishop': {'log': 6, 'gold': 6, 'stone': 0},
-               'rogue_knight': {'log': 0, 'gold': 6, 'stone': 0},
+               'jester': {'log': 0, 'gold': 10, 'stone': 0},
+               'rogue_rook': {'log': 0, 'gold': 14, 'stone': 14},
+               'rogue_bishop': {'log': 9, 'gold': 9, 'stone': 0},
+               'rogue_knight': {'log': 0, 'gold': 9, 'stone': 0},
                'rogue_pawn': {'log': 6, 'gold': 0, 'stone': 0},
-               'elephant': {'log': 5, 'gold': 5, 'stone': 0},
-               'duke': {'log': 0, 'gold': 6, 'stone': 6},
-               'unicorn': {'log': 0, 'gold': 8, 'stone': 8},
+               'elephant': {'log': 0, 'gold': 6, 'stone': 0},
+               'ram': {'log': 0, 'gold': 6, 'stone': 0},
+               'unicorn': {'log': 0, 'gold': 0, 'stone': 0},
                'monolith': {'log': 0, 'gold': 0, 'stone': 10},
                'prayer_stone': {'log': 0, 'gold': 0, 'stone': 2},
+               'duke': {'log': 10, 'gold': 10, 'stone': 10},
                'gold_general': {'log': 99, 'gold': 99, 'stone': 99}}
+
 
 PIECE_POPULATION = {'king': 1,
                     'queen': 2,
@@ -156,7 +158,8 @@ PIECE_POPULATION = {'king': 1,
                     'builder': 1,
                     'quarry_1': 0,
                     'stable': 0,
-                    'unicorn': 1}
+                    'unicorn': 1,
+                    'ram': 1}
 
 PRAYER_COSTS = {'gold_general': {'prayer': 8, 'monk': 2},
                 'smite': {'prayer': 6, 'monk': 1},
@@ -195,7 +198,8 @@ ADDITIONAL_PIECE_LIMIT = {'castle': 4, 'barracks': 3, 'fortress': 3, 'stable': 3
                           'war_tower': 0,
                           'quarry_1': 0,
                           'builder': 0,
-                          'unicorn': 0}
+                          'unicorn': 0,
+                          'ram': 0}
 TOTAL_GOLD_ON_MAP = 6
 
 WOOD_TOTAL_MINED = 1
@@ -340,7 +344,8 @@ w_pieces = ['w_king',
             'w_rogue_pawn',
             'w_rogue_knight',
             'w_builder',
-            'w_unicorn']
+            'w_unicorn',
+            'w_ram']
 w_buildings = ['w_castle',
                'w_fortress',
                'w_barracks',
@@ -356,7 +361,7 @@ b_pieces = ['b_king', 'b_queen', 'b_rook', 'b_bishop',
             'b_rogue_bishop', 'b_jester', 'b_pikeman',
             'b_gold_general', 'b_silver_general',
             'b_rogue_rook', 'b_elephant', 'b_elephant_cart',
-            'b_champion', 'b_rogue_pawn', 'b_rogue_knight', 'b_builder', 'b_unicorn']
+            'b_champion', 'b_rogue_pawn', 'b_rogue_knight', 'b_builder', 'b_unicorn', 'w_ram']
 b_buildings = ['b_castle', 'b_fortress', 'b_barracks',
                'b_wall', 'b_monolith', 'b_prayer_stone',
                'b_flag', 'b_barracks', 'b_war_tower', 'b_stable']
@@ -420,6 +425,7 @@ PIECE_IMAGE_MODIFY = {'king': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'war_tower': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'builder': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'unicorn': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
+                    'ram': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'stable': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       }
 

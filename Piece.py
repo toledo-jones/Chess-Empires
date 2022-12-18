@@ -1061,9 +1061,9 @@ class Monk(Piece):
         return spawn_squares
 
 
-class Duke(Piece):
+class Ram(Piece):
     def __repr__(self):
-        return 'duke'
+        return 'ram'
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)

@@ -86,7 +86,7 @@ class Engine:
                        'castle': Castle,
                        'monk': Monk,
                        'fortress': Fortress,
-                       'duke': Duke,
+                       'ram': Ram,
                        'champion': Champion,
                        'elephant': Elephant,
                        'barracks': Barracks,

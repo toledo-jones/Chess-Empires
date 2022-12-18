@@ -245,6 +245,52 @@ class Spawn(GameEvent):
             Constant.PIECE_SPAWNING_SOUNDS[i].play()
 
 
+class Steal(GameEvent):
+    def __init__(self, stolen_from, thief):
+        #
+        #   Call Parent __init__ Method
+        #
+        super().__init__()
+
+        #
+        #   Store the Resource() Object as Mined
+        #   Store the Piece() Object as Miner
+        #
+        self.stolen_from = stolen_from
+        self.thief = thief
+
+        #
+        #   Store the List of Values which dictate the offset when mining each material.
+        #   Offset is +1, -1 or 0. This is how much is added to the default value when mining.
+        #
+
+
+    def complete(self, engine):
+        self.play_random_sound_effect()
+        self.thief.actions_remaining -= 1
+        engine.players[engine.turn].steal()
+        if Constant.STEALING_COSTS_ACTION:
+            engine.players[engine.turn].do_action()
+
+    def undo(self, engine):
+        thief = engine.get_occupying(self.thief.row, self.thief.col)
+        thief.actions_remaining += 1
+        self.play_random_sound_effect()
+        engine.players[engine.turn].un_pray(self.stolen_from)
+        if Constant.STEALING_COSTS_ACTION:
+            engine.players[engine.turn].undo_action()
+        unused_pieces = engine.count_unused_pieces()
+        engine.reset_unused_piece_highlight()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+
+    def play_random_sound_effect(self):
+        i = random.randint(0, len(Constant.pray) - 1)
+        Constant.PRAY_SOUNDS[i].set_volume(.5)
+        Constant.PRAY_SOUNDS[i].play()
+
+
+
 class Mine(GameEvent):
     def __init__(self, mined, miner):
         #

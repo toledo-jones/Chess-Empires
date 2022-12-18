@@ -1,5 +1,8 @@
 import Constant
 
+from Piece import Piece
+from Building import Building
+
 
 class Player:
     def __init__(self, color):
@@ -27,6 +30,13 @@ class Player:
 
     def __repr__(self):
         return self.color
+
+    def steal(self, from_piece, from_player):
+        base_stealing_values = None
+        if isinstance(from_piece, Piece):
+            base_stealing_values = Constant.STOLEN_FROM_PIECE
+        else:
+            pass
 
     def mine(self, resource, offset):
         if str(resource) == 'gold_tile_1':

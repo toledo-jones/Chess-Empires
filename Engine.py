@@ -60,6 +60,7 @@ class Engine:
         self.final_spawn = False
         self.side_bar = None
         self.surrendering = False
+        self.stealing = False
         self.menus = []
         self.state = []
         self.protected_tiles = []
@@ -74,6 +75,8 @@ class Engine:
         self.prayer_stone_rituals = []
         self.prayer_stone_rituals.append(self.generate_available_rituals(Constant.PRAYER_STONE_RITUALS,
                                                                          Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN))
+        self.piece_stealing_offsets = []
+        self.building_stealing_offsets = []
 
         self.events = []
         self.players = {}
@@ -101,7 +104,8 @@ class Engine:
                        'builder': Builder,
                        'unicorn': Unicorn,
                        'stable': Stable,
-                       'gold_general': GoldGeneral}
+                       'gold_general': GoldGeneral,
+                       'duke': Duke}
         self.STATES = {'playing': Playing,
                        'mining': Mining,
                        'spawning': Spawning,
@@ -134,7 +138,6 @@ class Engine:
         self.create_player('w')
         self.create_player('b')
 
-
     def generate_available_rituals(self, potential_rituals, limit):
         length_of_new_ritual_list = random.randint(1, limit)
         available_rituals = []
@@ -144,7 +147,6 @@ class Engine:
             available_rituals.append(potential_rituals[i])
 
         return available_rituals
-
 
     def create_player(self, color):
         #
@@ -628,13 +630,24 @@ class Engine:
             if isinstance(p, Pawn) or isinstance(p, RoguePawn):
                 return True
 
+    def has_rook(self, r, c):
+        if Constant.tile_in_bounds(r, c):
+            p = self.board[r][c].get_occupying()
+            if isinstance(p, Rook):
+                return True
+
+
+    def has_bishop(self, r, c):
+        if Constant.tile_in_bounds(r, c):
+            p = self.board[r][c].get_occupying()
+            if isinstance(p, Bishop):
+                return True
+
     def has_duke(self, r, c):
         if Constant.tile_in_bounds(r, c):
             p = self.board[r][c].get_occupying()
             if isinstance(p, Duke):
                 return True
-            else:
-                return False
 
     def has_castle(self, r, c):
         if Constant.tile_in_bounds(r, c):

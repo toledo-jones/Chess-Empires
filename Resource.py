@@ -112,7 +112,7 @@ class DepletedQuarry(Resource):
     def __init__(self, row, col, owner=None):
         self.sprite_id = 1
         super().__init__(row, col, owner)
-        self.remaining = Constant.DEPLETED_QUARRY_REMAINING
+        self.remaining = Constant.DEPLETED_QUARRY_TOTAL_MINED
         self.offsetIndex = []
         self.yield_per_harvest = Constant.DEPLETED_QUARRY_YIELD_PER_HARVEST
         self.owner = owner

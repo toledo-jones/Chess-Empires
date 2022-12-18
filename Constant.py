@@ -102,29 +102,29 @@ PRAYER_STONE_ADDITIONAL_ACTIONS = 0
 
 DEFAULT_PIECE_LIMIT = 3
 PIECE_COSTS = {'king': {'log': 99, 'gold': 99, 'stone': 99},
-               'quarry_1': {'log': 1, 'gold': 1, 'stone': 0},
+               'quarry_1': {'log': 0, 'gold': 2, 'stone': 0},
                'pawn': {'log': 4, 'gold': 2, 'stone': 0},
-               'builder': {'log': 6, 'gold': 2, 'stone': 0},
-               'monk': {'log': 4, 'gold': 0, 'stone': 2},
-               'pikeman': {'log': 0, 'gold': 3, 'stone': 3},
+               'builder': {'log': 3, 'gold': 3, 'stone': 0},
+               'monk': {'log': 4, 'gold': 0, 'stone': 1},
+               'pikeman': {'log': 0, 'gold': 3, 'stone': 2},
                'castle': {'log': 8, 'gold': 8, 'stone': 0},
                'stable': {'log': 12, 'gold': 0, 'stone': 12},
                'barracks': {'log': 0, 'gold': 8, 'stone': 8},
                'fortress': {'log': 0, 'gold': 12, 'stone': 12},
-               'queen': {'log': 10, 'gold': 10, 'stone': 10},
+               'queen': {'log': 8, 'gold': 8, 'stone': 8},
                'rook': {'log': 0, 'gold': 6, 'stone': 6},
-               'bishop': {'log': 3, 'gold': 3, 'stone': 0},
+               'bishop': {'log': 0, 'gold': 3, 'stone': 1},
                'knight': {'log': 0, 'gold': 3, 'stone': 0},
                'jester': {'log': 0, 'gold': 12, 'stone': 0},
                'rogue_rook': {'log': 0, 'gold': 12, 'stone': 12},
                'rogue_bishop': {'log': 6, 'gold': 6, 'stone': 0},
                'rogue_knight': {'log': 0, 'gold': 6, 'stone': 0},
                'rogue_pawn': {'log': 6, 'gold': 0, 'stone': 0},
-               'elephant': {'log': 0, 'gold': 5, 'stone': 5},
+               'elephant': {'log': 5, 'gold': 5, 'stone': 0},
                'duke': {'log': 0, 'gold': 6, 'stone': 6},
-               'unicorn': {'log': 12, 'gold': 3, 'stone': 12},
-               'monolith': {'log': 0, 'gold': 0, 'stone': 12},
-               'prayer_stone': {'log': 0, 'gold': 0, 'stone': 6},
+               'unicorn': {'log': 0, 'gold': 8, 'stone': 8},
+               'monolith': {'log': 0, 'gold': 0, 'stone': 10},
+               'prayer_stone': {'log': 0, 'gold': 0, 'stone': 2},
                'gold_general': {'log': 99, 'gold': 99, 'stone': 99}}
 
 PIECE_POPULATION = {'king': 1,
@@ -199,9 +199,9 @@ ADDITIONAL_PIECE_LIMIT = {'castle': 4, 'barracks': 3, 'fortress': 3, 'stable': 3
 TOTAL_GOLD_ON_MAP = 6
 
 WOOD_TOTAL_MINED = 1
-GOLD_TOTAL_MINED = 8
-QUARRY_TOTAL_MINED = 4
-DEPLETED_QUARRY_REMAINING = 0
+GOLD_TOTAL_MINED = 6
+QUARRY_TOTAL_MINED = 6
+DEPLETED_QUARRY_TOTAL_MINED = 0
 SUNKEN_QUARRY_TOTAL_MINED = 1
 
 WOOD_VARIANCE = (-2, 2)

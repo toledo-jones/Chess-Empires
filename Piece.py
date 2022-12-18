@@ -3,6 +3,7 @@ import pygame
 from Building import *
 import random
 
+
 class Piece:
     def __repr__(self):
         return 'none'
@@ -214,7 +215,6 @@ class King(Piece):
 
         return spawn_squares
 
-
 class Queen(Piece):
     def __repr__(self):
         return 'queen'
@@ -225,6 +225,126 @@ class Queen(Piece):
                            Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
                            Constant.DOWN_LEFT)
         self.distance = -1
+
+    def valid_moves(self, engine):
+        c = self.col
+        r = self.row
+        moves = []
+        # UP DIAGONALS
+        c2 = c + 1
+        c3 = c - 1
+        for r2 in range(r - 1, -1, -1):
+            if engine.can_be_occupied(r2, c2):
+                moves.append((r2, c2))
+            elif self.can_capture(r2, c2, engine):
+                moves.append((r2, c2))
+                break
+            else:
+                break
+            c2 += 1
+        for r2 in range(r - 1, -1, -1):
+            if engine.can_be_occupied(r2, c3):
+                moves.append((r2, c3))
+            elif self.can_capture(r2, c3, engine):
+                moves.append((r2, c3))
+                break
+            else:
+                break
+            c3 -= 1
+
+        # DOWN DIAGONALS
+        c2 = c + 1
+        c3 = c - 1
+        for r2 in range(r + 1, Constant.BOARD_HEIGHT_SQ):
+            if engine.can_be_occupied(r2, c2):
+                moves.append((r2, c2))
+            elif self.can_capture(r2, c2, engine):
+                moves.append((r2, c2))
+                break
+            else:
+                break
+            c2 += 1
+        for r2 in range(r + 1, Constant.BOARD_HEIGHT_SQ):
+            if engine.can_be_occupied(r2, c3):
+                moves.append((r2, c3))
+            elif self.can_capture(r2, c3, engine):
+                moves.append((r2, c3))
+                break
+            else:
+                break
+            c3 -= 1
+        # UP
+        for r2 in range(r - 1, -1, -1):
+            if engine.can_be_occupied(r2, c):
+                moves.append((r2, c))
+            elif self.can_capture(r2, c, engine):
+                moves.append((r2, c))
+                break
+            else:
+                break
+
+        # DOWN
+        for r2 in range(r + 1, Constant.BOARD_HEIGHT_SQ, 1):
+            if engine.can_be_occupied(r2, c):
+                moves.append((r2, c))
+            elif self.can_capture(r2, c, engine):
+                moves.append((r2, c))
+                break
+            else:
+                break
+
+        # LEFT
+        for c2 in range(c - 1, -1, -1):
+            if engine.can_be_occupied(r, c2):
+                moves.append((r, c2))
+            elif self.can_capture(r, c2, engine):
+                moves.append((r, c2))
+                break
+            else:
+                break
+
+        # RIGHT
+        for c2 in range(c + 1, Constant.BOARD_WIDTH_SQ, 1):
+            if engine.can_be_occupied(r, c2):
+                moves.append((r, c2))
+            elif self.can_capture(r, c2, engine):
+                moves.append((r, c2))
+                break
+            else:
+                break
+
+        return moves
+
+class Duke(Piece):
+    def __repr__(self):
+        return 'duke'
+
+    def __init__(self, row, col, color):
+        super().__init__(row, col, color)
+        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
+                           Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
+                           Constant.DOWN_LEFT)
+        self.distance = -1
+
+    def praying_squares(self, engine):
+        r = self.row
+        c = self.col
+
+        moves = []
+
+        RIGHT = (r, c + 1)
+        LEFT = (r, c - 1)
+        UP = (r - 1, c)
+        DOWN = (r + 1, c)
+
+        valid_moves = [RIGHT, LEFT, UP, DOWN]
+
+        for move in valid_moves:
+            if engine.has_prayable_building(move[0], move[1]):
+                if engine.get_occupying(move[0], move[1]).color is self.color:
+                    moves.append((move[0], move[1]))
+
+        return moves
 
     def valid_moves(self, engine):
         c = self.col
@@ -1061,9 +1181,9 @@ class Monk(Piece):
         return spawn_squares
 
 
-class Duke(Piece):
+class Ram(Piece):
     def __repr__(self):
-        return 'duke'
+        return 'ram'
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)

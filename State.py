@@ -527,6 +527,10 @@ class Playing(State):
                 self.engine.set_state(new_state)
                 self.engine.menus = []
                 self.engine.surrendering = False
+            if self.engine.stealing:
+                new_state = Stealing(self.win, self.engine)
+                self.engine.menus = []
+                self.engine.stealing = False
             if self.engine.ritual:
                 new_state = self.engine.STATES[self.engine.ritual](self.win, self.engine)
                 self.engine.menus = []
@@ -610,6 +614,51 @@ class Playing(State):
                         self.engine.menus = []
                         return True
 
+            def click_rook():
+                if self.engine.has_rook(row, col):
+                    self.engine.update_praying_squares()
+                    praying_squares = self.engine.board[row][col].get_occupying().praying_squares_list
+                    allow_pray = False
+                    for square in praying_squares:
+                        if self.engine.has_prayable_building(square[0], square[1]):
+                            allow_pray = True
+                    if allow_pray:
+                        self.engine.board[row][col].get_occupying().praying = True
+                        new_state = Praying(self.win, self.engine)
+                        self.engine.set_state(new_state)
+                        self.engine.menus = []
+                        return True
+
+            def click_bishop():
+                if self.engine.has_bishop(row, col):
+                    self.engine.update_praying_squares()
+                    praying_squares = self.engine.board[row][col].get_occupying().praying_squares_list
+                    allow_pray = False
+                    for square in praying_squares:
+                        if self.engine.has_prayable_building(square[0], square[1]):
+                            allow_pray = True
+                    if allow_pray:
+                        self.engine.board[row][col].get_occupying().praying = True
+                        new_state = Praying(self.win, self.engine)
+                        self.engine.set_state(new_state)
+                        self.engine.menus = []
+                        return True
+
+            def click_duke():
+                if self.engine.has_duke(row, col):
+                    self.engine.update_praying_squares()
+                    praying_squares = self.engine.board[row][col].get_occupying().praying_squares_list
+                    allow_pray = False
+                    for square in praying_squares:
+                        if self.engine.has_prayable_building(square[0], square[1]):
+                            allow_pray = True
+                    if allow_pray:
+                        self.engine.board[row][col].get_occupying().praying = True
+                        new_state = Praying(self.win, self.engine)
+                        self.engine.set_state(new_state)
+                        self.engine.menus = []
+                        return True
+
             def click_monk():
                 if self.engine.has_monk(row, col):
                     self.engine.update_praying_squares()
@@ -675,14 +724,29 @@ class Playing(State):
                 try:
                     p = self.engine.get_occupying(row, col)
                     if p.get_color() is self.engine.turn:
+                        #
+                        #   These can be always be right clicked on the player's turn
+                        #
                         if click_king():
                             pass
                         elif p.actions_remaining > 0:
+                            #
+                            #   These can only be right clicked if they have an action remaining
+                            #
                             if click_pawn():
                                 pass
                             elif click_monk():
                                 pass
+                            elif click_rook():
+                                pass
+                            elif click_duke():
+                                pass
+                            elif click_bishop():
+                                pass
                             elif self.engine.player_can_do_action(self.engine.turn):
+                                #
+                                #   These can only be right clicked if the player has an action remaining
+                                #
                                 if click_castle():
                                     pass
                                 elif click_barracks():
@@ -781,6 +845,77 @@ class Mining(State):
                     mining_event = Mine(sel, self.prev)
                     mining_event.complete(self.engine)
                     self.engine.events.append(mining_event)
+                    new_state = Playing(self.win, self.engine)
+                    self.engine.reset_selected()
+                    self.engine.set_state(new_state)
+
+        # except AttributeError:
+        #     print("attribute error lined 448")
+        #     self.engine.reset_selected()
+        #     new_state = Playing(self.win, self.engine)
+        #     self.engine.set_state(new_state)
+
+    def tab(self):
+        try:
+            self.engine.events[-1].undo(self.engine)
+            del self.engine.events[-1]
+        except IndexError:
+            print("IndexError")
+            print("Line 567, State.py")
+
+
+class Stealing(State):
+    def __init__(self, win, engine):
+        super().__init__(win, engine)
+        self.prev = engine.update_previously_selected()
+
+    def __repr__(self):
+        return 'stealing'
+
+    def draw(self):
+        super().draw()
+        side_bar = Hud(self.win, self.engine)
+        side_bar.draw()
+        pos = pygame.mouse.get_pos()
+        display_pos_x = pos[0] - Constant.SQ_SIZE // 2
+        display_pos_y = pos[1] - Constant.SQ_SIZE // 2
+        if Constant.pos_in_bounds(pos):
+            row, col = Constant.convert_pos(pos)
+            if (row, col) in self.prev.stealing_squares_list:
+                self.win.blit(Constant.IMAGES['steal'], (display_pos_x, display_pos_y))
+
+    def left_click(self):
+        pos = pygame.mouse.get_pos()
+        row, col = Constant.convert_pos(pos)
+        # try:
+        if self.select(row, col):
+            pass
+        else:
+            self.engine.reset_selected()
+            new_state = Playing(self.win, self.engine)
+            self.engine.set_state(new_state)
+        # except IndexError:
+        #     print("Index Error")
+        #     print(" -- Line 423, State.py")
+
+    def right_click(self):
+        self.engine.reset_selected()
+        state = Playing(self.win, self.engine)
+        self.engine.set_state(state)
+
+    def mouse_move(self):
+        pass
+
+    def select(self, row, col):
+        # try:
+        if self.prev is not None:
+            if Constant.tile_in_bounds(row, col):
+                sel = self.engine.board[row][col].get_occupying()
+                stealing_squares = self.prev.stealing_squares_list
+                if (row, col) in stealing_squares:
+                    stealing_event = Steal(sel, self.prev)
+                    stealing_event.complete(self.engine)
+                    self.engine.events.append(stealing_event)
                     new_state = Playing(self.win, self.engine)
                     self.engine.reset_selected()
                     self.engine.set_state(new_state)

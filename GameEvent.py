@@ -836,6 +836,8 @@ class Swap(RitualEvent):
         self.col = col
         self.dest_row = dest_row
         self.dest_col = dest_col
+        self.first_actions = self.engine.get_occupying(row, col).actions_remaining
+        self.second_actions = self.engine.get_occupying(self.dest_row, self.dest_col).actions_remaining
 
     def __repr__(self):
         return 'swap'
@@ -845,6 +847,7 @@ class Swap(RitualEvent):
 
         self.engine.swap(self.row, self.col, self.dest_row, self.dest_col)
         self.engine.get_occupying(self.dest_row, self.dest_col).actions_remaining = 0
+        self.engine.get_occupying(self.row, self.col).actions_remaining = 0
         self.engine.intercept_pieces()
         self.player.do_action()
         self.player.do_ritual(self.ritual_cost)
@@ -855,7 +858,8 @@ class Swap(RitualEvent):
 
         self.respawn_deleted_monks()
         self.engine.swap(self.dest_row, self.dest_col, self.row, self.col)
-        self.engine.get_occupying(self.row, self.col).actions_remaining = 1
+        self.engine.get_occupying(self.row, self.col).actions_remaining = self.first_actions
+        self.engine.get_occupying(self.dest_row, self.dest_col).actions_remaining = self.second_actions
         self.player.undo_ritual(self.ritual_cost)
         self.engine.reset_selected()
         self.engine.correct_interceptions()

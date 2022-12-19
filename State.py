@@ -749,9 +749,9 @@ class Playing(State):
                     return True
 
             def click_rogue_pawn():
-                self.engine.has_rogue_pawn(row, col)
-                if transfer_to_stealing_mining_state(row, col):
-                    return True
+                if self.engine.has_rogue_pawn(row, col):
+                    if transfer_to_stealing_mining_state(row, col):
+                        return True
 
             def click_rogue_piece():
                 if self.engine.has_rogue(row, col):

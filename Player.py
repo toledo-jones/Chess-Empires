@@ -31,12 +31,21 @@ class Player:
     def __repr__(self):
         return self.color
 
-    def steal(self, from_piece, from_player):
-        base_stealing_values = None
-        if isinstance(from_piece, Piece):
-            base_stealing_values = Constant.STOLEN_FROM_PIECE
-        else:
-            pass
+    def steal(self, kind, value):
+        if kind == 'wood':
+            self.wood += value
+        elif kind == 'gold':
+            self.gold += value
+        elif kind == 'stone':
+            self.stone += value
+
+    def invert_steal(self, kind, value):
+        if kind == 'wood':
+            self.wood -= value
+        elif kind == 'gold':
+            self.gold -= value
+        elif kind == 'stone':
+            self.stone -= value
 
     def mine(self, resource, offset):
         if str(resource) == 'gold_tile_1':

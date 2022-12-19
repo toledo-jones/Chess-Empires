@@ -66,10 +66,10 @@ SIDE_MENU_WIDTH = pygame.display.Info().current_w - BOARD_WIDTH_PX
 
 #
 # DEFAULT START
-STARTING_WOOD = 0
-STARTING_GOLD = 0
-STARTING_STONE = 0
-STARTING_PIECES = ['castle', 'pawn', 'pawn', 'pawn', 'builder', 'king', ]
+STARTING_WOOD = 99
+STARTING_GOLD = 99
+STARTING_STONE = 99
+STARTING_PIECES = ['castle', 'pawn', 'pawn', 'pawn', 'rogue_rook', 'king', ]
 #
 
 SELECTABLE_STARTING_PIECES = ['pawn', 'builder', 'monk', 'pikeman']
@@ -77,12 +77,14 @@ NUMBER_OF_STARTING_PIECES = 3
 STARTING_PRAYER = 0
 MONOLITH_RITUALS = ['gold_general', 'smite', 'destroy_resource', 'teleport', 'swap', 'line_destroy', 'protect']
 PRAYER_STONE_RITUALS = ['destroy_resource', 'create_resource', 'teleport', 'swap', 'protect']
-
-STOLEN_FROM_BUILDING = {'wood': 4, 'gold': 4, 'stone': 4}
-BUILDING_STOLEN_VARIANCE = {'wood': (-2, 2), 'gold': (-2, 2), 'stone': (-2, 2)}
-STOLEN_FROM_PIECE = {'wood': 4, 'gold': 4, 'stone': 4}
-PIECE_STOLEN_VARIANCE = {'wood': (-2, 2), 'gold': (-2, 2), 'stone': (-2, 2)}
-
+STEALING_KEY = {'building': {
+    'wood': {'variance': (-2, 2), 'value': 4},
+    'gold': {'variance': (-2, 2), 'value': 4},
+    'stone': {'variance': (-2, 2), 'value': 4}},
+                'piece': {
+    'wood': {'variance': (-2, 2), 'value': 4},
+    'gold': {'variance': (-2, 2), 'value': 4},
+    'stone': {'variance': (-2, 2), 'value': 4}}}
 
 MAX_MONOLITH_RITUALS_PER_TURN = 3
 MAX_PRAYER_STONE_RITUALS_PER_TURN = 3
@@ -99,7 +101,6 @@ MINING_COSTS_ACTION = False
 PRAYING_COSTS_ACTION = False
 STEALING_COSTS_ACTION = False
 
-
 CASTLE_ADDITIONAL_ACTIONS = 0
 BARRACKS_ADDITIONAL_ACTIONS = 0
 FORTRESS_ADDITIONAL_ACTIONS = 0
@@ -111,7 +112,7 @@ DEFAULT_PIECE_LIMIT = 3
 PIECE_COSTS = {'king': {'log': 99, 'gold': 99, 'stone': 99},
                'quarry_1': {'log': 0, 'gold': 2, 'stone': 0},
                'pawn': {'log': 4, 'gold': 2, 'stone': 0},
-               'builder': {'log': 3,  'gold': 3, 'stone': 0},
+               'builder': {'log': 3, 'gold': 3, 'stone': 0},
                'monk': {'log': 3, 'gold': 0, 'stone': 0},
                'pikeman': {'log': 0, 'gold': 3, 'stone': 2},
                'castle': {'log': 8, 'gold': 0, 'stone': 0},
@@ -134,7 +135,6 @@ PIECE_COSTS = {'king': {'log': 99, 'gold': 99, 'stone': 99},
                'prayer_stone': {'log': 0, 'gold': 0, 'stone': 2},
                'duke': {'log': 9, 'gold': 9, 'stone': 9},
                'gold_general': {'log': 99, 'gold': 99, 'stone': 99}}
-
 
 PIECE_POPULATION = {'king': 1,
                     'queen': 2,
@@ -176,7 +176,6 @@ PRAYER_COSTS = {'gold_general': {'prayer': 8, 'monk': 2},
                 'swap': {'prayer': 2, 'monk': 0},
                 'line_destroy': {'prayer': 3, 'monk': 1},
                 'protect': {'prayer': 4, 'monk': 0}}
-
 
 ADDITIONAL_PIECE_LIMIT = {'castle': 4, 'barracks': 3, 'fortress': 3, 'stable': 3,
                           'king': 0,
@@ -432,7 +431,7 @@ PIECE_IMAGE_MODIFY = {'king': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'war_tower': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'builder': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'unicorn': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
-                    'ram': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
+                      'ram': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'stable': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       }
 
@@ -646,12 +645,14 @@ def load_images():
     for ritual in w_prayer_rituals:
         scale = RITUAL_IMAGE_MODIFY[piece_color_to_type(ritual)]['SCALE']
         PRAYER_RITUALS[ritual] = pygame.transform.scale(
-            pygame.image.load(os.path.join("resources/prayer_rituals", ritual + ".png")), (scale[0], scale[1])).convert_alpha()
+            pygame.image.load(os.path.join("resources/prayer_rituals", ritual + ".png")),
+            (scale[0], scale[1])).convert_alpha()
 
     for ritual in b_prayer_rituals:
         scale = RITUAL_IMAGE_MODIFY[piece_color_to_type(ritual)]['SCALE']
         PRAYER_RITUALS[ritual] = pygame.transform.scale(
-            pygame.image.load(os.path.join("resources/prayer_rituals", ritual + ".png")), (scale[0], scale[1])).convert_alpha()
+            pygame.image.load(os.path.join("resources/prayer_rituals", ritual + ".png")),
+            (scale[0], scale[1])).convert_alpha()
 
 
 def piece_color_to_type(color_piece):

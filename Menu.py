@@ -5,6 +5,9 @@ import pygame
 
 import Constant
 
+from Piece import Piece
+from Building import Building
+
 
 class Menu:
     def __init__(self, win, engine):
@@ -151,8 +154,6 @@ class RitualMenu(Menu):
         self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
         self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
 
-
-
         # Prayer Counter
         y_buffer_piece = 0
         y_buffer_prayer = self.y_buffer
@@ -170,6 +171,117 @@ class RitualMenu(Menu):
             y_buffer_piece += self.ritual_height
 
         self.win.blit(self.menu, (self.menu_position_x, self.menu_position_y))
+
+class StealingMenu(Menu):
+
+    def __init__(self, row, col, win, engine):
+        self.row = row
+        self.col = col
+        self.spawn_list = ['log', 'gold_coin', 'stone']
+        self.key = {'log':'wood', 'gold_coin':'gold', 'stone':'stone'}
+
+        self.type_stolen_from = None
+
+        super().__init__(win, engine)
+        piece = self.engine.get_occupying(row, col)
+        if isinstance(piece, Piece):
+            self.type_stolen_from = 'piece'
+        elif isinstance(piece, Building):
+            self.type_stolen_from = 'building'
+
+        self.amounts = {'log': self.engine.stealing_values('wood', self.type_stolen_from), 'gold_coin': self.engine.stealing_values('gold', self.type_stolen_from), 'stone': self.engine.stealing_values('stone', self.type_stolen_from)}
+        self.horizontal_buffer = Constant.SQ_SIZE
+        self.vertical_buffer_between_pieces = Constant.SQ_SIZE // 4
+        self.font_size = round(Constant.SQ_SIZE / 2)
+        self.font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.font_size)
+        self.font_color = Constant.turn_to_color[self.engine.turn]
+        self.resource_height = Constant.IMAGES['gold_coin'].get_width()
+        self.resource_width = Constant.IMAGES['gold_coin'].get_height()
+        self.menu_width = self.resource_width + self.horizontal_buffer + self.resource_width
+        self.menu_height = len(self.spawn_list) * (self.resource_height + self.vertical_buffer_between_pieces)
+        self.menu = pygame.Surface((self.menu_width, self.menu_height))
+        self.initial_menu_position = self.col * Constant.SQ_SIZE + Constant.SQ_SIZE // 2, self.row * Constant.SQ_SIZE + Constant.SQ_SIZE // 2
+        self.menu_position_x, self.menu_position_y = self.correct_menu_boundary()
+        self.menu_boundary_buffer_y = self.menu_height + self.menu_boundary_buffer
+        self.menu_boundary_buffer_x = self.menu_width + self.menu_boundary_buffer
+        self.spawn_highlight_list = []
+        self.square = pygame.Surface((self.menu_width, round(1 / len(self.spawn_list) * self.menu_height)))
+        for _ in self.spawn_list:
+            self.spawn_highlight_list.append(False)
+
+    def resource_selected(self):
+        pos = pygame.mouse.get_pos()
+        mp = self.menu_position_y
+        length = len(self.spawn_list)
+        mh = self.menu_height
+
+        if self.menu_position_x < pos[0] + (self.menu_width // 3):
+            for x in range(len(self.spawn_list)):
+                a = x / length
+                b = a * mh
+                c = b + mp
+                d = (x + 1) / length
+                e = d * mh
+                f = e + mp
+                r = range(round(c), round(f))
+                if pos[1] in r:
+                    return self.spawn_list[x]
+
+    def left_click(self):
+        self.engine.stealing = None
+        stolen_resource = self.resource_selected()
+        amount = self.amounts[stolen_resource]
+        if stolen_resource:
+            self.engine.menus = []
+            self.engine.stealing = [self.key[stolen_resource], amount]
+        else:
+            self.engine.stealing = None
+            self.engine.state[-1].reset_state()
+
+    def right_click(self):
+        self.engine.ritual_summon_resource = None
+        self.engine.state[-1].reset_state()
+
+    def mouse_move(self):
+        pos = pygame.mouse.get_pos()
+        if self.menu_position_x < pos[0] + (self.menu_width // 3):
+            for x in range(len(self.spawn_list)):
+                a = x / len(self.spawn_list)
+                b = a * self.menu_height
+                c = b + self.menu_position_y
+                d = (x + 1) / len(self.spawn_list)
+                e = d * self.menu_height
+                f = e + self.menu_position_y
+                r = range(round(c), round(f))
+                if pos[1] in r:
+                    self.spawn_highlight_list[x] = True
+                    for z in range(len(self.spawn_highlight_list)):
+                        if z is not x:
+                            self.spawn_highlight_list[z] = False
+        else:
+            for _ in self.spawn_highlight_list:
+                _ = False
+
+    def draw(self, win):
+        self.menu.fill(Constant.MENU_COLOR)
+        for x in range(len(self.spawn_list)):
+            a = x / len(self.spawn_list)
+            b = a * self.menu_height
+            if self.spawn_highlight_list[x]:
+                self.menu.blit(self.square, (0, b))
+
+        self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
+        self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
+        y_buffer = 0
+        for p in self.spawn_list:
+            self.menu.blit(Constant.IMAGES[p], (self.horizontal_buffer // 2, y_buffer))
+            amount_text_surface = self.font.render(': ' + str(self.amounts[p]), True, self.font_color)
+            self.menu.blit(amount_text_surface, (self.resource_width + self.horizontal_buffer, y_buffer))
+            y_buffer += self.menu_height // len(self.spawn_list)
+
+        self.win.blit(self.menu, (self.menu_position_x, self.menu_position_y))
+        return self.menu_position_x, self.menu_position_y
+
 
 class ResourceMenu(Menu):
 
@@ -514,7 +626,6 @@ class KingMenu(Menu):
                 self.high_light = True
         else:
             self.high_light = False
-
 
     def left_click(self):
         pos = pygame.mouse.get_pos()

@@ -22,6 +22,7 @@ class Building:
         self.pre_selected = False
         self.praying = False
         self.casting = False
+        self.stealing = False
 
         self.intercepted = False
         self.unused_piece_highlight = False
@@ -34,6 +35,7 @@ class Building:
         self.spawn_squares_list = []
         self.move_squares_list = []
         self.interceptor_squares_list = []
+        self.stealing_squares_list = []
 
         self.additional_actions = 0
         self.additional_piece_limit = 0
@@ -109,6 +111,9 @@ class Building:
     def highlight_self_square(self, win):
         self.draw_self_highlight(win, self.self_selected_square_color)
 
+    def stealing_squares(self, engine):
+        return []
+
     def highlight_ritual_squares(self, win):
         self.draw_squares_in_list(win, self.ritual_squares_list, self.move_square_color)
 
@@ -117,6 +122,9 @@ class Building:
 
     def update_spawn_squares(self, engine):
         self.spawn_squares_list = self.spawn_squares(engine)
+
+    def update_stealing_squares(self, engine):
+        self.stealing_squares_list = self.stealing_squares(engine)
 
     def update_move_squares(self, engine):
         return []
@@ -155,7 +163,9 @@ class Stable(Building):
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN)
+        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
+                                  Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
+                                  Constant.DOWN_LEFT)
         self.distance = 1
         self.additional_actions = Constant.STABLE_ADDITIONAL_ACTIONS
         self.additional_piece_limit = Constant.ADDITIONAL_PIECE_LIMIT[str(self)]
@@ -169,17 +179,7 @@ class Stable(Building):
             c = self.col - d[1]
             if engine.can_be_occupied(r, c):
                 spawn_squares.append((r, c))
-
-        if engine.is_start_spawn():
-            new_directions = (Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT, Constant.DOWN_LEFT)
-            for direction in range(len(new_directions)):
-                d = new_directions[direction]
-                r = self.row - d[0]
-                c = self.col - d[1]
-                if engine.can_be_occupied(r, c):
-                    spawn_squares.append((r, c))
         return spawn_squares
-
 
 class Barracks(Building):
     def __repr__(self):
@@ -187,7 +187,9 @@ class Barracks(Building):
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN)
+        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
+                                  Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
+                                  Constant.DOWN_LEFT)
         self.distance = 1
         self.additional_actions = Constant.BARRACKS_ADDITIONAL_ACTIONS
         self.additional_piece_limit = Constant.ADDITIONAL_PIECE_LIMIT[str(self)]
@@ -201,15 +203,6 @@ class Barracks(Building):
             c = self.col - d[1]
             if engine.can_be_occupied(r, c):
                 spawn_squares.append((r, c))
-
-        if engine.is_start_spawn():
-            new_directions = (Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT, Constant.DOWN_LEFT)
-            for direction in range(len(new_directions)):
-                d = new_directions[direction]
-                r = self.row - d[0]
-                c = self.col - d[1]
-                if engine.can_be_occupied(r, c):
-                    spawn_squares.append((r, c))
         return spawn_squares
 
 
@@ -219,7 +212,9 @@ class Castle(Building):
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN)
+        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
+                                  Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
+                                  Constant.DOWN_LEFT)
         self.distance = 1
         self.additional_actions = Constant.CASTLE_ADDITIONAL_ACTIONS
         self.additional_piece_limit = Constant.ADDITIONAL_PIECE_LIMIT[str(self)]
@@ -233,15 +228,6 @@ class Castle(Building):
             c = self.col - d[1]
             if engine.can_be_occupied(r, c):
                 spawn_squares.append((r, c))
-
-        if engine.is_start_spawn():
-            new_directions = (Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT, Constant.DOWN_LEFT)
-            for direction in range(len(new_directions)):
-                d = new_directions[direction]
-                r = self.row - d[0]
-                c = self.col - d[1]
-                if engine.can_be_occupied(r, c):
-                    spawn_squares.append((r, c))
         return spawn_squares
 
 
@@ -251,7 +237,9 @@ class Fortress(Building):
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN)
+        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
+                                  Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
+                                  Constant.DOWN_LEFT)
         self.distance = 1
         self.additional_actions = Constant.FORTRESS_ADDITIONAL_ACTIONS
         self.additional_piece_limit = Constant.ADDITIONAL_PIECE_LIMIT[str(self)]

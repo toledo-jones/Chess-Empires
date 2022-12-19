@@ -246,7 +246,7 @@ class Spawn(GameEvent):
 
 
 class Steal(GameEvent):
-    def __init__(self, stolen_from, thief):
+    def __init__(self, stolen_from, thief, resource_stolen, amount):
         #
         #   Call Parent __init__ Method
         #
@@ -258,6 +258,8 @@ class Steal(GameEvent):
         #
         self.stolen_from = stolen_from
         self.thief = thief
+        self.resource_stolen = resource_stolen
+        self.amount = amount
 
         #
         #   Store the List of Values which dictate the offset when mining each material.
@@ -268,7 +270,10 @@ class Steal(GameEvent):
     def complete(self, engine):
         self.play_random_sound_effect()
         self.thief.actions_remaining -= 1
-        engine.players[engine.turn].steal()
+
+        engine.players[engine.turn].steal(self.resource_stolen, self.amount)
+        engine.players[Constant.TURNS[engine.turn]].invert_steal(self.resource_stolen, self.amount)
+
         if Constant.STEALING_COSTS_ACTION:
             engine.players[engine.turn].do_action()
 
@@ -276,7 +281,12 @@ class Steal(GameEvent):
         thief = engine.get_occupying(self.thief.row, self.thief.col)
         thief.actions_remaining += 1
         self.play_random_sound_effect()
-        engine.players[engine.turn].un_pray(self.stolen_from)
+        engine.players[engine.turn].invert_steal(self.resource_stolen, self.amount)
+        engine.players[Constant.TURNS[engine.turn]].steal(self.resource_stolen, self.amount)
+        #
+        #   undo stealing
+        #
+
         if Constant.STEALING_COSTS_ACTION:
             engine.players[engine.turn].undo_action()
         unused_pieces = engine.count_unused_pieces()
@@ -560,6 +570,10 @@ class ChangeTurn(GameEvent):
                 Constant.PRAYER_STONE_RITUALS, Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN))
         if self.engine.turn_count_actual == len(self.engine.monolith_rituals) - 1:
             self.engine.monolith_rituals.append(self.engine.generate_available_rituals(Constant.MONOLITH_RITUALS, Constant.MAX_MONOLITH_RITUALS_PER_TURN))
+        if self.engine.turn_count_actual == len(self.engine.piece_stealing_offsets) - 1:
+            self.engine.piece_stealing_offsets.append(self.engine.generate_stealing_offsets(Constant.STEALING_KEY['piece']))
+        if self.engine.turn_count_actual == len(self.engine.building_stealing_offsets) - 1:
+            self.engine.building_stealing_offsets.append(self.engine.generate_stealing_offsets(Constant.STEALING_KEY['building']))
         unused_pieces = self.engine.count_unused_pieces()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True

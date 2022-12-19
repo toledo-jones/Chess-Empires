@@ -530,6 +530,7 @@ class Playing(State):
             if self.engine.stealing:
                 new_state = Stealing(self.win, self.engine)
                 self.engine.menus = []
+                self.engine.set_state(new_state)
                 self.engine.stealing = False
             if self.engine.ritual:
                 new_state = self.engine.STATES[self.engine.ritual](self.win, self.engine)
@@ -566,6 +567,19 @@ class Playing(State):
         else:
             row, col = Constant.convert_pos(pygame.mouse.get_pos())
             self.engine.reset_selected()
+
+            def transfer_to_stealing_state(row, col):
+                self.engine.update_stealing_squares()
+                stealing_squares = self.engine.board[row][col].get_occupying().stealing_squares_list
+                allow_steal = False
+                if stealing_squares:
+                    allow_steal = True
+                if allow_steal:
+                    self.engine.set_stealing(row, col, True)
+                    new_state = Stealing(self.win, self.engine)
+                    self.engine.menus = []
+                    self.engine.set_state(new_state)
+                    return True
 
             def transfer_to_building_state(row, col):
                 self.engine.update_spawn_squares()
@@ -720,6 +734,10 @@ class Playing(State):
                     self.engine.menus.append(ritual_menu)
                     return True
 
+            def click_rogue_piece():
+                if self.engine.has_rogue(row, col):
+                    if transfer_to_stealing_state(row, col):
+                        return True
             if not self.engine.has_none_occupying(row, col):
                 try:
                     p = self.engine.get_occupying(row, col)
@@ -742,6 +760,8 @@ class Playing(State):
                             elif click_duke():
                                 pass
                             elif click_bishop():
+                                pass
+                            elif click_rogue_piece():
                                 pass
                             elif self.engine.player_can_do_action(self.engine.turn):
                                 #
@@ -867,64 +887,71 @@ class Mining(State):
 class Stealing(State):
     def __init__(self, win, engine):
         super().__init__(win, engine)
-        self.prev = engine.update_previously_selected()
+        self.previously_selected = engine.update_previously_selected()
+        self.side_bar = Hud(self.win, self.engine)
+        # Row, Col of Stolen FROM piece
+        self.row = None
+        self.col = None
 
     def __repr__(self):
         return 'stealing'
 
     def draw(self):
         super().draw()
-        side_bar = Hud(self.win, self.engine)
-        side_bar.draw()
         pos = pygame.mouse.get_pos()
         display_pos_x = pos[0] - Constant.SQ_SIZE // 2
         display_pos_y = pos[1] - Constant.SQ_SIZE // 2
-        if Constant.pos_in_bounds(pos):
+        self.side_bar.draw()
+        if self.engine.menus:
+            for menu in self.engine.menus:
+                menu.draw(self.win)
+        elif Constant.pos_in_bounds(pos):
             row, col = Constant.convert_pos(pos)
-            if (row, col) in self.prev.stealing_squares_list:
+            if (row, col) in self.previously_selected.stealing_squares_list:
                 self.win.blit(Constant.IMAGES['steal'], (display_pos_x, display_pos_y))
 
     def left_click(self):
-        pos = pygame.mouse.get_pos()
-        row, col = Constant.convert_pos(pos)
-        # try:
-        if self.select(row, col):
-            pass
+        row, col = Constant.convert_pos(pygame.mouse.get_pos())
+        if self.engine.menus:
+            for menu in self.engine.menus:
+                menu.left_click()
         else:
-            self.engine.reset_selected()
-            new_state = Playing(self.win, self.engine)
-            self.engine.set_state(new_state)
-        # except IndexError:
-        #     print("Index Error")
-        #     print(" -- Line 423, State.py")
+            if self.click_valid_square(row, col) and not self.engine.stealing:
+                self.row = row
+                self.col = col
+                menu = StealingMenu(row, col, self.win, self.engine)
+                self.engine.menus.append(menu)
+            else:
+                self.reset_state()
+
+        if self.engine.stealing:
+            self.engine.close_menus()
+            stolen_from = self.engine.get_occupying(self.row, self.col)
+            thief = self.previously_selected
+            resource_stolen = self.engine.stealing[0]
+            amount = self.engine.stealing[1]
+            event = Steal(stolen_from, thief, resource_stolen, amount)
+            event.complete(self.engine)
+            self.engine.events.append(event)
+            self.engine.stealing = None
+            self.reset_state()
+
+    def click_valid_square(self, row, col):
+        if (row, col) in self.previously_selected.stealing_squares_list:
+            return True
 
     def right_click(self):
         self.engine.reset_selected()
+        self.engine.menus = []
         state = Playing(self.win, self.engine)
         self.engine.set_state(state)
 
     def mouse_move(self):
-        pass
-
-    def select(self, row, col):
-        # try:
-        if self.prev is not None:
-            if Constant.tile_in_bounds(row, col):
-                sel = self.engine.board[row][col].get_occupying()
-                stealing_squares = self.prev.stealing_squares_list
-                if (row, col) in stealing_squares:
-                    stealing_event = Steal(sel, self.prev)
-                    stealing_event.complete(self.engine)
-                    self.engine.events.append(stealing_event)
-                    new_state = Playing(self.win, self.engine)
-                    self.engine.reset_selected()
-                    self.engine.set_state(new_state)
-
-        # except AttributeError:
-        #     print("attribute error lined 448")
-        #     self.engine.reset_selected()
-        #     new_state = Playing(self.win, self.engine)
-        #     self.engine.set_state(new_state)
+        if self.engine.menus:
+            for menu in self.engine.menus:
+                menu.mouse_move()
+                if not menu.mouse_in_menu_bounds():
+                    self.reset_state()
 
     def tab(self):
         try:

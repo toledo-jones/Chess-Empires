@@ -585,7 +585,7 @@ class Playing(State):
                 self.engine.update_spawn_squares()
                 spawn_squares = self.engine.board[row][col].get_occupying().spawn_squares_list
                 allow_spawn = False
-                if spawn_squares is not []:
+                if spawn_squares:
                     allow_spawn = True
                 if allow_spawn:
                     self.engine.set_pre_selected(row, col, True)
@@ -593,6 +593,20 @@ class Playing(State):
                     self.engine.menus = []
                     new_state.add_menu_to_menu_queue(str(self.engine.get_occupying(row, col)))
                     new_state.spawning_piece = self.engine.get_occupying(row, col)
+                    self.engine.set_state(new_state)
+                    return True
+
+            def transfer_to_stealing_mining_state(row, col):
+                self.engine.update_mining_squares()
+                self.engine.update_stealing_squares()
+                selectable_squares = self.engine.board[row][col].get_occupying().mining_squares_list + self.engine.board[row][col].get_occupying().stealing_squares_list
+                allow_state = False
+                if selectable_squares:
+                    allow_state = True
+                if allow_state:
+                    self.engine.set_mining_stealing(row, col, True)
+                    new_state = MiningStealing(self.win, self.engine)
+                    self.engine.menus = []
                     self.engine.set_state(new_state)
                     return True
 
@@ -734,6 +748,11 @@ class Playing(State):
                     self.engine.menus.append(ritual_menu)
                     return True
 
+            def click_rogue_pawn():
+                self.engine.has_rogue_pawn(row, col)
+                if transfer_to_stealing_mining_state(row, col):
+                    return True
+
             def click_rogue_piece():
                 if self.engine.has_rogue(row, col):
                     if transfer_to_stealing_state(row, col):
@@ -760,6 +779,8 @@ class Playing(State):
                             elif click_duke():
                                 pass
                             elif click_bishop():
+                                pass
+                            elif click_rogue_pawn():
                                 pass
                             elif click_rogue_piece():
                                 pass
@@ -807,6 +828,117 @@ class Playing(State):
         for menu in self.engine.menus:
             menu.draw(self.win)
         self.side_bar.draw()
+
+
+class MiningStealing(State):
+    def __init__(self, win, engine):
+        super().__init__(win, engine)
+
+        self.previously_selected = engine.update_previously_selected()
+        self.side_bar = Hud(self.win, self.engine)
+        # Row, Col of Stolen FROM piece
+        self.row = None
+        self.col = None
+
+    def __repr__(self):
+        return 'mining stealing'
+
+    def draw(self):
+        super().draw()
+        pos = pygame.mouse.get_pos()
+        display_pos_x = pos[0] - Constant.SQ_SIZE // 2
+        display_pos_y = pos[1] - Constant.SQ_SIZE // 2
+        self.side_bar.draw()
+        if self.engine.menus:
+            for menu in self.engine.menus:
+                menu.draw(self.win)
+        elif Constant.pos_in_bounds(pos):
+            row, col = Constant.convert_pos(pos)
+            if (row, col) in self.previously_selected.stealing_squares_list:
+                self.win.blit(Constant.IMAGES['steal'], (display_pos_x, display_pos_y))
+
+    def draw(self):
+        super().draw()
+        self.side_bar.draw()
+        pos = pygame.mouse.get_pos()
+        display_pos_x = pos[0] - Constant.SQ_SIZE // 2
+        display_pos_y = pos[1] - Constant.SQ_SIZE // 2
+        if self.engine.menus:
+            for menu in self.engine.menus:
+                menu.draw(self.win)
+        elif Constant.pos_in_bounds(pos):
+            row, col = Constant.convert_pos(pos)
+            if self.in_mining_squares(row, col):
+                if self.engine.has_quarry(row, col) or self.engine.has_gold(row, col) or self.engine.has_sunken_quarry(
+                        row, col):
+                    self.win.blit(Constant.IMAGES['pickaxe'], (display_pos_x, display_pos_y))
+                elif self.engine.has_wood(row, col):
+                    self.win.blit(Constant.IMAGES['axe'], (display_pos_x, display_pos_y))
+            elif self.in_stealing_squares(row, col):
+                self.win.blit(Constant.IMAGES['steal'], (display_pos_x, display_pos_y))
+
+    def left_click(self):
+        row, col = Constant.convert_pos(pygame.mouse.get_pos())
+        if self.engine.menus:
+            for menu in self.engine.menus:
+                menu.left_click()
+        else:
+            if self.in_stealing_squares(row, col) and not self.engine.stealing:
+                self.row = row
+                self.col = col
+                menu = StealingMenu(row, col, self.win, self.engine)
+                self.engine.menus.append(menu)
+            elif self.in_mining_squares(row, col):
+                sel = self.engine.board[row][col].get_resource()
+                mining_event = Mine(sel, self.previously_selected)
+                mining_event.complete(self.engine)
+                self.engine.events.append(mining_event)
+                new_state = Playing(self.win, self.engine)
+                self.engine.reset_selected()
+                self.engine.set_state(new_state)
+            else:
+                self.reset_state()
+        if self.engine.stealing:
+            self.engine.close_menus()
+            stolen_from = self.engine.get_occupying(self.row, self.col)
+            thief = self.previously_selected
+            resource_stolen = self.engine.stealing[0]
+            amount = self.engine.stealing[1]
+            event = Steal(stolen_from, thief, resource_stolen, amount)
+            event.complete(self.engine)
+            self.engine.events.append(event)
+            self.engine.stealing = None
+            self.reset_state()
+
+    def in_mining_squares(self, row, col):
+        if (row, col) in self.previously_selected.mining_squares_list:
+            return True
+
+    def in_stealing_squares(self, row, col):
+        if (row, col) in self.previously_selected.stealing_squares_list:
+            return True
+
+    def right_click(self):
+        self.engine.reset_selected()
+        self.engine.menus = []
+        state = Playing(self.win, self.engine)
+        self.engine.set_state(state)
+
+    def mouse_move(self):
+        if self.engine.menus:
+            for menu in self.engine.menus:
+                menu.mouse_move()
+                if not menu.mouse_in_menu_bounds():
+                    self.reset_state()
+
+    def tab(self):
+        try:
+            self.engine.events[-1].undo(self.engine)
+            del self.engine.events[-1]
+        except IndexError:
+            print("IndexError")
+            print("Line 567, State.py")
+
 
 
 class Mining(State):

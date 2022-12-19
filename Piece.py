@@ -22,6 +22,7 @@ class Piece:
         self.praying = False
         self.casting = False
         self.stealing = False
+        self.mining_stealing = False
 
 
         self.intercepted = False
@@ -86,7 +87,10 @@ class Piece:
             self.highlight_praying_squares(win)
         if self.casting:
             self.highlight_self_square(win)
-
+        if self.mining_stealing:
+            self.highlight_self_square(win)
+            self.highlight_stealing_squares(win)
+            self.highlight_mining_squares(win)
         if self.stealing:
             self.highlight_self_square(win)
             self.highlight_stealing_squares(win)

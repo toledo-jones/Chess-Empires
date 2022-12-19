@@ -23,6 +23,7 @@ class Building:
         self.praying = False
         self.casting = False
         self.stealing = False
+        self.mining_stealing = False
 
         self.intercepted = False
         self.unused_piece_highlight = False

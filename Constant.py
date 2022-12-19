@@ -58,18 +58,18 @@ SIDE_MENU_WIDTH = pygame.display.Info().current_w - BOARD_WIDTH_PX
 
 #
 # DEBUG START
-# STARTING_WOOD = 99
-# STARTING_GOLD = 99
-# STARTING_STONE = 99
-# STARTING_PIECES = ['castle', 'castle', 'king', 'monk', 'monk', 'monk', 'queen', 'monolith', 'prayer_stone']
-#
-
-#
-# DEFAULT START
 STARTING_WOOD = 99
 STARTING_GOLD = 99
 STARTING_STONE = 99
-STARTING_PIECES = ['castle', 'pawn', 'pawn', 'pawn', 'rogue_rook', 'king', ]
+STARTING_PIECES = ['castle', 'rogue_pawn', 'king']
+
+
+#
+# DEFAULT START
+# STARTING_WOOD = 0
+# STARTING_GOLD = 0
+# STARTING_STONE = 0
+# STARTING_PIECES = ['castle', 'pawn', 'pawn', 'pawn', 'builder', 'king', ]
 #
 
 SELECTABLE_STARTING_PIECES = ['pawn', 'builder', 'monk', 'pikeman']

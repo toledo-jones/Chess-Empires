@@ -454,7 +454,7 @@ class Engine:
 
     def piece_is_selected(self, piece):
         selected_list = [piece.selected, piece.mining, piece.pre_selected, piece.purchasing, piece.praying,
-                         piece.casting, piece.stealing]
+                         piece.casting, piece.stealing, piece.mining_stealing]
         if any(selected_list):
             return True
 
@@ -501,6 +501,7 @@ class Engine:
                 piece.praying = False
                 piece.casting = False
                 piece.stealing = False
+                piece.mining_stealing = False
 
     def reset_player_actions_remaining(self, color):
         self.players[color].reset_actions_remaining()
@@ -668,10 +669,16 @@ class Engine:
             else:
                 return False
 
+    def has_rogue_pawn(self, r, c):
+        if Constant.tile_in_bounds(r, c):
+            p = self.board[r][c].get_occupying()
+            if isinstance(p, RoguePawn):
+                return True
+
     def has_pawn(self, r, c):
         if Constant.tile_in_bounds(r, c):
             p = self.board[r][c].get_occupying()
-            if isinstance(p, Pawn) or isinstance(p, RoguePawn):
+            if isinstance(p, Pawn):
                 return True
 
     def has_rook(self, r, c):
@@ -905,6 +912,8 @@ class Engine:
     def set_stealing(self, row, col, boolean):
         self.board[row][col].occupying.stealing = boolean
 
+    def set_mining_stealing(self, row, col, boolean):
+        self.board[row][col].occupying.mining_stealing = boolean
 
     def set_pre_selected(self, row, col, boolean):
         self.board[row][col].occupying.pre_selected = boolean

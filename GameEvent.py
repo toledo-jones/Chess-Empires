@@ -387,11 +387,15 @@ class Pray(GameEvent):
     def __init__(self, praying_piece, prayed_on):
         self.praying_piece = praying_piece
         self.prayed_on = prayed_on
+        self.additional_prayer = 0
+        if str(self.praying_piece) == 'monk':
+            self.additional_prayer = Constant.ADDITIONAL_PRAYER_FROM_MONK
 
     def complete(self, engine):
         self.play_random_sound_effect()
         self.praying_piece.actions_remaining -= 1
-        engine.players[engine.turn].pray(self.prayed_on)
+
+        engine.players[engine.turn].pray(self.prayed_on, self.additional_prayer)
         if Constant.PRAYING_COSTS_ACTION:
             engine.players[engine.turn].do_action()
 
@@ -399,7 +403,7 @@ class Pray(GameEvent):
         praying_piece = engine.get_occupying(self.praying_piece.row, self.praying_piece.col)
         praying_piece.actions_remaining += 1
         self.play_random_sound_effect()
-        engine.players[engine.turn].un_pray(self.prayed_on)
+        engine.players[engine.turn].un_pray(self.prayed_on, self.additional_prayer)
         if Constant.PRAYING_COSTS_ACTION:
             engine.players[engine.turn].undo_action()
         unused_pieces = engine.count_unused_pieces()

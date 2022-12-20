@@ -130,17 +130,14 @@ class RitualMenu(Menu):
                 _ = False
 
     def left_click(self):
-        self.engine.ritual = None
         self.casting = self.ritual_clicked()
-        if self.casting is not None:
-            if self.engine.is_legal_ritual(self.casting):
-                self.engine.menus = []
-                self.engine.ritual = self.casting
-            else:
-                self.engine.state[-1].reset_state()
+        if self.casting is None or not self.engine.is_legal_ritual(self.casting):
+            self.engine.state[-1].reset_state()
+        else:
+            self.engine.menus = []
+            self.engine.transfer_to_ritual_state(self.row, self.col, self.casting)
 
     def right_click(self):
-        self.engine.spawning = None
         self.engine.state[-1].reset_state()
 
     def draw(self, win):
@@ -171,6 +168,7 @@ class RitualMenu(Menu):
             y_buffer_piece += self.ritual_height
 
         self.win.blit(self.menu, (self.menu_position_x, self.menu_position_y))
+
 
 class StealingMenu(Menu):
 
@@ -433,15 +431,14 @@ class SpawningMenu(Menu):
     def left_click(self):
         self.engine.spawning = None
         self.spawning = self.piece_spawned()
-        if self.spawning is not None:
-            if self.engine.is_legal_spawn(self.spawning):
-                self.engine.menus = []
-                self.engine.spawning = self.spawning
-                self.engine.get_occupying(self.spawner.row, self.spawner.col).purchasing = True
-                self.engine.get_occupying(self.spawner.row, self.spawner.col).pre_selected = False
-            else:
-                self.engine.spawning = None
-                self.engine.state[-1].reset_state()
+        if not self.spawning or not self.engine.is_legal_spawn(self.spawning):
+            self.engine.spawning = None
+            self.engine.state[-1].reset_state()
+        else:
+            self.engine.menus = []
+            self.engine.get_occupying(self.spawner.row, self.spawner.col).purchasing = True
+            self.engine.get_occupying(self.spawner.row, self.spawner.col).pre_selected = False
+            self.engine.transfer_to_spawning_state(self.spawning)
 
     def right_click(self):
         self.engine.spawning = None
@@ -631,7 +628,7 @@ class KingMenu(Menu):
         pos = pygame.mouse.get_pos()
         if pos[0] > self.menu_position_x < self.menu_position_x + self.menu_width:
             if pos[1] > self.menu_position_y < self.menu_position_y + self.menu_height:
-                self.engine.surrendering = True
+                self.engine.transfer_to_surrender_state()
 
 #
 #   SIDE MENUS

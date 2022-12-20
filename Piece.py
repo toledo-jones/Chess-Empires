@@ -4,6 +4,7 @@ from Building import *
 import random
 
 
+
 class Piece:
     def __repr__(self):
         return 'none'
@@ -150,7 +151,6 @@ class Piece:
     def highlight_stealing_squares(self, win):
         self.draw_squares_in_list(win, self.stealing_squares_list, self.move_square_color)
 
-
     def highlight_praying_squares(self, win):
         self.draw_squares_in_list(win, self.praying_squares_list, self.move_square_color)
 
@@ -195,6 +195,11 @@ class Piece:
         else:
             return Constant.PIECE_IMAGE_MODIFY[str(self)]['OFFSET']
 
+    def right_click(self, engine):
+        if self.actions_remaining > 0:
+            return True
+
+
 
 class King(Piece):
     def __repr__(self):
@@ -222,6 +227,9 @@ class King(Piece):
                 moves.append((r, c))
 
         return moves
+
+    def right_click(self, engine):
+        return engine.create_king_menu(self.row, self.col)
 
 
 class Queen(Piece):
@@ -438,6 +446,10 @@ class Duke(Piece):
 
         return moves
 
+    def right_click(self, engine):
+        if super().right_click(engine):
+            return engine.transfer_to_praying_state(self.row, self.col)
+
 
 class Rook(Piece):
     def __repr__(self):
@@ -450,7 +462,6 @@ class Rook(Piece):
                            Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
                            Constant.DOWN_LEFT)
         self.distance = -1
-
 
     def praying_squares(self, engine):
         moves = []
@@ -509,6 +520,10 @@ class Rook(Piece):
             else:
                 break
         return moves
+
+    def right_click(self, engine):
+        super().right_click(engine)
+        return engine.transfer_to_praying_state(self.row, self.col)
 
 
 class Bishop(Piece):
@@ -586,6 +601,10 @@ class Bishop(Piece):
             c3 -= 1
 
         return moves
+
+    def right_click(self, engine):
+        if super().right_click(engine):
+            return engine.transfer_to_praying_state(self.row, self.col)
 
 
 class Knight(Piece):
@@ -699,6 +718,10 @@ class Pawn(Piece):
                 moves.append((r2, c2))
         return moves
 
+    def right_click(self, engine):
+        if super().right_click(engine):
+            return engine.transfer_to_mining_state(self.row, self.col)
+
 
 class RogueRook(Piece):
     def __repr__(self):
@@ -783,6 +806,10 @@ class RogueRook(Piece):
                 squares.append((r, c))
 
         return squares
+
+    def right_click(self, engine):
+        if super().right_click(engine):
+            return engine.transfer_to_stealing_state(self.row, self.col)
 
 
 class RogueBishop(Piece):
@@ -874,6 +901,10 @@ class RogueBishop(Piece):
 
         return squares
 
+    def right_click(self, engine):
+        if super().right_click(engine):
+            return engine.transfer_to_stealing_state(self.row, self.col)
+
 
 class RogueKnight(Piece):
     def __repr__(self):
@@ -927,6 +958,10 @@ class RogueKnight(Piece):
                     else:
                         if not engine.board[r][c].is_protected_by_opposite_color(self.color):
                             return True
+
+    def right_click(self, engine):
+        if super().right_click(engine):
+            return engine.transfer_to_stealing_state(self.row, self.col)
 
 
 class RoguePawn(Piece):
@@ -1046,6 +1081,10 @@ class RoguePawn(Piece):
 
         return squares
 
+    def right_click(self, engine):
+        if super().right_click(engine):
+            return engine.transfer_to_stealing_mining_state(self.row, self.col)
+
 
 class Monk(Piece):
     def __repr__(self):
@@ -1094,6 +1133,10 @@ class Monk(Piece):
                 squares.append((r, c))
 
         return squares
+
+    def right_click(self, engine):
+        if super().right_click(engine):
+            return engine.transfer_to_praying_state(self.row, self.col)
 
 
 class Ram(Piece):
@@ -1394,6 +1437,11 @@ class Builder(Piece):
                 spawn_squares.append((r, c))
         return spawn_squares
 
+    def right_click(self, engine):
+        if super().right_click(engine):
+            if engine.players[engine.turn].actions_remaining > 0:
+                return engine.transfer_to_building_state(self.row, self.col)
+
 
 class Unicorn(Piece):
     def __repr__(self):
@@ -1576,6 +1624,9 @@ class GoldGeneral(Piece):
                         if not engine.board[r][c].is_protected_by_opposite_color(self.color):
                             return True
 
+    def right_click(self, engine):
+        if super().right_click(engine):
+            return engine.transfer_to_building_state(self.row, self.col)
 
 class Blank(Piece):
     def __repr__(self):

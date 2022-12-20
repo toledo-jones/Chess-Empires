@@ -157,6 +157,10 @@ class Building:
     def spawn_squares(self, engine):
         return []
 
+    def right_click(self, engine):
+        if self.actions_remaining > 0 and engine.players[engine.turn].actions_remaining > 0:
+            return True
+
 
 class Stable(Building):
     def __repr__(self):
@@ -182,6 +186,12 @@ class Stable(Building):
                 spawn_squares.append((r, c))
         return spawn_squares
 
+    def right_click(self, engine):
+        if super().right_click(engine):
+            if engine.transfer_to_building_state(self.row, self.col):
+                return True
+
+
 class Barracks(Building):
     def __repr__(self):
         return 'barracks'
@@ -205,6 +215,11 @@ class Barracks(Building):
             if engine.can_be_occupied(r, c):
                 spawn_squares.append((r, c))
         return spawn_squares
+
+    def right_click(self, engine):
+        super().right_click(engine)
+        if engine.transfer_to_building_state(self.row, self.col):
+            return True
 
 
 class Castle(Building):
@@ -231,6 +246,11 @@ class Castle(Building):
                 spawn_squares.append((r, c))
         return spawn_squares
 
+    def right_click(self, engine):
+        if super().right_click(engine):
+            if engine.transfer_to_building_state(self.row, self.col):
+                return True
+
 
 class Fortress(Building):
     def __repr__(self):
@@ -256,6 +276,11 @@ class Fortress(Building):
                 spawn_squares.append((r, c))
 
         return spawn_squares
+
+    def right_click(self, engine):
+        if super().right_click(engine):
+            if engine.transfer_to_building_state(self.row, self.col):
+                return True
 
 
 class Flag(Building):
@@ -293,6 +318,11 @@ class PrayerStone(Building):
         self.is_effected_by_jester = False
         self.additional_actions = Constant.PRAYER_STONE_ADDITIONAL_ACTIONS
 
+    def right_click(self, engine):
+        if super().right_click(engine):
+            self.casting = True
+            return engine.create_ritual_menu(self.row, self.col, engine.prayer_stone_rituals[engine.turn_count_actual])
+
 
 class Monolith(Building):
     def __repr__(self):
@@ -318,5 +348,10 @@ class Monolith(Building):
                     ritual_squares.append((r, c))
 
         return ritual_squares
+
+    def right_click(self, engine):
+        if super().right_click(engine):
+            self.casting = True
+            return engine.create_ritual_menu(self.row, self.col, engine.monolith_rituals[engine.turn_count_actual])
 
 

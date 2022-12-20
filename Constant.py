@@ -116,21 +116,21 @@ PIECE_COSTS = {'king': {'log': 99, 'gold': 99, 'stone': 99},
                'monk': {'log': 3, 'gold': 0, 'stone': 0},
                'pikeman': {'log': 0, 'gold': 3, 'stone': 2},
                'castle': {'log': 8, 'gold': 0, 'stone': 0},
-               'stable': {'log': 12, 'gold': 4, 'stone': 0},
+               'stable': {'log': 8, 'gold': 0, 'stone': 8},
                'barracks': {'log': 0, 'gold': 8, 'stone': 0},
                'fortress': {'log': 0, 'gold': 12, 'stone': 12},
-               'queen': {'log': 8, 'gold': 8, 'stone': 8},
-               'rook': {'log': 0, 'gold': 6, 'stone': 6},
-               'bishop': {'log': 0, 'gold': 3, 'stone': 1},
-               'knight': {'log': 0, 'gold': 3, 'stone': 0},
+               'queen': {'log': 9, 'gold': 9, 'stone': 9},
+               'rook': {'log': 0, 'gold': 0, 'stone': 10},
+               'bishop': {'log': 0, 'gold': 0, 'stone': 5},
+               'knight': {'log': 0, 'gold': 0, 'stone': 3},
                'jester': {'log': 0, 'gold': 10, 'stone': 0},
                'rogue_rook': {'log': 0, 'gold': 14, 'stone': 14},
                'rogue_bishop': {'log': 9, 'gold': 9, 'stone': 0},
                'rogue_knight': {'log': 0, 'gold': 9, 'stone': 0},
                'rogue_pawn': {'log': 6, 'gold': 0, 'stone': 0},
-               'elephant': {'log': 0, 'gold': 6, 'stone': 0},
-               'ram': {'log': 0, 'gold': 6, 'stone': 0},
-               'unicorn': {'log': 0, 'gold': 12, 'stone': 0},
+               'elephant': {'log': 4, 'gold': 0, 'stone': 4},
+               'ram': {'log': 6, 'gold': 0, 'stone': 6},
+               'unicorn': {'log': 12, 'gold': 0, 'stone': 12},
                'monolith': {'log': 0, 'gold': 0, 'stone': 10},
                'prayer_stone': {'log': 0, 'gold': 0, 'stone': 2},
                'duke': {'log': 9, 'gold': 9, 'stone': 9},
@@ -226,6 +226,7 @@ DEPLETED_QUARRY_YIELD_PER_HARVEST = 0
 
 PRAYER_STONE_YIELD = 1
 MONOLITH_YIELD = 2
+ADDITIONAL_PRAYER_FROM_MONK = 1
 
 #
 #   FACTIONS

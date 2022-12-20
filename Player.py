@@ -75,14 +75,14 @@ class Player:
         elif str(resource) == 'sunken_quarry_1':
             self.stone += resource.yield_per_harvest + offset
 
-    def pray(self, building):
-        self.prayer += building.yield_when_prayed
+    def pray(self, building, additional_prayer):
+        self.prayer += (building.yield_when_prayed + additional_prayer)
 
-    def un_pray(self, building):
-        self.prayer -= building.yield_when_prayed
+    def un_pray(self, building, additional_prayer):
+        self.prayer -= (building.yield_when_prayed - additional_prayer)
 
     def reset_prayer(self):
-        self.prayer = 0
+        self.prayer = Constant.STARTING_PRAYER
 
     def get_prayer(self):
         return self.prayer

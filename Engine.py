@@ -1,3 +1,5 @@
+import random
+
 from Player import Player
 from State import *
 from Tile import *
@@ -60,7 +62,7 @@ class Engine:
         self.final_spawn = False
         self.side_bar = None
         self.surrendering = False
-        self.stealing = False
+        self.stealing = None
         self.menus = []
         self.state = []
         self.protected_tiles = []
@@ -70,13 +72,17 @@ class Engine:
         self.used_and_intercepted_pieces = []
         self.ritual_summon_resource = None
         self.monolith_rituals = []
-        self.monolith_rituals.append(self.generate_available_rituals(Constant.MONOLITH_RITUALS, Constant.MAX_MONOLITH_RITUALS_PER_TURN))
+        self.monolith_rituals.append(self.generate_available_rituals(Constant.MONOLITH_RITUALS,
+                                                                     Constant.MAX_MONOLITH_RITUALS_PER_TURN))
 
         self.prayer_stone_rituals = []
         self.prayer_stone_rituals.append(self.generate_available_rituals(Constant.PRAYER_STONE_RITUALS,
                                                                          Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN))
         self.piece_stealing_offsets = []
+        self.piece_stealing_offsets.append(self.generate_stealing_offsets(Constant.STEALING_KEY['piece']))
+
         self.building_stealing_offsets = []
+        self.building_stealing_offsets.append(self.generate_stealing_offsets(Constant.STEALING_KEY['building']))
 
         self.events = []
         self.players = {}
@@ -135,8 +141,38 @@ class Engine:
                       'builder': BuilderMenu,
                       'castle': CastleMenu
                       }
+        self.STEALING_VALUES = {'wood': 0, 'gold': 1, 'stone': 2}
+        self.KIND_TO_STEALING_LIST = {'piece': self.piece_stealing_offsets, 'building': self.building_stealing_offsets}
         self.create_player('w')
         self.create_player('b')
+
+    def stealing_values(self, resource, kind):
+        offset_list = self.KIND_TO_STEALING_LIST[kind]
+        offset = offset_list[self.turn_count_actual][self.STEALING_VALUES[resource]]
+        base_value = Constant.STEALING_KEY[kind][resource]['value']
+        value = base_value + offset
+        enemy_player = self.players[Constant.TURNS[self.turn]]
+        if kind == 'wood':
+            if enemy_player.wood - value < 0:
+                value = enemy_player.wood
+        elif kind == 'gold':
+            if enemy_player.wood - value < 0:
+                value = enemy_player.gold
+        elif kind == 'stone':
+            if enemy_player.wood - value < 0:
+                value = enemy_player.stone
+
+        return value
+
+    def generate_stealing_offsets(self, stealing_key):
+        variance_list = [stealing_key['wood']['variance'], stealing_key['gold']['variance'], stealing_key['stone']['variance']]
+
+        stealing_offsets = []
+        for i in variance_list:
+            rand = random.randint(i[0], i[1])
+            stealing_offsets.append(rand)
+
+        return stealing_offsets
 
     def generate_available_rituals(self, potential_rituals, limit):
         length_of_new_ritual_list = random.randint(1, limit)
@@ -216,6 +252,12 @@ class Engine:
         #
         else:
             return False
+
+    def update_stealing_squares(self):
+        for player in self.players:
+            for piece in self.players[player].pieces:
+                piece.update_stealing_squares(self)
+
 
     def starting_resources(self):
         #
@@ -411,7 +453,7 @@ class Engine:
 
     def piece_is_selected(self, piece):
         selected_list = [piece.selected, piece.mining, piece.pre_selected, piece.purchasing, piece.praying,
-                         piece.casting]
+                         piece.casting, piece.stealing, piece.mining_stealing]
         if any(selected_list):
             return True
 
@@ -457,6 +499,8 @@ class Engine:
                 piece.purchasing = False
                 piece.praying = False
                 piece.casting = False
+                piece.stealing = False
+                piece.mining_stealing = False
 
     def reset_player_actions_remaining(self, color):
         self.players[color].reset_actions_remaining()
@@ -624,10 +668,16 @@ class Engine:
             else:
                 return False
 
+    def has_rogue_pawn(self, r, c):
+        if Constant.tile_in_bounds(r, c):
+            p = self.board[r][c].get_occupying()
+            if isinstance(p, RoguePawn):
+                return True
+
     def has_pawn(self, r, c):
         if Constant.tile_in_bounds(r, c):
             p = self.board[r][c].get_occupying()
-            if isinstance(p, Pawn) or isinstance(p, RoguePawn):
+            if isinstance(p, Pawn):
                 return True
 
     def has_rook(self, r, c):
@@ -817,6 +867,10 @@ class Engine:
     def get_occupying(self, row, col):
         return self.board[row][col].occupying
 
+    def has_rogue(self, row, col):
+        if Constant.tile_in_bounds(row, col):
+            if self.get_occupying(row, col).is_rogue:
+                return True
     # COUNT
     def count_unused_pieces(self):
         unused_pieces = []
@@ -853,6 +907,12 @@ class Engine:
 
     def set_purchasing(self, row, col, boolean):
         self.board[row][col].occupying.purchasing = boolean
+
+    def set_stealing(self, row, col, boolean):
+        self.board[row][col].occupying.stealing = boolean
+
+    def set_mining_stealing(self, row, col, boolean):
+        self.board[row][col].occupying.mining_stealing = boolean
 
     def set_pre_selected(self, row, col, boolean):
         self.board[row][col].occupying.pre_selected = boolean
@@ -970,5 +1030,104 @@ class Engine:
         for tile in protected_tiles:
             tile.tick_protect_timer()
 
+    def transfer_to_stealing_state(self, row, col):
+        self.update_stealing_squares()
+        stealing_squares = self.board[row][col].get_occupying().stealing_squares_list
+        allow_steal = False
+        if stealing_squares:
+            allow_steal = True
+        if allow_steal:
+            self.set_stealing(row, col, True)
+            new_state = Stealing(self.state[-1].win, self)
+            self.menus = []
+            self.set_state(new_state)
+            return True
 
+    def transfer_to_building_state(self, row, col):
+        self.update_spawn_squares()
+        spawn_squares = self.board[row][col].get_occupying().spawn_squares_list
+        allow_spawn = False
+        if spawn_squares:
+            allow_spawn = True
+        if allow_spawn:
+            self.set_pre_selected(row, col, True)
+            new_state = PreBuilding(self.state[-1].win, self)
+            self.menus = []
+            new_state.add_menu_to_menu_queue(str(self.get_occupying(row, col)))
+            new_state.spawning_piece = self.get_occupying(row, col)
+            self.set_state(new_state)
+            return True
+
+    def transfer_to_stealing_mining_state(self, row, col):
+        self.update_mining_squares()
+        self.update_stealing_squares()
+        selectable_squares = self.board[row][col].get_occupying().mining_squares_list + self.board[row][col].get_occupying().stealing_squares_list
+        allow_state = False
+        if selectable_squares:
+            allow_state = True
+        if allow_state:
+            self.set_mining_stealing(row, col, True)
+            new_state = MiningStealing(self.state[-1].win, self)
+            self.menus = []
+            self.set_state(new_state)
+            return True
+
+    def transfer_to_piece_cost_screen(self):
+        new_state = PieceCost(self.state[-1].win, self)
+        self.set_state(new_state)
+
+    def transfer_to_praying_state(self, row, col):
+        self.update_praying_squares()
+        praying_squares = self.board[row][col].get_occupying().praying_squares_list
+        allow_pray = False
+        for square in praying_squares:
+            if self.has_prayable_building(square[0], square[1]):
+                allow_pray = True
+        if allow_pray:
+            self.board[row][col].get_occupying().praying = True
+            new_state = Praying(self.state[-1].win, self)
+            self.set_state(new_state)
+            self.menus = []
+            return True
+
+    def transfer_to_mining_state(self, row, col):
+        self.update_mining_squares()
+        mining_squares = self.board[row][col].get_occupying().mining_squares_list
+        allow_mine = False
+        for m in mining_squares:
+            if self.has_mineable_resource(m[0], m[1]):
+                allow_mine = True
+        if allow_mine:
+            self.board[row][col].get_occupying().mining = True
+            new_state = Mining(self.state[-1].win, self)
+            self.set_state(new_state)
+            self.menus = []
+            return True
+
+    def transfer_to_surrender_state(self):
+        new_state = Surrender(self.state[-1].win, self)
+        self.set_state(new_state)
+        self.menus = []
+
+    def transfer_to_spawning_state(self, spawning):
+        new_state = Spawning(self.state[-1].win, self)
+        self.spawning = spawning
+        self.set_state(new_state)
+
+    def transfer_to_ritual_state(self, ritual):
+        new_state = self.STATES[ritual](self.state[-1], self)
+        self.menus = []
+        self.set_state(new_state)
+        return True
+
+    def create_ritual_menu(self, row, col, ritual_list):
+        ritual_menu = RitualMenu(row, col, self.state[-1].win, self, ritual_list)
+        self.menus.append(ritual_menu)
+        return True
+
+    def create_king_menu(self, row, col):
+        king_menu = KingMenu(row, col, self.state[-1].win, self)
+        self.menus.append(king_menu)
+        self.update_spawn_squares()
+        return True
 

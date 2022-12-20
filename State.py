@@ -34,6 +34,205 @@ class State:
             self.engine.change_turn()
 
 
+class Playing(State):
+    def __init__(self, win, engine):
+        super().__init__(win, engine)
+        self.side_bar = Hud(win, engine)
+
+    def __repr__(self):
+        return 'playing'
+
+    def can_move_to_square(self, previously_selected, row, col):
+        if previously_selected is not None:
+            if previously_selected.actions_remaining > 0:
+                if self.engine.player_can_do_action(self.engine.turn):
+                    if (row, col) in previously_selected.move_squares_list:
+                        if self.engine.get_occupying(row, col) is None:
+                            return True
+
+    def can_select_piece(self, currently_selected):
+        try:
+            if self.engine.turn == currently_selected.color:
+                if currently_selected.actions_remaining > 0:
+                    if self.engine.player_can_do_action(self.engine.turn):
+                        return True
+        except AttributeError:
+            print("Attribute Error")
+            print("Line 68, State.py")
+
+    def can_capture_piece(self, previously_selected, row, col, currently_selected):
+        if previously_selected is not None:
+            if previously_selected.actions_remaining > 0:
+                if self.engine.player_can_do_action(self.engine.turn):
+                    if (row, col) in previously_selected.move_squares_list:
+                        if currently_selected is not None:
+                            if currently_selected.get_color != previously_selected.get_color():
+                                return True
+
+    def same_piece_selected(self, previously_selected, row, col):
+        if previously_selected is not None:
+            if previously_selected.get_position() == (row, col):
+                return True
+
+    def select(self, row, col):
+        #
+        #   Determine context of our select function
+        #   Returns a piece object to previousP if the piece is mining, purchasing, selected
+        #   or pre-selected
+        #
+        previously_selected = self.engine.update_previously_selected()
+
+        #
+        #   Determine the piece which we are currently selecting on this call of the select function
+        #
+        currently_selected = self.engine.get_occupying(row, col)
+
+        #
+        #   Move previously selected piece to empty square
+        #
+        if self.can_move_to_square(previously_selected, row, col):
+            #
+            #   Store the position of previously selected piece
+            #
+            prev_position = previously_selected.get_position()
+
+            #
+            #   Create move event using all data related to move
+            #
+            moveEvent = Move(previously_selected, prev_position, (row, col))
+
+            #
+            #   Complete move event a change the board accordingly
+            #
+            moveEvent.complete(self.engine)
+
+            #
+            #   Add the event to the engine list of all GameEvents
+            #
+            self.engine.events.append(moveEvent)
+
+            #
+            #   Reset selected piece and previously selected piece
+            #
+            self.engine.reset_selected()
+
+            #
+            #   Return True
+            #
+            return True
+
+        elif self.same_piece_selected(previously_selected, row, col):
+            self.engine.reset_selected()
+            return True
+        #
+        #   Select Player piece for moving
+        #
+        elif self.can_select_piece(currently_selected):
+            #
+            #   Update all pieces moves
+            #
+            self.engine.update_moves()
+
+            #
+            #   Reset all selected pieces
+            #
+            self.engine.reset_selected()
+
+            #
+            #   Set currently selected to True
+            #
+            currently_selected.selected = True
+            return True
+        #
+        #   Select enemy piece to be captured
+        #
+        elif self.can_capture_piece(previously_selected, row, col, currently_selected):
+            #
+            #   Store position of previously selected piece
+            #
+            prev_position = previously_selected.get_position()
+
+            #
+            #   Create Capture Event, passing in all relevant data
+            #
+            capture_event = Capture(previously_selected, prev_position, (row, col), currently_selected)
+
+            #
+            #   Complete Event
+            #
+            capture_event.complete(self.engine)
+
+            #
+            #   Add event to engine list of GameEvents
+            #
+            self.engine.events.append(capture_event)
+
+            #
+            #   Remove all selections
+            #
+            self.engine.reset_selected()
+            return True
+
+    def left_click(self):
+        row, col = Constant.convert_pos(pygame.mouse.get_pos())
+        if self.side_bar:
+            self.side_bar.left_click()
+
+        if self.engine.menus:
+            for menu in self.engine.menus:
+                menu.left_click()
+        else:
+            try:
+                if not self.select(row, col):
+                    self.engine.reset_selected()
+            except IndexError as e:
+                print(e)
+
+        if self.engine.enemy_player_king_does_not_exist():
+            new_state = Winner(self.win, self.engine)
+            self.engine.set_state(new_state)
+
+    def tab(self):
+        prev = self.engine.update_previously_selected()
+        if prev is not None:
+            self.engine.reset_selected()
+        else:
+            try:
+                self.engine.events[-1].undo(self.engine)
+                del self.engine.events[-1]
+            except IndexError:
+                print("failed to undo")
+
+    def right_click(self):  # STATE, PLAYING
+        if self.engine.menus:
+            for menu in self.engine.menus:
+                menu.right_click()
+        else:
+            row, col = Constant.convert_pos(pygame.mouse.get_pos())
+            self.engine.reset_selected()
+            piece = self.engine.get_occupying(row, col)
+            if piece:
+                if piece.color is self.engine.turn:
+                    if not piece.right_click(self.engine):
+                        self.reset_state()
+
+    def mouse_move(self):
+        if self.engine.menus:
+            for menu in self.engine.menus:
+                menu.mouse_move()
+                if not menu.mouse_in_menu_bounds():
+                    self.reset_state()
+
+        if self.side_bar:
+            self.side_bar.mouse_move()
+
+    def draw(self):
+        super().draw()
+        for menu in self.engine.menus:
+            menu.draw(self.win)
+        self.side_bar.draw()
+
+
 class Starting(State):
     def __init__(self, win, engine):
         super().__init__(win, engine)
@@ -358,419 +557,99 @@ class StartingSpawn(State):
         self.right_click()
 
 
-class Playing(State):
+class MiningStealing(State):
     def __init__(self, win, engine):
         super().__init__(win, engine)
-        self.side_bar = Hud(win, engine)
+
+        self.previously_selected = engine.update_previously_selected()
+        self.side_bar = Hud(self.win, self.engine)
+        # Row, Col of Stolen FROM piece
+        self.row = None
+        self.col = None
 
     def __repr__(self):
-        return 'playing'
+        return 'mining stealing'
 
-    def select(self, row, col):
-        #
-        #   Determine context of our select function
-        #   Returns a piece object to previousP if the piece is mining, purchasing, selected
-        #   or pre-selected
-        #
-        previously_selected_piece = self.engine.update_previously_selected()
+    def draw(self):
+        super().draw()
+        pos = pygame.mouse.get_pos()
+        display_pos_x = pos[0] - Constant.SQ_SIZE // 2
+        display_pos_y = pos[1] - Constant.SQ_SIZE // 2
+        self.side_bar.draw()
+        if self.engine.menus:
+            for menu in self.engine.menus:
+                menu.draw(self.win)
+        elif Constant.pos_in_bounds(pos):
+            row, col = Constant.convert_pos(pos)
+            if (row, col) in self.previously_selected.stealing_squares_list:
+                self.win.blit(Constant.IMAGES['steal'], (display_pos_x, display_pos_y))
 
-        #
-        #   Determine the piece which we are currently selecting on this call of the select function
-        #
-        currently_selected = self.engine.get_occupying(row, col)
-
-        def can_move_to_square():
-            if previously_selected_piece is not None:
-                if previously_selected_piece.actions_remaining > 0:
-                    if self.engine.player_can_do_action(self.engine.turn):
-                        if (row, col) in previously_selected_piece.move_squares_list:
-                            if self.engine.get_occupying(row, col) is None:
-                                return True
-
-        def can_select_piece():
-            try:
-                if self.engine.turn == currently_selected.color:
-                    if currently_selected.actions_remaining > 0:
-                        if self.engine.player_can_do_action(self.engine.turn):
-                            return True
-            except AttributeError:
-                print("Attribute Error")
-                print("Line 68, State.py")
-
-        def can_capture_piece():
-            if previously_selected_piece is not None:
-                if previously_selected_piece.actions_remaining > 0:
-                    if self.engine.player_can_do_action(self.engine.turn):
-                        if (row, col) in previously_selected_piece.move_squares_list:
-                            if currently_selected is not None:
-                                if currently_selected.get_color != previously_selected_piece.get_color():
-                                    return True
-
-        def same_piece_selected():
-            if previously_selected_piece is not None:
-                if previously_selected_piece.get_position() == (row, col):
-                    return True
-
-        #
-        #   Move previously selected piece to empty square
-        #
-        if can_move_to_square():
-            #
-            #   Store the position of previously selected piece
-            #
-            prev_position = previously_selected_piece.get_position()
-
-            #
-            #   Create move event using all data related to move
-            #
-            moveEvent = Move(previously_selected_piece, prev_position, (row, col))
-
-            #
-            #   Complete move event a change the board accordingly
-            #
-            moveEvent.complete(self.engine)
-
-            #
-            #   Add the event to the engine list of all GameEvents
-            #
-            self.engine.events.append(moveEvent)
-
-            #
-            #   Reset selected piece and previously selected piece
-            #
-            self.engine.reset_selected()
-
-            #
-            #   Return True
-            #
-            return True
-
-        elif same_piece_selected():
-            self.engine.reset_selected()
-            return True
-        #
-        #   Select Player piece for moving
-        #
-        elif can_select_piece():
-            #
-            #   Update all pieces moves
-            #
-            self.engine.update_moves()
-
-            #
-            #   Reset all selected pieces
-            #
-            self.engine.reset_selected()
-
-            #
-            #   Set currently selected to True
-            #
-            currently_selected.selected = True
-            return True
-        #
-        #   Select enemy piece to be captured
-        #
-        elif can_capture_piece():
-            #
-            #   Store position of previously selected piece
-            #
-            prev_position = previously_selected_piece.get_position()
-
-            #
-            #   Create Capture Event, passing in all relevant data
-            #
-            capture_event = Capture(previously_selected_piece, prev_position, (row, col), currently_selected)
-
-            #
-            #   Complete Event
-            #
-            capture_event.complete(self.engine)
-
-            #
-            #   Add event to engine list of GameEvents
-            #
-            self.engine.events.append(capture_event)
-
-            #
-            #   Remove all selections
-            #
-            self.engine.reset_selected()
-            return True
+    def draw(self):
+        super().draw()
+        self.side_bar.draw()
+        pos = pygame.mouse.get_pos()
+        display_pos_x = pos[0] - Constant.SQ_SIZE // 2
+        display_pos_y = pos[1] - Constant.SQ_SIZE // 2
+        if self.engine.menus:
+            for menu in self.engine.menus:
+                menu.draw(self.win)
+        elif Constant.pos_in_bounds(pos):
+            row, col = Constant.convert_pos(pos)
+            if self.in_mining_squares(row, col):
+                if self.engine.has_quarry(row, col) or self.engine.has_gold(row, col) or self.engine.has_sunken_quarry(
+                        row, col):
+                    self.win.blit(Constant.IMAGES['pickaxe'], (display_pos_x, display_pos_y))
+                elif self.engine.has_wood(row, col):
+                    self.win.blit(Constant.IMAGES['axe'], (display_pos_x, display_pos_y))
+            elif self.in_stealing_squares(row, col):
+                self.win.blit(Constant.IMAGES['steal'], (display_pos_x, display_pos_y))
 
     def left_click(self):
         row, col = Constant.convert_pos(pygame.mouse.get_pos())
-        if self.side_bar:
-            self.side_bar.left_click()
-            if self.engine.piece_cost_screen:
-                new_state = PieceCost(self.win, self.engine)
-                self.engine.set_state(new_state)
-                self.engine.piece_cost_screen = False
         if self.engine.menus:
             for menu in self.engine.menus:
                 menu.left_click()
-            if self.engine.spawning is not None:
-                new_state = Spawning(self.win, self.engine)
-                self.engine.set_state(new_state)
-                new_state.select(row, col)
-            if self.engine.mining:
-                new_state = Mining(self.win, self.engine)
-                self.engine.set_state(new_state)
-                self.engine.menus = []
-                self.engine.mining = False
-            if self.engine.praying:
-                new_state = Praying(self.win, self.engine)
-                self.engine.set_state(new_state)
-                self.engine.menus = []
-                self.engine.praying = False
-            if self.engine.surrendering:
-                new_state = Surrender(self.win, self.engine)
-                self.engine.set_state(new_state)
-                self.engine.menus = []
-                self.engine.surrendering = False
-            if self.engine.stealing:
-                new_state = Stealing(self.win, self.engine)
-                self.engine.menus = []
-                self.engine.stealing = False
-            if self.engine.ritual:
-                new_state = self.engine.STATES[self.engine.ritual](self.win, self.engine)
-                self.engine.menus = []
-                self.engine.set_state(new_state)
-                self.engine.ritual = None
         else:
-            try:
-                if not self.select(row, col):
-                    self.engine.reset_selected()
-            except IndexError:
-                print("Index Error")
-                print("-- Line 197, State.py")
-
-        if self.engine.enemy_player_king_does_not_exist():
-            new_state = Winner(self.win,self.engine)
-            self.engine.set_state(new_state)
-
-    def tab(self):
-        prev = self.engine.update_previously_selected()
-        if prev is not None:
-            self.engine.reset_selected()
-        else:
-            try:
-                self.engine.events[-1].undo(self.engine)
-                del self.engine.events[-1]
-            except IndexError:
-                print("failed to undo")
-
-    def right_click(self):  # STATE, PLAYING
-        if self.engine.menus:
-            for menu in self.engine.menus:
-                menu.right_click()
-        else:
-            row, col = Constant.convert_pos(pygame.mouse.get_pos())
-            self.engine.reset_selected()
-
-            def transfer_to_building_state(row, col):
-                self.engine.update_spawn_squares()
-                spawn_squares = self.engine.board[row][col].get_occupying().spawn_squares_list
-                allow_spawn = False
-                if spawn_squares is not []:
-                    allow_spawn = True
-                if allow_spawn:
-                    self.engine.set_pre_selected(row, col, True)
-                    new_state = PreBuilding(self.win, self.engine)
-                    self.engine.menus = []
-                    new_state.add_menu_to_menu_queue(str(self.engine.get_occupying(row, col)))
-                    new_state.spawning_piece = self.engine.get_occupying(row, col)
-                    self.engine.set_state(new_state)
-                    return True
-
-            def click_castle():
-                if self.engine.has_castle(row, col):
-                    if transfer_to_building_state(row, col):
-                        return True
-
-            def click_barracks():
-                if self.engine.has_barracks(row, col):
-                    if transfer_to_building_state(row, col):
-                        return True
-
-            def click_king():
-                # pass
-                if self.engine.has_king(row, col):
-                    king_menu = KingMenu(row, col, self.win, self.engine)
-                    self.engine.menus.append(king_menu)
-                    self.engine.update_spawn_squares()
-
-            def click_pawn():
-                if self.engine.has_pawn(row, col):
-                    self.engine.update_mining_squares()
-                    mining_squares = self.engine.board[row][col].get_occupying().mining_squares_list
-                    allow_mine = False
-                    for m in mining_squares:
-                        if self.engine.has_mineable_resource(m[0], m[1]):
-                            allow_mine = True
-                    if allow_mine:
-                        self.engine.board[row][col].get_occupying().mining = True
-                        new_state = Mining(self.win, self.engine)
-                        self.engine.set_state(new_state)
-                        self.engine.menus = []
-                        return True
-
-            def click_rook():
-                if self.engine.has_rook(row, col):
-                    self.engine.update_praying_squares()
-                    praying_squares = self.engine.board[row][col].get_occupying().praying_squares_list
-                    allow_pray = False
-                    for square in praying_squares:
-                        if self.engine.has_prayable_building(square[0], square[1]):
-                            allow_pray = True
-                    if allow_pray:
-                        self.engine.board[row][col].get_occupying().praying = True
-                        new_state = Praying(self.win, self.engine)
-                        self.engine.set_state(new_state)
-                        self.engine.menus = []
-                        return True
-
-            def click_bishop():
-                if self.engine.has_bishop(row, col):
-                    self.engine.update_praying_squares()
-                    praying_squares = self.engine.board[row][col].get_occupying().praying_squares_list
-                    allow_pray = False
-                    for square in praying_squares:
-                        if self.engine.has_prayable_building(square[0], square[1]):
-                            allow_pray = True
-                    if allow_pray:
-                        self.engine.board[row][col].get_occupying().praying = True
-                        new_state = Praying(self.win, self.engine)
-                        self.engine.set_state(new_state)
-                        self.engine.menus = []
-                        return True
-
-            def click_duke():
-                if self.engine.has_duke(row, col):
-                    self.engine.update_praying_squares()
-                    praying_squares = self.engine.board[row][col].get_occupying().praying_squares_list
-                    allow_pray = False
-                    for square in praying_squares:
-                        if self.engine.has_prayable_building(square[0], square[1]):
-                            allow_pray = True
-                    if allow_pray:
-                        self.engine.board[row][col].get_occupying().praying = True
-                        new_state = Praying(self.win, self.engine)
-                        self.engine.set_state(new_state)
-                        self.engine.menus = []
-                        return True
-
-            def click_monk():
-                if self.engine.has_monk(row, col):
-                    self.engine.update_praying_squares()
-                    praying_squares = self.engine.board[row][col].get_occupying().praying_squares_list
-                    allow_pray = False
-                    for square in praying_squares:
-                        if self.engine.has_prayable_building(square[0], square[1]):
-                            allow_pray = True
-                    if allow_pray:
-                        self.engine.board[row][col].get_occupying().praying = True
-                        new_state = Praying(self.win, self.engine)
-                        self.engine.set_state(new_state)
-                        self.engine.menus = []
-                        return True
-
-            def click_gold_general():
-                if self.engine.has_gold_general(row, col):
-                    self.engine.update_praying_squares()
-                    praying_squares = self.engine.board[row][col].get_occupying().praying_squares_list
-                    allow_pray = False
-                    for square in praying_squares:
-                        if self.engine.has_prayable_building(square[0], square[1]):
-                            allow_pray = True
-                    if allow_pray:
-                        self.engine.board[row][col].get_occupying().praying = True
-                        new_state = Praying(self.win, self.engine)
-                        self.engine.set_state(new_state)
-                        self.engine.menus = []
-                        return True
-
-            def click_fortress():
-                if self.engine.has_fortress(row, col):
-                    if transfer_to_building_state(row, col):
-                        return True
-
-            def click_stable():
-                if self.engine.has_stable(row, col):
-                    if transfer_to_building_state(row, col):
-                        return True
-
-            def click_builder():
-                if self.engine.has_builder(row, col):
-                    if transfer_to_building_state(row, col):
-                        return True
-
-            def click_prayer_stone():
-                if self.engine.has_prayer_stone(row, col):
-                    # Create a list of available spells each turn for each type of Prayer Object
-                    self.engine.get_occupying(row, col).casting = True
-                    ritual_menu = RitualMenu(row, col, self.win, self.engine, self.engine.prayer_stone_rituals[self.engine.turn_count_actual])
-                    self.engine.menus.append(ritual_menu)
-                    return True
-
-            def click_monolith():
-                if self.engine.has_monolith(row, col):
-                    # Create a list of available spells each turn for each type of Prayer Object
-                    self.engine.get_occupying(row, col).casting = True
-                    ritual_menu = RitualMenu(row, col, self.win, self.engine, self.engine.monolith_rituals[self.engine.turn_count_actual])
-                    self.engine.menus.append(ritual_menu)
-                    return True
-
-            if not self.engine.has_none_occupying(row, col):
-                try:
-                    p = self.engine.get_occupying(row, col)
-                    if p.get_color() is self.engine.turn:
-                        #
-                        #   These can be always be right clicked on the player's turn
-                        #
-                        if click_king():
-                            pass
-                        elif p.actions_remaining > 0:
-                            #
-                            #   These can only be right clicked if they have an action remaining
-                            #
-                            if click_pawn():
-                                pass
-                            elif click_monk():
-                                pass
-                            elif click_rook():
-                                pass
-                            elif click_duke():
-                                pass
-                            elif click_bishop():
-                                pass
-                            elif self.engine.player_can_do_action(self.engine.turn):
-                                #
-                                #   These can only be right clicked if the player has an action remaining
-                                #
-                                if click_castle():
-                                    pass
-                                elif click_barracks():
-                                    pass
-                                elif click_fortress():
-                                    pass
-                                elif click_builder():
-                                    pass
-                                elif click_stable():
-                                    pass
-                                elif click_monolith():
-                                    pass
-                                elif click_prayer_stone():
-                                    pass
-                                elif click_gold_general():
-                                    pass
-                                else:
-                                    self.engine.reset_selected()
-                except IndexError:
-                    print("index error")
-                    print("250, State.py")
-                    self.engine.reset_selected()
-            else:
+            if self.in_stealing_squares(row, col) and not self.engine.stealing:
+                self.row = row
+                self.col = col
+                menu = StealingMenu(row, col, self.win, self.engine)
+                self.engine.menus.append(menu)
+            elif self.in_mining_squares(row, col):
+                sel = self.engine.board[row][col].get_resource()
+                mining_event = Mine(sel, self.previously_selected)
+                mining_event.complete(self.engine)
+                self.engine.events.append(mining_event)
+                new_state = Playing(self.win, self.engine)
                 self.engine.reset_selected()
+                self.engine.set_state(new_state)
+            else:
+                self.reset_state()
+        if self.engine.stealing:
+            self.engine.close_menus()
+            stolen_from = self.engine.get_occupying(self.row, self.col)
+            thief = self.previously_selected
+            resource_stolen = self.engine.stealing[0]
+            amount = self.engine.stealing[1]
+            event = Steal(stolen_from, thief, resource_stolen, amount)
+            event.complete(self.engine)
+            self.engine.events.append(event)
+            self.engine.stealing = None
+            self.reset_state()
+
+    def in_mining_squares(self, row, col):
+        if (row, col) in self.previously_selected.mining_squares_list:
+            return True
+
+    def in_stealing_squares(self, row, col):
+        if (row, col) in self.previously_selected.stealing_squares_list:
+            return True
+
+    def right_click(self):
+        self.engine.reset_selected()
+        self.engine.menus = []
+        state = Playing(self.win, self.engine)
+        self.engine.set_state(state)
 
     def mouse_move(self):
         if self.engine.menus:
@@ -779,14 +658,13 @@ class Playing(State):
                 if not menu.mouse_in_menu_bounds():
                     self.reset_state()
 
-        if self.side_bar:
-            self.side_bar.mouse_move()
-
-    def draw(self):
-        super().draw()
-        for menu in self.engine.menus:
-            menu.draw(self.win)
-        self.side_bar.draw()
+    def tab(self):
+        try:
+            self.engine.events[-1].undo(self.engine)
+            del self.engine.events[-1]
+        except IndexError:
+            print("IndexError")
+            print("Line 567, State.py")
 
 
 class Mining(State):
@@ -867,64 +745,71 @@ class Mining(State):
 class Stealing(State):
     def __init__(self, win, engine):
         super().__init__(win, engine)
-        self.prev = engine.update_previously_selected()
+        self.previously_selected = engine.update_previously_selected()
+        self.side_bar = Hud(self.win, self.engine)
+        # Row, Col of Stolen FROM piece
+        self.row = None
+        self.col = None
 
     def __repr__(self):
         return 'stealing'
 
     def draw(self):
         super().draw()
-        side_bar = Hud(self.win, self.engine)
-        side_bar.draw()
         pos = pygame.mouse.get_pos()
         display_pos_x = pos[0] - Constant.SQ_SIZE // 2
         display_pos_y = pos[1] - Constant.SQ_SIZE // 2
-        if Constant.pos_in_bounds(pos):
+        self.side_bar.draw()
+        if self.engine.menus:
+            for menu in self.engine.menus:
+                menu.draw(self.win)
+        elif Constant.pos_in_bounds(pos):
             row, col = Constant.convert_pos(pos)
-            if (row, col) in self.prev.stealing_squares_list:
+            if (row, col) in self.previously_selected.stealing_squares_list:
                 self.win.blit(Constant.IMAGES['steal'], (display_pos_x, display_pos_y))
 
     def left_click(self):
-        pos = pygame.mouse.get_pos()
-        row, col = Constant.convert_pos(pos)
-        # try:
-        if self.select(row, col):
-            pass
+        row, col = Constant.convert_pos(pygame.mouse.get_pos())
+        if self.engine.menus:
+            for menu in self.engine.menus:
+                menu.left_click()
         else:
-            self.engine.reset_selected()
-            new_state = Playing(self.win, self.engine)
-            self.engine.set_state(new_state)
-        # except IndexError:
-        #     print("Index Error")
-        #     print(" -- Line 423, State.py")
+            if self.click_valid_square(row, col) and not self.engine.stealing:
+                self.row = row
+                self.col = col
+                menu = StealingMenu(row, col, self.win, self.engine)
+                self.engine.menus.append(menu)
+            else:
+                self.reset_state()
+
+        if self.engine.stealing:
+            self.engine.close_menus()
+            stolen_from = self.engine.get_occupying(self.row, self.col)
+            thief = self.previously_selected
+            resource_stolen = self.engine.stealing[0]
+            amount = self.engine.stealing[1]
+            event = Steal(stolen_from, thief, resource_stolen, amount)
+            event.complete(self.engine)
+            self.engine.events.append(event)
+            self.engine.stealing = None
+            self.reset_state()
+
+    def click_valid_square(self, row, col):
+        if (row, col) in self.previously_selected.stealing_squares_list:
+            return True
 
     def right_click(self):
         self.engine.reset_selected()
+        self.engine.menus = []
         state = Playing(self.win, self.engine)
         self.engine.set_state(state)
 
     def mouse_move(self):
-        pass
-
-    def select(self, row, col):
-        # try:
-        if self.prev is not None:
-            if Constant.tile_in_bounds(row, col):
-                sel = self.engine.board[row][col].get_occupying()
-                stealing_squares = self.prev.stealing_squares_list
-                if (row, col) in stealing_squares:
-                    stealing_event = Steal(sel, self.prev)
-                    stealing_event.complete(self.engine)
-                    self.engine.events.append(stealing_event)
-                    new_state = Playing(self.win, self.engine)
-                    self.engine.reset_selected()
-                    self.engine.set_state(new_state)
-
-        # except AttributeError:
-        #     print("attribute error lined 448")
-        #     self.engine.reset_selected()
-        #     new_state = Playing(self.win, self.engine)
-        #     self.engine.set_state(new_state)
+        if self.engine.menus:
+            for menu in self.engine.menus:
+                menu.mouse_move()
+                if not menu.mouse_in_menu_bounds():
+                    self.reset_state()
 
     def tab(self):
         try:
@@ -1146,9 +1031,6 @@ class Spawning(State):
         super().reset_state()
 
     def mouse_move(self):
-        pass
-
-    def select(self, row, col):
         pass
 
     def tab(self):

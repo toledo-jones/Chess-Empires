@@ -246,7 +246,7 @@ class Spawn(GameEvent):
 
 
 class Steal(GameEvent):
-    def __init__(self, stolen_from, thief):
+    def __init__(self, stolen_from, thief, resource_stolen, amount):
         #
         #   Call Parent __init__ Method
         #
@@ -258,6 +258,8 @@ class Steal(GameEvent):
         #
         self.stolen_from = stolen_from
         self.thief = thief
+        self.resource_stolen = resource_stolen
+        self.amount = amount
 
         #
         #   Store the List of Values which dictate the offset when mining each material.
@@ -268,7 +270,10 @@ class Steal(GameEvent):
     def complete(self, engine):
         self.play_random_sound_effect()
         self.thief.actions_remaining -= 1
-        engine.players[engine.turn].steal()
+
+        engine.players[engine.turn].steal(self.resource_stolen, self.amount)
+        engine.players[Constant.TURNS[engine.turn]].invert_steal(self.resource_stolen, self.amount)
+
         if Constant.STEALING_COSTS_ACTION:
             engine.players[engine.turn].do_action()
 
@@ -276,7 +281,12 @@ class Steal(GameEvent):
         thief = engine.get_occupying(self.thief.row, self.thief.col)
         thief.actions_remaining += 1
         self.play_random_sound_effect()
-        engine.players[engine.turn].un_pray(self.stolen_from)
+        engine.players[engine.turn].invert_steal(self.resource_stolen, self.amount)
+        engine.players[Constant.TURNS[engine.turn]].steal(self.resource_stolen, self.amount)
+        #
+        #   undo stealing
+        #
+
         if Constant.STEALING_COSTS_ACTION:
             engine.players[engine.turn].undo_action()
         unused_pieces = engine.count_unused_pieces()
@@ -349,7 +359,6 @@ class Mine(GameEvent):
         resource = engine.RESOURCES[str(self.mined)](row, col)
         resource.offset = self.sprite_offset
         engine.create_resource(row, col, resource)
-
         engine.get_resource(row, col).remaining = self.mined.remaining
         engine.get_resource(row, col).offsetIndex.append(self.miningOffset)
         engine.get_resource(row, col).sprite_id = self.sprite_id
@@ -377,11 +386,15 @@ class Pray(GameEvent):
     def __init__(self, praying_piece, prayed_on):
         self.praying_piece = praying_piece
         self.prayed_on = prayed_on
+        self.additional_prayer = 0
+        if str(self.praying_piece) == 'monk':
+            self.additional_prayer = Constant.ADDITIONAL_PRAYER_FROM_MONK
 
     def complete(self, engine):
         self.play_random_sound_effect()
         self.praying_piece.actions_remaining -= 1
-        engine.players[engine.turn].pray(self.prayed_on)
+
+        engine.players[engine.turn].pray(self.prayed_on, self.additional_prayer)
         if Constant.PRAYING_COSTS_ACTION:
             engine.players[engine.turn].do_action()
 
@@ -389,7 +402,7 @@ class Pray(GameEvent):
         praying_piece = engine.get_occupying(self.praying_piece.row, self.praying_piece.col)
         praying_piece.actions_remaining += 1
         self.play_random_sound_effect()
-        engine.players[engine.turn].un_pray(self.prayed_on)
+        engine.players[engine.turn].un_pray(self.prayed_on, self.additional_prayer)
         if Constant.PRAYING_COSTS_ACTION:
             engine.players[engine.turn].undo_action()
         unused_pieces = engine.count_unused_pieces()
@@ -560,6 +573,10 @@ class ChangeTurn(GameEvent):
                 Constant.PRAYER_STONE_RITUALS, Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN))
         if self.engine.turn_count_actual == len(self.engine.monolith_rituals) - 1:
             self.engine.monolith_rituals.append(self.engine.generate_available_rituals(Constant.MONOLITH_RITUALS, Constant.MAX_MONOLITH_RITUALS_PER_TURN))
+        if self.engine.turn_count_actual == len(self.engine.piece_stealing_offsets) - 1:
+            self.engine.piece_stealing_offsets.append(self.engine.generate_stealing_offsets(Constant.STEALING_KEY['piece']))
+        if self.engine.turn_count_actual == len(self.engine.building_stealing_offsets) - 1:
+            self.engine.building_stealing_offsets.append(self.engine.generate_stealing_offsets(Constant.STEALING_KEY['building']))
         unused_pieces = self.engine.count_unused_pieces()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
@@ -822,6 +839,8 @@ class Swap(RitualEvent):
         self.col = col
         self.dest_row = dest_row
         self.dest_col = dest_col
+        self.first_actions = self.engine.get_occupying(row, col).actions_remaining
+        self.second_actions = self.engine.get_occupying(self.dest_row, self.dest_col).actions_remaining
 
     def __repr__(self):
         return 'swap'
@@ -831,6 +850,7 @@ class Swap(RitualEvent):
 
         self.engine.swap(self.row, self.col, self.dest_row, self.dest_col)
         self.engine.get_occupying(self.dest_row, self.dest_col).actions_remaining = 0
+        self.engine.get_occupying(self.row, self.col).actions_remaining = 0
         self.engine.intercept_pieces()
         self.player.do_action()
         self.player.do_ritual(self.ritual_cost)
@@ -841,7 +861,8 @@ class Swap(RitualEvent):
 
         self.respawn_deleted_monks()
         self.engine.swap(self.dest_row, self.dest_col, self.row, self.col)
-        self.engine.get_occupying(self.row, self.col).actions_remaining = 1
+        self.engine.get_occupying(self.row, self.col).actions_remaining = self.first_actions
+        self.engine.get_occupying(self.dest_row, self.dest_col).actions_remaining = self.second_actions
         self.player.undo_ritual(self.ritual_cost)
         self.engine.reset_selected()
         self.engine.correct_interceptions()

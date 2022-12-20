@@ -31,12 +31,21 @@ class Player:
     def __repr__(self):
         return self.color
 
-    def steal(self, from_piece, from_player):
-        base_stealing_values = None
-        if isinstance(from_piece, Piece):
-            base_stealing_values = Constant.STOLEN_FROM_PIECE
-        else:
-            pass
+    def steal(self, kind, value):
+        if kind == 'wood':
+            self.wood += value
+        elif kind == 'gold':
+            self.gold += value
+        elif kind == 'stone':
+            self.stone += value
+
+    def invert_steal(self, kind, value):
+        if kind == 'wood':
+            self.wood -= value
+        elif kind == 'gold':
+            self.gold -= value
+        elif kind == 'stone':
+            self.stone -= value
 
     def mine(self, resource, offset):
         if str(resource) == 'gold_tile_1':
@@ -64,16 +73,16 @@ class Player:
             self.stone -= resource.yield_per_harvest + offset
 
         elif str(resource) == 'sunken_quarry_1':
-            self.stone += resource.yield_per_harvest + offset
+            self.stone -= resource.yield_per_harvest + offset
 
-    def pray(self, building):
-        self.prayer += building.yield_when_prayed
+    def pray(self, building, additional_prayer):
+        self.prayer += (building.yield_when_prayed + additional_prayer)
 
-    def un_pray(self, building):
-        self.prayer -= building.yield_when_prayed
+    def un_pray(self, building, additional_prayer):
+        self.prayer -= (building.yield_when_prayed - additional_prayer)
 
     def reset_prayer(self):
-        self.prayer = 0
+        self.prayer = Constant.STARTING_PRAYER
 
     def get_prayer(self):
         return self.prayer

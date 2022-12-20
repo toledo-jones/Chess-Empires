@@ -975,5 +975,5 @@ class Hud(SideMenu):
         pos = pygame.mouse.get_pos()
         if pos[0] > Constant.BOARD_WIDTH_PX:
             if 0 < pos[1] < Constant.BOARD_HEIGHT_PX * .25:
-                self.engine.piece_cost_screen = True
+                self.engine.transfer_to_piece_cost_screen()
 

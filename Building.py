@@ -217,9 +217,9 @@ class Barracks(Building):
         return spawn_squares
 
     def right_click(self, engine):
-        super().right_click(engine)
-        if engine.transfer_to_building_state(self.row, self.col):
-            return True
+        if super().right_click(engine):
+            if engine.transfer_to_building_state(self.row, self.col):
+                return True
 
 
 class Castle(Building):

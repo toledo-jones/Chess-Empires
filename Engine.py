@@ -1073,7 +1073,7 @@ class Engine:
             return True
 
     def transfer_to_piece_cost_screen(self):
-        new_state = PieceCost(self.state[-1], self)
+        new_state = PieceCost(self.state[-1].win, self)
         self.set_state(new_state)
 
     def transfer_to_praying_state(self, row, col):

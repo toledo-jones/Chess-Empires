@@ -56,25 +56,26 @@ SIDE_MENU_WIDTH = pygame.display.Info().current_w - BOARD_WIDTH_PX
 #   GAMEPLAY MECHANIC SETTINGS
 #
 
-#
-# DEBUG START
-# STARTING_WOOD = 99
-# STARTING_GOLD = 99
-# STARTING_STONE = 99
-# STARTING_PIECES = ['castle', 'rogue_pawn', 'king']
-#
 
-#
-# DEFAULT START
-STARTING_WOOD = 0
-STARTING_GOLD = 0
-STARTING_STONE = 0
-STARTING_PIECES = ['castle', 'pawn', 'pawn', 'pawn', 'builder', 'king', ]
-#
+'DEBUG START'
+STARTING_PRAYER = 12
+STARTING_WOOD = 99
+STARTING_GOLD = 99
+STARTING_STONE = 99
+STARTING_PIECES = ['castle', 'monolith', 'king']
+DEBUG_RITUALS = True
 
+
+# 'DEFAULT START'
+# STARTING_PRAYER = 0
+# STARTING_WOOD = 0
+# STARTING_GOLD = 0
+# STARTING_STONE = 0
+# STARTING_PIECES = ['castle', 'pawn', 'pawn', 'pawn', 'builder', 'king', ]
+# DEBUG_RITUALS = False
+BOARD_STARTS_WITH_RESOURCES = True
 SELECTABLE_STARTING_PIECES = ['pawn', 'builder', 'monk', 'pikeman']
 NUMBER_OF_STARTING_PIECES = 3
-STARTING_PRAYER = 0
 MONOLITH_RITUALS = ['gold_general', 'smite', 'destroy_resource', 'teleport', 'swap', 'line_destroy', 'protect']
 PRAYER_STONE_RITUALS = ['destroy_resource', 'create_resource', 'teleport', 'swap', 'protect']
 STEALING_KEY = {'building': {
@@ -133,7 +134,7 @@ PIECE_COSTS = {'king': {'log': 99, 'gold': 99, 'stone': 99},
                'unicorn': {'log': 12, 'gold': 0, 'stone': 12},
                'monolith': {'log': 0, 'gold': 0, 'stone': 10},
                'prayer_stone': {'log': 0, 'gold': 0, 'stone': 2},
-               'duke': {'log': 9, 'gold': 9, 'stone': 9},
+               'duke': {'log': 10, 'gold': 10, 'stone': 10},
                'gold_general': {'log': 99, 'gold': 99, 'stone': 99}}
 
 PIECE_POPULATION = {'king': 1,
@@ -368,7 +369,7 @@ b_pieces = ['b_king', 'b_queen', 'b_rook', 'b_bishop',
             'b_rogue_bishop', 'b_jester', 'b_pikeman',
             'b_gold_general', 'b_silver_general',
             'b_rogue_rook', 'b_elephant', 'b_elephant_cart',
-            'b_champion', 'b_rogue_pawn', 'b_rogue_knight', 'b_builder', 'b_unicorn', 'w_ram']
+            'b_champion', 'b_rogue_pawn', 'b_rogue_knight', 'b_builder', 'b_unicorn', 'b_ram']
 b_buildings = ['b_castle', 'b_fortress', 'b_barracks',
                'b_wall', 'b_monolith', 'b_prayer_stone',
                'b_flag', 'b_barracks', 'b_war_tower', 'b_stable']

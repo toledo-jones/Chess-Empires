@@ -6,41 +6,11 @@ from Tile import *
 from Building import *
 
 class Engine:
-    def reset_all_engine_variables(self):
-        self.cols = Constant.BOARD_WIDTH_SQ
-        self.rows = Constant.BOARD_HEIGHT_SQ
-        self.board = [[0 for y in range(self.cols)] for x in range(self.rows)]
-        for c in range(self.cols):
-            for r in range(self.rows):
-                self.board[r][c] = Tile(r, c)
-        self.turn = None
-        self.first = True
-        self.first_turn = True
-        self.turn_count_display = .5
-        self.spawn_count = 0
-        self.spawn_success = False
-        self.spawning = None
-        self.ritual = None
-        self.mining = False
-        self.praying = False
-        self.check = False
-        self.final_spawn = False
-        self.side_bar = None
-        self.surrendering = False
-        self.menus = []
-        self.state = []
-        self.protected_tiles = []
-        self.pins = []
-        self.piece_cost_screen = False
-        self.pieces_checking = []
-        self.used_and_intercepted_pieces = []
-        self.ritual_summon_resource = None
-        self.events = []
-        self.players = {}
-        self.create_player('w')
-        self.create_player('b')
+    def reset(self):
+        self.running = False
 
     def __init__(self):
+        self.running = True
         self.cols = Constant.BOARD_WIDTH_SQ
         self.rows = Constant.BOARD_HEIGHT_SQ
         self.board = [[0 for y in range(self.cols)] for x in range(self.rows)]
@@ -72,12 +42,15 @@ class Engine:
         self.used_and_intercepted_pieces = []
         self.ritual_summon_resource = None
         self.monolith_rituals = []
-        self.monolith_rituals.append(self.generate_available_rituals(Constant.MONOLITH_RITUALS,
-                                                                     Constant.MAX_MONOLITH_RITUALS_PER_TURN))
-
         self.prayer_stone_rituals = []
-        self.prayer_stone_rituals.append(self.generate_available_rituals(Constant.PRAYER_STONE_RITUALS,
-                                                                         Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN))
+        if Constant.DEBUG_RITUALS:
+            self.prayer_stone_rituals.append(Constant.PRAYER_STONE_RITUALS)
+            self.monolith_rituals.append(Constant.MONOLITH_RITUALS)
+        else:
+            self.monolith_rituals.append(self.generate_available_rituals(Constant.MONOLITH_RITUALS,
+                                                                         Constant.MAX_MONOLITH_RITUALS_PER_TURN))
+            self.prayer_stone_rituals.append(self.generate_available_rituals(Constant.PRAYER_STONE_RITUALS,
+                                                                             Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN))
         self.piece_stealing_offsets = []
         self.piece_stealing_offsets.append(self.generate_stealing_offsets(Constant.STEALING_KEY['piece']))
 
@@ -686,7 +659,6 @@ class Engine:
             if isinstance(p, Rook):
                 return True
 
-
     def has_bishop(self, r, c):
         if Constant.tile_in_bounds(r, c):
             p = self.board[r][c].get_occupying()
@@ -871,6 +843,7 @@ class Engine:
         if Constant.tile_in_bounds(row, col):
             if self.get_occupying(row, col).is_rogue:
                 return True
+
     # COUNT
     def count_unused_pieces(self):
         unused_pieces = []
@@ -1115,7 +1088,7 @@ class Engine:
         self.set_state(new_state)
 
     def transfer_to_ritual_state(self, ritual):
-        new_state = self.STATES[ritual](self.state[-1], self)
+        new_state = self.STATES[ritual](self.state[-1].win, self)
         self.menus = []
         self.set_state(new_state)
         return True

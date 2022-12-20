@@ -1,10 +1,7 @@
 import os
 import random
-
 import pygame
-
 import Constant
-
 from Piece import Piece
 from Building import Building
 
@@ -630,9 +627,7 @@ class KingMenu(Menu):
             if pos[1] > self.menu_position_y < self.menu_position_y + self.menu_height:
                 self.engine.transfer_to_surrender_state()
 
-#
-#   SIDE MENUS
-#
+
 class SideMenu:
     def __init__(self, win, engine):
         self.win = win

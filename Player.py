@@ -73,7 +73,7 @@ class Player:
             self.stone -= resource.yield_per_harvest + offset
 
         elif str(resource) == 'sunken_quarry_1':
-            self.stone += resource.yield_per_harvest + offset
+            self.stone -= resource.yield_per_harvest + offset
 
     def pray(self, building, additional_prayer):
         self.prayer += (building.yield_when_prayed + additional_prayer)

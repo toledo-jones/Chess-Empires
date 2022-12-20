@@ -105,6 +105,7 @@ class SunkenQuarry(Resource):
     def get_sprite_id(self):
         return self.sprite_id
 
+
 class DepletedQuarry(Resource):
     def __repr__(self):
         return 'depleted_quarry' + "_" + str(self.get_sprite_id())

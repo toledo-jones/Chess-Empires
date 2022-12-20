@@ -359,7 +359,6 @@ class Mine(GameEvent):
         resource = engine.RESOURCES[str(self.mined)](row, col)
         resource.offset = self.sprite_offset
         engine.create_resource(row, col, resource)
-
         engine.get_resource(row, col).remaining = self.mined.remaining
         engine.get_resource(row, col).offsetIndex.append(self.miningOffset)
         engine.get_resource(row, col).sprite_id = self.sprite_id

@@ -105,7 +105,8 @@ class Engine:
                        'teleport': PerformTeleport,
                        'swap': PerformSwap,
                        'line_destroy': PerformLineDestroy,
-                       'protect': PerformProtect,}
+                       'protect': PerformProtect,
+                       'main menu': MainMenu}
         self.RESOURCES = {'tree_tile_1': Wood, 'gold_tile_1': Gold,
                           'quarry_1': Quarry,
                           'tree_tile_2': Wood,

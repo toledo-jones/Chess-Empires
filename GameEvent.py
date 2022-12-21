@@ -317,7 +317,7 @@ class Mine(GameEvent):
         self.additional_mining = 0
 
         if str(self.miner) == 'rogue_pawn':
-            self.additional_mining = Constant.ADDITIONAL_MINING_FROM_ROGUE
+            self.additional_mining = Constant.ADDITIONAL_MINING_FROM_ROGUE[Constant.RESOURCE_KEY[str(self.mined)]]
 
         #
         #   Store the List of Values which dictate the offset when mining each material.

@@ -857,14 +857,15 @@ class SurrenderMenu(SideMenu):
     def draw(self):
         self.menu.fill(Constant.MENU_COLOR)
         self.menu.blit(self.surrender_text_surface, (self.question_display_x, self.question_display_y))
-        self.menu.blit(self.yes_button_image, (self.yes_display_x, self.answer_display_y))
-        self.menu.blit(self.no_button_image, (self.no_display_x, self.answer_display_y))
-        self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
-        self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
         if self.yes_highlight:
             self.menu.blit(self.square, (self.yes_square_display_x, self.square_display_y))
         elif self.no_highlight:
             self.menu.blit(self.square, (self.no_square_display_x, self.square_display_y))
+        self.menu.blit(self.yes_button_image, (self.yes_display_x, self.answer_display_y))
+        self.menu.blit(self.no_button_image, (self.no_display_x, self.answer_display_y))
+        self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
+        self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
+
         self.win.blit(self.menu, (Constant.BOARD_WIDTH_SQ * Constant.SQ_SIZE, 0))
 
 

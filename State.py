@@ -54,12 +54,65 @@ class State:
         #
         pass
 
+    def mouse_move(self):
+        pass
+
     def revert_to_starting_state(self, first=False):
         new_state = Starting(self.win, self.engine, True)
         self.engine.spawning = None
         if first:
             self.engine.first = first
         self.engine.set_state(new_state)
+
+
+class MainMenu(State):
+    def __init__(self, win, engine):
+        super().__init__(win, engine)
+        self.main_menu_logo = Constant.MAIN_MENU_LOGO
+        self.logo_position = Constant.LOGO_POSITION
+        self.color = Constant.turn_to_color[Constant.LOGO_COLOR]
+
+        self.window_width = pygame.display.Info().current_w
+        self.window_height = pygame.display.Info().current_h
+        self.font_size = round(Constant.SQ_SIZE * 1)
+        self.font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.font_size)
+        self.play_text = "play"
+        self.text_surf = self.font.render(self.play_text, True, self.color)
+
+        self.square = pygame.Surface((self.text_surf.get_width(), self.text_surf.get_height()))
+        self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
+        self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
+
+        self.play_text_highlight = False
+
+        self.play_text_display_x = self.window_width // 2 - self.text_surf.get_width() // 2
+        self.play_text_display_y = round(self.window_height * 3/4) - self.text_surf.get_height() // 2
+
+        self.play_button_range_x = range(self.play_text_display_x, self.play_text_display_x + self.text_surf.get_width())
+        self.play_button_range_y = range(self.play_text_display_y, self.play_text_display_y + self.text_surf.get_height())
+
+    def draw(self):
+        self.win.fill(Constant.MENU_COLOR)
+        self.win.blit(self.main_menu_logo, self.logo_position)
+        if self.play_text_highlight:
+            self.win.blit(self.square, (self.play_text_display_x, self.play_text_display_y))
+        self.win.blit(self.text_surf, (self.play_text_display_x, self.play_text_display_y))
+
+    def left_click(self):
+        pos = pygame.mouse.get_pos()
+        if pos[0] in self.play_button_range_x:
+            if pos[1] in self.play_button_range_y:
+                self.engine.set_state('starting')
+
+    def mouse_move(self):
+        pos = pygame.mouse.get_pos()
+        if pos[0] in self.play_button_range_x:
+            if pos[1] in self.play_button_range_y:
+                self.play_text_highlight = True
+            else:
+                self.play_text_highlight = False
+        else:
+            self.play_text_highlight = False
 
 
 class Playing(State):
@@ -279,6 +332,10 @@ class Starting(State):
     def mouse_move(self):
         self.side_bar.mouse_move()
 
+    def tab(self):
+        self.engine.reset_board()
+        self.engine.set_state('main menu')
+
     def draw(self):
         super().draw()
         self.side_bar.draw()
@@ -295,16 +352,16 @@ class SelectStartingPieces(State):
         self.pieces = {'w': Constant.W_PIECES, 'b': Constant.B_PIECES}
         self.window_width = pygame.display.Info().current_w
         self.window_height = pygame.display.Info().current_h
-        self.font_size = round(Constant.SQ_SIZE * .8)
+        self.font_size = round(Constant.SQ_SIZE * 1)
         self.font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.font_size)
         self.description_text = "Select your Starting Pieces:"
         self.text_surf = self.font.render(self.description_text, True, Constant.turn_to_color[self.engine.turn])
-
-        self.y_buffer = Constant.SQ_SIZE
+        self.y_buffer = round(Constant.SQ_SIZE * .55)
         self.initial_x = round(2.5 * self.window_width) // len(Constant.SELECTABLE_STARTING_PIECES)
         self.x_buffer = self.initial_x
         self.piece_spacing = round(Constant.SQ_SIZE * 1.5)
-        self.initial_y = self.window_height - (Constant.NUMBER_OF_STARTING_PIECES * 2 * self.y_buffer) + self.y_buffer // 2
+        total_height_of_grid = self.y_buffer * 2 * Constant.NUMBER_OF_STARTING_PIECES
+        self.initial_y = (self.window_height - total_height_of_grid) // 2
         self.cols = len(Constant.SELECTABLE_STARTING_PIECES)
         self.rows = Constant.NUMBER_OF_STARTING_PIECES
         self.selection_matrix = [[[0 for y in range(3)] for x in range(self.cols)] for _ in range(self.rows)]
@@ -405,7 +462,7 @@ class SelectStartingPieces(State):
 
                 initial_y += y_buffer * 2
 
-            self.win.blit(self.text_surf, (20, self.window_height // 3 - self.text_surf.get_height() // 2))
+            self.win.blit(self.text_surf, (20, 0))
         else:
             super().draw()
 
@@ -430,6 +487,7 @@ class SelectStartingPieces(State):
             for x in range(2):
                 self.engine.events[-1].undo(self.engine)
                 del self.engine.events[-1]
+
 
 class StartingSpawn(State):
     def __init__(self, win, engine):

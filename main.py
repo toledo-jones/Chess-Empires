@@ -13,7 +13,7 @@ def main():
     clock = pygame.time.Clock()
     # Begin first turn
     engine = Engine()
-    state = Starting(Constant.win, engine)
+    state = MainMenu(Constant.win, engine)
     engine.set_state(state)
     pygame.display.set_caption("Chess RTS")
     pygame.display.set_icon(Constant.IMAGES['icon'])

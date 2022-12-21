@@ -24,11 +24,6 @@ class Player:
 
         self.starting_pieces = []
 
-        self.resource_key = {'gold_tile_1': 'gold', 'quarry_1': 'stone',
-                             'sunken_quarry_1': 'stone', 'tree_tile_1': 'wood',
-                             'tree_tile_2': 'wood', 'tree_tile_3': 'wood',
-                             'tree_tile_4': 'wood'}
-
         self.total_additional_actions_this_turn = 0
 
         self.piece_limit = Constant.DEFAULT_PIECE_LIMIT
@@ -60,14 +55,13 @@ class Player:
 
     def mine(self, resource, offset, additional_mining):
         harvest = self.get_harvest(resource, offset, additional_mining)
-        player_resource = self.resource_key[str(resource)]
+        player_resource = Constant.RESOURCE_KEY[str(resource)]
         current_resource = getattr(self, player_resource)
         setattr(self, player_resource, current_resource + harvest)
 
-
     def un_mine(self, resource, offset, additional_mining):
         harvest = self.get_harvest(resource, offset, additional_mining)
-        player_resource = self.resource_key[str(resource)]
+        player_resource = Constant.RESOURCE_KEY[str(resource)]
         current_resource = getattr(self, player_resource)
         setattr(self, player_resource, current_resource - harvest)
 

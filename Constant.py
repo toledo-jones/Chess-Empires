@@ -28,9 +28,10 @@ MOVE_SQUARE_HIGHLIGHT_COLOR = pygame.Color((72, 61, 139))
 ICON_COLORS = {0: 'w', 1: 'b'}
 win = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 win.fill(MENU_COLOR)
-win.blit(pygame.transform.scale(
-    pygame.image.load(os.path.join("resources/images", ICON_COLORS[random.randint(0, 1)] + "_game_name.png")),
-    (400, 400)), (pygame.display.Info().current_w // 2 - 200, pygame.display.Info().current_h // 2 - 200))
+LOGO_COLOR = ICON_COLORS[random.randint(0, 1)]
+MAIN_MENU_LOGO = pygame.transform.scale(pygame.image.load(os.path.join("resources/images", LOGO_COLOR + "_game_name.png")), (400, 400))
+LOGO_POSITION = (pygame.display.Info().current_w // 2 - 200, pygame.display.Info().current_h // 2 - 400)
+win.blit(MAIN_MENU_LOGO, LOGO_POSITION)
 pygame.display.update()
 time.sleep(2)
 #
@@ -180,7 +181,7 @@ PRAYER_COSTS = {'gold_general': {'prayer': 8, 'monk': 2},
                 'line_destroy': {'prayer': 4, 'monk': 1},
                 'protect': {'prayer': 4, 'monk': 0}}
 
-ADDITIONAL_PIECE_LIMIT = {'castle': 4, 'barracks': 3, 'fortress': 3, 'stable': 3,
+ADDITIONAL_PIECE_LIMIT = {'castle': 5, 'barracks': 3, 'fortress': 3, 'stable': 3,
                           'king': 0,
                           'queen': 0,
                           'rook': 0,
@@ -230,7 +231,12 @@ DEPLETED_QUARRY_YIELD_PER_HARVEST = 0
 PRAYER_STONE_YIELD = 1
 MONOLITH_YIELD = 2
 ADDITIONAL_PRAYER_FROM_MONK = 2
-ADDITIONAL_MINING_FROM_ROGUE = -3
+ADDITIONAL_MINING_FROM_ROGUE = {'wood': -1, 'stone': -2, 'gold': -3}
+
+RESOURCE_KEY = {'gold_tile_1': 'gold', 'quarry_1': 'stone',
+                     'sunken_quarry_1': 'stone', 'tree_tile_1': 'wood',
+                     'tree_tile_2': 'wood', 'tree_tile_3': 'wood',
+                     'tree_tile_4': 'wood'}
 
 #
 #   FACTIONS

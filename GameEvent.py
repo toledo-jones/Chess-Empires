@@ -13,7 +13,7 @@ class GameEvent:
 
 
 class StartSpawn(GameEvent):
-    def __init__(self, color, spawn, dest, spawn_count, final_spawn, prev):
+    def __init__(self, color, spawn, dest, spawn_count, final_spawn, prev, spawn_list):
         #
         #   Call parent Initialization
         #
@@ -43,6 +43,7 @@ class StartSpawn(GameEvent):
         # Track previously selected piece
         # (This should be done in the __init__)
         self.prev = prev
+        self.spawn_list = spawn_list
 
     def complete(self, engine):
         #
@@ -81,7 +82,8 @@ class StartSpawn(GameEvent):
         engine.final_spawn = self.final_spawn
 
         #
-        engine.spawning = Constant.STARTING_PIECES[engine.spawn_count]
+        engine.spawn_list = self.spawn_list
+        engine.spawning = engine.spawn_list[engine.spawn_count]
 
         #
         try:
@@ -266,7 +268,6 @@ class Steal(GameEvent):
         #   Offset is +1, -1 or 0. This is how much is added to the default value when mining.
         #
 
-
     def complete(self, engine):
         self.play_random_sound_effect()
         self.thief.actions_remaining -= 1
@@ -300,7 +301,6 @@ class Steal(GameEvent):
         Constant.PRAY_SOUNDS[i].play()
 
 
-
 class Mine(GameEvent):
     def __init__(self, mined, miner):
         #
@@ -314,6 +314,10 @@ class Mine(GameEvent):
         #
         self.mined = mined
         self.miner = miner
+        self.additional_mining = 0
+
+        if str(self.miner) == 'rogue_pawn':
+            self.additional_mining = Constant.ADDITIONAL_MINING_FROM_ROGUE
 
         #
         #   Store the List of Values which dictate the offset when mining each material.
@@ -330,7 +334,7 @@ class Mine(GameEvent):
         self.sprite_offset = self.mined.offset
 
     def complete(self, engine):
-        engine.players[engine.turn].mine(self.mined, self.miningOffset)
+        engine.players[engine.turn].mine(self.mined, self.miningOffset, self.additional_mining)
         self.mined.remaining -= 1
         self.miner.actions_remaining -= 1
         try:
@@ -354,7 +358,7 @@ class Mine(GameEvent):
         row = self.mined.row
         col = self.mined.col
         self.mined.remaining += 1
-        engine.players[engine.turn].un_mine(self.mined, self.miningOffset)
+        engine.players[engine.turn].un_mine(self.mined, self.miningOffset, self.additional_mining)
         self.play_random_sound_effect(str(self.mined))
         resource = engine.RESOURCES[str(self.mined)](row, col)
         resource.offset = self.sprite_offset

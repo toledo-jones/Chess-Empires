@@ -57,25 +57,27 @@ SIDE_MENU_WIDTH = pygame.display.Info().current_w - BOARD_WIDTH_PX
 #
 
 
-'DEBUG START'
-STARTING_PRAYER = 12
-STARTING_WOOD = 99
-STARTING_GOLD = 99
-STARTING_STONE = 99
-STARTING_PIECES = ['castle', 'monolith', 'king']
-DEBUG_RITUALS = True
+# 'DEBUG START'
+# STARTING_PRAYER = 12
+# STARTING_WOOD = 99
+# STARTING_GOLD = 99
+# STARTING_STONE = 99
+# STARTING_PIECES = ['castle', 'monolith', 'king']
+# DEBUG_RITUALS = True
 
 
-# 'DEFAULT START'
-# STARTING_PRAYER = 0
-# STARTING_WOOD = 0
-# STARTING_GOLD = 0
-# STARTING_STONE = 0
-# STARTING_PIECES = ['castle', 'pawn', 'pawn', 'pawn', 'builder', 'king', ]
-# DEBUG_RITUALS = False
+'DEFAULT START'
+STARTING_PRAYER = 0
+STARTING_WOOD = 0
+STARTING_GOLD = 0
+STARTING_STONE = 0
+STARTING_PIECES = ['castle', 'king']
+DEBUG_RITUALS = False
+
+SELECT_STARTING_PIECES = True
 BOARD_STARTS_WITH_RESOURCES = True
-SELECTABLE_STARTING_PIECES = ['pawn', 'builder', 'monk', 'pikeman']
-NUMBER_OF_STARTING_PIECES = 3
+SELECTABLE_STARTING_PIECES = ['pawn', 'builder', 'monk', 'pikeman', 'rogue_pawn']
+NUMBER_OF_STARTING_PIECES = 5
 MONOLITH_RITUALS = ['gold_general', 'smite', 'destroy_resource', 'teleport', 'swap', 'line_destroy', 'protect']
 PRAYER_STONE_RITUALS = ['destroy_resource', 'create_resource', 'teleport', 'swap', 'protect']
 STEALING_KEY = {'building': {
@@ -113,7 +115,7 @@ DEFAULT_PIECE_LIMIT = 3
 PIECE_COSTS = {'king': {'log': 99, 'gold': 99, 'stone': 99},
                'quarry_1': {'log': 3, 'gold': 0, 'stone': 0},
                'pawn': {'log': 6, 'gold': 0, 'stone': 0},
-               'builder': {'log': 6, 'gold': 0, 'stone': 2},
+               'builder': {'log': 6, 'gold': 0, 'stone': 0},
                'monk': {'log': 3, 'gold': 0, 'stone': 0},
                'pikeman': {'log': 0, 'gold': 3, 'stone': 3},
                'castle': {'log': 8, 'gold': 0, 'stone': 0},
@@ -227,7 +229,8 @@ DEPLETED_QUARRY_YIELD_PER_HARVEST = 0
 
 PRAYER_STONE_YIELD = 1
 MONOLITH_YIELD = 2
-ADDITIONAL_PRAYER_FROM_MONK = 1
+ADDITIONAL_PRAYER_FROM_MONK = 2
+ADDITIONAL_MINING_FROM_ROGUE = -3
 
 #
 #   FACTIONS

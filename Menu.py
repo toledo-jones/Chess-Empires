@@ -129,13 +129,13 @@ class RitualMenu(Menu):
     def left_click(self):
         self.casting = self.ritual_clicked()
         if self.casting is None or not self.engine.is_legal_ritual(self.casting):
-            self.engine.state[-1].revert_state_to_playing()
+            self.engine.state[-1].revert_to_playing_state()
         else:
             self.engine.menus = []
             self.engine.transfer_to_ritual_state(self.casting)
 
     def right_click(self):
-        self.engine.state[-1].revert_state_to_playing()
+        self.engine.state[-1].revert_to_playing_state()
 
     def draw(self, win):
         self.menu.fill(Constant.MENU_COLOR)
@@ -231,11 +231,11 @@ class StealingMenu(Menu):
             self.engine.stealing = [self.key[stolen_resource], amount]
         else:
             self.engine.stealing = None
-            self.engine.state[-1].revert_state_to_playing()
+            self.engine.state[-1].revert_to_playing_state()
 
     def right_click(self):
         self.engine.ritual_summon_resource = None
-        self.engine.state[-1].revert_state_to_playing()
+        self.engine.state[-1].revert_to_playing_state()
 
     def mouse_move(self):
         pos = pygame.mouse.get_pos()
@@ -330,11 +330,11 @@ class ResourceMenu(Menu):
             self.engine.ritual_summon_resource = self.spawning
         else:
             self.engine.ritual_summon_resource = None
-            self.engine.state[-1].revert_state_to_playing()
+            self.engine.state[-1].revert_to_playing_state()
 
     def right_click(self):
         self.engine.ritual_summon_resource = None
-        self.engine.state[-1].revert_state_to_playing()
+        self.engine.state[-1].revert_to_playing_state()
 
     def mouse_move(self):
         pos = pygame.mouse.get_pos()
@@ -404,6 +404,8 @@ class SpawningMenu(Menu):
         self.player = self.engine.players[self.engine.turn]
         self.spawn_highlight_list = []
         self.square = pygame.Surface((self.menu_width, round(1/len(self.spawn_list) * self.menu_height)))
+        self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
+        self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
         for _ in self.spawn_list:
             self.spawn_highlight_list.append(False)
 
@@ -430,7 +432,7 @@ class SpawningMenu(Menu):
         self.spawning = self.piece_spawned()
         if not self.spawning or not self.engine.is_legal_spawn(self.spawning):
             self.engine.spawning = None
-            self.engine.state[-1].revert_state_to_playing()
+            self.engine.state[-1].revert_to_playing_state()
         else:
             self.engine.menus = []
             self.engine.get_occupying(self.spawner.row, self.spawner.col).purchasing = True
@@ -439,7 +441,7 @@ class SpawningMenu(Menu):
 
     def right_click(self):
         self.engine.spawning = None
-        self.engine.state[-1].revert_state_to_playing()
+        self.engine.state[-1].revert_to_playing_state()
 
     def mouse_move(self):
         pos = pygame.mouse.get_pos()
@@ -470,10 +472,8 @@ class SpawningMenu(Menu):
             if self.spawn_highlight_list[x]:
                 self.menu.blit(self.square, (0, b))
 
-        self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
-        self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
-        for p in self.spawn_list:
 
+        for p in self.spawn_list:
             piece_cost = Constant.PIECE_COSTS[p]
 
             if p == 'quarry_1':
@@ -611,7 +611,7 @@ class KingMenu(Menu):
         return self.menu_position_x, self.menu_position_y
 
     def right_click(self):
-        self.engine.state[-1].revert_state_to_playing()
+        self.engine.state[-1].revert_to_playing_state()
 
     def mouse_move(self):
         pos = pygame.mouse.get_pos()
@@ -738,8 +738,11 @@ class StartMenu(SideMenu):
                     starting = True
 
                 if starting:
-                    self.engine.spawning = Constant.STARTING_PIECES[0]
-                    new_state = 'start spawn'
+                    if Constant.SELECT_STARTING_PIECES:
+                        new_state = 'select starting pieces'
+                    else:
+                        self.engine.spawning = Constant.STARTING_PIECES[0]
+                        new_state = 'start spawn'
 
                     #
                     #   Here's where we break off for the starting piece selection menu
@@ -849,12 +852,10 @@ class SurrenderMenu(SideMenu):
                     self.engine.change_turn()
                     self.engine.surrendering = True
                 elif menu_x in range(self.no_display_x, self.no_display_x + self.answer_surface_width):
-                    self.engine.state[-1].revert_state_to_playing()
+                    self.engine.state[-1].revert_to_playing_state()
 
     def draw(self):
-
         self.menu.fill(Constant.MENU_COLOR)
-
         self.menu.blit(self.surrender_text_surface, (self.question_display_x, self.question_display_y))
         self.menu.blit(self.yes_button_image, (self.yes_display_x, self.answer_display_y))
         self.menu.blit(self.no_button_image, (self.no_display_x, self.answer_display_y))

@@ -24,6 +24,11 @@ class Player:
 
         self.starting_pieces = []
 
+        self.resource_key = {'gold_tile_1': 'gold', 'quarry_1': 'stone',
+                             'sunken_quarry_1': 'stone', 'tree_tile_1': 'wood',
+                             'tree_tile_2': 'wood', 'tree_tile_3': 'wood',
+                             'tree_tile_4': 'wood'}
+
         self.total_additional_actions_this_turn = 0
 
         self.piece_limit = Constant.DEFAULT_PIECE_LIMIT
@@ -47,33 +52,24 @@ class Player:
         elif kind == 'stone':
             self.stone -= value
 
-    def mine(self, resource, offset):
-        if str(resource) == 'gold_tile_1':
-            self.gold += resource.yield_per_harvest + offset
+    def get_harvest(self, resource, offset, additional_mining):
+        harvest = resource.yield_per_harvest + offset + additional_mining
+        if harvest < 0:
+            harvest = 0
+        return harvest
 
-        elif str(resource) == 'tree_tile_1' or str(resource) == 'tree_tile_2' or \
-                str(resource) == 'tree_tile_3' or str(resource) == 'tree_tile_4':
-            self.wood += resource.yield_per_harvest + offset
+    def mine(self, resource, offset, additional_mining):
+        harvest = self.get_harvest(resource, offset, additional_mining)
+        player_resource = self.resource_key[str(resource)]
+        current_resource = getattr(self, player_resource)
+        setattr(self, player_resource, current_resource + harvest)
 
-        elif str(resource) == 'quarry_1':
-            self.stone += resource.yield_per_harvest + offset
 
-        elif str(resource) == 'sunken_quarry_1':
-            self.stone += resource.yield_per_harvest + offset
-
-    def un_mine(self, resource, offset):
-        if str(resource) == 'gold_tile_1':
-            self.gold -= resource.yield_per_harvest + offset
-
-        elif str(resource) == 'tree_tile_1' or str(resource) == 'tree_tile_2' or \
-                str(resource) == 'tree_tile_3' or str(resource) == 'tree_tile_4':
-            self.wood -= resource.yield_per_harvest + offset
-
-        elif str(resource) == 'quarry_1':
-            self.stone -= resource.yield_per_harvest + offset
-
-        elif str(resource) == 'sunken_quarry_1':
-            self.stone -= resource.yield_per_harvest + offset
+    def un_mine(self, resource, offset, additional_mining):
+        harvest = self.get_harvest(resource, offset, additional_mining)
+        player_resource = self.resource_key[str(resource)]
+        current_resource = getattr(self, player_resource)
+        setattr(self, player_resource, current_resource - harvest)
 
     def pray(self, building, additional_prayer):
         self.prayer += (building.yield_when_prayed + additional_prayer)

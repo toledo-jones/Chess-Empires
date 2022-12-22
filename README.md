@@ -1,14 +1,13 @@
 # Chess-Empires-v24
 Pass & Play Chess Variant.
 
--- Short video highlighting some mechanics --
-https://drive.google.com/file/d/1vUxxwP95c_EvngJR9COm9I6hgr7oH8n9/view?usp=share_link
+-- ~ 6 minute gameplay preview. Full game start to finish. 
+https://youtu.be/ADkow6Bpi6o
 
-
--- fully playable windows .exe -- 
+-- windows .exe -- 
 https://drive.google.com/file/d/1UNGAStDAwMkB_XljZG76pZNnNQy9uhRm/view?usp=sharing
 
--- more instructions -- 
+-- instructions -- 
 https://drive.google.com/file/d/1325kMNlT4kYsrup1i-0Qn3NX87jCL2X-/view?usp=sharing
 
 
@@ -31,22 +30,27 @@ https://drive.google.com/file/d/1325kMNlT4kYsrup1i-0Qn3NX87jCL2X-/view?usp=shari
 - Adds prayer/ritual system using certain buildings. Some rituals will sacrifice monks.
 
 - Prayer Rituals: Summon Gold General, Smite, Delete Resource, Line Destroy, Create Resource, Swap, Protect, Teleport
+    
+- Certain pieces can steal resources from other pieces
+
+- Costs Menu outlines which pieces come from where and how much they cost
 
 - All pieces have a unique use and function. 
          - (For Example: The Jester piece moves like a queen, cannot capture and any piece on any square directly adjacent to him cannot move or act.
       
+- Fully undoable. Press tab at any point in the game to undo the last action. 
       
-      
+- 
       
 -- PLANNED FEATURES -- 
 
-- Main Menu
-
 - Tutorial
 
-- Better implementation of the cost screen
+- Finish cost Screen
 
 - Online play 
 
 - Settings
           - Mute music, windowed mode, etc
+
+- AI player

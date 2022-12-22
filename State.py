@@ -1206,7 +1206,7 @@ class Winner(State):
 
     def __init__(self, win, engine):
         super().__init__(win, engine)
-        self.font_size = round(Constant.SQ_SIZE * 1.5)
+        self.font_size = round(Constant.SQ_SIZE * 2)
         self.font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.font_size)
         self.key = {'w': 'White Won!', 'b': 'Black Won!'}
         self.text_surf = self.font.render(self.key[self.engine.turn], True, Constant.turn_to_color[self.engine.turn])
@@ -1219,10 +1219,10 @@ class Winner(State):
         return 'winner'
 
     def left_click(self):
-        pass
+        self.engine.reset()
 
     def right_click(self):
-        pass
+        self.engine.reset()
 
     def mouse_move(self):
         pass
@@ -1232,7 +1232,7 @@ class Winner(State):
         self.win.blit(self.text_surf, (self.display_x, self.display_y))
 
     def enter(self):
-        pass
+        self.engine.reset()
 
     def tab(self):
         self.engine.reset()

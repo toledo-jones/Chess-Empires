@@ -66,7 +66,7 @@ class RitualMenu(Menu):
         self.rituals = Constant.PRAYER_RITUALS
         self.ritual_width = self.rituals['w_gold_general'].get_width()
         self.ritual_height = self.rituals['w_gold_general'].get_height()
-        self.menu_width = self.ritual_width + self.vertical_buffer_between_pieces +  self.bar_end_width * 16 + self.bar_width
+        self.menu_width = self.ritual_width + self.vertical_buffer_between_pieces + self.bar_end_width * 16 + self.bar_width
         self.menu_height = len(ritual_list) * self.ritual_height
         self.menu_position_x, self.menu_position_y = self.correct_menu_boundary()
         self.menu = pygame.Surface((self.menu_width, self.menu_height))
@@ -161,7 +161,7 @@ class RitualMenu(Menu):
                 self.menu.blit(Constant.IMAGES['prayer_bar_end'], (new_edge, y_buffer_prayer))
 
             y_buffer_prayer += self.y_buffer + self.ritual_height // 2
-            self.menu.blit(self.rituals[self.engine.turn+"_"+ritual], (0, y_buffer_piece))
+            self.menu.blit(self.rituals[self.engine.turn + "_" + ritual], (0, y_buffer_piece))
             y_buffer_piece += self.ritual_height
 
         self.win.blit(self.menu, (self.menu_position_x, self.menu_position_y))
@@ -173,7 +173,7 @@ class StealingMenu(Menu):
         self.row = row
         self.col = col
         self.spawn_list = ['log', 'gold_coin', 'stone']
-        self.key = {'log':'wood', 'gold_coin':'gold', 'stone':'stone'}
+        self.key = {'log': 'wood', 'gold_coin': 'gold', 'stone': 'stone'}
 
         self.type_stolen_from = None
 
@@ -184,7 +184,9 @@ class StealingMenu(Menu):
         elif isinstance(piece, Building):
             self.type_stolen_from = 'building'
 
-        self.amounts = {'log': self.engine.stealing_values('wood', self.type_stolen_from), 'gold_coin': self.engine.stealing_values('gold', self.type_stolen_from), 'stone': self.engine.stealing_values('stone', self.type_stolen_from)}
+        self.amounts = {'log': self.engine.stealing_values('wood', self.type_stolen_from),
+                        'gold_coin': self.engine.stealing_values('gold', self.type_stolen_from),
+                        'stone': self.engine.stealing_values('stone', self.type_stolen_from)}
         self.horizontal_buffer = Constant.SQ_SIZE
         self.vertical_buffer_between_pieces = Constant.SQ_SIZE // 4
         self.font_size = round(Constant.SQ_SIZE / 2)
@@ -203,6 +205,8 @@ class StealingMenu(Menu):
         self.square = pygame.Surface((self.menu_width, round(1 / len(self.spawn_list) * self.menu_height)))
         for _ in self.spawn_list:
             self.spawn_highlight_list.append(False)
+        self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
+        self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
 
     def resource_selected(self):
         pos = pygame.mouse.get_pos()
@@ -265,8 +269,6 @@ class StealingMenu(Menu):
             if self.spawn_highlight_list[x]:
                 self.menu.blit(self.square, (0, b))
 
-        self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
-        self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
         y_buffer = 0
         for p in self.spawn_list:
             self.menu.blit(Constant.IMAGES[p], (self.horizontal_buffer // 2, y_buffer))
@@ -284,7 +286,7 @@ class ResourceMenu(Menu):
         self.row = row
         self.col = col
         rand = str(random.randint(1, 4))
-        self.spawn_list = ['gold_tile_1', 'quarry_1', 'tree_tile_'+rand, 'sunken_quarry_1']
+        self.spawn_list = ['gold_tile_1', 'quarry_1', 'tree_tile_' + rand, 'sunken_quarry_1']
         super().__init__(win, engine)
         self.horizontal_buffer = Constant.SQ_SIZE
         self.vertical_buffer_between_pieces = Constant.SQ_SIZE // 4
@@ -388,8 +390,9 @@ class SpawningMenu(Menu):
         self.font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.font_size)
         self.test_text = self.font.render("10", True, Constant.RED)
         self.menu_width = Constant.SQ_SIZE + (
-                    3 * self.horizontal_buffer_between_costs + self.test_text.get_width())
-        self.menu_height = len(spawn_list) * Constant.SPAWNING_MENU_HEIGHT_BUFFER + (self.vertical_buffer_between_pieces)
+                3 * self.horizontal_buffer_between_costs + self.test_text.get_width())
+        self.menu_height = len(spawn_list) * Constant.SPAWNING_MENU_HEIGHT_BUFFER + (
+            self.vertical_buffer_between_pieces)
         self.initial_menu_position = self.col * Constant.SQ_SIZE + Constant.SQ_SIZE // 2, self.row * Constant.SQ_SIZE + Constant.SQ_SIZE // 2
         self.menu_position_x, self.menu_position_y = self.correct_menu_boundary()
         self.menu_boundary_buffer_y = self.menu_height + self.menu_boundary_buffer
@@ -403,7 +406,7 @@ class SpawningMenu(Menu):
         self.stone_x = self.gold_x + self.horizontal_buffer_between_costs
         self.player = self.engine.players[self.engine.turn]
         self.spawn_highlight_list = []
-        self.square = pygame.Surface((self.menu_width, round(1/len(self.spawn_list) * self.menu_height)))
+        self.square = pygame.Surface((self.menu_width, round(1 / len(self.spawn_list) * self.menu_height)))
         self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
         self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
         for _ in self.spawn_list:
@@ -471,7 +474,6 @@ class SpawningMenu(Menu):
             b = a * self.menu_height
             if self.spawn_highlight_list[x]:
                 self.menu.blit(self.square, (0, b))
-
 
         for p in self.spawn_list:
             piece_cost = Constant.PIECE_COSTS[p]
@@ -615,8 +617,8 @@ class KingMenu(Menu):
 
     def mouse_move(self):
         pos = pygame.mouse.get_pos()
-        if pos[0] > self.menu_position_x < self.menu_position_x+self.menu_width:
-            if pos[1] > self.menu_position_y < self.menu_position_y+self.menu_height:
+        if pos[0] > self.menu_position_x < self.menu_position_x + self.menu_width:
+            if pos[1] > self.menu_position_y < self.menu_position_y + self.menu_height:
                 self.high_light = True
         else:
             self.high_light = False
@@ -626,6 +628,260 @@ class KingMenu(Menu):
         if pos[0] > self.menu_position_x < self.menu_position_x + self.menu_width:
             if pos[1] > self.menu_position_y < self.menu_position_y + self.menu_height:
                 self.engine.transfer_to_surrender_state()
+
+
+class CostMenu:
+    def __init__(self, win, engine, spawn_list):
+        self.spawn_list = spawn_list
+        self.win = win
+        self.engine = engine
+
+        self.window_width = pygame.display.Info().current_w
+        self.window_height = pygame.display.Info().current_h
+        self.large_font_size = round(Constant.SQ_SIZE * 1.6)
+        self.large_font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.large_font_size)
+        self.small_font_size = round(Constant.SQ_SIZE * .5)
+        self.small_font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.small_font_size)
+        self.color = Constant.turn_to_color[self.engine.turn]
+        self.player = self.engine.players[self.engine.turn]
+        self.pieces = self.pieces = {'w': Constant.W_PIECES | Constant.W_BUILDINGS,
+                                     'b': Constant.B_PIECES | Constant.B_BUILDINGS}
+        self.MENUS = {'builder': BuilderCosts, 'castle': CastleCosts, 'stable': StableCosts, 'fortress': FortressCosts,
+                      'prayer_stone': PrayerStoneCosts, 'monolith': MonolithCosts}
+        self.RESOURCES = {'wood': Constant.MENU_ICONS['log'], 'gold': Constant.MENU_ICONS['gold_coin'],
+                          'stone': Constant.MENU_ICONS['stone']}
+
+        self.text = str(self)
+        if self.text == 'prayer_stone':
+            self.text = 'floating stone'
+        self.text_surf = self.large_font.render(self.text, True, self.color)
+        self.text_width = self.text_surf.get_width()
+        self.text_height = self.text_surf.get_height()
+
+        self.text_display_x = self.window_width // 2 - self.text_width // 2
+        self.text_display_y = round(self.window_height * 1 / 6) - self.text_height // 2
+
+        self.x_buffer = Constant.SQ_SIZE
+        total_width_of_pieces = (len(self.spawn_list) * self.x_buffer * 2) - self.x_buffer
+        self.piece_display_x = (self.window_width - total_width_of_pieces) // 2
+        self.piece_display_y = round(self.window_height * 1 / 2)
+
+        self.menu_logo_display_x = self.window_width // 2 - Constant.SQ_SIZE // 2
+        self.menu_logo_display_y = self.text_display_y + self.text_height
+        self.menu_logo = None
+        if str(self) != 'Costs':
+            piece = self.engine.turn + "_" + str(self)
+            self.menu_logo = self.pieces[self.engine.turn][piece]
+
+        self.y_buffer_between_costs = Constant.SQ_SIZE
+        self.x_buffer_between_costs = self.x_buffer // 3
+
+        self.highlight_list = []
+        for _ in self.spawn_list:
+            self.highlight_list.append(False)
+
+        total_height_of_cost_column = self.y_buffer_between_costs * 3 + self.x_buffer
+        self.highlight_width = round(self.x_buffer * 1.5)
+        self.highlight_dimensions = (self.highlight_width, total_height_of_cost_column)
+
+        self.square = pygame.Surface(self.highlight_dimensions)
+        self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
+        self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
+
+    def mouse_move(self):
+        pos = pygame.mouse.get_pos()
+        piece_display_x = self.piece_display_x
+        for i in range(len(self.spawn_list)):
+            if pos[1] in range(self.piece_display_y, self.piece_display_y + self.highlight_dimensions[1]):
+                highlight_edge = piece_display_x - ((self.highlight_width - self.x_buffer) // 2)
+                if pos[0] in range(highlight_edge, highlight_edge + self.highlight_dimensions[0]):
+                    self.highlight_list[i] = True
+                else:
+                    self.highlight_list[i] = False
+            else:
+                self.highlight_list[i] = False
+            piece_display_x += self.x_buffer * 2
+
+    def left_click(self):
+        pass
+
+    def draw(self):
+        self.win.fill(Constant.MENU_COLOR)
+        self.win.blit(self.text_surf, (self.text_display_x, self.text_display_y))
+        if self.menu_logo:
+            self.win.blit(self.menu_logo, (self.menu_logo_display_x, self.menu_logo_display_y))
+        piece_display_x = self.piece_display_x
+        for i in range(len(self.spawn_list)):
+            p = self.spawn_list[i]
+            cost = Constant.PIECE_COSTS[p]
+            if p == 'quarry_1':
+                piece = 'quarry_1'
+            else:
+                piece = self.engine.turn + "_" + p
+            if self.highlight_list[i]:
+                self.win.blit(self.square,
+                              (piece_display_x - ((self.highlight_width - self.x_buffer) // 2), self.piece_display_y))
+            if piece == 'quarry_1':
+                self.win.blit(Constant.RESOURCES[piece], (piece_display_x, self.piece_display_y))
+            else:
+                self.win.blit(self.pieces[self.engine.turn][piece], (piece_display_x, self.piece_display_y))
+            log_y = self.piece_display_y + self.y_buffer_between_costs
+            gold_y = log_y + self.y_buffer_between_costs
+            stone_y = gold_y + self.y_buffer_between_costs
+            Y_COORDS = {'wood': log_y, 'gold': gold_y, 'stone': stone_y}
+            for resource in cost:
+                if cost[resource] != 0:
+                    if getattr(self.player, Constant.RESOURCE_KEY[resource]) >= cost[resource]:
+                        color = self.color
+                    else:
+                        color = Constant.RED
+                    text_surf = self.small_font.render(": " + str(cost[resource]), True, color)
+                    resource_position = (piece_display_x - self.x_buffer_between_costs // 1.5,
+                                         Y_COORDS[Constant.RESOURCE_KEY[resource]] + self.RESOURCES[
+                                             Constant.RESOURCE_KEY[resource]].get_height() // 2)
+
+                    self.win.blit(self.RESOURCES[Constant.RESOURCE_KEY[resource]], resource_position)
+
+                    cost_text_position = (piece_display_x + self.x_buffer_between_costs,
+                                          Y_COORDS[Constant.RESOURCE_KEY[resource]])
+
+                    self.win.blit(text_surf, cost_text_position)
+
+            piece_display_x += self.x_buffer * 2
+
+    def piece_selected(self):
+        pos = pygame.mouse.get_pos()
+        piece_display_x = self.piece_display_x
+        selected = None
+        for i in range(len(self.spawn_list)):
+            if pos[1] in range(self.piece_display_y, self.piece_display_y + self.highlight_dimensions[1]):
+                highlight_edge = piece_display_x - ((self.highlight_width - self.x_buffer) // 2)
+                if pos[0] in range(highlight_edge, highlight_edge + self.highlight_dimensions[0]):
+                    selected = self.spawn_list[i]
+            piece_display_x += self.x_buffer * 2
+        return selected
+
+
+class Master(CostMenu):
+    def __init__(self, win, engine, spawn_list):
+        super().__init__(win, engine, spawn_list)
+
+    def __repr__(self):
+        return 'Costs'
+
+    def left_click(self):
+        piece_selected = self.piece_selected()
+        if piece_selected is not None:
+            menu = self.MENUS[piece_selected](self.win, self.engine)
+            self.engine.menus.append(menu)
+
+
+class BuilderCosts(CostMenu):
+    def __init__(self, win, engine):
+        spawn_list = Constant.BUILDER_MENU_SPAWN_LIST
+        super().__init__(win, engine, spawn_list)
+
+    def __repr__(self):
+        return 'builder'
+
+
+class CastleCosts(CostMenu):
+    def __init__(self, win, engine):
+        spawn_list = Constant.CASTLE_MENU_SPAWN_LIST
+        super().__init__(win, engine, spawn_list)
+
+    def __repr__(self):
+        return 'castle'
+
+
+class StableCosts(CostMenu):
+    def __init__(self, win, engine):
+        spawn_list = Constant.STABLE_MENU_SPAWN_LIST
+        super().__init__(win, engine, spawn_list)
+
+    def __repr__(self):
+        return 'stable'
+
+
+class FortressCosts(CostMenu):
+    def __init__(self, win, engine):
+        spawn_list = Constant.FORTRESS_MENU_SPAWN_LIST
+        super().__init__(win, engine, spawn_list)
+
+    def __repr__(self):
+        return 'fortress'
+
+
+class RitualCosts(CostMenu):
+    def __init__(self, win, engine, spawn_list):
+        super().__init__(win, engine, spawn_list)
+        self.rituals = Constant.PRAYER_RITUALS
+        self.ritual_width = self.rituals['w_swap'].get_width()
+        self.ritual_height = self.rituals['w_swap'].get_height()
+
+        total_height_of_cost_column = self.y_buffer_between_costs * 3 + self.x_buffer
+        self.highlight_width = self.ritual_width
+        self.highlight_dimensions = (self.highlight_width, total_height_of_cost_column)
+
+        self.square = pygame.Surface(self.highlight_dimensions)
+        self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
+        self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
+
+        self.prayer_bar_end = Constant.IMAGES['prayer_bar_end']
+        self.prayer_bar = Constant.IMAGES['prayer_bar']
+
+        self.bar_end_width = self.prayer_bar_end.get_width()
+        self.bar_width = self.prayer_bar.get_width()
+
+        self.bar_display_y = self.piece_display_y + self.y_buffer_between_costs * 2
+
+    def full_length_of_prayer_bar(self, cost):
+        return self.bar_end_width * cost + self.bar_width
+
+    def draw(self):
+        self.win.fill(Constant.MENU_COLOR)
+        self.win.blit(self.text_surf, (self.text_display_x, self.text_display_y))
+        if self.menu_logo:
+            self.win.blit(self.menu_logo, (self.menu_logo_display_x, self.menu_logo_display_y))
+        piece_display_x = self.piece_display_x
+        for i in range(len(self.spawn_list)):
+            p = self.spawn_list[i]
+            cost = Constant.PRAYER_COSTS[p]
+            ritual = self.engine.turn + "_" + p
+            if self.highlight_list[i]:
+                self.win.blit(self.square,
+                              (piece_display_x, self.piece_display_y))
+            self.win.blit(self.rituals[ritual], (piece_display_x, self.piece_display_y))
+
+            length_of_this_prayer_bar = self.full_length_of_prayer_bar(cost['prayer'])
+
+            bar_end_edge = piece_display_x + self.ritual_width // 2 - length_of_this_prayer_bar // 2
+
+            self.win.blit(self.prayer_bar, (bar_end_edge - self.bar_width, self.bar_display_y))
+
+            for z in range(cost['prayer']):
+                new_edge = bar_end_edge + self.bar_end_width * (z)
+                self.win.blit(self.prayer_bar_end, (new_edge, self.bar_display_y))
+
+            piece_display_x += self.x_buffer * 2
+
+
+class PrayerStoneCosts(RitualCosts):
+    def __init__(self, win, engine):
+        spawn_list = Constant.PRAYER_STONE_RITUALS
+        super().__init__(win, engine, spawn_list)
+
+    def __repr__(self):
+        return 'prayer_stone'
+
+
+class MonolithCosts(RitualCosts):
+    def __init__(self, win, engine):
+        spawn_list = Constant.MONOLITH_RITUALS
+        super().__init__(win, engine, spawn_list)
+
+    def __repr__(self):
+        return 'monolith'
 
 
 class SideMenu:
@@ -738,18 +994,12 @@ class StartMenu(SideMenu):
                     starting = True
 
                 if starting:
-                    if Constant.SELECT_STARTING_PIECES:
+                    if not Constant.DEBUG_START:
                         new_state = 'select starting pieces'
+                        self.engine.set_state(new_state)
                     else:
-                        self.engine.spawning = Constant.STARTING_PIECES[0]
-                        new_state = 'start spawn'
-
-                    #
-                    #   Here's where we break off for the starting piece selection menu
-                    #
-
-                    # new_state = SelectStartingPieces(self.win, self.engine)
-                    self.engine.set_state(new_state)
+                        new_state = 'debug'
+                        self.engine.set_state(new_state)
             elif pos[1] in range(self.r, self.menu_height):
                 self.engine.reset_board()
                 self.engine.starting_resources()
@@ -912,25 +1162,29 @@ class Hud(SideMenu):
             self.win.blit(Constant.IMAGES['gold_coin'], (self.counter_icon_display_x, self.coin_icon_display_y))
             white_coin_text = self.font.render(" : " + str(self.engine.players[self.engine.turn].gold), True,
                                                Constant.turn_to_color[self.engine.turn])
-            self.win.blit(white_coin_text, ((self.counter_icon_display_x + Constant.SQ_SIZE), self.coin_icon_display_y - self.text_vertical_offset))
+            self.win.blit(white_coin_text, (
+            (self.counter_icon_display_x + Constant.SQ_SIZE), self.coin_icon_display_y - self.text_vertical_offset))
 
         # Wood Counter
         if not self.engine.players[self.engine.turn].wood == 0:
             self.win.blit(Constant.IMAGES['log'], (self.counter_icon_display_x, self.log_icon_display_y))
             white_log_text = self.font.render(" : " + str(self.engine.players[self.engine.turn].wood), True,
                                               Constant.turn_to_color[self.engine.turn])
-            self.win.blit(white_log_text, ((self.counter_icon_display_x + Constant.SQ_SIZE), self.log_icon_display_y - self.text_vertical_offset))
+            self.win.blit(white_log_text, (
+            (self.counter_icon_display_x + Constant.SQ_SIZE), self.log_icon_display_y - self.text_vertical_offset))
 
         # Stone Counter
         if not self.engine.players[self.engine.turn].stone == 0:
             self.win.blit(Constant.IMAGES['stone'], (self.counter_icon_display_x, self.stone_icon_display_y))
             white_log_text = self.font.render(" : " + str(self.engine.players[self.engine.turn].stone), True,
                                               Constant.turn_to_color[self.engine.turn])
-            self.win.blit(white_log_text, ((self.counter_icon_display_x + Constant.SQ_SIZE), self.stone_icon_display_y - self.text_vertical_offset))
+            self.win.blit(white_log_text, (
+            (self.counter_icon_display_x + Constant.SQ_SIZE), self.stone_icon_display_y - self.text_vertical_offset))
 
         # Prayer Counter
         if not self.engine.players[self.engine.turn].prayer == 0:
-            self.win.blit(Constant.MENU_ICONS['prayer'], (self.counter_icon_display_x, self.prayer_icon_display_y - self.text_vertical_offset))
+            self.win.blit(Constant.MENU_ICONS['prayer'],
+                          (self.counter_icon_display_x, self.prayer_icon_display_y - self.text_vertical_offset))
             self.win.blit(Constant.IMAGES['prayer_bar'], (self.prayer_bar_edge, self.prayer_bar_height))
             for x in range(self.engine.players[self.engine.turn].prayer):
                 new_edge = self.prayer_bar_end_edge + self.bar_end_width * (x)
@@ -943,20 +1197,23 @@ class Hud(SideMenu):
             True,
             Constant.turn_to_color[self.engine.turn])
         self.win.blit(actions_remaining_text,
-                      ((self.counter_icon_display_x + Constant.SQ_SIZE), self.action_icon_display_y - self.text_vertical_offset))
+                      ((self.counter_icon_display_x + Constant.SQ_SIZE),
+                       self.action_icon_display_y - self.text_vertical_offset))
 
         # Unit Limit Counter
         self.win.blit(Constant.IMAGES['units'], (self.counter_icon_display_x, self.units_icon_display_y))
         t = str(self.engine.players[self.engine.turn].get_current_population()) + "/" + str(
             self.engine.players[self.engine.turn].get_piece_limit())
         units_text = self.font.render(" : " + t, True, Constant.turn_to_color[self.engine.turn])
-        self.win.blit(units_text, ((self.counter_icon_display_x + Constant.SQ_SIZE), self.units_icon_display_y - self.text_vertical_offset))
+        self.win.blit(units_text, (
+        (self.counter_icon_display_x + Constant.SQ_SIZE), self.units_icon_display_y - self.text_vertical_offset))
 
         # Turn Counter
         self.win.blit(Constant.IMAGES['hour_glass'], (self.counter_icon_display_x, self.turn_icon_display_y))
         turn_number_text = " : " + str(self.engine.turn_count_display)
         text_surf = self.font.render(turn_number_text, True, Constant.turn_to_color[self.engine.turn])
-        self.win.blit(text_surf, (self.counter_icon_display_x + Constant.SQ_SIZE, self.turn_icon_display_y - self.text_vertical_offset))
+        self.win.blit(text_surf, (
+        self.counter_icon_display_x + Constant.SQ_SIZE, self.turn_icon_display_y - self.text_vertical_offset))
 
     def mouse_move(self):
         pos = pygame.mouse.get_pos()
@@ -973,4 +1230,3 @@ class Hud(SideMenu):
         if pos[0] > Constant.BOARD_WIDTH_PX:
             if 0 < pos[1] < Constant.BOARD_HEIGHT_PX * .25:
                 self.engine.transfer_to_piece_cost_screen()
-

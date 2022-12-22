@@ -29,23 +29,15 @@ ICON_COLORS = {0: 'w', 1: 'b'}
 win = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 win.fill(MENU_COLOR)
 LOGO_COLOR = ICON_COLORS[random.randint(0, 1)]
-MAIN_MENU_LOGO = pygame.transform.scale(pygame.image.load(os.path.join("resources/images", LOGO_COLOR + "_game_name.png")), (400, 400))
+MAIN_MENU_LOGO = pygame.transform.scale(
+    pygame.image.load(os.path.join("resources/images", LOGO_COLOR + "_game_name.png")), (400, 400))
 LOGO_POSITION = (pygame.display.Info().current_w // 2 - 200, pygame.display.Info().current_h // 2 - 400)
 win.blit(MAIN_MENU_LOGO, LOGO_POSITION)
 pygame.display.update()
 time.sleep(2)
-#
-
-#   VERSION
-#
 VERSION = "a"
 NUMBER = "v0.024"
 MAX_FPS = 120
-
-#
-#   SCREEN SIZE / BOARD SIZE
-#
-
 BOARD_HEIGHT_PX = pygame.display.Info().current_h
 SQ_SIZE = BOARD_HEIGHT_PX // 10
 BOARD_HEIGHT_SQ = BOARD_HEIGHT_PX // SQ_SIZE
@@ -58,13 +50,13 @@ SIDE_MENU_WIDTH = pygame.display.Info().current_w - BOARD_WIDTH_PX
 #
 
 
-# 'DEBUG START'
-# STARTING_PRAYER = 12
-# STARTING_WOOD = 99
-# STARTING_GOLD = 99
-# STARTING_STONE = 99
-# STARTING_PIECES = ['castle', 'monolith', 'king']
-# DEBUG_RITUALS = True
+DEBUG_START = False
+DEBUG_STARTING_PRAYER = 12
+DEBUG_STARTING_WOOD = 99
+DEBUG_STARTING_GOLD = 99
+DEBUG_STARTING_STONE = 99
+DEBUG_STARTING_PIECES = ['castle', 'king']
+DEBUG_RITUALS = False
 
 
 'DEFAULT START'
@@ -73,9 +65,7 @@ STARTING_WOOD = 0
 STARTING_GOLD = 0
 STARTING_STONE = 0
 STARTING_PIECES = ['castle', 'king']
-DEBUG_RITUALS = False
 
-SELECT_STARTING_PIECES = True
 BOARD_STARTS_WITH_RESOURCES = True
 SELECTABLE_STARTING_PIECES = ['pawn', 'builder', 'monk', 'pikeman', 'rogue_pawn']
 NUMBER_OF_STARTING_PIECES = 5
@@ -85,10 +75,10 @@ STEALING_KEY = {'building': {
     'wood': {'variance': (-2, 2), 'value': 4},
     'gold': {'variance': (-2, 2), 'value': 4},
     'stone': {'variance': (-2, 2), 'value': 4}},
-                'piece': {
-    'wood': {'variance': (-2, 2), 'value': 4},
-    'gold': {'variance': (-2, 2), 'value': 4},
-    'stone': {'variance': (-2, 2), 'value': 4}}}
+    'piece': {
+        'wood': {'variance': (-2, 2), 'value': 4},
+        'gold': {'variance': (-2, 2), 'value': 4},
+        'stone': {'variance': (-2, 2), 'value': 4}}}
 
 MAX_MONOLITH_RITUALS_PER_TURN = 3
 MAX_PRAYER_STONE_RITUALS_PER_TURN = 3
@@ -113,21 +103,22 @@ MONOLITH_ADDITIONAL_ACTIONS = 0
 PRAYER_STONE_ADDITIONAL_ACTIONS = 0
 
 DEFAULT_PIECE_LIMIT = 3
-PIECE_COSTS = {'king': {'log': 99, 'gold': 99, 'stone': 99},
+PIECE_COSTS = {'king': {'log': 0, 'gold': 0, 'stone': 0},
+               'gold_general': {'log': 0, 'gold': 0, 'stone': 0},
                'quarry_1': {'log': 3, 'gold': 0, 'stone': 0},
                'pawn': {'log': 6, 'gold': 0, 'stone': 0},
                'builder': {'log': 6, 'gold': 0, 'stone': 0},
-               'monk': {'log': 3, 'gold': 0, 'stone': 0},
-               'pikeman': {'log': 0, 'gold': 3, 'stone': 3},
-               'castle': {'log': 8, 'gold': 0, 'stone': 0},
-               'stable': {'log': 8, 'gold': 0, 'stone': 8},
-               'barracks': {'log': 0, 'gold': 8, 'stone': 0},
+               'monk': {'log': 6, 'gold': 0, 'stone': 0},
+               'pikeman': {'log': 0, 'gold': 4, 'stone': 4},
+               'castle': {'log': 10, 'gold': 0, 'stone': 0},
+               'stable': {'log': 10, 'gold': 0, 'stone': 10},
+               'barracks': {'log': 0, 'gold': 10, 'stone': 0},
                'fortress': {'log': 0, 'gold': 12, 'stone': 12},
-               'queen': {'log': 9, 'gold': 9, 'stone': 9},
-               'rook': {'log': 0, 'gold': 3, 'stone': 8},
-               'bishop': {'log': 3, 'gold': 3, 'stone': 0},
+               'queen': {'log': 0, 'gold': 14, 'stone': 14},
+               'rook': {'log': 0, 'gold': 6, 'stone': 6},
+               'bishop': {'log': 6, 'gold': 6, 'stone': 0},
                'knight': {'log': 0, 'gold': 0, 'stone': 3},
-               'jester': {'log': 0, 'gold': 10, 'stone': 0},
+               'jester': {'log': 0, 'gold': 12, 'stone': 0},
                'rogue_rook': {'log': 0, 'gold': 14, 'stone': 14},
                'rogue_bishop': {'log': 9, 'gold': 9, 'stone': 0},
                'rogue_knight': {'log': 0, 'gold': 9, 'stone': 0},
@@ -137,8 +128,8 @@ PIECE_COSTS = {'king': {'log': 99, 'gold': 99, 'stone': 99},
                'unicorn': {'log': 12, 'gold': 0, 'stone': 12},
                'monolith': {'log': 0, 'gold': 0, 'stone': 10},
                'prayer_stone': {'log': 0, 'gold': 0, 'stone': 2},
-               'duke': {'log': 10, 'gold': 10, 'stone': 10},
-               'gold_general': {'log': 99, 'gold': 99, 'stone': 99}}
+               'duke': {'log': 6, 'gold': 14, 'stone': 14},
+               }
 
 PIECE_POPULATION = {'king': 1,
                     'queen': 2,
@@ -234,13 +225,12 @@ ADDITIONAL_PRAYER_FROM_MONK = 2
 ADDITIONAL_MINING_FROM_ROGUE = {'wood': -1, 'stone': -2, 'gold': -3}
 
 RESOURCE_KEY = {'gold_tile_1': 'gold', 'quarry_1': 'stone',
-                     'sunken_quarry_1': 'stone', 'tree_tile_1': 'wood',
-                     'tree_tile_2': 'wood', 'tree_tile_3': 'wood',
-                     'tree_tile_4': 'wood'}
+                'sunken_quarry_1': 'stone', 'tree_tile_1': 'wood',
+                'tree_tile_2': 'wood', 'tree_tile_3': 'wood',
+                'tree_tile_4': 'wood', 'log': 'wood', 'gold':'gold', 'stone':'stone'}
 
-#
-#   FACTIONS
-#
+MASTER_COST_LIST = ['builder', 'castle', 'stable', 'fortress', 'prayer_stone', 'monolith']
+
 FACTION_NAMES = ['clique', 'coterie', 'cabal', 'bloc', 'camp', 'grouping',
                  'side', 'division', 'wing', 'section', 'countrymen', 'squad', 'faction',
                  'company', 'troupe', 'set', 'army', 'party', 'gang', 'selection', 'crew',

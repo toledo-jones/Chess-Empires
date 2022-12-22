@@ -1,8 +1,5 @@
 import Constant
 
-from Piece import Piece
-from Building import Building
-
 
 class Player:
     def __init__(self, color):
@@ -69,10 +66,13 @@ class Player:
         self.prayer += (building.yield_when_prayed + additional_prayer)
 
     def un_pray(self, building, additional_prayer):
-        self.prayer -= (building.yield_when_prayed - additional_prayer)
+        self.prayer -= (building.yield_when_prayed + additional_prayer)
 
     def reset_prayer(self):
-        self.prayer = Constant.STARTING_PRAYER
+        if Constant.DEBUG_START:
+            self.prayer = Constant.DEBUG_STARTING_PRAYER
+        else:
+            self.prayer = Constant.STARTING_PRAYER
 
     def get_prayer(self):
         return self.prayer

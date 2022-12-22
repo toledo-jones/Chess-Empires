@@ -1,10 +1,6 @@
-import random
-
 from Player import Player
 from State import *
 from Tile import *
-from Building import *
-
 
 
 class Engine:
@@ -51,9 +47,9 @@ class Engine:
             self.monolith_rituals.append(Constant.MONOLITH_RITUALS)
         else:
             self.monolith_rituals.append(self.generate_available_rituals(Constant.MONOLITH_RITUALS,
-                                                                    Constant.MAX_MONOLITH_RITUALS_PER_TURN))
+                                                                         Constant.MAX_MONOLITH_RITUALS_PER_TURN))
             self.prayer_stone_rituals.append(self.generate_available_rituals(Constant.PRAYER_STONE_RITUALS,
-                                                                        Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN))
+                                                                             Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN))
         self.piece_stealing_offsets = []
         self.piece_stealing_offsets.append(self.generate_stealing_offsets(Constant.STEALING_KEY['piece']))
 
@@ -106,7 +102,8 @@ class Engine:
                        'swap': PerformSwap,
                        'line_destroy': PerformLineDestroy,
                        'protect': PerformProtect,
-                       'main menu': MainMenu}
+                       'main menu': MainMenu,
+                       'debug': DebugStart}
         self.RESOURCES = {'tree_tile_1': Wood, 'gold_tile_1': Gold,
                           'quarry_1': Quarry,
                           'tree_tile_2': Wood,
@@ -844,7 +841,8 @@ class Engine:
         self.board[row][col].set_resource(None)
 
     def get_occupying(self, row, col):
-        return self.board[row][col].occupying
+        if Constant.tile_in_bounds(row, col):
+            return self.board[row][col].occupying
 
     def has_rogue(self, row, col):
         if Constant.tile_in_bounds(row, col):
@@ -1032,7 +1030,8 @@ class Engine:
     def transfer_to_stealing_mining_state(self, row, col):
         self.update_mining_squares()
         self.update_stealing_squares()
-        selectable_squares = self.board[row][col].get_occupying().mining_squares_list + self.board[row][col].get_occupying().stealing_squares_list
+        selectable_squares = self.board[row][col].get_occupying().mining_squares_list + self.board[row][
+            col].get_occupying().stealing_squares_list
         allow_state = False
         if selectable_squares:
             allow_state = True
@@ -1111,4 +1110,3 @@ class Engine:
         self.menus.append(king_menu)
         self.update_spawn_squares()
         return True
-

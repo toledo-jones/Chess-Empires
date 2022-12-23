@@ -1,9 +1,5 @@
-import Constant
-import pygame
 from Building import *
 import random
-
-
 
 class Piece:
     def __repr__(self):

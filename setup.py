@@ -4,7 +4,10 @@ executables = [cx_Freeze.Executable('main.py')]
 
 cx_Freeze.setup(
     name="Chess Empires",
-    options={"build_exe": {"packages": ["pygame"],
-                           "include_files": ["resources"]}},
+    options={"build_exe": {
+                            "build_exe": ".//build",
+                            "packages": ["pygame"],
+                           "include_files": ["files"],
+                                "excludes": ["cv2"]}},
     executables=executables
 )

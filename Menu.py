@@ -190,7 +190,7 @@ class StealingMenu(Menu):
         self.horizontal_buffer = Constant.SQ_SIZE
         self.vertical_buffer_between_pieces = Constant.SQ_SIZE // 4
         self.font_size = round(Constant.SQ_SIZE / 2)
-        self.font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.font_size)
+        self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
         self.font_color = Constant.turn_to_color[self.engine.turn]
         self.resource_height = Constant.IMAGES['gold_coin'].get_width()
         self.resource_width = Constant.IMAGES['gold_coin'].get_height()
@@ -291,7 +291,7 @@ class ResourceMenu(Menu):
         self.horizontal_buffer = Constant.SQ_SIZE
         self.vertical_buffer_between_pieces = Constant.SQ_SIZE // 4
         self.font_size = round(Constant.SQ_SIZE / 2)
-        self.font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.font_size)
+        self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
         self.resource_height = Constant.RESOURCES['gold_tile_1'].get_width()
         self.resource_width = Constant.RESOURCES['gold_tile_1'].get_height()
         self.menu_width = self.resource_width + self.horizontal_buffer
@@ -387,7 +387,7 @@ class SpawningMenu(Menu):
         self.horizontal_buffer_between_costs = round(Constant.SQ_SIZE * 1.3)
         self.vertical_buffer_between_pieces = Constant.SQ_SIZE // 4
         self.font_size = round(Constant.SQ_SIZE / 2)
-        self.font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.font_size)
+        self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
         self.test_text = self.font.render("10", True, Constant.RED)
         self.menu_width = Constant.SQ_SIZE + (
                 3 * self.horizontal_buffer_between_costs + self.test_text.get_width())
@@ -639,9 +639,9 @@ class CostMenu:
         self.window_width = pygame.display.Info().current_w
         self.window_height = pygame.display.Info().current_h
         self.large_font_size = round(Constant.SQ_SIZE * 1.6)
-        self.large_font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.large_font_size)
+        self.large_font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.large_font_size)
         self.small_font_size = round(Constant.SQ_SIZE * .5)
-        self.small_font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.small_font_size)
+        self.small_font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.small_font_size)
         self.color = Constant.turn_to_color[self.engine.turn]
         self.player = self.engine.players[self.engine.turn]
         self.pieces = self.pieces = {'w': Constant.W_PIECES | Constant.W_BUILDINGS,
@@ -916,7 +916,7 @@ class StartMenu(SideMenu):
         super().__init__(win, engine)
         self.color = Constant.INTRO_TEXT_COLOR
         self.font_size = round(Constant.SQ_SIZE / 1.3)
-        self.font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.font_size)
+        self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
         self.ver_text = Constant.VERSION + " " + Constant.NUMBER
         self.version_text_surf = self.font.render(self.ver_text, True, self.color)
         self.version_text_display_x = self.menu_width // 2 - self.version_text_surf.get_width() // 2
@@ -1044,7 +1044,7 @@ class SurrenderMenu(SideMenu):
     def __init__(self, win, engine):
         super().__init__(win, engine)
         self.fontSize = round(Constant.SQ_SIZE * 1.0)
-        self.font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.fontSize)
+        self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.fontSize)
         self.surrender_text = "Surrender?"
         self.yes_text = "yes"
         self.no_text = "no"
@@ -1127,7 +1127,7 @@ class Hud(SideMenu):
         self.title_icon_display_x = self.menu_width // 2 - self.title_icon_width // 2
         self.title_icon_display_y = self.menu_height // 8 - self.title_icon_height // 2
         self.font_size = (round(Constant.SQ_SIZE * .8))
-        self.font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.font_size)
+        self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
         self.counter_icon_display_x = Constant.BOARD_WIDTH_PX + 10
         self.coin_icon_display_y = round(self.menu_height * (8 / 10))
         self.stone_icon_display_y = self.coin_icon_display_y + Constant.SQ_SIZE

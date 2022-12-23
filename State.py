@@ -1,4 +1,3 @@
-from Building import *
 from GameEvent import *
 from Menu import *
 
@@ -78,7 +77,7 @@ class MainMenu(State):
         self.window_width = pygame.display.Info().current_w
         self.window_height = pygame.display.Info().current_h
         self.font_size = round(Constant.SQ_SIZE * 1)
-        self.font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.font_size)
+        self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
         self.play_text = "play"
         self.text_surf = self.font.render(self.play_text, True, self.color)
 
@@ -356,7 +355,7 @@ class SelectStartingPieces(State):
         self.window_width = pygame.display.Info().current_w
         self.window_height = pygame.display.Info().current_h
         self.font_size = round(Constant.SQ_SIZE * 1)
-        self.font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.font_size)
+        self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
         self.description_text = "Select your Starting Pieces:"
         self.text_surf = self.font.render(self.description_text, True, Constant.turn_to_color[self.engine.turn])
         self.y_buffer = round(Constant.SQ_SIZE * .55)
@@ -1207,7 +1206,7 @@ class Winner(State):
     def __init__(self, win, engine):
         super().__init__(win, engine)
         self.font_size = round(Constant.SQ_SIZE * 2)
-        self.font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.font_size)
+        self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
         self.key = {'w': 'White Won!', 'b': 'Black Won!'}
         self.text_surf = self.font.render(self.key[self.engine.turn], True, Constant.turn_to_color[self.engine.turn])
         self.window_width = pygame.display.Info().current_w

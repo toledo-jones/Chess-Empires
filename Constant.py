@@ -30,7 +30,7 @@ win = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 win.fill(MENU_COLOR)
 LOGO_COLOR = ICON_COLORS[random.randint(0, 1)]
 MAIN_MENU_LOGO = pygame.transform.scale(
-    pygame.image.load(os.path.join("resources/images", LOGO_COLOR + "_game_name.png")), (400, 400))
+    pygame.image.load(os.path.join("files/images", LOGO_COLOR + "_game_name.png")), (400, 400))
 LOGO_POSITION = (pygame.display.Info().current_w // 2 - 200, pygame.display.Info().current_h // 2 - 400)
 win.blit(MAIN_MENU_LOGO, LOGO_POSITION)
 pygame.display.update()
@@ -546,113 +546,113 @@ def load_sounds():
     for i in building_spawning:
         filename = str(0) + str(building_spawning[i])
         BUILDING_SPAWNING_SOUNDS[i] = pygame.mixer.Sound(
-            os.path.join("resources/sounds/building_spawning", filename + '.wav'))
+            os.path.join("files/sounds/building_spawning", filename + '.wav'))
 
     for i in captures:
         filename = str(0) + str(captures[i])
-        CAPTURE_SOUNDS[i] = pygame.mixer.Sound(os.path.join("resources/sounds/captures", filename + '.wav'))
+        CAPTURE_SOUNDS[i] = pygame.mixer.Sound(os.path.join("files/sounds/captures", filename + '.wav'))
 
     for i in harvesting_rock:
         filename = str(0) + str(harvesting_rock[i])
         HARVESTING_ROCK_SOUNDS[i] = pygame.mixer.Sound(
-            os.path.join("resources/sounds/harvesting_rock", filename + '.wav'))
+            os.path.join("files/sounds/harvesting_rock", filename + '.wav'))
 
     for i in harvesting_wood:
         filename = str(0) + str(harvesting_wood[i])
         HARVESTING_WOOD_SOUNDS[i] = pygame.mixer.Sound(
-            os.path.join("resources/sounds/harvesting_wood", filename + '.wav'))
+            os.path.join("files/sounds/harvesting_wood", filename + '.wav'))
 
     for i in moves:
         filename = str(0) + str(moves[i])
         MOVE_SOUNDS[i] = pygame.mixer.Sound(
-            os.path.join("resources/sounds/moves", filename + '.wav'))
+            os.path.join("files/sounds/moves", filename + '.wav'))
 
     for i in piece_spawning:
         filename = str(0) + str(piece_spawning[i])
         PIECE_SPAWNING_SOUNDS[i] = pygame.mixer.Sound(
-            os.path.join("resources/sounds/piece_spawning", filename + '.wav'))
+            os.path.join("files/sounds/piece_spawning", filename + '.wav'))
 
     for i in purchase:
         filename = str(0) + str(purchase[i])
         PURCHASE_SOUNDS[i] = pygame.mixer.Sound(
-            os.path.join("resources/sounds/purchase", filename + '.wav'))
+            os.path.join("files/sounds/purchase", filename + '.wav'))
 
     for i in generate_resources:
         filename = str(0) + str(generate_resources[i])
         GENERATE_RESOURCES_SOUNDS[i] = pygame.mixer.Sound(
-            os.path.join("resources/sounds/generate_resources", filename + '.wav'))
+            os.path.join("files/sounds/generate_resources", filename + '.wav'))
 
     for i in pray:
         filename = str(0) + str(pray[i])
         PRAY_SOUNDS[i] = pygame.mixer.Sound(
-            os.path.join("resources/sounds/pray", filename + '.wav'))
+            os.path.join("files/sounds/pray", filename + '.wav'))
 
     for i in change_turn:
         filename = str(0) + str(change_turn[i])
         CHANGE_TURN_SOUNDS[i] = pygame.mixer.Sound(
-            os.path.join("resources/sounds/change_turn", filename + '.wav'))
+            os.path.join("files/sounds/change_turn", filename + '.wav'))
 
     for i in start_game:
         filename = str(0) + str(start_game[i])
         START_GAME_SOUNDS[i] = pygame.mixer.Sound(
-            os.path.join("resources/sounds/start_game", filename + '.wav'))
+            os.path.join("files/sounds/start_game", filename + '.wav'))
 
     for i in rituals:
         filename = str(0) + str(rituals[i])
         PRAYER_RITUAL_SOUNDS[i] = pygame.mixer.Sound(
-            os.path.join("resources/sounds/rituals", filename + '.wav'))
+            os.path.join("files/sounds/rituals", filename + '.wav'))
 
 
 def load_music():
     i = random.randint(0, len(ambience))
     filename = str(0) + str(i)
-    pygame.mixer.music.load(os.path.join("resources/music/ambience", filename + '.wav'))
+    pygame.mixer.music.load(os.path.join("files/music/ambience", filename + '.wav'))
     pygame.mixer.music.play()
 
 
 def load_images():
     for image in images:
         scale = IMAGES_IMAGE_MODIFY[image]['SCALE']
-        IMAGES[image] = pygame.transform.scale(pygame.image.load(os.path.join("resources/images", image + ".png")),
+        IMAGES[image] = pygame.transform.scale(pygame.image.load(os.path.join("files/images", image + ".png")),
                                                (scale[0], scale[1])).convert_alpha()
     for resource in resources:
         scale = RESOURCES_IMAGE_MODIFY[resource]['SCALE']
         RESOURCES[resource] = pygame.transform.scale(
-            pygame.image.load(os.path.join("resources/resources", resource + ".png")),
+            pygame.image.load(os.path.join("files/resources", resource + ".png")),
             (scale[0], scale[1])).convert_alpha()
     for menu_icon in menu_icons:
         scale = MENU_ICONS_IMAGE_MODIFY[menu_icon]['SCALE']
         MENU_ICONS[menu_icon] = pygame.transform.scale(
-            pygame.image.load(os.path.join("resources/menu_icons", menu_icon + ".png")),
+            pygame.image.load(os.path.join("files/menu_icons", menu_icon + ".png")),
             (scale[0], scale[1])).convert_alpha()
 
     for piece in w_pieces:
         scale = PIECE_IMAGE_MODIFY[piece_color_to_type(piece)]['SCALE']
-        W_PIECES[piece] = pygame.transform.scale(pygame.image.load(os.path.join("resources/pieces", piece + ".png")),
+        W_PIECES[piece] = pygame.transform.scale(pygame.image.load(os.path.join("files/pieces", piece + ".png")),
                                                  (scale[0], scale[1])).convert_alpha()
     for piece in w_buildings:
         scale = PIECE_IMAGE_MODIFY[piece_color_to_type(piece)]['SCALE']
-        W_BUILDINGS[piece] = pygame.transform.scale(pygame.image.load(os.path.join("resources/pieces", piece + ".png")),
+        W_BUILDINGS[piece] = pygame.transform.scale(pygame.image.load(os.path.join("files/pieces", piece + ".png")),
                                                     (scale[0], scale[1])).convert_alpha()
     for piece in b_pieces:
         scale = PIECE_IMAGE_MODIFY[piece_color_to_type(piece)]['SCALE']
-        B_PIECES[piece] = pygame.transform.scale(pygame.image.load(os.path.join("resources/pieces", piece + ".png")),
+        B_PIECES[piece] = pygame.transform.scale(pygame.image.load(os.path.join("files/pieces", piece + ".png")),
                                                  (scale[0], scale[1])).convert_alpha()
     for piece in b_buildings:
         scale = PIECE_IMAGE_MODIFY[piece_color_to_type(piece)]['SCALE']
-        B_BUILDINGS[piece] = pygame.transform.scale(pygame.image.load(os.path.join("resources/pieces", piece + ".png")),
+        B_BUILDINGS[piece] = pygame.transform.scale(pygame.image.load(os.path.join("files/pieces", piece + ".png")),
                                                     (scale[0], scale[1])).convert_alpha()
 
     for ritual in w_prayer_rituals:
         scale = RITUAL_IMAGE_MODIFY[piece_color_to_type(ritual)]['SCALE']
         PRAYER_RITUALS[ritual] = pygame.transform.scale(
-            pygame.image.load(os.path.join("resources/prayer_rituals", ritual + ".png")),
+            pygame.image.load(os.path.join("files/prayer_rituals", ritual + ".png")),
             (scale[0], scale[1])).convert_alpha()
 
     for ritual in b_prayer_rituals:
         scale = RITUAL_IMAGE_MODIFY[piece_color_to_type(ritual)]['SCALE']
         PRAYER_RITUALS[ritual] = pygame.transform.scale(
-            pygame.image.load(os.path.join("resources/prayer_rituals", ritual + ".png")),
+            pygame.image.load(os.path.join("files/prayer_rituals", ritual + ".png")),
             (scale[0], scale[1])).convert_alpha()
 
 

@@ -1,7 +1,7 @@
+from Building import *
 from GameEvent import *
 from Menu import *
-from Tile import *
-from Building import *
+
 
 #
 #   Change each state class to have cleaner code.
@@ -11,12 +11,14 @@ from Building import *
 
 
 class State:
-
     def __init__(self, win, engine):
         self.win = win
         self.engine = engine
 
-    def reset_state(self):
+    def revert_to_playing_state(self):
+        #
+        #   used by many states to return to the 'playing' state, or default state
+        #
         self.engine.spawning = None
         self.engine.reset_selected()
         self.engine.close_menus()
@@ -24,14 +26,96 @@ class State:
         self.engine.set_state(new_state)
 
     def draw(self):
+        #
+        #   Default: draw the engine and fill the window background
+        #
         self.win.fill(Constant.MENU_COLOR)
         self.engine.draw(self.win)
 
     def enter(self):
+        #
+        #   By default enter will change turn if the player has performed an action that turn.
+        #
         player = self.engine.players[self.engine.turn]
         number_of_actions_if_player_has_done_nothing = player.total_additional_actions_this_turn + Constant.DEFAULT_ACTIONS_REMAINING
         if number_of_actions_if_player_has_done_nothing > player.actions_remaining:
             self.engine.change_turn()
+
+    def right_click(self):
+        #
+        #   Implement a right click function in a state to change the default functionality
+        #
+        pass
+
+    def tab(self):
+        #
+        #   Implement a tab function in a state to change the default functionality
+        #   In most States this will be the 'undo' function
+        #
+        pass
+
+    def mouse_move(self):
+        pass
+
+    def left_click(self):
+        pass
+
+    def revert_to_starting_state(self, first=False):
+        new_state = Starting(self.win, self.engine, True)
+        self.engine.spawning = None
+        if first:
+            self.engine.first = first
+        self.engine.set_state(new_state)
+
+
+class MainMenu(State):
+    def __init__(self, win, engine):
+        super().__init__(win, engine)
+        self.main_menu_logo = Constant.MAIN_MENU_LOGO
+        self.logo_position = Constant.LOGO_POSITION
+        self.color = Constant.turn_to_color[Constant.LOGO_COLOR]
+
+        self.window_width = pygame.display.Info().current_w
+        self.window_height = pygame.display.Info().current_h
+        self.font_size = round(Constant.SQ_SIZE * 1)
+        self.font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.font_size)
+        self.play_text = "play"
+        self.text_surf = self.font.render(self.play_text, True, self.color)
+
+        self.square = pygame.Surface((self.text_surf.get_width(), self.text_surf.get_height()))
+        self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
+        self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
+
+        self.play_text_highlight = False
+
+        self.play_text_display_x = self.window_width // 2 - self.text_surf.get_width() // 2
+        self.play_text_display_y = round(self.window_height * 3/4) - self.text_surf.get_height() // 2
+
+        self.play_button_range_x = range(self.play_text_display_x, self.play_text_display_x + self.text_surf.get_width())
+        self.play_button_range_y = range(self.play_text_display_y, self.play_text_display_y + self.text_surf.get_height())
+
+    def draw(self):
+        self.win.fill(Constant.MENU_COLOR)
+        self.win.blit(self.main_menu_logo, self.logo_position)
+        if self.play_text_highlight:
+            self.win.blit(self.square, (self.play_text_display_x, self.play_text_display_y))
+        self.win.blit(self.text_surf, (self.play_text_display_x, self.play_text_display_y))
+
+    def left_click(self):
+        pos = pygame.mouse.get_pos()
+        if pos[0] in self.play_button_range_x:
+            if pos[1] in self.play_button_range_y:
+                self.engine.set_state('starting')
+
+    def mouse_move(self):
+        pos = pygame.mouse.get_pos()
+        if pos[0] in self.play_button_range_x:
+            if pos[1] in self.play_button_range_y:
+                self.play_text_highlight = True
+            else:
+                self.play_text_highlight = False
+        else:
+            self.play_text_highlight = False
 
 
 class Playing(State):
@@ -70,6 +154,13 @@ class Playing(State):
                                 return True
 
     def same_piece_selected(self, previously_selected, row, col):
+        """
+
+        :param previously_selected: piece selected on the last left_click() -> select()
+        :param row: currently_selected.row
+        :param col: currently_selected.col
+        :return:
+        """
         if previously_selected is not None:
             if previously_selected.get_position() == (row, col):
                 return True
@@ -81,12 +172,10 @@ class Playing(State):
         #   or pre-selected
         #
         previously_selected = self.engine.update_previously_selected()
-
         #
         #   Determine the piece which we are currently selecting on this call of the select function
         #
         currently_selected = self.engine.get_occupying(row, col)
-
         #
         #   Move previously selected piece to empty square
         #
@@ -115,10 +204,6 @@ class Playing(State):
             #   Reset selected piece and previously selected piece
             #
             self.engine.reset_selected()
-
-            #
-            #   Return True
-            #
             return True
 
         elif self.same_piece_selected(previously_selected, row, col):
@@ -200,8 +285,8 @@ class Playing(State):
             try:
                 self.engine.events[-1].undo(self.engine)
                 del self.engine.events[-1]
-            except IndexError:
-                print("failed to undo")
+            except IndexError as e:
+                print(e)
 
     def right_click(self):  # STATE, PLAYING
         if self.engine.menus:
@@ -214,14 +299,14 @@ class Playing(State):
             if piece:
                 if piece.color is self.engine.turn:
                     if not piece.right_click(self.engine):
-                        self.reset_state()
+                        self.revert_to_playing_state()
 
     def mouse_move(self):
         if self.engine.menus:
             for menu in self.engine.menus:
                 menu.mouse_move()
                 if not menu.mouse_in_menu_bounds():
-                    self.reset_state()
+                    self.revert_to_playing_state()
 
         if self.side_bar:
             self.side_bar.mouse_move()
@@ -234,30 +319,25 @@ class Playing(State):
 
 
 class Starting(State):
-    def __init__(self, win, engine):
+    def __init__(self, win, engine, preserve_resources=False):
         super().__init__(win, engine)
         self.side_bar = StartMenu(win, engine)
+        if not preserve_resources:
+            if Constant.BOARD_STARTS_WITH_RESOURCES:
+                self.engine.starting_resources()
 
     def __repr__(self):
         return 'starting'
-
-    def select(self, row, col):
-        pass
-
-    def right_click(self):
-        self.engine.events = []
-        self.engine.board = [[0 for y in range(self.engine.cols)] for x in range(self.engine.rows)]
-        for c in range(self.engine.cols):
-            for r in range(self.engine.rows):
-                self.engine.board[r][c] = Tile(r, c)
-        new_state = Starting(self.win, self.engine)
-        self.engine.set_state(new_state)
 
     def left_click(self):
         self.side_bar.left_click()
 
     def mouse_move(self):
         self.side_bar.mouse_move()
+
+    def tab(self):
+        self.engine.reset_board()
+        self.engine.set_state('main menu')
 
     def draw(self):
         super().draw()
@@ -266,91 +346,150 @@ class Starting(State):
     def enter(self):
         pass
 
-    def tab(self):
-        self.right_click()
-
-    def re_initialize(self):
-        self.engine.reset_all_engine_variables()
-
 
 class SelectStartingPieces(State):
 
     def __init__(self, win, engine):
         super().__init__(win, engine)
+        self.draw_map = False
         self.pieces = {'w': Constant.W_PIECES, 'b': Constant.B_PIECES}
         self.window_width = pygame.display.Info().current_w
         self.window_height = pygame.display.Info().current_h
-        self.font_size = round(Constant.SQ_SIZE * 1.5)
+        self.font_size = round(Constant.SQ_SIZE * 1)
         self.font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.font_size)
         self.description_text = "Select your Starting Pieces:"
         self.text_surf = self.font.render(self.description_text, True, Constant.turn_to_color[self.engine.turn])
-        self.y_buffer = Constant.SQ_SIZE
-        self.initial_x = 2 * self.window_width // len(Constant.SELECTABLE_STARTING_PIECES)
+        self.y_buffer = round(Constant.SQ_SIZE * .55)
+        self.initial_x = round(2.5 * self.window_width) // len(Constant.SELECTABLE_STARTING_PIECES)
         self.x_buffer = self.initial_x
-        self.piece_spacing = Constant.SQ_SIZE * 2
-        self.initial_y = self.window_height // Constant.NUMBER_OF_STARTING_PIECES - self.y_buffer
+        self.piece_spacing = round(Constant.SQ_SIZE * 1.5)
+        total_height_of_grid = self.y_buffer * 2 * Constant.NUMBER_OF_STARTING_PIECES
+        self.initial_y = (self.window_height - total_height_of_grid) // 2
         self.cols = len(Constant.SELECTABLE_STARTING_PIECES)
         self.rows = Constant.NUMBER_OF_STARTING_PIECES
-
-        self.selection_matrix = [[0 for y in range(self.cols)] for x in range(self.rows)]
+        self.selection_matrix = [[[0 for y in range(3)] for x in range(self.cols)] for _ in range(self.rows)]
 
         for c in range(self.cols):
             for r in range(self.rows):
-                self.selection_matrix[r][c] = Constant.SELECTABLE_STARTING_PIECES[c]
+                self.selection_matrix[r][c][0] = Constant.SELECTABLE_STARTING_PIECES[c]
+                self.selection_matrix[r][c][1] = False  # HIGHLIGHT
+                self.selection_matrix[r][c][2] = False  # SELECTED
 
-        self.selections = []
+        self.square = pygame.Surface((Constant.SQ_SIZE, Constant.SQ_SIZE))
+        self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
+        self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
 
     def __repr__(self):
         return 'select starting pieces'
 
+    def select_piece(self, piece_selected):
+        r, c = piece_selected[0], piece_selected[1]
+        for col in range(self.cols):
+            if self.selection_matrix[r][col][2]:
+                self.selection_matrix[r][col][2] = False
+        self.selection_matrix[r][c][2] = True
+
     def left_click(self):
-        row, col = self.convert_pos(pygame.mouse.get_pos())
-        print(row, " ", col)
+        piece_selected = self.piece_selected()
+        if piece_selected:
+            self.select_piece(piece_selected)
 
     def right_click(self):
-        pass
+        self.draw_map = self.flip_draw_map()
+
+    def piece_selected(self):
+        piece_selected = None
+        pos = pygame.mouse.get_pos()
+        y_buffer = self.y_buffer
+        initial_y = self.initial_y
+        for r in range(self.rows):
+            for c in range(self.cols):
+                piece_position = (c * self.piece_spacing + self.initial_x, initial_y)
+                if pos[0] in range(piece_position[0], piece_position[0]+Constant.SQ_SIZE):
+                    if pos[1] in range(piece_position[1], piece_position[1]+Constant.SQ_SIZE):
+                        piece_selected = (r, c)
+            initial_y += y_buffer * 2
+
+        return piece_selected
 
     def mouse_move(self):
-        pass
+        piece_selected = None
+        pos = pygame.mouse.get_pos()
+        y_buffer = self.y_buffer
+        initial_y = self.initial_y
+        for r in range(self.rows):
+            for c in range(self.cols):
+                piece_position = (c * self.piece_spacing + self.initial_x, initial_y)
+                if pos[0] in range(piece_position[0], piece_position[0] + Constant.SQ_SIZE):
+                    if pos[1] in range(piece_position[1], piece_position[1] + Constant.SQ_SIZE):
+                        self.selection_matrix[r][c][1] = True
+                    else:
+                        self.selection_matrix[r][c][1] = False
+                else:
+                    self.selection_matrix[r][c][1] = False
+            initial_y += y_buffer * 2
+
+        return piece_selected
 
     def convert_pos(self, pos):
-        print(pos)
         row = pos[1] // self.piece_spacing - self.y_buffer
         col = pos[0] // (self.piece_spacing + self.initial_x)
         return row, col
 
     def draw(self):
-        self.win.fill(Constant.MENU_COLOR)
+        if not self.draw_map:
+            self.win.fill(Constant.MENU_COLOR)
 
-        y_buffer = self.y_buffer
-        initial_x = self.initial_x
-        x_buffer = self.initial_x
-        piece_spacing = self.piece_spacing
-        initial_y = self.initial_y
+            y_buffer = self.y_buffer
+            initial_x = self.initial_x
+            x_buffer = self.initial_x
+            piece_spacing = self.piece_spacing
+            initial_y = self.initial_y
 
-        for x in range(Constant.NUMBER_OF_STARTING_PIECES):
-            for p in Constant.SELECTABLE_STARTING_PIECES:
-                piece = self.engine.turn + "_" + p
-                self.win.blit(self.pieces[self.engine.turn][piece], (x_buffer, initial_y))
-                x_buffer += piece_spacing
-            x_buffer = initial_x
-            initial_y += y_buffer * 2
+            for x in range(Constant.NUMBER_OF_STARTING_PIECES):
+                for p in Constant.SELECTABLE_STARTING_PIECES:
+                    piece = self.engine.turn + "_" + p
+                    self.win.blit(self.pieces[self.engine.turn][piece], (x_buffer, initial_y))
+                    x_buffer += piece_spacing
+                x_buffer = initial_x
+                initial_y += y_buffer * 2
 
-        initial_y = self.initial_y
-        for r in range(self.rows):
-            for c in range(self.cols):
-                rectangle = pygame.Rect(c * self.piece_spacing + self.initial_x, initial_y,
-                                        Constant.SQ_SIZE, Constant.SQ_SIZE)
-                pygame.draw.rect(self.win, Constant.BLACK, rectangle, 2)
-            initial_y += y_buffer * 2
+            initial_y = self.initial_y
+            for r in range(self.rows):
+                for c in range(self.cols):
+                    position = (c * self.piece_spacing + self.initial_x, initial_y)
+                    if self.selection_matrix[r][c][1]:
+                        self.win.blit(self.square, position)
+                    if self.selection_matrix[r][c][2]:
+                        self.win.blit(self.square, position)
 
-        self.win.blit(self.text_surf, (20, 0))
+                initial_y += y_buffer * 2
+
+            self.win.blit(self.text_surf, (20, 0))
+        else:
+            super().draw()
 
     def enter(self):
-        pass
+        spawn_list = []
+        spawn_list.append(Constant.STARTING_PIECES[0])
+        for r in range(self.rows):
+            for c in range(self.cols):
+                if self.selection_matrix[r][c][2]:
+                    spawn_list.append(self.selection_matrix[r][c][0])
+        spawn_list.append(Constant.STARTING_PIECES[-1])
+        if len(spawn_list) == (Constant.NUMBER_OF_STARTING_PIECES + len(Constant.STARTING_PIECES)):
+            self.engine.transfer_to_starting_spawn(spawn_list)
+
+    def flip_draw_map(self):
+        return not self.draw_map
 
     def tab(self):
-        pass
+        if not self.engine.final_spawn:
+            self.revert_to_starting_state(self.engine.first)
+        else:
+            for x in range(2):
+                self.engine.events[-1].undo(self.engine)
+                del self.engine.events[-1]
 
 
 class StartingSpawn(State):
@@ -363,178 +502,100 @@ class StartingSpawn(State):
     def __repr__(self):
         return 'start spawn'
 
-    def play_random_sound_effect(self):
+    def begin_next_player_piece_select(self):
+        turn_change = ChangeTurn(self.engine)
+        turn_change.complete(self.engine)
+        self.engine.events.append(turn_change)
+        new_state = SelectStartingPieces(self.win, self.engine)
+        self.engine.set_state(new_state)
+        self.engine.spawn_count = 0
+        self.engine.final_spawn = True
+
+    def end_start_spawning(self):
+        self.engine.reset_selected()
+        self.engine.reset_piece_actions_remaining()
+        self.engine.spawn_success = False
+        unused_pieces = self.engine.count_unused_pieces()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+        self.engine.reset_player_actions_remaining(self.engine.turn)
+        self.engine.update_additional_actions()
+        self.engine.update_piece_limit()
+        super().revert_to_playing_state()
+
+    @property
+    def get_valid_position(self):
+        row, col = -1, -1
+        pos = pygame.mouse.get_pos()
+        if Constant.pos_in_bounds(pos):
+            row, col = Constant.convert_pos(pos)
+        return row, col
+
+    def is_legal_starting_square(self, row, col):
+        player_is_too_close = False
+        if not self.engine.can_be_occupied(row, col):
+            return False
+        if not self.engine.players:
+            return True
+        for r in range(row - 3, row + 4):
+            for c in range(col - 3, col + 4):
+                if self.engine.has_castle(r, c):
+                    player_is_too_close = True
+
+        return not player_is_too_close
+
+    @staticmethod
+    def play_random_sound_effect():
         i = random.randint(0, len(Constant.start_game) - 1)
         Constant.START_GAME_SOUNDS[i].set_volume(.1)
         Constant.START_GAME_SOUNDS[i].play()
 
+    def create_spawn_event(self, row, col, first=True):
+        spawn_event = StartSpawn(self.engine.turn, self.engine.spawning, (row, col), self.engine.spawn_count,
+                                 self.engine.final_spawn, self.engine.update_previously_selected(), self.engine.spawn_list)
+        spawn_event.complete(self.engine)
+        self.engine.reset_selected()
+        self.engine.update_spawn_squares()
+        self.engine.events.append(spawn_event)
+        castle_row, castle_col = self.engine.find_player_castle()
+        self.engine.set_purchasing(castle_row, castle_col, True)
+        self.first = first
+        self.engine.spawn_count += 1
+
     def left_click(self):
-        def get_valid_position():
-            row, col = -1, -1
-            pos = pygame.mouse.get_pos()
-            if Constant.pos_in_bounds(pos):
-                row, col = Constant.convert_pos(pos)
-            return row, col
-
-        def is_legal_starting_square(row, col):
-            #
-            #   Is the square empty
-            #
-            player_is_too_close = False
-            if self.engine.can_be_occupied(row, col):
-                #
-                #   Is there another player on the board already
-                #
-                if self.engine.players:
-                    #
-                    #   Check 3x3 area around the Castle
-                    #
-                    for r in range(row - 3, row + 4):
-                        for c in range(col - 3, col + 4):
-                            #
-                            #   If there is a Castle in any of those squares
-                            #
-                            if self.engine.has_castle(r, c):
-                                #
-                                #   Set the flag to true
-                                #
-                                player_is_too_close = True
-
-                    #
-                    #   If player is too close, return False.
-                    #   Because the square is not a legal starting square.
-                    #
-                    return not player_is_too_close
-
-                #
-                #   If there is not another player, return True after we determine the square is empty.
-                #
-                else:
-                    return True
-
-            #
-            #   The square is not empty, so return false. Not a legal starting square under any condition
-            #
-            else:
-                return False
-
-        #
-        #   If the position of the mouse is in the bounds of the board
-        #
-        row, col = get_valid_position()
-        #
-        #   Determine if a piece has already been selected.
-        #   This method is run recursively so we need to determine if this is the first click or the second
-        #   after a piece has been previously selected
-        #
-        previousP = self.engine.update_previously_selected()
-
-        #
-        #   If board position is valid
-        #
-        #
-        #   When previously selected is (None) it means that no Castle has been spawned yet this turn.
-        #   First we will handle this by creating the Castle
-        #
-        if previousP is None:
-            #
-            #   Determine if the Square selected is valid for spawning a Castle
-            #
-            if is_legal_starting_square(row, col):
-                #
-                #   If the list of players contains another player
-                #
-                # create spawn event
-                spawn_event = StartSpawn(self.engine.turn, self.engine.spawning, (row, col), self.engine.spawn_count,
-                                         self.engine.final_spawn, self.engine.update_previously_selected())
-                spawn_event.complete(self.engine)
-                self.engine.reset_selected()
-                self.engine.update_spawn_squares()
-                self.engine.events.append(spawn_event)
-
-                #
-                #   Set the spawned castle purchasing to True
-                #
-                castle_row, castle_col = self.engine.find_player_castle()
-                self.engine.set_purchasing(castle_row, castle_col, True)
-
-                # iterate our index
-                self.engine.spawn_count += 1
-
-        #
-        #   Now we run the logic for selecting the squares where we spawn the pieces around the Castle
-        #
+        row, col = self.get_valid_position
+        previously_selected = self.engine.update_previously_selected()
+        if previously_selected is not None:
+            previously_selected.update_spawn_squares(self.engine)
+            if (row, col) in previously_selected.spawn_squares_list:
+                self.create_spawn_event(row, col, False)
         else:
-            #
-            #
-            #
-            previousP.update_spawn_squares(self.engine)
-
-            #
-            #
-            #
-            if (row, col) in previousP.spawn_squares_list:
-                spawn_event = StartSpawn(self.engine.turn, self.engine.spawning, (row, col), self.engine.spawn_count,
-                                         self.engine.final_spawn, self.engine.update_previously_selected())
-                spawn_event.complete(self.engine)
-                self.engine.reset_selected()
-                self.engine.update_spawn_squares()
-                self.engine.events.append(spawn_event)
-                castle_row, castle_col = self.engine.find_player_castle()
-                self.engine.set_purchasing(castle_row, castle_col, True)
-                self.first = False
-                # iterate our index
-                self.engine.spawn_count += 1
-
-                if previousP.spawn_squares_list == []:
-                    # no squares available to spawn
-                    pass
-            else:
-                pass
+            if self.is_legal_starting_square(row, col):
+                self.create_spawn_event(row, col)
         try:
-            self.engine.spawning = Constant.STARTING_PIECES[self.engine.spawn_count]
+            self.engine.spawning = self.engine.spawn_list[self.engine.spawn_count]
         except IndexError:
             if self.engine.final_spawn:
-                self.engine.reset_selected()
-                self.engine.reset_piece_actions_remaining()
-                self.engine.spawn_success = False
-                unused_pieces = self.engine.count_unused_pieces()
-                for piece in unused_pieces:
-                    piece.unused_piece_highlight = True
-                self.engine.reset_player_actions_remaining(self.engine.turn)
-                self.engine.update_additional_actions()
-                self.engine.update_piece_limit()
-                super().reset_state()
+                self.end_start_spawning()
             else:
-                turn_change = ChangeTurn(self.engine)
-                turn_change.complete(self.engine)
-                self.engine.events.append(turn_change)
-                new_state = StartingSpawn(self.win, self.engine)
-                self.engine.set_state(new_state)
-                self.engine.spawning = Constant.STARTING_PIECES[0]
-                self.engine.spawn_count = 0
-                self.engine.final_spawn = True
+                self.begin_next_player_piece_select()
 
     def right_click(self):
         try:
             if isinstance(self.engine.events[-1], ChangeTurn):
-                for x in range(2):
-                    self.engine.events[-1].undo(self.engine)
-                    del self.engine.events[-1]
+                self.engine.transfer_to_piece_selection()
             else:
                 self.engine.events[-1].undo(self.engine)
                 del self.engine.events[-1]
         except IndexError:
             if self.engine.turn_count_display == .5:
-                new_state = Starting(self.win, self.engine)
-                self.engine.spawning = None
-                self.engine.set_state(new_state)
-            else:
-                self.engine.reset_board()
-                new_state = Starting(self.win, self.engine)
-                self.engine.spawning = None
-                self.engine.first = True
-                self.engine.set_state(new_state)
+                self.engine.transfer_to_piece_selection()
+
+    def revert_to_starting_state(self, first=False):
+        new_state = Starting(self.win, self.engine, True)
+        self.engine.spawning = None
+        self.engine.first = first
+        self.engine.set_state(new_state)
 
     def draw(self):
         super().draw()
@@ -557,6 +618,124 @@ class StartingSpawn(State):
         self.right_click()
 
 
+class DebugStart(State):
+    def __init__(self, win, engine):
+        super().__init__(win, engine)
+        self.side_bar = Empty(win, engine)
+        self.first = True
+        self.play_random_sound_effect()
+        self.spawn_list = Constant.DEBUG_STARTING_PIECES
+        self.engine.spawn_list = Constant.DEBUG_STARTING_PIECES
+        self.engine.spawning = self.spawn_list[0]
+
+    def __repr__(self):
+        return 'debug'
+
+    def begin_next_player_start_spawn(self):
+        turn_change = ChangeTurn(self.engine)
+        turn_change.complete(self.engine)
+        self.engine.events.append(turn_change)
+        self.engine.spawn_count = 0
+        self.engine.final_spawn = True
+        new_state = DebugStart(self.win, self.engine)
+        self.engine.set_state(new_state)
+
+    def end_start_spawning(self):
+        self.engine.reset_selected()
+        self.engine.reset_piece_actions_remaining()
+        self.engine.spawn_success = False
+        unused_pieces = self.engine.count_unused_pieces()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+        self.engine.reset_player_actions_remaining(self.engine.turn)
+        self.engine.update_additional_actions()
+        self.engine.update_piece_limit()
+        for p in self.engine.players:
+            player = self.engine.players[p]
+            player.wood = Constant.DEBUG_STARTING_WOOD
+            player.gold = Constant.DEBUG_STARTING_GOLD
+            player.stone = Constant.DEBUG_STARTING_STONE
+            player.prayer = Constant.DEBUG_STARTING_PRAYER
+        super().revert_to_playing_state()
+
+    @property
+    def get_valid_position(self):
+        row, col = -1, -1
+        pos = pygame.mouse.get_pos()
+        if Constant.pos_in_bounds(pos):
+            row, col = Constant.convert_pos(pos)
+        return row, col
+
+    def is_legal_starting_square(self, row, col):
+        player_is_too_close = False
+        if not self.engine.can_be_occupied(row, col):
+            return False
+        if not self.engine.players:
+            return True
+        for r in range(row - 3, row + 4):
+            for c in range(col - 3, col + 4):
+                if self.engine.has_castle(r, c):
+                    player_is_too_close = True
+
+        return not player_is_too_close
+
+    @staticmethod
+    def play_random_sound_effect():
+        i = random.randint(0, len(Constant.start_game) - 1)
+        Constant.START_GAME_SOUNDS[i].set_volume(.1)
+        Constant.START_GAME_SOUNDS[i].play()
+
+    def create_spawn_event(self, row, col, first=True):
+        spawn_event = StartSpawn(self.engine.turn, self.engine.spawning, (row, col), self.engine.spawn_count,
+                                 self.engine.final_spawn, self.engine.update_previously_selected(), self.engine.spawn_list)
+        spawn_event.complete(self.engine)
+        self.engine.reset_selected()
+        self.engine.update_spawn_squares()
+        self.engine.events.append(spawn_event)
+        castle_row, castle_col = self.engine.find_player_castle()
+        self.engine.set_purchasing(castle_row, castle_col, True)
+        self.first = first
+        self.engine.spawn_count += 1
+
+    def left_click(self):
+        row, col = self.get_valid_position
+        previously_selected = self.engine.update_previously_selected()
+        if previously_selected is not None:
+            previously_selected.update_spawn_squares(self.engine)
+            if (row, col) in previously_selected.spawn_squares_list:
+                self.create_spawn_event(row, col, False)
+        else:
+            if self.is_legal_starting_square(row, col):
+                self.create_spawn_event(row, col)
+        try:
+            self.engine.spawning = self.engine.spawn_list[self.engine.spawn_count]
+        except IndexError:
+            if self.engine.final_spawn:
+                self.end_start_spawning()
+            else:
+                self.begin_next_player_start_spawn()
+
+    def revert_to_starting_state(self, first=False):
+        new_state = Starting(self.win, self.engine, True)
+        self.engine.spawning = None
+        self.engine.first = first
+        self.engine.set_state(new_state)
+
+    def draw(self):
+        super().draw()
+        self.side_bar.draw()
+        pos = pygame.mouse.get_pos()
+        spawnTable = Constant.W_BUILDINGS | Constant.W_PIECES | Constant.B_BUILDINGS | Constant.B_PIECES
+        displayPosX = pos[0] - Constant.SQ_SIZE // 2
+        displayPosY = pos[1] - Constant.SQ_SIZE // 2
+        if Constant.pos_in_bounds(pos):
+            self.win.blit(spawnTable[(self.engine.turn + "_" + self.engine.spawning)], (displayPosX, displayPosY))
+            return True
+
+    def enter(self):
+        pass
+
+
 class MiningStealing(State):
     def __init__(self, win, engine):
         super().__init__(win, engine)
@@ -569,20 +748,6 @@ class MiningStealing(State):
 
     def __repr__(self):
         return 'mining stealing'
-
-    def draw(self):
-        super().draw()
-        pos = pygame.mouse.get_pos()
-        display_pos_x = pos[0] - Constant.SQ_SIZE // 2
-        display_pos_y = pos[1] - Constant.SQ_SIZE // 2
-        self.side_bar.draw()
-        if self.engine.menus:
-            for menu in self.engine.menus:
-                menu.draw(self.win)
-        elif Constant.pos_in_bounds(pos):
-            row, col = Constant.convert_pos(pos)
-            if (row, col) in self.previously_selected.stealing_squares_list:
-                self.win.blit(Constant.IMAGES['steal'], (display_pos_x, display_pos_y))
 
     def draw(self):
         super().draw()
@@ -624,7 +789,7 @@ class MiningStealing(State):
                 self.engine.reset_selected()
                 self.engine.set_state(new_state)
             else:
-                self.reset_state()
+                self.revert_to_playing_state()
         if self.engine.stealing:
             self.engine.close_menus()
             stolen_from = self.engine.get_occupying(self.row, self.col)
@@ -635,7 +800,7 @@ class MiningStealing(State):
             event.complete(self.engine)
             self.engine.events.append(event)
             self.engine.stealing = None
-            self.reset_state()
+            self.revert_to_playing_state()
 
     def in_mining_squares(self, row, col):
         if (row, col) in self.previously_selected.mining_squares_list:
@@ -656,7 +821,7 @@ class MiningStealing(State):
             for menu in self.engine.menus:
                 menu.mouse_move()
                 if not menu.mouse_in_menu_bounds():
-                    self.reset_state()
+                    self.revert_to_playing_state()
 
     def tab(self):
         try:
@@ -780,7 +945,7 @@ class Stealing(State):
                 menu = StealingMenu(row, col, self.win, self.engine)
                 self.engine.menus.append(menu)
             else:
-                self.reset_state()
+                self.revert_to_playing_state()
 
         if self.engine.stealing:
             self.engine.close_menus()
@@ -792,7 +957,7 @@ class Stealing(State):
             event.complete(self.engine)
             self.engine.events.append(event)
             self.engine.stealing = None
-            self.reset_state()
+            self.revert_to_playing_state()
 
     def click_valid_square(self, row, col):
         if (row, col) in self.previously_selected.stealing_squares_list:
@@ -809,7 +974,7 @@ class Stealing(State):
             for menu in self.engine.menus:
                 menu.mouse_move()
                 if not menu.mouse_in_menu_bounds():
-                    self.reset_state()
+                    self.revert_to_playing_state()
 
     def tab(self):
         try:
@@ -1028,7 +1193,7 @@ class Spawning(State):
             self.engine.set_state(state)
 
     def right_click(self):
-        super().reset_state()
+        super().revert_to_playing_state()
 
     def mouse_move(self):
         pass
@@ -1041,7 +1206,7 @@ class Winner(State):
 
     def __init__(self, win, engine):
         super().__init__(win, engine)
-        self.font_size = round(Constant.SQ_SIZE * 1.5)
+        self.font_size = round(Constant.SQ_SIZE * 2)
         self.font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.font_size)
         self.key = {'w': 'White Won!', 'b': 'Black Won!'}
         self.text_surf = self.font.render(self.key[self.engine.turn], True, Constant.turn_to_color[self.engine.turn])
@@ -1054,10 +1219,10 @@ class Winner(State):
         return 'winner'
 
     def left_click(self):
-        pass
+        self.engine.reset()
 
     def right_click(self):
-        pass
+        self.engine.reset()
 
     def mouse_move(self):
         pass
@@ -1067,12 +1232,10 @@ class Winner(State):
         self.win.blit(self.text_surf, (self.display_x, self.display_y))
 
     def enter(self):
-        pass
+        self.engine.reset()
 
     def tab(self):
-        new_state = Starting(self.win, self.engine)
-        new_state.re_initialize()
-        self.engine.set_state(new_state)
+        self.engine.reset()
 
 
 class Surrender(State):
@@ -1090,13 +1253,13 @@ class Surrender(State):
             self.engine.set_state(new_state)
 
     def right_click(self):
-        self.reset_state()
+        self.revert_to_playing_state()
 
     def mouse_move(self):
         self.side_bar.mouse_move()
 
     def tab(self):
-        self.reset_state()
+        self.revert_to_playing_state()
 
     def draw(self):
         super().draw()
@@ -1106,99 +1269,36 @@ class Surrender(State):
 class PieceCost(State):
     def __init__(self, win, engine):
         super().__init__(win, engine)
-        self.pieces = {'w': Constant.W_PIECES | Constant.W_BUILDINGS, 'b': Constant.B_PIECES | Constant.B_BUILDINGS}
-        self.font_size = round(Constant.SQ_SIZE * 1.5)
-        self.font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.font_size)
-        self.window_width = pygame.display.Info().current_w
-        self.window_height = pygame.display.Info().current_h
-        self.test_text = self.font.render("10", True, Constant.RED)
-        self.menu = self.win
-        self.color = Constant.turn_to_color[self.engine.turn]
-        self.horizontal_buffer_between_costs = round(Constant.SQ_SIZE * 1.3)
-        self.vertical_buffer_between_pieces = Constant.SQ_SIZE
-        self.font_size = round(Constant.SQ_SIZE / 2)
-        self.font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.font_size)
-        self.test_text = self.font.render("10", True, Constant.RED)
-        self.spawning = None
-        self.player = self.engine.players[self.engine.turn]
+        menu = Master(self.win, self.engine, Constant.MASTER_COST_LIST)
+        self.engine.menus.append(menu)
 
     def __repr__(self):
         return 'piece cost screen'
 
-    def left_click(self):
-        pass
+    def remove_top_menu(self):
+        if len(self.engine.menus) == 1:
+            self.engine.close_menus()
+            self.revert_to_playing_state()
+        else:
+            del self.engine.menus[-1]
 
     def right_click(self):
-        self.tab()
+        self.remove_top_menu()
 
     def mouse_move(self):
-        pass
+        self.engine.menus[-1].mouse_move()
 
     def draw(self):
-        self.menu.fill(Constant.MENU_COLOR)
-        y_buffer = 0
-        x_buffer = 0
+        self.engine.menus[-1].draw()
 
-        for p in Constant.PIECE_COSTS:
-            p_piece_cost = Constant.PIECE_COSTS[p]
-            if p == 'quarry_1':
-                piece = 'quarry_1'
-            else:
-                piece = self.engine.turn + "_" + p
-            log_x = x_buffer + self.horizontal_buffer_between_costs
-            gold_x = log_x + self.horizontal_buffer_between_costs
-            stone_x = gold_x + self.horizontal_buffer_between_costs
-
-            # Log Cost
-            if p_piece_cost['log'] != 0:
-                if self.player.wood >= p_piece_cost['gold']:
-                    color = Constant.turn_to_color[self.engine.turn]
-                else:
-                    color = Constant.RED
-                log_cost = self.font.render(str(p_piece_cost['log']), True, color)
-                self.menu.blit(Constant.MENU_ICONS['log'], (log_x, y_buffer + Constant.SQ_SIZE // 4))
-                self.menu.blit(log_cost,
-                               ((log_x + (Constant.SQ_SIZE // 1.5)), (y_buffer + (Constant.SQ_SIZE // 6))))
-
-            # Gold Cost
-            if p_piece_cost['gold'] != 0:
-                if self.player.gold >= p_piece_cost['gold']:
-                    color = Constant.turn_to_color[self.engine.turn]
-                else:
-                    color = Constant.RED
-                gold_cost = self.font.render(str(p_piece_cost['gold']), True, color)
-                self.menu.blit(Constant.MENU_ICONS['gold_coin'], (gold_x, y_buffer + Constant.SQ_SIZE // 4))
-                self.menu.blit(gold_cost,
-                               ((gold_x + (Constant.SQ_SIZE // 1.5)), (y_buffer + (Constant.SQ_SIZE // 6))))
-
-            # Stone Cost
-            if p_piece_cost['stone'] != 0:
-                if self.player.stone >= p_piece_cost['stone']:
-                    color = Constant.turn_to_color[self.engine.turn]
-                else:
-                    color = Constant.RED
-                stone_cost = self.font.render(str(p_piece_cost['stone']), True, color)
-                self.menu.blit(Constant.MENU_ICONS['stone'], (stone_x, y_buffer + Constant.SQ_SIZE // 4))
-                self.menu.blit(stone_cost,
-                               ((stone_x + (Constant.SQ_SIZE // 1.5)), (y_buffer + (Constant.SQ_SIZE // 6))))
-
-            # Menu
-            if p == 'quarry_1':
-                self.menu.blit(Constant.RESOURCES[piece], (x_buffer, y_buffer))
-            else:
-                self.menu.blit(self.pieces[self.engine.turn][piece], (x_buffer, y_buffer))
-
-            y_buffer += self.vertical_buffer_between_pieces
-            if y_buffer >= Constant.BOARD_HEIGHT_PX:
-                y_buffer = 0
-                x_buffer += self.window_width / 3
+    def left_click(self):
+        self.engine.menus[-1].left_click()
 
     def enter(self):
         pass
 
     def tab(self):
-        new_state = Playing(self.win, self.engine)
-        self.engine.set_state(new_state)
+        self.remove_top_menu()
 
 
 class Ritual(State):
@@ -1222,7 +1322,7 @@ class Ritual(State):
         self.win.blit(self.ritual_image, (display_pos_x, display_pos_y))
 
     def right_click(self):
-        self.reset_state()
+        self.revert_to_playing_state()
 
     def mouse_move(self):
         pass
@@ -1231,7 +1331,7 @@ class Ritual(State):
         pass
 
     def tab(self):
-        self.reset_state()
+        self.revert_to_playing_state()
 
 
 class SummonGoldGeneral(Ritual):
@@ -1261,9 +1361,9 @@ class SummonGoldGeneral(Ritual):
             event = GoldGeneralEvent(self.engine,self.previously_selected, row, col)
             event.complete()
             self.engine.events.append(event)
-            self.reset_state()
+            self.revert_to_playing_state()
         else:
-            self.reset_state()
+            self.revert_to_playing_state()
 
         # Spend prayer after the square is clicked
 
@@ -1291,7 +1391,8 @@ class PerformSmite(Ritual):
         for piece in self.engine.players[Constant.TURNS[self.engine.turn]].pieces:
             row, col = piece.row, piece.col
             if not isinstance(piece, King):
-                list_of_enemy_pieces.append((row, col))
+                if not self.engine.board[row][col].is_protected():
+                    list_of_enemy_pieces.append((row, col))
         return list_of_enemy_pieces
 
     def left_click(self):
@@ -1300,9 +1401,9 @@ class PerformSmite(Ritual):
             event = Smite(self.engine,self.previously_selected, row, col)
             event.complete()
             self.engine.events.append(event)
-            self.reset_state()
+            self.revert_to_playing_state()
         else:
-            self.reset_state()
+            self.revert_to_playing_state()
 
 
 class PerformDestroyResource(Ritual):
@@ -1337,9 +1438,9 @@ class PerformDestroyResource(Ritual):
             event = DestroyResource(self.engine,self.previously_selected, row, col)
             event.complete()
             self.engine.events.append(event)
-            self.reset_state()
+            self.revert_to_playing_state()
         else:
-            self.reset_state()
+            self.revert_to_playing_state()
 
 
 class PerformCreateResource(Ritual):
@@ -1376,6 +1477,7 @@ class PerformCreateResource(Ritual):
             for col in range(self.engine.cols):
                 if self.engine.is_empty(row, col):
                     list_of_all_empty_squares.append((row, col))
+
         return list_of_all_empty_squares
 
     def left_click(self):
@@ -1390,7 +1492,7 @@ class PerformCreateResource(Ritual):
                 menu = ResourceMenu(row, col, self.win, self.engine)
                 self.engine.menus.append(menu)
             else:
-                self.reset_state()
+                self.revert_to_playing_state()
 
         if self.engine.ritual_summon_resource:
             self.engine.close_menus()
@@ -1398,7 +1500,7 @@ class PerformCreateResource(Ritual):
             event.complete()
             self.engine.events.append(event)
             self.engine.ritual_summon_resource = None
-            self.reset_state()
+            self.revert_to_playing_state()
 
 
 class PerformTeleport(Ritual):
@@ -1456,9 +1558,9 @@ class PerformTeleport(Ritual):
             event = Teleport(self.engine,self.previously_selected, self.selected.row, self.selected.col, row, col)
             event.complete()
             self.engine.events.append(event)
-            self.reset_state()
+            self.revert_to_playing_state()
         else:
-            self.reset_state()
+            self.revert_to_playing_state()
 
 
 class PerformSwap(Ritual):
@@ -1501,9 +1603,9 @@ class PerformSwap(Ritual):
             event = Swap(self.engine,self.previously_selected, self.first_selected.row, self.first_selected.col, self.second_selected.row, self.second_selected.col)
             event.complete()
             self.engine.events.append(event)
-            self.reset_state()
+            self.revert_to_playing_state()
         else:
-            self.reset_state()
+            self.revert_to_playing_state()
 
 
 class PerformLineDestroy(Ritual):
@@ -1567,9 +1669,9 @@ class PerformLineDestroy(Ritual):
                 new_state = Winner(self.win, self.engine)
                 self.engine.set_state(new_state)
             else:
-                self.reset_state()
+                self.revert_to_playing_state()
         else:
-            self.reset_state()
+            self.revert_to_playing_state()
 
 
 class PerformProtect(Ritual):
@@ -1611,6 +1713,6 @@ class PerformProtect(Ritual):
             event = Protect(self.engine,self.previously_selected, row, col)
             event.complete()
             self.engine.events.append(event)
-            self.reset_state()
+            self.revert_to_playing_state()
         else:
-            self.reset_state()
+            self.revert_to_playing_state()

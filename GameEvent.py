@@ -13,7 +13,7 @@ class GameEvent:
 
 
 class StartSpawn(GameEvent):
-    def __init__(self, color, spawn, dest, spawn_count, final_spawn, prev):
+    def __init__(self, color, spawn, dest, spawn_count, final_spawn, prev, spawn_list):
         #
         #   Call parent Initialization
         #
@@ -43,6 +43,7 @@ class StartSpawn(GameEvent):
         # Track previously selected piece
         # (This should be done in the __init__)
         self.prev = prev
+        self.spawn_list = spawn_list
 
     def complete(self, engine):
         #
@@ -81,7 +82,8 @@ class StartSpawn(GameEvent):
         engine.final_spawn = self.final_spawn
 
         #
-        engine.spawning = Constant.STARTING_PIECES[engine.spawn_count]
+        engine.spawn_list = self.spawn_list
+        engine.spawning = engine.spawn_list[engine.spawn_count]
 
         #
         try:
@@ -266,7 +268,6 @@ class Steal(GameEvent):
         #   Offset is +1, -1 or 0. This is how much is added to the default value when mining.
         #
 
-
     def complete(self, engine):
         self.play_random_sound_effect()
         self.thief.actions_remaining -= 1
@@ -300,7 +301,6 @@ class Steal(GameEvent):
         Constant.PRAY_SOUNDS[i].play()
 
 
-
 class Mine(GameEvent):
     def __init__(self, mined, miner):
         #
@@ -314,6 +314,10 @@ class Mine(GameEvent):
         #
         self.mined = mined
         self.miner = miner
+        self.additional_mining = 0
+
+        if str(self.miner) == 'rogue_pawn':
+            self.additional_mining = Constant.ADDITIONAL_MINING_FROM_ROGUE[Constant.RESOURCE_KEY[str(self.mined)]]
 
         #
         #   Store the List of Values which dictate the offset when mining each material.
@@ -330,7 +334,7 @@ class Mine(GameEvent):
         self.sprite_offset = self.mined.offset
 
     def complete(self, engine):
-        engine.players[engine.turn].mine(self.mined, self.miningOffset)
+        engine.players[engine.turn].mine(self.mined, self.miningOffset, self.additional_mining)
         self.mined.remaining -= 1
         self.miner.actions_remaining -= 1
         try:
@@ -354,7 +358,7 @@ class Mine(GameEvent):
         row = self.mined.row
         col = self.mined.col
         self.mined.remaining += 1
-        engine.players[engine.turn].un_mine(self.mined, self.miningOffset)
+        engine.players[engine.turn].un_mine(self.mined, self.miningOffset, self.additional_mining)
         self.play_random_sound_effect(str(self.mined))
         resource = engine.RESOURCES[str(self.mined)](row, col)
         resource.offset = self.sprite_offset
@@ -568,11 +572,15 @@ class ChangeTurn(GameEvent):
         self.engine.reset_unused_piece_highlight()
         protected_tiles = self.protected_tiles
         self.engine.tick_protected_tiles(protected_tiles)
-        if self.engine.turn_count_actual == len(self.engine.prayer_stone_rituals) - 1:
-            self.engine.prayer_stone_rituals.append(self.engine.generate_available_rituals(
-                Constant.PRAYER_STONE_RITUALS, Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN))
-        if self.engine.turn_count_actual == len(self.engine.monolith_rituals) - 1:
-            self.engine.monolith_rituals.append(self.engine.generate_available_rituals(Constant.MONOLITH_RITUALS, Constant.MAX_MONOLITH_RITUALS_PER_TURN))
+        if Constant.DEBUG_RITUALS:
+            self.engine.prayer_stone_rituals.append(Constant.PRAYER_STONE_RITUALS)
+            self.engine.monolith_rituals.append(Constant.MONOLITH_RITUALS)
+        else:
+            if self.engine.turn_count_actual == len(self.engine.prayer_stone_rituals) - 1:
+                self.engine.prayer_stone_rituals.append(self.engine.generate_available_rituals(
+                    Constant.PRAYER_STONE_RITUALS, Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN))
+            if self.engine.turn_count_actual == len(self.engine.monolith_rituals) - 1:
+                self.engine.monolith_rituals.append(self.engine.generate_available_rituals(Constant.MONOLITH_RITUALS, Constant.MAX_MONOLITH_RITUALS_PER_TURN))
         if self.engine.turn_count_actual == len(self.engine.piece_stealing_offsets) - 1:
             self.engine.piece_stealing_offsets.append(self.engine.generate_stealing_offsets(Constant.STEALING_KEY['piece']))
         if self.engine.turn_count_actual == len(self.engine.building_stealing_offsets) - 1:
@@ -638,10 +646,10 @@ class RitualEvent(GameEvent):
 
     def respawn_deleted_monks(self):
         if self.monk_cost != 0:
-            for i in range(self.monk_cost):
-                row = self.deleted_monks[i].row
-                col = self.deleted_monks[i].col
-                actions_remaining = self.deleted_monks[i].actions_remaining
+            for monk in self.deleted_monks:
+                row = monk.row
+                col = monk.col
+                actions_remaining = monk.actions_remaining
                 self.engine.create_piece(row, col, Monk(row, col, self.turn))
                 self.engine.get_occupying(row, col).actions_remaining = actions_remaining
 
@@ -653,6 +661,7 @@ class RitualEvent(GameEvent):
                     count.append(piece)
 
             random.shuffle(count)
+
             for i in range(self.monk_cost):
                 try:
                     self.deleted_monks.append(count[i])
@@ -682,8 +691,8 @@ class GoldGeneralEvent(RitualEvent):
 
     def undo(self, engine):
         super().undo(engine)
-        self.respawn_deleted_monks()
         self.engine.delete_piece(self.row, self.col)
+        self.respawn_deleted_monks()
         self.player.undo_ritual(self.ritual_cost)
         self.player.undo_action()
         self.engine.reset_selected()
@@ -692,7 +701,6 @@ class GoldGeneralEvent(RitualEvent):
         self.engine.correct_interceptions()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
-        self.engine.players[engine.turn].undo_action()
 
 
 class Smite(RitualEvent):
@@ -701,6 +709,7 @@ class Smite(RitualEvent):
         self.row = row
         self.col = col
         self.deleted_piece = str(self.engine.get_occupying(self.row, self.col))
+        self.piece_actions_remaining = self.engine.get_occupying(self.row, self.col).actions_remaining
 
     def __repr__(self):
         return 'smite'
@@ -718,6 +727,7 @@ class Smite(RitualEvent):
         self.respawn_deleted_monks()
         piece = self.engine.PIECES[self.deleted_piece](self.row, self.col, Constant.TURNS[self.turn])
         self.engine.create_piece(self.row, self.col, piece)
+        self.engine.get_occupying(self.row, self.col).actions_remaining = self.piece_actions_remaining
         self.player.undo_ritual(self.ritual_cost)
         self.engine.reset_selected()
         unused_pieces = self.engine.count_unused_pieces()
@@ -907,6 +917,10 @@ class LineDestroy(RitualEvent):
             for col in self.selected_range[1]:
                 if not self.engine.board[row][col].is_protected():
                     self.engine.board[row][col] = Tile(row, col)
+                else:
+                    break
+            if self.engine.board[row][col].is_protected():
+                break
 
     def remove_destroyed_pieces_from_player_list(self):
         for piece in self.destroyed_pieces:

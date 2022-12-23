@@ -1,8 +1,5 @@
 import Constant
 
-from Piece import Piece
-from Building import Building
-
 
 class Player:
     def __init__(self, color):
@@ -47,42 +44,35 @@ class Player:
         elif kind == 'stone':
             self.stone -= value
 
-    def mine(self, resource, offset):
-        if str(resource) == 'gold_tile_1':
-            self.gold += resource.yield_per_harvest + offset
+    def get_harvest(self, resource, offset, additional_mining):
+        harvest = resource.yield_per_harvest + offset + additional_mining
+        if harvest < 0:
+            harvest = 0
+        return harvest
 
-        elif str(resource) == 'tree_tile_1' or str(resource) == 'tree_tile_2' or \
-                str(resource) == 'tree_tile_3' or str(resource) == 'tree_tile_4':
-            self.wood += resource.yield_per_harvest + offset
+    def mine(self, resource, offset, additional_mining):
+        harvest = self.get_harvest(resource, offset, additional_mining)
+        player_resource = Constant.RESOURCE_KEY[str(resource)]
+        current_resource = getattr(self, player_resource)
+        setattr(self, player_resource, current_resource + harvest)
 
-        elif str(resource) == 'quarry_1':
-            self.stone += resource.yield_per_harvest + offset
-
-        elif str(resource) == 'sunken_quarry_1':
-            self.stone += resource.yield_per_harvest + offset
-
-    def un_mine(self, resource, offset):
-        if str(resource) == 'gold_tile_1':
-            self.gold -= resource.yield_per_harvest + offset
-
-        elif str(resource) == 'tree_tile_1' or str(resource) == 'tree_tile_2' or \
-                str(resource) == 'tree_tile_3' or str(resource) == 'tree_tile_4':
-            self.wood -= resource.yield_per_harvest + offset
-
-        elif str(resource) == 'quarry_1':
-            self.stone -= resource.yield_per_harvest + offset
-
-        elif str(resource) == 'sunken_quarry_1':
-            self.stone -= resource.yield_per_harvest + offset
+    def un_mine(self, resource, offset, additional_mining):
+        harvest = self.get_harvest(resource, offset, additional_mining)
+        player_resource = Constant.RESOURCE_KEY[str(resource)]
+        current_resource = getattr(self, player_resource)
+        setattr(self, player_resource, current_resource - harvest)
 
     def pray(self, building, additional_prayer):
         self.prayer += (building.yield_when_prayed + additional_prayer)
 
     def un_pray(self, building, additional_prayer):
-        self.prayer -= (building.yield_when_prayed - additional_prayer)
+        self.prayer -= (building.yield_when_prayed + additional_prayer)
 
     def reset_prayer(self):
-        self.prayer = Constant.STARTING_PRAYER
+        if Constant.DEBUG_START:
+            self.prayer = Constant.DEBUG_STARTING_PRAYER
+        else:
+            self.prayer = Constant.STARTING_PRAYER
 
     def get_prayer(self):
         return self.prayer

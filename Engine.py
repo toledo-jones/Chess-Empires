@@ -131,10 +131,10 @@ class Engine:
             if enemy_player.wood - value < 0:
                 value = enemy_player.wood
         elif resource == 'gold':
-            if enemy_player.wood - value < 0:
+            if enemy_player.gold - value < 0:
                 value = enemy_player.gold
         elif resource == 'stone':
-            if enemy_player.wood - value < 0:
+            if enemy_player.stone - value < 0:
                 value = enemy_player.stone
 
         return value

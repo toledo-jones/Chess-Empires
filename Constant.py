@@ -68,7 +68,7 @@ STARTING_PIECES = ['castle', 'king']
 BOARD_STARTS_WITH_RESOURCES = True
 SELECTABLE_STARTING_PIECES = ['pawn', 'builder', 'monk', 'pikeman', 'rogue_pawn']
 NUMBER_OF_STARTING_PIECES = 5
-MONOLITH_RITUALS = ['gold_general', 'smite', 'destroy_resource', 'teleport', 'swap', 'line_destroy', 'protect']
+MONOLITH_RITUALS = ['gold_general', 'smite', 'destroy_resource', 'line_destroy', 'protect', 'create resource']
 PRAYER_STONE_RITUALS = ['destroy_resource', 'create_resource', 'teleport', 'swap', 'protect']
 STEALING_KEY = {'building': {
     'wood': {'variance': (-2, 2), 'value': 4},
@@ -107,7 +107,7 @@ PIECE_COSTS = {'king': {'log': 0, 'gold': 0, 'stone': 0},
                'quarry_1': {'log': 3, 'gold': 0, 'stone': 0},
                'pawn': {'log': 6, 'gold': 0, 'stone': 0},
                'builder': {'log': 6, 'gold': 0, 'stone': 0},
-               'monk': {'log': 6, 'gold': 0, 'stone': 0},
+               'monk': {'log': 6, 'gold': 0, 'stone': 1},
                'pikeman': {'log': 0, 'gold': 4, 'stone': 4},
                'castle': {'log': 10, 'gold': 0, 'stone': 0},
                'stable': {'log': 10, 'gold': 0, 'stone': 10},
@@ -125,8 +125,8 @@ PIECE_COSTS = {'king': {'log': 0, 'gold': 0, 'stone': 0},
                'elephant': {'log': 4, 'gold': 0, 'stone': 4},
                'ram': {'log': 6, 'gold': 0, 'stone': 6},
                'unicorn': {'log': 12, 'gold': 0, 'stone': 12},
-               'monolith': {'log': 0, 'gold': 0, 'stone': 10},
-               'prayer_stone': {'log': 0, 'gold': 0, 'stone': 2},
+               'monolith': {'log': 0, 'gold': 0, 'stone': 15},
+               'prayer_stone': {'log': 0, 'gold': 0, 'stone': 4},
                'duke': {'log': 6, 'gold': 14, 'stone': 14},
                }
 # HOW TO ACCESS:
@@ -200,14 +200,14 @@ PIECE_POPULATION = {'king': 1,
                     'unicorn': 1,
                     'ram': 1}
 
-PRAYER_COSTS = {'gold_general': {'prayer': 8, 'monk': 2},
-                'smite': {'prayer': 6, 'monk': 1},
-                'destroy_resource': {'prayer': 3, 'monk': 0},
+PRAYER_COSTS = {'gold_general': {'prayer': 12, 'monk': 2},
+                'smite': {'prayer': 8, 'monk': 1},
+                'destroy_resource': {'prayer': 8, 'monk': 0},
                 'create_resource': {'prayer': 1, 'monk': 0},
-                'teleport': {'prayer': 1, 'monk': 0},
+                'teleport': {'prayer': 4, 'monk': 0},
                 'swap': {'prayer': 1, 'monk': 0},
-                'line_destroy': {'prayer': 4, 'monk': 1},
-                'protect': {'prayer': 4, 'monk': 0}}
+                'line_destroy': {'prayer': 8, 'monk': 1},
+                'protect': {'prayer': 1, 'monk': 0}}
 
 ADDITIONAL_PIECE_LIMIT = {'castle': 5, 'barracks': 3, 'fortress': 3, 'stable': 3,
                           'king': 0,

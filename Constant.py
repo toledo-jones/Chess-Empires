@@ -50,14 +50,13 @@ SIDE_MENU_WIDTH = pygame.display.Info().current_w - BOARD_WIDTH_PX
 #
 
 
-DEBUG_START = False
+DEBUG_START = True
 DEBUG_STARTING_PRAYER = 12
 DEBUG_STARTING_WOOD = 99
 DEBUG_STARTING_GOLD = 99
 DEBUG_STARTING_STONE = 99
 DEBUG_STARTING_PIECES = ['castle', 'king']
 DEBUG_RITUALS = False
-
 
 'DEFAULT START'
 STARTING_PRAYER = 0
@@ -130,6 +129,44 @@ PIECE_COSTS = {'king': {'log': 0, 'gold': 0, 'stone': 0},
                'prayer_stone': {'log': 0, 'gold': 0, 'stone': 2},
                'duke': {'log': 6, 'gold': 14, 'stone': 14},
                }
+# HOW TO ACCESS:
+# for line in Constant.DESCRIPTIONS['piece']
+# print(line)
+# Constant.DESCRIPTIONS['piece'][description_line_index]
+DESCRIPTIONS = {'king': ['every player gets one', 'capture your opponent\'s to win'],
+                'gold_general': ['summons the strongest piece imaginable'],
+                'quarry_1': ['can be mined for stone', 'may cave in and begin to yield less stone', 'cannot be dug onto a depleted quarry'],
+                'pawn': ['can mine resources'],
+                'builder': ['can create buildings'],
+                'monk': ['can pray at monoliths and prayer Stones'],
+                'pikeman': ['attacks and defends all surrounding squares', 'a useful defender'],
+                'castle': ['creates basic pieces, such as pawns'],
+                'stable': ['creates leapers, such as the knight'],
+                'barracks': ['creates basic attacking pieces', 'a staple in any good kingdom'],
+                'fortress': ['a hive of scum and villainy'],
+                'queen': ['attacks in all directions as far as the eye can see'],
+                'rook': ['attacks orthogonally and has the', 'ability to pray'],
+                'bishop': ['attacks diagonally and has the', 'ability to pray'],
+                'knight': ['a simple leaper who moves up two and over one'],
+                'jester': ['cannot capture but', 'moves like a queen and any piece or', 'building nearby cannot act'],
+                'rogue_rook': ['a rook who can move through the forest', 'and can steal from enemy pieces'],
+                'rogue_bishop': ['a bishop who can move through the forest', 'and can steal from enemy pieces'],
+                'rogue_knight': ['a knight who can move through the forest', 'and can steal from enemy pieces'],
+                'rogue_pawn': ['a pawn who can move through the forest', 'and can steal from nearby pieces'],
+                'elephant': ['A long leaper who', 'also moves like a knight'],
+                'ram': ['moves like a knight, then like a bishop'],
+                'unicorn': ['a mystical leaper with a strange move pattern'],
+                'monolith': ['a strange, powerful prayer site'],
+                'prayer_stone': ['a strange prayer site'],
+                'duke': ['moves like a queen', 'but has the ability to pray'],
+                'smite': ['select one piece or building to be destroyed'],
+                'destroy_resource': ['select one resource to be destroyed'],
+                'create_resource': ['create a resource'],
+                'teleport': ['teleport a piece anywhere else on the board'],
+                'swap': ['trade places with another piece'],
+                'line_destroy': ['destroys everything in it\'s path'],
+                'protect': ['protects a square from capture or destruction']
+                }
 
 PIECE_POPULATION = {'king': 1,
                     'queen': 2,
@@ -227,9 +264,9 @@ ADDITIONAL_MINING_FROM_ROGUE = {'wood': -1, 'stone': -2, 'gold': -3}
 RESOURCE_KEY = {'gold_tile_1': 'gold', 'quarry_1': 'stone',
                 'sunken_quarry_1': 'stone', 'tree_tile_1': 'wood',
                 'tree_tile_2': 'wood', 'tree_tile_3': 'wood',
-                'tree_tile_4': 'wood', 'log': 'wood', 'gold':'gold', 'stone':'stone'}
+                'tree_tile_4': 'wood', 'log': 'wood', 'gold': 'gold', 'stone': 'stone'}
 
-MASTER_COST_LIST = ['builder', 'castle', 'stable', 'fortress', 'prayer_stone', 'monolith']
+MASTER_COST_LIST = ['builder', 'castle', 'stable', 'barracks', 'fortress', 'prayer_stone', 'monolith']
 
 FACTION_NAMES = ['clique', 'coterie', 'cabal', 'bloc', 'camp', 'grouping',
                  'side', 'division', 'wing', 'section', 'countrymen', 'squad', 'faction',

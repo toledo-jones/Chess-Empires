@@ -143,7 +143,7 @@ DESCRIPTIONS = {'king': ['every player gets one', 'capture your opponent\'s to w
                 'castle': ['creates basic pieces, such as pawns'],
                 'stable': ['creates leapers, such as the knight'],
                 'barracks': ['creates basic attacking pieces', 'a staple in any good kingdom'],
-                'fortress': ['a hive of scum and villainy'],
+                'fortress': ['creates rogue pieces who', 'can move through forest tiles and', 'steal from enemy pieces'],
                 'queen': ['attacks in all directions as far as the eye can see'],
                 'rook': ['attacks orthogonally and has the', 'ability to pray'],
                 'bishop': ['attacks diagonally and has the', 'ability to pray'],

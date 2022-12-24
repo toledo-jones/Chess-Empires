@@ -880,7 +880,7 @@ class CostMenu:
                     text_surf = self.small_font.render(": " + str(cost[resource]), True, color)
                     resource_position = (piece_display_x - self.x_buffer_between_costs // 1.5,
                                          Y_COORDS[Constant.RESOURCE_KEY[resource]] + self.RESOURCES[
-                                             Constant.RESOURCE_KEY[resource]].get_height() // 2)
+                                             Constant.RESOURCE_KEY[resource]].get_height() // 3)
 
                     self.win.blit(self.RESOURCES[Constant.RESOURCE_KEY[resource]], resource_position)
 

@@ -1,15 +1,14 @@
 # Chess-Empires-v24
 Pass & Play Chess Variant.
 
--- ~ 6 minute gameplay preview. Full game start to finish. 
+-- gameplay -- 
 https://youtu.be/ADkow6Bpi6o
 
 -- windows .exe -- 
-https://drive.google.com/file/d/1UNGAStDAwMkB_XljZG76pZNnNQy9uhRm/view?usp=sharing
+https://drive.google.com/file/d/1gPvOwfMrn6Hc5u9mg85gd3ligwdcAk8h/view?usp=sharing
 
--- instructions -- 
-https://drive.google.com/file/d/1325kMNlT4kYsrup1i-0Qn3NX87jCL2X-/view?usp=sharing
-
+-- how to play -- 
+https://drive.google.com/file/d/1EMXze3Y4CcFtMuKn_PhwnMQ9uPOdeQwf/view?usp=sharing
 
 -- FEATURES -- 
 

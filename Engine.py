@@ -320,7 +320,7 @@ class Engine:
                                 self.create_resource(r2, c, Wood(r2, c))
 
         #
-        #   Pick a line near the center destroy all resources around it
+        #   Pick a line near the center destroy all files around it
         #
         rand = random.randint(3, self.rows - 4)
         for c in range(self.cols):

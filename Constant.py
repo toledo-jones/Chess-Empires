@@ -30,7 +30,7 @@ win = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 win.fill(MENU_COLOR)
 LOGO_COLOR = ICON_COLORS[random.randint(0, 1)]
 MAIN_MENU_LOGO = pygame.transform.scale(
-    pygame.image.load(os.path.join("resources/images", LOGO_COLOR + "_game_name.png")), (400, 400))
+    pygame.image.load(os.path.join("files/images", LOGO_COLOR + "_game_name.png")), (400, 400))
 LOGO_POSITION = (pygame.display.Info().current_w // 2 - 200, pygame.display.Info().current_h // 2 - 400)
 win.blit(MAIN_MENU_LOGO, LOGO_POSITION)
 pygame.display.update()
@@ -58,7 +58,6 @@ DEBUG_STARTING_STONE = 99
 DEBUG_STARTING_PIECES = ['castle', 'king']
 DEBUG_RITUALS = False
 
-
 'DEFAULT START'
 STARTING_PRAYER = 0
 STARTING_WOOD = 0
@@ -69,7 +68,7 @@ STARTING_PIECES = ['castle', 'king']
 BOARD_STARTS_WITH_RESOURCES = True
 SELECTABLE_STARTING_PIECES = ['pawn', 'builder', 'monk', 'pikeman', 'rogue_pawn']
 NUMBER_OF_STARTING_PIECES = 5
-MONOLITH_RITUALS = ['gold_general', 'smite', 'destroy_resource', 'teleport', 'swap', 'line_destroy', 'protect']
+MONOLITH_RITUALS = ['gold_general', 'smite', 'destroy_resource', 'line_destroy', 'protect', 'create resource']
 PRAYER_STONE_RITUALS = ['destroy_resource', 'create_resource', 'teleport', 'swap', 'protect']
 STEALING_KEY = {'building': {
     'wood': {'variance': (-2, 2), 'value': 4},
@@ -108,7 +107,7 @@ PIECE_COSTS = {'king': {'log': 0, 'gold': 0, 'stone': 0},
                'quarry_1': {'log': 3, 'gold': 0, 'stone': 0},
                'pawn': {'log': 6, 'gold': 0, 'stone': 0},
                'builder': {'log': 6, 'gold': 0, 'stone': 0},
-               'monk': {'log': 6, 'gold': 0, 'stone': 0},
+               'monk': {'log': 6, 'gold': 0, 'stone': 1},
                'pikeman': {'log': 0, 'gold': 4, 'stone': 4},
                'castle': {'log': 10, 'gold': 0, 'stone': 0},
                'stable': {'log': 10, 'gold': 0, 'stone': 10},
@@ -126,10 +125,48 @@ PIECE_COSTS = {'king': {'log': 0, 'gold': 0, 'stone': 0},
                'elephant': {'log': 4, 'gold': 0, 'stone': 4},
                'ram': {'log': 6, 'gold': 0, 'stone': 6},
                'unicorn': {'log': 12, 'gold': 0, 'stone': 12},
-               'monolith': {'log': 0, 'gold': 0, 'stone': 10},
-               'prayer_stone': {'log': 0, 'gold': 0, 'stone': 2},
+               'monolith': {'log': 0, 'gold': 0, 'stone': 15},
+               'prayer_stone': {'log': 0, 'gold': 0, 'stone': 4},
                'duke': {'log': 6, 'gold': 14, 'stone': 14},
                }
+# HOW TO ACCESS:
+# for line in Constant.DESCRIPTIONS['piece']
+# print(line)
+# Constant.DESCRIPTIONS['piece'][description_line_index]
+DESCRIPTIONS = {'king': ['every player gets one', 'capture your opponent\'s to win'],
+                'gold_general': ['summons the strongest piece imaginable'],
+                'quarry_1': ['can be mined for stone', 'may cave in and begin to yield less stone', 'cannot be dug onto a depleted quarry'],
+                'pawn': ['can mine resources'],
+                'builder': ['can create buildings'],
+                'monk': ['can pray at monoliths and prayer Stones'],
+                'pikeman': ['attacks and defends all surrounding squares', 'a useful defender'],
+                'castle': ['creates basic pieces, such as pawns'],
+                'stable': ['creates leapers, such as the knight'],
+                'barracks': ['creates basic attacking pieces', 'a staple in any good kingdom'],
+                'fortress': ['creates rogue pieces who', 'can move through forest tiles and', 'steal from enemy pieces'],
+                'queen': ['attacks in all directions as far as the eye can see'],
+                'rook': ['attacks orthogonally and has the', 'ability to pray'],
+                'bishop': ['attacks diagonally and has the', 'ability to pray'],
+                'knight': ['a simple leaper who moves up two and over one'],
+                'jester': ['cannot capture but', 'moves like a queen and any piece or', 'building nearby cannot act'],
+                'rogue_rook': ['a rook who can move through the forest', 'and can steal from enemy pieces'],
+                'rogue_bishop': ['a bishop who can move through the forest', 'and can steal from enemy pieces'],
+                'rogue_knight': ['a knight who can move through the forest', 'and can steal from enemy pieces'],
+                'rogue_pawn': ['a pawn who can move through the forest', 'and can steal from nearby pieces'],
+                'elephant': ['A long leaper who', 'also moves like a knight'],
+                'ram': ['moves like a knight, then like a bishop'],
+                'unicorn': ['a mystical leaper with a strange move pattern'],
+                'monolith': ['a strange, powerful prayer site'],
+                'prayer_stone': ['a strange prayer site'],
+                'duke': ['moves like a queen', 'but has the ability to pray'],
+                'smite': ['select one piece or building to be destroyed'],
+                'destroy_resource': ['select one resource to be destroyed'],
+                'create_resource': ['create a resource'],
+                'teleport': ['teleport a piece anywhere else on the board'],
+                'swap': ['trade places with another piece'],
+                'line_destroy': ['destroys everything in it\'s path'],
+                'protect': ['protects a square from capture or destruction']
+                }
 
 PIECE_POPULATION = {'king': 1,
                     'queen': 2,
@@ -163,14 +200,14 @@ PIECE_POPULATION = {'king': 1,
                     'unicorn': 1,
                     'ram': 1}
 
-PRAYER_COSTS = {'gold_general': {'prayer': 8, 'monk': 2},
-                'smite': {'prayer': 6, 'monk': 1},
-                'destroy_resource': {'prayer': 3, 'monk': 0},
+PRAYER_COSTS = {'gold_general': {'prayer': 12, 'monk': 2},
+                'smite': {'prayer': 8, 'monk': 1},
+                'destroy_resource': {'prayer': 8, 'monk': 0},
                 'create_resource': {'prayer': 1, 'monk': 0},
-                'teleport': {'prayer': 1, 'monk': 0},
+                'teleport': {'prayer': 4, 'monk': 0},
                 'swap': {'prayer': 1, 'monk': 0},
-                'line_destroy': {'prayer': 4, 'monk': 1},
-                'protect': {'prayer': 4, 'monk': 0}}
+                'line_destroy': {'prayer': 8, 'monk': 1},
+                'protect': {'prayer': 1, 'monk': 0}}
 
 ADDITIONAL_PIECE_LIMIT = {'castle': 5, 'barracks': 3, 'fortress': 3, 'stable': 3,
                           'king': 0,
@@ -227,9 +264,9 @@ ADDITIONAL_MINING_FROM_ROGUE = {'wood': -1, 'stone': -2, 'gold': -3}
 RESOURCE_KEY = {'gold_tile_1': 'gold', 'quarry_1': 'stone',
                 'sunken_quarry_1': 'stone', 'tree_tile_1': 'wood',
                 'tree_tile_2': 'wood', 'tree_tile_3': 'wood',
-                'tree_tile_4': 'wood', 'log': 'wood', 'gold':'gold', 'stone':'stone'}
+                'tree_tile_4': 'wood', 'log': 'wood', 'gold': 'gold', 'stone': 'stone'}
 
-MASTER_COST_LIST = ['builder', 'castle', 'stable', 'fortress', 'prayer_stone', 'monolith']
+MASTER_COST_LIST = ['builder', 'castle', 'stable', 'barracks', 'fortress', 'prayer_stone', 'monolith']
 
 FACTION_NAMES = ['clique', 'coterie', 'cabal', 'bloc', 'camp', 'grouping',
                  'side', 'division', 'wing', 'section', 'countrymen', 'squad', 'faction',
@@ -546,113 +583,113 @@ def load_sounds():
     for i in building_spawning:
         filename = str(0) + str(building_spawning[i])
         BUILDING_SPAWNING_SOUNDS[i] = pygame.mixer.Sound(
-            os.path.join("resources/sounds/building_spawning", filename + '.wav'))
+            os.path.join("files/sounds/building_spawning", filename + '.wav'))
 
     for i in captures:
         filename = str(0) + str(captures[i])
-        CAPTURE_SOUNDS[i] = pygame.mixer.Sound(os.path.join("resources/sounds/captures", filename + '.wav'))
+        CAPTURE_SOUNDS[i] = pygame.mixer.Sound(os.path.join("files/sounds/captures", filename + '.wav'))
 
     for i in harvesting_rock:
         filename = str(0) + str(harvesting_rock[i])
         HARVESTING_ROCK_SOUNDS[i] = pygame.mixer.Sound(
-            os.path.join("resources/sounds/harvesting_rock", filename + '.wav'))
+            os.path.join("files/sounds/harvesting_rock", filename + '.wav'))
 
     for i in harvesting_wood:
         filename = str(0) + str(harvesting_wood[i])
         HARVESTING_WOOD_SOUNDS[i] = pygame.mixer.Sound(
-            os.path.join("resources/sounds/harvesting_wood", filename + '.wav'))
+            os.path.join("files/sounds/harvesting_wood", filename + '.wav'))
 
     for i in moves:
         filename = str(0) + str(moves[i])
         MOVE_SOUNDS[i] = pygame.mixer.Sound(
-            os.path.join("resources/sounds/moves", filename + '.wav'))
+            os.path.join("files/sounds/moves", filename + '.wav'))
 
     for i in piece_spawning:
         filename = str(0) + str(piece_spawning[i])
         PIECE_SPAWNING_SOUNDS[i] = pygame.mixer.Sound(
-            os.path.join("resources/sounds/piece_spawning", filename + '.wav'))
+            os.path.join("files/sounds/piece_spawning", filename + '.wav'))
 
     for i in purchase:
         filename = str(0) + str(purchase[i])
         PURCHASE_SOUNDS[i] = pygame.mixer.Sound(
-            os.path.join("resources/sounds/purchase", filename + '.wav'))
+            os.path.join("files/sounds/purchase", filename + '.wav'))
 
     for i in generate_resources:
         filename = str(0) + str(generate_resources[i])
         GENERATE_RESOURCES_SOUNDS[i] = pygame.mixer.Sound(
-            os.path.join("resources/sounds/generate_resources", filename + '.wav'))
+            os.path.join("files/sounds/generate_resources", filename + '.wav'))
 
     for i in pray:
         filename = str(0) + str(pray[i])
         PRAY_SOUNDS[i] = pygame.mixer.Sound(
-            os.path.join("resources/sounds/pray", filename + '.wav'))
+            os.path.join("files/sounds/pray", filename + '.wav'))
 
     for i in change_turn:
         filename = str(0) + str(change_turn[i])
         CHANGE_TURN_SOUNDS[i] = pygame.mixer.Sound(
-            os.path.join("resources/sounds/change_turn", filename + '.wav'))
+            os.path.join("files/sounds/change_turn", filename + '.wav'))
 
     for i in start_game:
         filename = str(0) + str(start_game[i])
         START_GAME_SOUNDS[i] = pygame.mixer.Sound(
-            os.path.join("resources/sounds/start_game", filename + '.wav'))
+            os.path.join("files/sounds/start_game", filename + '.wav'))
 
     for i in rituals:
         filename = str(0) + str(rituals[i])
         PRAYER_RITUAL_SOUNDS[i] = pygame.mixer.Sound(
-            os.path.join("resources/sounds/rituals", filename + '.wav'))
+            os.path.join("files/sounds/rituals", filename + '.wav'))
 
 
 def load_music():
     i = random.randint(0, len(ambience))
     filename = str(0) + str(i)
-    pygame.mixer.music.load(os.path.join("resources/music/ambience", filename + '.wav'))
+    pygame.mixer.music.load(os.path.join("files/music/ambience", filename + '.wav'))
     pygame.mixer.music.play()
 
 
 def load_images():
     for image in images:
         scale = IMAGES_IMAGE_MODIFY[image]['SCALE']
-        IMAGES[image] = pygame.transform.scale(pygame.image.load(os.path.join("resources/images", image + ".png")),
+        IMAGES[image] = pygame.transform.scale(pygame.image.load(os.path.join("files/images", image + ".png")),
                                                (scale[0], scale[1])).convert_alpha()
     for resource in resources:
         scale = RESOURCES_IMAGE_MODIFY[resource]['SCALE']
         RESOURCES[resource] = pygame.transform.scale(
-            pygame.image.load(os.path.join("resources/resources", resource + ".png")),
+            pygame.image.load(os.path.join("files/resources", resource + ".png")),
             (scale[0], scale[1])).convert_alpha()
     for menu_icon in menu_icons:
         scale = MENU_ICONS_IMAGE_MODIFY[menu_icon]['SCALE']
         MENU_ICONS[menu_icon] = pygame.transform.scale(
-            pygame.image.load(os.path.join("resources/menu_icons", menu_icon + ".png")),
+            pygame.image.load(os.path.join("files/menu_icons", menu_icon + ".png")),
             (scale[0], scale[1])).convert_alpha()
 
     for piece in w_pieces:
         scale = PIECE_IMAGE_MODIFY[piece_color_to_type(piece)]['SCALE']
-        W_PIECES[piece] = pygame.transform.scale(pygame.image.load(os.path.join("resources/pieces", piece + ".png")),
+        W_PIECES[piece] = pygame.transform.scale(pygame.image.load(os.path.join("files/pieces", piece + ".png")),
                                                  (scale[0], scale[1])).convert_alpha()
     for piece in w_buildings:
         scale = PIECE_IMAGE_MODIFY[piece_color_to_type(piece)]['SCALE']
-        W_BUILDINGS[piece] = pygame.transform.scale(pygame.image.load(os.path.join("resources/pieces", piece + ".png")),
+        W_BUILDINGS[piece] = pygame.transform.scale(pygame.image.load(os.path.join("files/pieces", piece + ".png")),
                                                     (scale[0], scale[1])).convert_alpha()
     for piece in b_pieces:
         scale = PIECE_IMAGE_MODIFY[piece_color_to_type(piece)]['SCALE']
-        B_PIECES[piece] = pygame.transform.scale(pygame.image.load(os.path.join("resources/pieces", piece + ".png")),
+        B_PIECES[piece] = pygame.transform.scale(pygame.image.load(os.path.join("files/pieces", piece + ".png")),
                                                  (scale[0], scale[1])).convert_alpha()
     for piece in b_buildings:
         scale = PIECE_IMAGE_MODIFY[piece_color_to_type(piece)]['SCALE']
-        B_BUILDINGS[piece] = pygame.transform.scale(pygame.image.load(os.path.join("resources/pieces", piece + ".png")),
+        B_BUILDINGS[piece] = pygame.transform.scale(pygame.image.load(os.path.join("files/pieces", piece + ".png")),
                                                     (scale[0], scale[1])).convert_alpha()
 
     for ritual in w_prayer_rituals:
         scale = RITUAL_IMAGE_MODIFY[piece_color_to_type(ritual)]['SCALE']
         PRAYER_RITUALS[ritual] = pygame.transform.scale(
-            pygame.image.load(os.path.join("resources/prayer_rituals", ritual + ".png")),
+            pygame.image.load(os.path.join("files/prayer_rituals", ritual + ".png")),
             (scale[0], scale[1])).convert_alpha()
 
     for ritual in b_prayer_rituals:
         scale = RITUAL_IMAGE_MODIFY[piece_color_to_type(ritual)]['SCALE']
         PRAYER_RITUALS[ritual] = pygame.transform.scale(
-            pygame.image.load(os.path.join("resources/prayer_rituals", ritual + ".png")),
+            pygame.image.load(os.path.join("files/prayer_rituals", ritual + ".png")),
             (scale[0], scale[1])).convert_alpha()
 
 

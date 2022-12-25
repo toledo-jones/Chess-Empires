@@ -190,7 +190,7 @@ class StealingMenu(Menu):
         self.horizontal_buffer = Constant.SQ_SIZE
         self.vertical_buffer_between_pieces = Constant.SQ_SIZE // 4
         self.font_size = round(Constant.SQ_SIZE / 2)
-        self.font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.font_size)
+        self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
         self.font_color = Constant.turn_to_color[self.engine.turn]
         self.resource_height = Constant.IMAGES['gold_coin'].get_width()
         self.resource_width = Constant.IMAGES['gold_coin'].get_height()
@@ -291,7 +291,7 @@ class ResourceMenu(Menu):
         self.horizontal_buffer = Constant.SQ_SIZE
         self.vertical_buffer_between_pieces = Constant.SQ_SIZE // 4
         self.font_size = round(Constant.SQ_SIZE / 2)
-        self.font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.font_size)
+        self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
         self.resource_height = Constant.RESOURCES['gold_tile_1'].get_width()
         self.resource_width = Constant.RESOURCES['gold_tile_1'].get_height()
         self.menu_width = self.resource_width + self.horizontal_buffer
@@ -387,7 +387,7 @@ class SpawningMenu(Menu):
         self.horizontal_buffer_between_costs = round(Constant.SQ_SIZE * 1.3)
         self.vertical_buffer_between_pieces = Constant.SQ_SIZE // 4
         self.font_size = round(Constant.SQ_SIZE / 2)
-        self.font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.font_size)
+        self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
         self.test_text = self.font.render("10", True, Constant.RED)
         self.menu_width = Constant.SQ_SIZE + (
                 3 * self.horizontal_buffer_between_costs + self.test_text.get_width())
@@ -630,6 +630,145 @@ class KingMenu(Menu):
                 self.engine.transfer_to_surrender_state()
 
 
+class PieceDescription:
+    def __init__(self, win, engine, selected):
+        self.win = win
+        self.engine = engine
+        self.selected = selected
+
+        self.window_width = pygame.display.Info().current_w
+        self.window_height = pygame.display.Info().current_h
+
+        self.small_font_size = round(Constant.SQ_SIZE * .5)
+        self.large_font_size = round(Constant.SQ_SIZE * 1.6)
+
+        self.large_font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.large_font_size)
+        self.small_font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.small_font_size)
+
+        self.color = Constant.turn_to_color[self.engine.turn]
+        self.player = self.engine.players[self.engine.turn]
+
+        self.resources = {'wood': Constant.MENU_ICONS['log'], 'gold': Constant.MENU_ICONS['gold_coin'],
+                          'stone': Constant.MENU_ICONS['stone']}
+        self.icons = Constant.W_PIECES | Constant.W_BUILDINGS | Constant.B_PIECES | Constant.B_BUILDINGS | Constant.PRAYER_RITUALS | Constant.RESOURCES
+        self.title_text = self.selected
+        if self.title_text == 'prayer_stone':
+            self.title_text = 'floating stone'
+        elif self.title_text == 'quarry_1':
+            self.title_text = 'quarry'
+        self.title_text = self.title_text.replace('_', ' ')
+        self.text_surf = self.large_font.render(self.title_text, True, self.color)
+
+        self.title_text_width = self.text_surf.get_width()
+        self.title_text_height = self.text_surf.get_height()
+
+        self.text_display_x = self.window_width // 2 - self.title_text_width // 2
+        self.text_display_y = round(self.window_height * 1 / 6) - self.title_text_height // 2
+
+        self.menu_logo_display_y = self.text_display_y + self.title_text_height
+        self.menu_logo = None
+
+        self.description_text = Constant.DESCRIPTIONS[str(self)]
+        self.description_text_surfs = []
+        for line in self.description_text:
+            text_surf = self.small_font.render(line, True, self.color)
+            self.description_text_surfs.append(text_surf)
+        self.cost_display_y = self.window_height // 2 - self.resources['wood'].get_height() // 2
+        self.x_buffer_between_costs = round(Constant.SQ_SIZE * 1.5)
+
+        self.description_text_width = self.description_text_surfs[0].get_width()
+        self.description_text_height = self.description_text_surfs[0].get_height()
+        self.description_text_y = round(self.window_height * 2/3)
+        if self.selected == 'quarry_1':
+            piece = 'quarry_1'
+        else:
+            piece = self.engine.turn + "_" + str(self)
+        self.menu_logo = self.icons[piece]
+        self.menu_logo_display_x = self.window_width // 2 - self.menu_logo.get_width() // 2
+        self.cost = None
+        self.type = None
+        self.prayer_bar_end = Constant.IMAGES['prayer_bar_end']
+        self.prayer_bar = Constant.IMAGES['prayer_bar']
+
+        self.bar_end_width = self.prayer_bar_end.get_width()
+        self.bar_width = self.prayer_bar.get_width()
+        try:
+            self.cost = Constant.PRAYER_COSTS[self.selected]['prayer']
+            self.type = 'ritual'
+        except KeyError:
+            self.cost = Constant.PIECE_COSTS[self.selected]
+            self.type = 'piece'
+
+        self.cost_display_x = 0
+        if self.type == 'piece':
+            count = 0
+            for cost in Constant.PIECE_COSTS[self.selected]:
+                if Constant.PIECE_COSTS[self.selected][cost] != 0:
+                    count += 1
+            full_length = self.resources['wood'].get_width() * count + (self.x_buffer_between_costs // 2) * count
+            self.cost_display_x = self.window_width // 2 - full_length // 2
+        elif self.type == 'ritual':
+            length_of_this_prayer_bar = self.full_length_of_prayer_bar(self.cost)
+            self.cost_display_x = self.window_width // 2 - length_of_this_prayer_bar // 2
+
+    def __repr__(self):
+        return self.selected
+
+    def draw(self):
+        self.win.fill(Constant.MENU_COLOR)
+        self.win.blit(self.text_surf, (self.text_display_x, self.text_display_y))
+        self.win.blit(self.menu_logo, (self.menu_logo_display_x, self.menu_logo_display_y))
+        y_buffer = self.description_text_y
+
+        for line in self.description_text_surfs:
+            description_text_x = self.window_width // 2 - line.get_width() // 2
+            self.win.blit(line, (description_text_x, y_buffer))
+            y_buffer += self.description_text_height
+
+        if self.type == 'ritual':
+            self.draw_ritual_cost()
+        elif self.type == 'piece':
+            self.draw_piece_cost()
+
+    def draw_piece_cost(self):
+        cost_x = self.cost_display_x
+        for resource in self.cost:
+            if self.cost[resource] != 0:
+
+                if getattr(self.player, Constant.RESOURCE_KEY[resource]) >= self.cost[resource]:
+                    color = self.color
+                else:
+                    color = Constant.RED
+                text_surf = self.small_font.render(": " + str(self.cost[resource]), True, color)
+                resource_position = (cost_x, self.cost_display_y)
+
+                self.win.blit(self.resources[Constant.RESOURCE_KEY[resource]], resource_position)
+
+                cost_text_position = (cost_x + self.resources['wood'].get_width(), self.cost_display_y - self.resources['wood'].get_height() // 3)
+
+                self.win.blit(text_surf, cost_text_position)
+                cost_x += self.x_buffer_between_costs
+
+    def draw_ritual_cost(self):
+        bar_end_edge = self.cost_display_x
+        self.win.blit(self.prayer_bar, (bar_end_edge - self.bar_width, self.cost_display_y))
+        for z in range(self.cost):
+            new_edge = bar_end_edge + self.bar_end_width * (z)
+            self.win.blit(self.prayer_bar_end, (new_edge, self.cost_display_y))
+
+    def full_length_of_prayer_bar(self, cost):
+        return self.bar_end_width * cost + self.bar_width
+
+    def mouse_move(self):
+        pass
+
+    def right_click(self):
+        pass
+
+    def left_click(self):
+        pass
+
+
 class CostMenu:
     def __init__(self, win, engine, spawn_list):
         self.spawn_list = spawn_list
@@ -639,15 +778,15 @@ class CostMenu:
         self.window_width = pygame.display.Info().current_w
         self.window_height = pygame.display.Info().current_h
         self.large_font_size = round(Constant.SQ_SIZE * 1.6)
-        self.large_font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.large_font_size)
+        self.large_font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.large_font_size)
         self.small_font_size = round(Constant.SQ_SIZE * .5)
-        self.small_font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.small_font_size)
+        self.small_font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.small_font_size)
         self.color = Constant.turn_to_color[self.engine.turn]
         self.player = self.engine.players[self.engine.turn]
-        self.pieces = self.pieces = {'w': Constant.W_PIECES | Constant.W_BUILDINGS,
+        self.pieces = {'w': Constant.W_PIECES | Constant.W_BUILDINGS,
                                      'b': Constant.B_PIECES | Constant.B_BUILDINGS}
         self.MENUS = {'builder': BuilderCosts, 'castle': CastleCosts, 'stable': StableCosts, 'fortress': FortressCosts,
-                      'prayer_stone': PrayerStoneCosts, 'monolith': MonolithCosts}
+                      'prayer_stone': PrayerStoneCosts, 'monolith': MonolithCosts, 'barracks': BarracksCosts}
         self.RESOURCES = {'wood': Constant.MENU_ICONS['log'], 'gold': Constant.MENU_ICONS['gold_coin'],
                           'stone': Constant.MENU_ICONS['stone']}
 
@@ -703,7 +842,10 @@ class CostMenu:
             piece_display_x += self.x_buffer * 2
 
     def left_click(self):
-        pass
+        selected = self.piece_selected()
+        if selected is not None:
+            menu = PieceDescription(self.win, self.engine, selected)
+            self.engine.menus.append(menu)
 
     def draw(self):
         self.win.fill(Constant.MENU_COLOR)
@@ -738,7 +880,7 @@ class CostMenu:
                     text_surf = self.small_font.render(": " + str(cost[resource]), True, color)
                     resource_position = (piece_display_x - self.x_buffer_between_costs // 1.5,
                                          Y_COORDS[Constant.RESOURCE_KEY[resource]] + self.RESOURCES[
-                                             Constant.RESOURCE_KEY[resource]].get_height() // 2)
+                                             Constant.RESOURCE_KEY[resource]].get_height() // 3)
 
                     self.win.blit(self.RESOURCES[Constant.RESOURCE_KEY[resource]], resource_position)
 
@@ -810,6 +952,15 @@ class FortressCosts(CostMenu):
 
     def __repr__(self):
         return 'fortress'
+
+
+class BarracksCosts(CostMenu):
+    def __init__(self, win, engine):
+        spawn_list = Constant.BARRACKS_MENU_SPAWN_LIST
+        super().__init__(win, engine, spawn_list)
+
+    def __repr__(self):
+        return 'barracks'
 
 
 class RitualCosts(CostMenu):
@@ -884,6 +1035,8 @@ class MonolithCosts(RitualCosts):
         return 'monolith'
 
 
+
+
 class SideMenu:
     def __init__(self, win, engine):
         self.win = win
@@ -916,7 +1069,7 @@ class StartMenu(SideMenu):
         super().__init__(win, engine)
         self.color = Constant.INTRO_TEXT_COLOR
         self.font_size = round(Constant.SQ_SIZE / 1.3)
-        self.font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.font_size)
+        self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
         self.ver_text = Constant.VERSION + " " + Constant.NUMBER
         self.version_text_surf = self.font.render(self.ver_text, True, self.color)
         self.version_text_display_x = self.menu_width // 2 - self.version_text_surf.get_width() // 2
@@ -1044,7 +1197,7 @@ class SurrenderMenu(SideMenu):
     def __init__(self, win, engine):
         super().__init__(win, engine)
         self.fontSize = round(Constant.SQ_SIZE * 1.0)
-        self.font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.fontSize)
+        self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.fontSize)
         self.surrender_text = "Surrender?"
         self.yes_text = "yes"
         self.no_text = "no"
@@ -1127,7 +1280,7 @@ class Hud(SideMenu):
         self.title_icon_display_x = self.menu_width // 2 - self.title_icon_width // 2
         self.title_icon_display_y = self.menu_height // 8 - self.title_icon_height // 2
         self.font_size = (round(Constant.SQ_SIZE * .8))
-        self.font = pygame.font.Font(os.path.join("resources/fonts", "font.ttf"), self.font_size)
+        self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
         self.counter_icon_display_x = Constant.BOARD_WIDTH_PX + 10
         self.coin_icon_display_y = round(self.menu_height * (8 / 10))
         self.stone_icon_display_y = self.coin_icon_display_y + Constant.SQ_SIZE

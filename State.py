@@ -1276,7 +1276,6 @@ class Spawning(State):
 
         if self.engine.spawning == 'quarry_1':
             previousP.spawn_squares_list = previousP.spawn_squares_for_quarry(self.engine)
-        piece_cost = Constant.PIECE_COSTS[self.engine.spawning]
         if (row, col) in previousP.spawn_squares_list:
             acting_tile = self.engine.board[previousP.row][previousP.col]
             action_tile = self.engine.board[row][col]
@@ -1286,7 +1285,6 @@ class Spawning(State):
                 spawn_event = Spawn(self.engine, acting_tile, action_tile)
             spawn_event.complete()
             self.engine.events.append(spawn_event)
-            self.engine.players[self.engine.turn].purchase(piece_cost)
             state = Playing(self.win, self.engine)
             self.engine.set_state(state)
         else:

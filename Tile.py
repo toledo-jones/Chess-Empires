@@ -28,6 +28,9 @@ class Tile:
         if self.occupying is not None:
             return True
 
+    def get_position(self):
+        return self.row, self.col
+
     def get_occupying(self):
         return self.occupying
 

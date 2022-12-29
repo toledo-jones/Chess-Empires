@@ -1,3 +1,4 @@
+import Constant
 from GameEvent import *
 
 
@@ -8,6 +9,7 @@ class Behavior:
                           Constant.DOWN_LEFT)
         self.possible_moves = None
         self.can_perform_move = {'pray': self.can_pray, 'steal': self.can_steal, 'mine': self.can_mine, 'spawn': self.can_spawn, 'move': self.can_move}
+        self.fulfill_move_parameters = {'pray': self.pray, 'steal': self.steal, 'mine': self.mine, 'spawn': self.spawn, 'move': self.move}
 
     def all_possible_moves(self, pieces, engine):
         engine.update_all_squares()
@@ -42,6 +44,38 @@ class Random(Behavior):
         self.starting_square = None
         self.piece_placements = None
         self.move_priority = ['pray', 'steal', 'mine', 'spawn', 'move']
+
+    def pray(self, engine, acting_tile, action_tile):
+        return Pray(engine, acting_tile, action_tile)
+
+    def steal(self, engine, acting_tile, action_tile):
+        desired_resource = self.desired_to_steal(engine, acting_tile)
+        piece = action_tile.get_occupying()
+        type_stolen_from = None
+        if isinstance(piece, Building):
+            type_stolen_from = 'building'
+        elif isinstance(piece, Piece):
+            type_stolen_from = 'piece'
+        amount = engine.stealing_values(desired_resource, type_stolen_from)
+        engine.stealing = (desired_resource, amount)
+        return Steal(engine, acting_tile, action_tile)
+
+    def spawn(self, engine, acting_tile, action_tile):
+        desired_spawn = self.desired_spawn(engine, acting_tile)
+        if not desired_spawn:
+            return None
+        engine.spawning = desired_spawn
+        if engine.spawning == 'quarry_1':
+            return SpawnResource(engine, acting_tile, action_tile)
+        return Spawn(engine, acting_tile, action_tile)
+
+    def move(self, engine, acting_tile, action_tile):
+        if action_tile.get_occupying():
+            return Capture(engine, acting_tile, action_tile)
+        return Move(engine, acting_tile, action_tile)
+
+    def mine(self, engine, acting_tile, action_tile):
+        return Mine(engine, acting_tile, action_tile)
 
     def select_starting_square(self, engine):
         if self.starting_square is None:
@@ -87,8 +121,9 @@ class Random(Behavior):
     def select_starting_pieces(self):
         if self.piece_choices is None:
             starting_pieces = Constant.SELECTABLE_STARTING_PIECES
-            number_of_starting_pieces = Constant.NUMBER_OF_STARTING_PIECES
-            choices = []
+            number_of_starting_pieces = Constant.NUMBER_OF_STARTING_PIECES - 3
+            # Force AI to a few pawns
+            choices = ['pawn', 'pawn', 'builder']
 
             for _ in range(number_of_starting_pieces):
                 rand = random.randint(0, len(starting_pieces) - 1)
@@ -113,6 +148,20 @@ class Random(Behavior):
             return placements
         else:
             return self.piece_placements
+
+    def desired_to_steal(self, engine, acting_tile):
+        return 'gold'
+
+    def desired_spawn(self, engine, acting_tile):
+        spawner = acting_tile.get_occupying()
+        spawn_list = Constant.SPAWN_LISTS[str(spawner)]
+        legal_spawns = []
+        for spawn in spawn_list:
+            if engine.is_legal_spawn(spawn):
+                 legal_spawns.append(spawn)
+        if not legal_spawns:
+            return None
+        return random.choice(list(legal_spawns))
 
     def desired_actions(self, engine):
         actions = {}

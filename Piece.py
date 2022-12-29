@@ -35,6 +35,7 @@ class Piece:
         self.interceptor_squares_list = []
         self.stealing_squares_list = []
         self.ritual_squares_list = []
+        self.capture_squares_list = []
 
         self.population_value = 1
         self.additional_piece_limit = 0

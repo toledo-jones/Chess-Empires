@@ -42,6 +42,7 @@ class Engine:
         self.ritual_summon_resource = None
         self.monolith_rituals = []
         self.prayer_stone_rituals = []
+        self.line_destroy_selected_range = None
         if Constant.DEBUG_RITUALS:
             self.prayer_stone_rituals.append(Constant.PRAYER_STONE_RITUALS)
             self.monolith_rituals.append(Constant.MONOLITH_RITUALS)
@@ -121,7 +122,6 @@ class Engine:
         self.EVENTS = {'pray':Pray, 'steal': Steal, 'mine': Mine, 'spawn':Spawn, 'move': Move, 'capture': Capture}
         self.STEALING_VALUES = {'wood': 0, 'gold': 1, 'stone': 2}
         self.KIND_TO_STEALING_LIST = {'piece': self.piece_stealing_offsets, 'building': self.building_stealing_offsets}
-
 
     def stealing_values(self, resource, kind):
         offset_list = self.KIND_TO_STEALING_LIST[kind]
@@ -891,7 +891,7 @@ class Engine:
 
     def change_turn(self):
         turn_change_event = ChangeTurn(self)
-        turn_change_event.complete(self)
+        turn_change_event.complete()
         self.events.append(turn_change_event)
         self.players[self.turn].begin_turn(self)
 

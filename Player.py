@@ -1,6 +1,5 @@
-import random
-import Constant
 from Behavior import *
+
 
 class Player:
     def __init__(self, color):
@@ -173,13 +172,24 @@ class AI(Player):
     def update_all_possible_moves(self, engine):
         self.behavior.all_possible_moves(self.pieces, engine)
 
+    def fulfill_move_parameters(self, engine, selected_move):
+        pieces = list(selected_move.keys())
+
+        piece = pieces[0]
+        move = selected_move[piece]
+        move_kind = move[0]
+        row, col = move[1]
+        action_tile = engine.board[row][col]
+        acting_tile = engine.board[piece.row][piece.col]
+        return self.behavior.fulfill_move_parameters[move_kind](engine, acting_tile, action_tile)
+
     def determine_most_desired_action(self, desired_actions):
         selected_move = None
         for move_kind in self.behavior.move_priority:
             for piece in desired_actions:
                 if desired_actions[piece] is not None:
                     if move_kind == desired_actions[piece][0]:
-                        selected_move = {piece:desired_actions[piece]}
+                        selected_move = {piece: desired_actions[piece]}
                         break
             if selected_move:
                 break

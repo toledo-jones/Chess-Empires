@@ -1,4 +1,4 @@
-from Player import Player
+from Player import Player, AI
 from State import *
 from Tile import *
 
@@ -85,6 +85,7 @@ class Engine:
                        'gold_general': GoldGeneral,
                        'duke': Duke}
         self.STATES = {'playing': Playing,
+                       'ai playing': AIPlaying,
                        'mining': Mining,
                        'spawning': Spawning,
                        'starting': Starting,
@@ -103,7 +104,8 @@ class Engine:
                        'line_destroy': PerformLineDestroy,
                        'protect': PerformProtect,
                        'main menu': MainMenu,
-                       'debug': DebugStart}
+                       'debug': DebugStart,
+                       'ai start spawn': AIStartingSpawn}
         self.RESOURCES = {'tree_tile_1': Wood, 'gold_tile_1': Gold,
                           'quarry_1': Quarry,
                           'tree_tile_2': Wood,
@@ -116,10 +118,10 @@ class Engine:
                       'builder': BuilderMenu,
                       'castle': CastleMenu
                       }
+        self.EVENTS = {'pray':Pray, 'steal': Steal, 'mine': Mine, 'spawn':Spawn, 'move': Move, 'capture': Capture}
         self.STEALING_VALUES = {'wood': 0, 'gold': 1, 'stone': 2}
         self.KIND_TO_STEALING_LIST = {'piece': self.piece_stealing_offsets, 'building': self.building_stealing_offsets}
-        self.create_player('w')
-        self.create_player('b')
+
 
     def stealing_values(self, resource, kind):
         offset_list = self.KIND_TO_STEALING_LIST[kind]
@@ -131,13 +133,17 @@ class Engine:
             if enemy_player.wood - value < 0:
                 value = enemy_player.wood
         elif resource == 'gold':
-            if enemy_player.wood - value < 0:
+            if enemy_player.gold - value < 0:
                 value = enemy_player.gold
         elif resource == 'stone':
-            if enemy_player.wood - value < 0:
+            if enemy_player.stone - value < 0:
                 value = enemy_player.stone
 
         return value
+
+    def create_ai(self, color):
+        player = AI(color)
+        self.players[color] = player
 
     def create_player(self, color):
         #
@@ -446,6 +452,15 @@ class Engine:
 
         return available_rituals
 
+    def update_all_squares(self):
+        for player in self.players:
+            for piece in self.players[player].pieces:
+                piece.update_mining_squares(self)
+                piece.update_stealing_squares(self)
+                piece.update_praying_squares(self)
+                piece.update_move_squares(self)
+                piece.update_spawn_squares(self)
+
     def update_mining_squares(self):
         for player in self.players:
             for piece in self.players[player].pieces:
@@ -535,21 +550,22 @@ class Engine:
         second_piece_to_swap.change_pos(moving_row, moving_col)
 
     def move(self, moving_row, moving_col, dest_row, dest_col):
+        piece = self.board[moving_row][moving_col].get_occupying()
         #
         #   Move the piece on the board array
         #
-        self.board[dest_row][dest_col].occupying = self.board[moving_row][moving_col].occupying
+        self.board[dest_row][dest_col].occupying = piece
 
         #
         #   Change the Row, Col in the Piece object to reflect change
         #
 
-        self.board[dest_row][dest_col].occupying.change_pos(dest_row, dest_col)
+        piece.change_pos(dest_row, dest_col)
 
         #
         #   Set the position on the board array to where the piece was to None
         #
-        self.board[moving_row][moving_col].occupying = None
+        self.board[moving_row][moving_col].set_occupying(None)
 
     def has_gold(self, r, c):
         if Constant.tile_in_bounds(r, c):
@@ -877,6 +893,7 @@ class Engine:
         turn_change_event = ChangeTurn(self)
         turn_change_event.complete(self)
         self.events.append(turn_change_event)
+        self.players[self.turn].begin_turn(self)
 
     def get_occupying_color(self, r, c):
         if Constant.tile_in_bounds(r, c):

@@ -4,22 +4,41 @@ from Tile import Tile
 from Building import *
 
 
-class GameEvent:
+class GameEvent():
     def __init__(self):
         pass
 
     def complete(self, engine):
         pass
 
+    def undo(self, engine):
+        pass
+
+
+class AITurn(GameEvent):
+    def __init__(self, ai_turn_actions):
+        self.ai_turn_actions = ai_turn_actions
+
+    def __repr__(self):
+        return 'ai turn'
+
+    def complete(self, engine):
+        pass
+
+    def undo(self, engine):
+        for action in reversed(self.ai_turn_actions):
+            action.undo(engine)
+            del action
+
 
 class StartSpawn(GameEvent):
-    def __init__(self, color, spawn, dest, spawn_count, final_spawn, prev, spawn_list):
+    def __init__(self, color, spawn, dest, spawn_count, final_spawn, prev, spawn_list, state='start spawn'):
         #
         #   Call parent Initialization
         #
 
         super().__init__()
-
+        self.state = state
         #
         #   Set arguments to class members
         #
@@ -84,16 +103,14 @@ class StartSpawn(GameEvent):
         #
         engine.spawn_list = self.spawn_list
         engine.spawning = engine.spawn_list[engine.spawn_count]
-
-        #
         try:
             self.prev.purchasing = True
         except AttributeError:
             print("Attribute Error")
             print(" -- Line 103, GameEvent")
 
-        #
-        engine.set_state('start spawn')
+
+        engine.set_state(self.state)
 
         #
         engine.update_spawn_squares()
@@ -249,24 +266,12 @@ class Spawn(GameEvent):
 
 class Steal(GameEvent):
     def __init__(self, stolen_from, thief, resource_stolen, amount):
-        #
-        #   Call Parent __init__ Method
-        #
         super().__init__()
 
-        #
-        #   Store the Resource() Object as Mined
-        #   Store the Piece() Object as Miner
-        #
         self.stolen_from = stolen_from
         self.thief = thief
         self.resource_stolen = resource_stolen
         self.amount = amount
-
-        #
-        #   Store the List of Values which dictate the offset when mining each material.
-        #   Offset is +1, -1 or 0. This is how much is added to the default value when mining.
-        #
 
     def complete(self, engine):
         self.play_random_sound_effect()
@@ -284,9 +289,6 @@ class Steal(GameEvent):
         self.play_random_sound_effect()
         engine.players[engine.turn].invert_steal(self.resource_stolen, self.amount)
         engine.players[Constant.TURNS[engine.turn]].steal(self.resource_stolen, self.amount)
-        #
-        #   undo stealing
-        #
 
         if Constant.STEALING_COSTS_ACTION:
             engine.players[engine.turn].undo_action()
@@ -323,12 +325,9 @@ class Mine(GameEvent):
         #   Store the List of Values which dictate the offset when mining each material.
         #   Offset is +1, -1 or 0. This is how much is added to the default value when mining.
         #
-        try:
-            self.miningOffset = mined.offsetIndex[-1]
-        except IndexError:
-            self.miningOffset = None
-            print("IndexError")
-            print("GameEvent.py, line 249")
+
+        self.miningOffset = mined.offsetIndex[-1]
+
         self.offsetIndex = mined.offsetIndex[:]
         self.sprite_id = self.mined.sprite_id
         self.sprite_offset = self.mined.offset

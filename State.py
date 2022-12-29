@@ -78,43 +78,66 @@ class MainMenu(State):
         self.window_height = pygame.display.Info().current_h
         self.font_size = round(Constant.SQ_SIZE * 1)
         self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
-        self.play_text = "play"
-        self.text_surf = self.font.render(self.play_text, True, self.color)
 
-        self.square = pygame.Surface((self.text_surf.get_width(), self.text_surf.get_height()))
+        single_player_text = "single player"
+        multiplayer_text = 'pass n\' play'
+        self.single_player_text_surf = self.font.render(single_player_text, True, self.color)
+        self.multiplayer_text_surf = self.font.render(multiplayer_text, True, self.color)
+
+        self.button_width = self.single_player_text_surf.get_width()
+        self.button_height = self.multiplayer_text_surf.get_height()
+
+        self.square = pygame.Surface((self.button_width, self.button_height))
         self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
         self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
 
-        self.play_text_highlight = False
+        self.single_player_text_highlight = False
+        self.multiplayer_text_highlight = False
 
-        self.play_text_display_x = self.window_width // 2 - self.text_surf.get_width() // 2
-        self.play_text_display_y = round(self.window_height * 3/4) - self.text_surf.get_height() // 2
+        self.single_player_text_display_x = self.window_width // 3 - self.button_width // 2
+        self.button_display_y = round(self.window_height * 3/4) - self.button_height // 2
 
-        self.play_button_range_x = range(self.play_text_display_x, self.play_text_display_x + self.text_surf.get_width())
-        self.play_button_range_y = range(self.play_text_display_y, self.play_text_display_y + self.text_surf.get_height())
+        self.multiplayer_text_display_x = round(self.window_width * 2/3) - self.button_width // 2
+
+        self.multiplayer_button_range_x = range(self.multiplayer_text_display_x, self.multiplayer_text_display_x + self.button_width)
+        self.single_player_button_range_x = range(self.single_player_text_display_x, self.single_player_text_display_x + self.button_width)
+        self.button_range_y = range(self.button_display_y, self.button_display_y + self.button_height)
 
     def draw(self):
         self.win.fill(Constant.MENU_COLOR)
         self.win.blit(self.main_menu_logo, self.logo_position)
-        if self.play_text_highlight:
-            self.win.blit(self.square, (self.play_text_display_x, self.play_text_display_y))
-        self.win.blit(self.text_surf, (self.play_text_display_x, self.play_text_display_y))
+        if self.single_player_text_highlight:
+            self.win.blit(self.square, (self.single_player_text_display_x, self.button_display_y))
+        elif self.multiplayer_text_highlight:
+            self.win.blit(self.square, (self.multiplayer_text_display_x, self.button_display_y))
+        self.win.blit(self.single_player_text_surf, (self.single_player_text_display_x, self.button_display_y))
+        self.win.blit(self.multiplayer_text_surf, (self.multiplayer_text_display_x, self.button_display_y))
 
     def left_click(self):
         pos = pygame.mouse.get_pos()
-        if pos[0] in self.play_button_range_x:
-            if pos[1] in self.play_button_range_y:
+        if pos[1] in self.button_range_y:
+            if pos[0] in self.single_player_button_range_x:
+                Constant.PLAY_AGAINST_AI = True
+                self.engine.set_state('starting')
+            elif pos[0] in self.multiplayer_button_range_x:
+                self.engine.create_player('w')
+                self.engine.create_player('b')
+                Constant.PLAY_AGAINST_AI = False
                 self.engine.set_state('starting')
 
     def mouse_move(self):
         pos = pygame.mouse.get_pos()
-        if pos[0] in self.play_button_range_x:
-            if pos[1] in self.play_button_range_y:
-                self.play_text_highlight = True
+        if pos[1] in self.button_range_y:
+            if pos[0] in self.single_player_button_range_x:
+                self.single_player_text_highlight = True
+            elif pos[0] in self.multiplayer_button_range_x:
+                self.multiplayer_text_highlight = True
             else:
-                self.play_text_highlight = False
+                self.single_player_text_highlight = False
+                self.multiplayer_text_highlight = False
         else:
-            self.play_text_highlight = False
+            self.single_player_text_highlight = False
+            self.multiplayer_text_highlight = False
 
 
 class Playing(State):
@@ -139,9 +162,9 @@ class Playing(State):
                 if currently_selected.actions_remaining > 0:
                     if self.engine.player_can_do_action(self.engine.turn):
                         return True
-        except AttributeError:
-            print("Attribute Error")
-            print("Line 68, State.py")
+        except AttributeError as e:
+            print("Cannot select piece")
+            print(e)
 
     def can_capture_piece(self, previously_selected, row, col, currently_selected):
         if previously_selected is not None:
@@ -282,8 +305,13 @@ class Playing(State):
             self.engine.reset_selected()
         else:
             try:
-                self.engine.events[-1].undo(self.engine)
-                del self.engine.events[-1]
+                if isinstance(self.engine.events[-1], AITurn):
+                    for _ in range(2):
+                        self.engine.events[-1].undo(self.engine)
+                        del self.engine.events[-1]
+                else:
+                    self.engine.events[-1].undo(self.engine)
+                    del self.engine.events[-1]
             except IndexError as e:
                 print(e)
 
@@ -491,6 +519,119 @@ class SelectStartingPieces(State):
                 del self.engine.events[-1]
 
 
+class AIPlaying(State):
+    def __init__(self, win, engine, turn_events=None):
+        super().__init__(win, engine)
+        if turn_events is None:
+            self.turn_events = []
+        else:
+            self.turn_events = turn_events
+        self.ai = self.engine.players[self.engine.turn]
+
+    def __repr__(self):
+        return 'ai playing'
+
+    def complete_turn(self):
+        self.ai.update_all_possible_moves(self.engine)
+
+        self.determine_moves()
+
+        self.change_turn()
+        event = AITurn(self.turn_events)
+        self.engine.events.append(event)
+        self.revert_to_playing_state()
+
+    def change_turn(self):
+        turn_change_event = ChangeTurn(self.engine)
+        turn_change_event.complete(self.engine)
+        self.turn_events.append(turn_change_event)
+        self.engine.players[self.engine.turn].begin_turn(self)
+
+    def make_move(self, selected_move):
+        piece = selected_move[0]
+        move_type = selected_move[piece]
+        square_selected = selected_move[piece][1]
+
+
+
+    def determine_moves(self):
+        while self.ai.actions_remaining > 0:
+            desired_actions = self.ai.update_desired_actions(self.engine)
+            selected_move = self.ai.determine_most_desired_action(desired_actions)
+            self.make_move(selected_move)
+
+class AIStartingSpawn(State):
+    def __init__(self, win, engine):
+        super().__init__(win, engine)
+        self.side_bar = Empty(win, engine)
+        self.first = True
+        self.play_random_sound_effect()
+        self.turn_events = []
+        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
+                                   Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
+                                   Constant.DOWN_LEFT)
+    def __repr__(self):
+        return 'ai start spawn'
+
+    def create_ai_player(self):
+        if not Constant.TURNS[self.engine.turn] in self.engine.players:
+            self.engine.create_ai(Constant.TURNS[self.engine.turn])
+
+        turn_change_event = ChangeTurn(self.engine)
+        turn_change_event.complete(self.engine)
+        self.turn_events.append(turn_change_event)
+
+        self.engine.spawn_count = 0
+        self.engine.final_spawn = True
+
+        ai = self.engine.players[self.engine.turn]
+        choice = ai.behavior.select_starting_square(self.engine)
+
+        self.engine.spawn_list = ai.behavior.select_starting_pieces()
+        self.engine.spawning = 'castle'
+        self.create_ai_spawn_event(choice[0], choice[1], False)
+        self.engine.spawn_count = 0
+        self.engine.update_spawn_squares()
+        spawn_squares_list = self.engine.get_occupying(choice[0], choice[1]).spawn_squares_list
+        placements = ai.behavior.starting_piece_placements(self.engine.spawn_list, spawn_squares_list)
+        self.engine.update_spawn_squares()
+        for _ in self.engine.spawn_list:
+            self.engine.spawning = self.engine.spawn_list[self.engine.spawn_count]
+            row, col = placements[self.engine.spawn_count][0], placements[self.engine.spawn_count][1]
+            self.create_ai_spawn_event(row, col,)
+        self.end_start_spawning()
+
+    def end_start_spawning(self):
+        self.engine.reset_selected()
+        self.engine.reset_piece_actions_remaining()
+        self.engine.spawn_success = False
+        unused_pieces = self.engine.count_unused_pieces()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+        self.engine.reset_player_actions_remaining(self.engine.turn)
+        self.engine.update_additional_actions()
+        self.engine.update_piece_limit()
+        self.engine.spawn_count = 0
+        new_state = AIPlaying(self.win, self.engine, self.turn_events)
+        self.engine.set_state(new_state)
+        new_state.complete_turn()
+
+    def create_ai_spawn_event(self, row, col, first=True):
+        spawn_event = StartSpawn(self.engine.turn, self.engine.spawning, (row, col), self.engine.spawn_count,
+                                 self.engine.final_spawn, self.engine.update_previously_selected(), self.engine.spawn_list)
+        spawn_event.complete(self.engine)
+        self.turn_events.append(spawn_event)
+        self.engine.update_spawn_squares()
+        self.first = first
+        self.engine.spawn_count += 1
+
+    @staticmethod
+    def play_random_sound_effect():
+            i = random.randint(0, len(Constant.start_game) - 1)
+            Constant.START_GAME_SOUNDS[i].set_volume(.1)
+            Constant.START_GAME_SOUNDS[i].play()
+
+
 class StartingSpawn(State):
     def __init__(self, win, engine):
         super().__init__(win, engine)
@@ -500,6 +641,11 @@ class StartingSpawn(State):
 
     def __repr__(self):
         return 'start spawn'
+
+    def begin_ai_starting_spawn(self):
+        new_state = AIStartingSpawn(self.win, self.engine)
+        self.engine.set_state(new_state)
+        new_state.create_ai_player()
 
     def begin_next_player_piece_select(self):
         turn_change = ChangeTurn(self.engine)
@@ -550,6 +696,8 @@ class StartingSpawn(State):
         Constant.START_GAME_SOUNDS[i].play()
 
     def create_spawn_event(self, row, col, first=True):
+        if first:
+            self.engine.create_player(self.engine.turn)
         spawn_event = StartSpawn(self.engine.turn, self.engine.spawning, (row, col), self.engine.spawn_count,
                                  self.engine.final_spawn, self.engine.update_previously_selected(), self.engine.spawn_list)
         spawn_event.complete(self.engine)
@@ -559,6 +707,7 @@ class StartingSpawn(State):
         castle_row, castle_col = self.engine.find_player_castle()
         self.engine.set_purchasing(castle_row, castle_col, True)
         self.first = first
+
         self.engine.spawn_count += 1
 
     def left_click(self):
@@ -574,7 +723,9 @@ class StartingSpawn(State):
         try:
             self.engine.spawning = self.engine.spawn_list[self.engine.spawn_count]
         except IndexError:
-            if self.engine.final_spawn:
+            if Constant.PLAY_AGAINST_AI:
+                self.begin_ai_starting_spawn()
+            elif self.engine.final_spawn:
                 self.end_start_spawning()
             else:
                 self.begin_next_player_piece_select()

@@ -37,18 +37,25 @@ class Building:
         self.move_squares_list = []
         self.interceptor_squares_list = []
         self.stealing_squares_list = []
+        self.mining_squares_list = []
+        self.praying_squares_list = []
+        self.ritual_squares_list = []
+
 
         self.additional_actions = 0
         self.additional_piece_limit = 0
         self.population_value = 0
 
-        self.ritual_squares_list = []
         self.is_effected_by_jester = True
 
         self.square = pygame.Surface((Constant.SQ_SIZE, Constant.SQ_SIZE))
         self.self_selected_square_color = Constant.SELF_SQUARE_HIGHLIGHT_COLOR
         self.unused_square_color = Constant.UNUSED_PIECE_HIGHLIGHT_COLOR
         self.move_square_color = Constant.MOVE_SQUARE_HIGHLIGHT_COLOR
+
+    def possible_moves(self):
+        return {'spawn': self.spawn_squares_list, 'move': self.move_squares_list, 'mine': self.mining_squares_list,
+                'steal': self.stealing_squares_list, 'pray': self.praying_squares_list}
 
     def get_piece_offset(self):
         if random.randint(1, 2) > 1:
@@ -106,6 +113,12 @@ class Building:
         self.square_fill(color)
         win.blit(self.square, (self.col * Constant.SQ_SIZE, self.row * Constant.SQ_SIZE))
 
+    def highlight_ritual_squares(self, win):
+        self.draw_squares_in_list(win, self.ritual_squares_list, self.move_square_color)
+
+    def highlight_spawn_squares(self, win):
+        self.draw_squares_in_list(win, self.spawn_squares_list, self.move_square_color)
+
     def highlight_self_square_unused(self, win):
         self.draw_self_highlight(win, self.unused_square_color)
 
@@ -114,12 +127,6 @@ class Building:
 
     def stealing_squares(self, engine):
         return []
-
-    def highlight_ritual_squares(self, win):
-        self.draw_squares_in_list(win, self.ritual_squares_list, self.move_square_color)
-
-    def highlight_spawn_squares(self, win):
-        self.draw_squares_in_list(win, self.spawn_squares_list, self.move_square_color)
 
     def update_spawn_squares(self, engine):
         self.spawn_squares_list = self.spawn_squares(engine)

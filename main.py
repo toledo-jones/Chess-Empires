@@ -46,12 +46,6 @@ def main():
             elif event.type == MUSIC_END:
                 Constant.load_music()
 
-            # ESCAPE BUTTON
-            elif event.type == pygame.KEYDOWN and (event.key == pygame.K_ESCAPE):
-                engine.running = False
-                pygame.quit()
-                quit()
-
         # DRAW GAME STATES:
         engine.state[-1].draw()
         # UPDATE DISPLAY

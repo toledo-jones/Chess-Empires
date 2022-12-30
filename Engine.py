@@ -69,10 +69,10 @@ class Engine:
                        'monk': Monk,
                        'fortress': Fortress,
                        'ram': Ram,
-                       'champion': Champion,
                        'elephant': Elephant,
                        'barracks': Barracks,
                        'jester': Jester,
+                       'champion': Champion,
                        'prayer_stone': PrayerStone,
                        'monolith': Monolith,
                        'pikeman': Pikeman,
@@ -84,7 +84,9 @@ class Engine:
                        'unicorn': Unicorn,
                        'stable': Stable,
                        'gold_general': GoldGeneral,
-                       'duke': Duke}
+                       'duke': Duke,
+                       'oxen': Oxen,
+                       'wall': Wall}
         self.STATES = {'playing': Playing,
                        'ai playing': AIPlaying,
                        'mining': Mining,
@@ -119,7 +121,7 @@ class Engine:
                       'builder': BuilderMenu,
                       'castle': CastleMenu
                       }
-        self.EVENTS = {'pray':Pray, 'steal': Steal, 'mine': Mine, 'spawn':Spawn, 'move': Move, 'capture': Capture}
+        self.EVENTS = {'pray': Pray, 'steal': Steal, 'mine': Mine, 'spawn': Spawn, 'move': Move, 'capture': Capture}
         self.STEALING_VALUES = {'wood': 0, 'gold': 1, 'stone': 2}
         self.KIND_TO_STEALING_LIST = {'piece': self.piece_stealing_offsets, 'building': self.building_stealing_offsets}
 
@@ -401,6 +403,7 @@ class Engine:
         for player in self.players:
             for piece in self.players[player].pieces:
                 piece.update_move_squares(self)
+                piece.update_capture_squares(self)
 
     def has_prayer_stone(self, row, col):
         if Constant.tile_in_bounds(row, col):
@@ -459,6 +462,7 @@ class Engine:
                 piece.update_stealing_squares(self)
                 piece.update_praying_squares(self)
                 piece.update_move_squares(self)
+                piece.update_capture_squares(self)
                 piece.update_spawn_squares(self)
 
     def update_mining_squares(self):
@@ -528,7 +532,7 @@ class Engine:
         #
         #   Remove from captured piece from piece list
         #
-        self.players[Constant.TURNS[self.turn]].pieces.remove(self.board[dest_row][dest_col].occupying)
+        self.players[Constant.TURNS[self.turn]].pieces.remove(self.board[dest_row][dest_col].get_occupying())
         #
         #   Empty captured square
         #
@@ -614,7 +618,7 @@ class Engine:
     def has_building(self, r, c):
         if Constant.tile_in_bounds(r, c):
             p = self.board[r][c].occupying
-            if isinstance(p, PreBuilding):
+            if isinstance(p, Building):
                 return True
             else:
                 return False
@@ -1127,3 +1131,16 @@ class Engine:
         self.menus.append(king_menu)
         self.update_spawn_squares()
         return True
+
+    def is_legal_starting_square(self, row, col):
+        player_is_too_close = False
+        if not self.can_be_occupied(row, col):
+            return False
+        if not self.players:
+            return True
+        for r in range(row - 3, row + 4):
+            for c in range(col - 3, col + 4):
+                if self.has_castle(r, c):
+                    player_is_too_close = True
+
+        return not player_is_too_close

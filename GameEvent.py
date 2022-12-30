@@ -1,7 +1,6 @@
-from Piece import *
+from Unit import *
 from Resource import *
 from Tile import Tile
-from Building import *
 
 
 class GameEvent:
@@ -9,9 +8,6 @@ class GameEvent:
         self.engine = engine
         self.acting_tile = acting_tile
         self.action_tile = action_tile
-
-    def __repr__(self):
-        return 'parent'
 
     def complete(self):
         pass

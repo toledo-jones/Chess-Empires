@@ -8,8 +8,8 @@ class Behavior:
                           Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
                           Constant.DOWN_LEFT)
         self.possible_moves = None
-        self.can_perform_move = {'pray': self.can_pray, 'steal': self.can_steal, 'mine': self.can_mine, 'spawn': self.can_spawn, 'move': self.can_move}
-        self.fulfill_move_parameters = {'pray': self.pray, 'steal': self.steal, 'mine': self.mine, 'spawn': self.spawn, 'move': self.move}
+        self.can_perform_move = {'pray': self.can_pray, 'steal': self.can_steal, 'mine': self.can_mine, 'spawn': self.can_spawn, 'move': self.can_move, 'capture': self.can_capture}
+        self.fulfill_move_parameters = {'pray': self.pray, 'steal': self.steal, 'mine': self.mine, 'spawn': self.spawn, 'move': self.move, 'capture': self.capture}
 
     def all_possible_moves(self, pieces, engine):
         engine.update_all_squares()
@@ -36,6 +36,9 @@ class Behavior:
     def can_move(self, piece, engine):
         return True
 
+    def can_capture(self, piece, engine):
+        return True
+
 
 class Random(Behavior):
     def __init__(self):
@@ -43,7 +46,7 @@ class Random(Behavior):
         self.piece_choices = None
         self.starting_square = None
         self.piece_placements = None
-        self.move_priority = ['pray', 'steal', 'mine', 'spawn', 'move']
+        self.move_priority = ['pray', 'steal', 'mine', 'capture', 'spawn', 'move']
 
     def pray(self, engine, acting_tile, action_tile):
         return Pray(engine, acting_tile, action_tile)
@@ -69,9 +72,10 @@ class Random(Behavior):
             return SpawnResource(engine, acting_tile, action_tile)
         return Spawn(engine, acting_tile, action_tile)
 
+    def capture(self, engine, acting_tile, action_tile):
+        return Capture(engine, acting_tile, action_tile)
+
     def move(self, engine, acting_tile, action_tile):
-        if action_tile.get_occupying():
-            return Capture(engine, acting_tile, action_tile)
         return Move(engine, acting_tile, action_tile)
 
     def mine(self, engine, acting_tile, action_tile):
@@ -80,9 +84,7 @@ class Random(Behavior):
     def select_starting_square(self, engine):
         if self.starting_square is None:
             w_starting_squares, b_starting_squares = Constant.starting_squares()
-
             w_candidates = self.analyze_starting_squares(engine, w_starting_squares)
-
             b_candidates = self.analyze_starting_squares(engine, b_starting_squares)
             choice = None
             if w_candidates:
@@ -91,9 +93,14 @@ class Random(Behavior):
             elif b_candidates:
                 rand = random.randint(0, len(b_candidates) - 1)
                 choice = b_candidates[rand]
+            if not engine.is_legal_starting_square(choice[0], choice[1]):
+                return self.select_starting_square(engine)
             self.starting_square = choice
             return choice
         else:
+            if not engine.is_legal_starting_square(self.starting_square[0], self.starting_square[1]):
+                self.starting_square = None
+                return self.select_starting_square(engine)
             return self.starting_square
 
     def analyze_starting_squares(self, engine, list_of_squares):
@@ -122,7 +129,7 @@ class Random(Behavior):
         if self.piece_choices is None:
             starting_pieces = Constant.SELECTABLE_STARTING_PIECES
             number_of_starting_pieces = Constant.NUMBER_OF_STARTING_PIECES - 3
-            # Force AI to a few pawns
+            # Force AI to choose a few pawns
             choices = ['pawn', 'pawn', 'builder']
 
             for _ in range(number_of_starting_pieces):
@@ -137,7 +144,6 @@ class Random(Behavior):
             return self.piece_choices
 
     def starting_piece_placements(self, spawn_list, spawn_squares_list):
-        if self.piece_placements == None:
             placements = []
             for _ in spawn_list:
                 rand = random.randint(0, len(spawn_squares_list) - 1)
@@ -146,8 +152,6 @@ class Random(Behavior):
                 del spawn_squares_list[rand]
             self.piece_placements = placements
             return placements
-        else:
-            return self.piece_placements
 
     def desired_to_steal(self, engine, acting_tile):
         return 'gold'
@@ -165,19 +169,31 @@ class Random(Behavior):
 
     def desired_actions(self, engine):
         actions = {}
-        for piece in self.possible_moves:
-            move = None
-            if piece.actions_remaining < 0:
-                pass
-            else:
-                move_kinds = list(self.possible_moves[piece].keys())
-                random.shuffle(move_kinds)
-                for move_kind in move_kinds:
-                    if self.possible_moves[piece][move_kind]:
-                        if self.can_perform_move[move_kind](piece, engine):
-                            move = (move_kind, random.choice(list(self.possible_moves[piece][move_kind])))
-                            break
-            actions[piece] = move
+        pieces = list(self.possible_moves.keys())
+        random.shuffle(pieces)
+        move = None
+        for piece in pieces:
+            if self.possible_moves[piece]['capture']:
+                for capture in self.possible_moves[piece]['capture']:
+                    captured_piece = engine.get_occupying(capture[0], capture[1])
+                    if str(captured_piece) == 'king':
+                        move = ('capture', self.possible_moves[piece]['capture'])
+                        actions[piece] = move
+                        return actions
+        if not move:
+            for piece in pieces:
+                move = None
+                if piece.actions_remaining < 0:
+                    pass
+                else:
+                    move_kinds = list(self.possible_moves[piece].keys())
+                    random.shuffle(move_kinds)
+                    for move_kind in move_kinds:
+                        if self.possible_moves[piece][move_kind]:
+                            if self.can_perform_move[move_kind](piece, engine):
+                                move = (move_kind, random.choice(list(self.possible_moves[piece][move_kind])))
+                                break
+                actions[piece] = move
         return actions
 
 

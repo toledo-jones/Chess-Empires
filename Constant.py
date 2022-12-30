@@ -50,14 +50,15 @@ SIDE_MENU_WIDTH = pygame.display.Info().current_w - BOARD_WIDTH_PX
 #
 
 
-DEBUG_START = False
+DEBUG_START = True
 DEBUG_STARTING_PRAYER = 12
 DEBUG_STARTING_WOOD = 99
 DEBUG_STARTING_GOLD = 99
 DEBUG_STARTING_STONE = 99
-DEBUG_STARTING_PIECES = ['castle', 'king']
+DEBUG_STARTING_PIECES = ['castle', 'oxen', 'champion', 'wall', 'builder', 'king']
 DEBUG_RITUALS = False
 PLAY_AGAINST_AI = False
+BOARD_STARTS_WITH_RESOURCES = False
 
 'DEFAULT START'
 STARTING_PRAYER = 0
@@ -66,10 +67,9 @@ STARTING_GOLD = 0
 STARTING_STONE = 0
 STARTING_PIECES = ['castle', 'king']
 
-BOARD_STARTS_WITH_RESOURCES = True
 SELECTABLE_STARTING_PIECES = ['pawn', 'builder', 'monk', 'pikeman', 'rogue_pawn']
 NUMBER_OF_STARTING_PIECES = 5
-MONOLITH_RITUALS = ['gold_general', 'smite', 'destroy_resource', 'line_destroy', 'protect', 'create_resource']
+MONOLITH_RITUALS = ['gold_general', 'smite', 'swap', 'destroy_resource', 'line_destroy', 'protect', 'create_resource']
 PRAYER_STONE_RITUALS = ['destroy_resource', 'create_resource', 'teleport', 'swap', 'protect']
 STEALING_KEY = {'building': {
     'wood': {'variance': (-2, 2), 'value': 4},
@@ -83,11 +83,11 @@ STEALING_KEY = {'building': {
 MAX_MONOLITH_RITUALS_PER_TURN = 3
 MAX_PRAYER_STONE_RITUALS_PER_TURN = 3
 
-STABLE_SPAWN_LIST = ['unicorn', 'ram', 'elephant', 'knight']
+STABLE_SPAWN_LIST = ['oxen', 'unicorn', 'ram', 'elephant', 'knight']
 FORTRESS_SPAWN_LIST = ['rogue_rook', 'rogue_bishop', 'rogue_knight', 'rogue_pawn']
 CASTLE_SPAWN_LIST = ['pawn', 'builder', 'pikeman', 'monk']
-BUILDER_SPAWN_LIST = ['quarry_1', 'prayer_stone', 'stable', 'monolith', 'castle', 'barracks', 'fortress']
-BARRACKS_SPAWN_LIST = ['duke', 'queen', 'jester', 'rook', 'bishop']
+BUILDER_SPAWN_LIST = ['quarry_1', 'wall', 'stable', 'monolith', 'castle', 'barracks', 'fortress']
+BARRACKS_SPAWN_LIST = ['duke', 'queen', 'jester', 'champion', 'rook', 'bishop']
 
 SPAWN_LISTS = {'stable': STABLE_SPAWN_LIST, 'fortress': FORTRESS_SPAWN_LIST, 'castle': CASTLE_SPAWN_LIST,
                'builder': BUILDER_SPAWN_LIST, 'barracks': BARRACKS_SPAWN_LIST, }
@@ -132,6 +132,9 @@ PIECE_COSTS = {'king': {'log': 0, 'gold': 0, 'stone': 0},
                'monolith': {'log': 0, 'gold': 0, 'stone': 15},
                'prayer_stone': {'log': 0, 'gold': 0, 'stone': 4},
                'duke': {'log': 6, 'gold': 14, 'stone': 14},
+               'oxen': {'log': 12, 'gold': 0, 'stone': 12},
+               'champion': {'log': 0, 'gold': 9, 'stone': 9},
+               'wall': {'log': 0, 'gold': 0, 'stone': 8},
                }
 # HOW TO ACCESS:
 # for line in Constant.DESCRIPTIONS['piece']
@@ -159,15 +162,18 @@ DESCRIPTIONS = {'king': ['every player gets one', 'capture your opponent\'s to w
                 'rogue_bishop': ['a bishop who can move through the forest', 'and can steal from enemy pieces'],
                 'rogue_knight': ['a knight who can move through the forest', 'and can steal from enemy pieces'],
                 'rogue_pawn': ['a pawn who can move through the forest', 'and can steal from nearby pieces'],
-                'elephant': ['A long leaper who', 'also moves like a knight'],
-                'ram': ['moves like a knight, then like a bishop'],
-                'unicorn': ['a mystical leaper with a strange move pattern'],
+                'oxen': ['moves like a knight, then like a rook'],
+                'champion': ['moves diagonally one square', 'then like a rook in that same direction'],
+                'elephant': ['a leaper who moves up three and over one', 'and who also moves like a knight'],
+                'ram': ['a leaper who moves like a knight, then like a bishop'],
+                'unicorn': ['a leaper who moves like a knight ', 'and can double jump'],
                 'monolith': ['a strange, powerful prayer site'],
                 'prayer_stone': ['a strange prayer site'],
                 'duke': ['moves like a queen', 'but has the ability to pray'],
                 'smite': ['select one piece or building to be destroyed'],
                 'destroy_resource': ['select one resource to be destroyed'],
                 'create_resource': ['create a resource'],
+                'wall': ['blocks pieces from passing through', 'can be destroyed by units in the stable'],
                 'teleport': ['teleport a piece anywhere else on the board'],
                 'swap': ['trade places with another piece'],
                 'line_destroy': ['destroys everything in it\'s path'],
@@ -204,7 +210,9 @@ PIECE_POPULATION = {'king': 1,
                     'quarry_1': 0,
                     'stable': 0,
                     'unicorn': 1,
-                    'ram': 1}
+                    'ram': 1,
+                    'oxen': 1,
+                    'wall': 0}
 
 PRAYER_COSTS = {'gold_general': {'prayer': 16, 'monk': 3},
                 'smite': {'prayer': 12, 'monk': 1},
@@ -243,7 +251,8 @@ ADDITIONAL_PIECE_LIMIT = {'castle': 5, 'barracks': 3, 'fortress': 3, 'stable': 3
                           'quarry_1': 0,
                           'builder': 0,
                           'unicorn': 0,
-                          'ram': 0}
+                          'ram': 0,
+                          'oxen': 0}
 TOTAL_GOLD_ON_MAP = 6
 
 WOOD_TOTAL_MINED = 1
@@ -295,6 +304,8 @@ TURNS = {'w': 'b', 'b': 'w'}
 #
 #   MOVES
 #
+
+
 RIGHT = (0, 1)
 LEFT = (0, -1)
 UP = (-1, 0)
@@ -327,6 +338,7 @@ THREE_DOWN_RIGHT = (3, 1)
 THREE_RIGHT_DOWN = (1, 3)
 THREE_DOWN_LEFT = (3, -1)
 THREE_LEFT_DOWN = (1, -3)
+
 
 #
 #   GRAPHICS / UX
@@ -364,6 +376,7 @@ BARRACKS_OFFSET = (0, -10)
 PAWN_MENU_ICON_SCALE = (100, 100)
 FORTRESS_SCALE = (round(SQ_SIZE * 1.15), round(SQ_SIZE * 1.15))
 FORTRESS_OFFSET = (0, -10)
+WALL_OFFSET = (-10, -10)
 PRAYER_RITUAL_SCALE = (round(SQ_SIZE * 1.5), round(SQ_SIZE * 1.5))
 BOAT_PIECE_SCALE = round(SQ_SIZE * 1.5), round(SQ_SIZE * 1.5)
 RESOURCES_BUTTON_SCALE = (SIDE_MENU_WIDTH, 2 * SQ_SIZE)
@@ -395,7 +408,8 @@ w_pieces = ['w_king',
             'w_rogue_knight',
             'w_builder',
             'w_unicorn',
-            'w_ram']
+            'w_ram',
+            'w_oxen']
 w_buildings = ['w_castle',
                'w_fortress',
                'w_barracks',
@@ -411,7 +425,7 @@ b_pieces = ['b_king', 'b_queen', 'b_rook', 'b_bishop',
             'b_rogue_bishop', 'b_jester', 'b_pikeman',
             'b_gold_general', 'b_silver_general',
             'b_rogue_rook', 'b_elephant', 'b_elephant_cart',
-            'b_champion', 'b_rogue_pawn', 'b_rogue_knight', 'b_builder', 'b_unicorn', 'b_ram']
+            'b_champion', 'b_rogue_pawn', 'b_rogue_knight', 'b_builder', 'b_unicorn', 'b_ram', 'b_oxen']
 b_buildings = ['b_castle', 'b_fortress', 'b_barracks',
                'b_wall', 'b_monolith', 'b_prayer_stone',
                'b_flag', 'b_barracks', 'b_war_tower', 'b_stable']
@@ -467,7 +481,7 @@ PIECE_IMAGE_MODIFY = {'king': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'rogue_knight': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'castle': {'SCALE': CASTLE_SCALE, 'OFFSET': CASTLE_OFFSET},
                       'fortress': {'SCALE': FORTRESS_SCALE, 'OFFSET': FORTRESS_OFFSET},
-                      'wall': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
+                      'wall': {'SCALE': FORTRESS_SCALE, 'OFFSET': WALL_OFFSET},
                       'monolith': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'prayer_stone': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'flag': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
@@ -477,6 +491,8 @@ PIECE_IMAGE_MODIFY = {'king': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'unicorn': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'ram': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'stable': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
+                      'oxen': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
+
                       }
 
 IMAGES_IMAGE_MODIFY = {'icon': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},

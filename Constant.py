@@ -57,6 +57,7 @@ DEBUG_STARTING_GOLD = 99
 DEBUG_STARTING_STONE = 99
 DEBUG_STARTING_PIECES = ['castle', 'king']
 DEBUG_RITUALS = False
+PLAY_AGAINST_AI = False
 
 'DEFAULT START'
 STARTING_PRAYER = 0
@@ -68,7 +69,7 @@ STARTING_PIECES = ['castle', 'king']
 BOARD_STARTS_WITH_RESOURCES = True
 SELECTABLE_STARTING_PIECES = ['pawn', 'builder', 'monk', 'pikeman', 'rogue_pawn']
 NUMBER_OF_STARTING_PIECES = 5
-MONOLITH_RITUALS = ['gold_general', 'smite', 'destroy_resource', 'line_destroy', 'protect', 'create resource']
+MONOLITH_RITUALS = ['gold_general', 'smite', 'destroy_resource', 'line_destroy', 'protect', 'create_resource']
 PRAYER_STONE_RITUALS = ['destroy_resource', 'create_resource', 'teleport', 'swap', 'protect']
 STEALING_KEY = {'building': {
     'wood': {'variance': (-2, 2), 'value': 4},
@@ -82,11 +83,14 @@ STEALING_KEY = {'building': {
 MAX_MONOLITH_RITUALS_PER_TURN = 3
 MAX_PRAYER_STONE_RITUALS_PER_TURN = 3
 
-STABLE_MENU_SPAWN_LIST = ['unicorn', 'ram', 'elephant', 'knight']
-FORTRESS_MENU_SPAWN_LIST = ['rogue_rook', 'rogue_bishop', 'rogue_knight', 'rogue_pawn']
-CASTLE_MENU_SPAWN_LIST = ['pawn', 'builder', 'pikeman', 'monk']
-BUILDER_MENU_SPAWN_LIST = ['quarry_1', 'prayer_stone', 'stable', 'monolith', 'castle', 'barracks', 'fortress']
-BARRACKS_MENU_SPAWN_LIST = ['duke', 'queen', 'jester', 'rook', 'bishop']
+STABLE_SPAWN_LIST = ['unicorn', 'ram', 'elephant', 'knight']
+FORTRESS_SPAWN_LIST = ['rogue_rook', 'rogue_bishop', 'rogue_knight', 'rogue_pawn']
+CASTLE_SPAWN_LIST = ['pawn', 'builder', 'pikeman', 'monk']
+BUILDER_SPAWN_LIST = ['quarry_1', 'prayer_stone', 'stable', 'monolith', 'castle', 'barracks', 'fortress']
+BARRACKS_SPAWN_LIST = ['duke', 'queen', 'jester', 'rook', 'bishop']
+
+SPAWN_LISTS = {'stable': STABLE_SPAWN_LIST, 'fortress': FORTRESS_SPAWN_LIST, 'castle': CASTLE_SPAWN_LIST,
+               'builder': BUILDER_SPAWN_LIST, 'barracks': BARRACKS_SPAWN_LIST, }
 
 DEFAULT_ACTIONS_REMAINING = 1
 ACTIONS_UPDATE_ON_SPAWN = False
@@ -135,7 +139,8 @@ PIECE_COSTS = {'king': {'log': 0, 'gold': 0, 'stone': 0},
 # Constant.DESCRIPTIONS['piece'][description_line_index]
 DESCRIPTIONS = {'king': ['every player gets one', 'capture your opponent\'s to win'],
                 'gold_general': ['summons the strongest piece imaginable'],
-                'quarry_1': ['can be mined for stone', 'may cave in and begin to yield less stone', 'cannot be dug onto a depleted quarry'],
+                'quarry_1': ['can be mined for stone', 'may cave in and begin to yield less stone',
+                             'cannot be dug onto a depleted quarry'],
                 'pawn': ['can mine resources'],
                 'builder': ['can create buildings'],
                 'monk': ['can pray at monoliths and prayer Stones'],
@@ -143,7 +148,8 @@ DESCRIPTIONS = {'king': ['every player gets one', 'capture your opponent\'s to w
                 'castle': ['creates basic pieces, such as pawns'],
                 'stable': ['creates leapers, such as the knight'],
                 'barracks': ['creates basic attacking pieces', 'a staple in any good kingdom'],
-                'fortress': ['creates rogue pieces who', 'can move through forest tiles and', 'steal from enemy pieces'],
+                'fortress': ['creates rogue pieces who', 'can move through forest tiles and',
+                             'steal from enemy pieces'],
                 'queen': ['attacks in all directions as far as the eye can see'],
                 'rook': ['attacks orthogonally and has the', 'ability to pray'],
                 'bishop': ['attacks diagonally and has the', 'ability to pray'],
@@ -200,10 +206,10 @@ PIECE_POPULATION = {'king': 1,
                     'unicorn': 1,
                     'ram': 1}
 
-PRAYER_COSTS = {'gold_general': {'prayer': 12, 'monk': 2},
-                'smite': {'prayer': 8, 'monk': 1},
-                'destroy_resource': {'prayer': 8, 'monk': 0},
-                'create_resource': {'prayer': 1, 'monk': 0},
+PRAYER_COSTS = {'gold_general': {'prayer': 16, 'monk': 3},
+                'smite': {'prayer': 12, 'monk': 1},
+                'destroy_resource': {'prayer': 12, 'monk': 0},
+                'create_resource': {'prayer': 4, 'monk': 0},
                 'teleport': {'prayer': 4, 'monk': 0},
                 'swap': {'prayer': 1, 'monk': 0},
                 'line_destroy': {'prayer': 8, 'monk': 1},

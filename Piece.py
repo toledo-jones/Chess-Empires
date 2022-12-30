@@ -21,20 +21,22 @@ class Piece:
         self.stealing = False
         self.mining_stealing = False
 
-
         self.intercepted = False
         self.is_rogue = False
         self.is_general = False
 
         self.additional_actions = 0
-
         self.actions_remaining = 0
-        self.capture_list = []
+
+        self.praying_squares_list = []
         self.spawn_squares_list = []
         self.move_squares_list = []
         self.mining_squares_list = []
         self.interceptor_squares_list = []
         self.stealing_squares_list = []
+        self.ritual_squares_list = []
+        self.capture_squares_list = []
+
         self.population_value = 1
         self.additional_piece_limit = 0
 
@@ -43,6 +45,10 @@ class Piece:
         self.unused_square_color = Constant.UNUSED_PIECE_HIGHLIGHT_COLOR
         self.move_square_color = Constant.MOVE_SQUARE_HIGHLIGHT_COLOR
         self.is_effected_by_jester = True
+
+    def possible_moves(self):
+        return {'spawn': self.spawn_squares_list, 'move': self.move_squares_list, 'mine': self.mining_squares_list,
+                'steal': self.stealing_squares_list, 'pray': self.praying_squares_list}
 
     def can_capture(self, r, c, engine):
         capture_tile = None
@@ -1118,18 +1124,6 @@ class Monk(Piece):
 
         return moves
 
-    def spawn_squares(self, engine):
-        squares = []
-
-        for direction in range(len(self.directions)):
-            d = self.directions[direction]
-            r = self.row - d[0]
-            c = self.col - d[1]
-            if engine.has_none_occupying(r, c) and engine.has_no_resource(r, c):
-                squares.append((r, c))
-
-        return squares
-
     def right_click(self, engine):
         if super().right_click(engine):
             return engine.transfer_to_praying_state(self.row, self.col)
@@ -1514,12 +1508,6 @@ class GoldGeneral(Piece):
 
     def valid_moves(self, engine):
         moves = []
-
-        for direction in self.knight_directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if engine.can_be_occupied_by_gold_general(r, c) or self.can_capture(r, c, engine):
-                moves.append((r, c))
         r = self.row
         c = self.col
         # UP DIAGONALS

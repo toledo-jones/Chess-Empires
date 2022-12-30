@@ -530,7 +530,7 @@ class SpawningMenu(Menu):
 
 class StableMenu(SpawningMenu):
     def __init__(self, row, col, win, engine, spawner):
-        spawn_list = Constant.STABLE_MENU_SPAWN_LIST
+        spawn_list = Constant.STABLE_SPAWN_LIST
         self.spawner = spawner
         super().__init__(row, col, win, engine, spawn_list, spawner)
 
@@ -540,7 +540,7 @@ class StableMenu(SpawningMenu):
 
 class FortressMenu(SpawningMenu):
     def __init__(self, row, col, win, engine, spawner):
-        spawn_list = Constant.FORTRESS_MENU_SPAWN_LIST
+        spawn_list = Constant.FORTRESS_SPAWN_LIST
         self.spawner = spawner
 
         super().__init__(row, col, win, engine, spawn_list, spawner)
@@ -551,7 +551,7 @@ class FortressMenu(SpawningMenu):
 
 class BuilderMenu(SpawningMenu):
     def __init__(self, row, col, win, engine, spawner):
-        spawn_list = Constant.BUILDER_MENU_SPAWN_LIST
+        spawn_list = Constant.BUILDER_SPAWN_LIST
         self.spawner = spawner
 
         super().__init__(row, col, win, engine, spawn_list, spawner)
@@ -562,7 +562,7 @@ class BuilderMenu(SpawningMenu):
 
 class CastleMenu(SpawningMenu):
     def __init__(self, row, col, win, engine, spawner):
-        spawn_list = Constant.CASTLE_MENU_SPAWN_LIST
+        spawn_list = Constant.CASTLE_SPAWN_LIST
         self.spawner = spawner
 
         super().__init__(row, col, win, engine, spawn_list, spawner)
@@ -573,7 +573,7 @@ class CastleMenu(SpawningMenu):
 
 class BarracksMenu(SpawningMenu):
     def __init__(self, row, col, win, engine, spawner):
-        spawn_list = Constant.BARRACKS_MENU_SPAWN_LIST
+        spawn_list = Constant.BARRACKS_SPAWN_LIST
         self.spawner = spawner
 
         super().__init__(row, col, win, engine, spawn_list, spawner)
@@ -920,7 +920,7 @@ class Master(CostMenu):
 
 class BuilderCosts(CostMenu):
     def __init__(self, win, engine):
-        spawn_list = Constant.BUILDER_MENU_SPAWN_LIST
+        spawn_list = Constant.BUILDER_SPAWN_LIST
         super().__init__(win, engine, spawn_list)
 
     def __repr__(self):
@@ -929,7 +929,7 @@ class BuilderCosts(CostMenu):
 
 class CastleCosts(CostMenu):
     def __init__(self, win, engine):
-        spawn_list = Constant.CASTLE_MENU_SPAWN_LIST
+        spawn_list = Constant.CASTLE_SPAWN_LIST
         super().__init__(win, engine, spawn_list)
 
     def __repr__(self):
@@ -938,7 +938,7 @@ class CastleCosts(CostMenu):
 
 class StableCosts(CostMenu):
     def __init__(self, win, engine):
-        spawn_list = Constant.STABLE_MENU_SPAWN_LIST
+        spawn_list = Constant.STABLE_SPAWN_LIST
         super().__init__(win, engine, spawn_list)
 
     def __repr__(self):
@@ -947,7 +947,7 @@ class StableCosts(CostMenu):
 
 class FortressCosts(CostMenu):
     def __init__(self, win, engine):
-        spawn_list = Constant.FORTRESS_MENU_SPAWN_LIST
+        spawn_list = Constant.FORTRESS_SPAWN_LIST
         super().__init__(win, engine, spawn_list)
 
     def __repr__(self):
@@ -956,7 +956,7 @@ class FortressCosts(CostMenu):
 
 class BarracksCosts(CostMenu):
     def __init__(self, win, engine):
-        spawn_list = Constant.BARRACKS_MENU_SPAWN_LIST
+        spawn_list = Constant.BARRACKS_SPAWN_LIST
         super().__init__(win, engine, spawn_list)
 
     def __repr__(self):
@@ -1033,8 +1033,6 @@ class MonolithCosts(RitualCosts):
 
     def __repr__(self):
         return 'monolith'
-
-
 
 
 class SideMenu:

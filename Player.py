@@ -1,4 +1,4 @@
-import Constant
+from Behavior import *
 
 
 class Player:
@@ -27,6 +27,10 @@ class Player:
 
     def __repr__(self):
         return self.color
+
+    def begin_turn(self, engine):
+        # only implemented for AI
+        pass
 
     def steal(self, kind, value):
         if kind == 'wood':
@@ -150,3 +154,51 @@ class Player:
 
     def undo_action(self):
         self.actions_remaining += 1
+
+
+class AI(Player):
+    def __init__(self, color):
+        super().__init__(color)
+        self.BEHAVIORS = {'random': Random}
+
+        rand = random.choice(list(self.BEHAVIORS))
+
+        self.behavior = self.BEHAVIORS[rand]()
+
+    def begin_turn(self, engine):
+        engine.set_state('ai playing')
+        engine.state[-1].complete_turn()
+
+    def update_all_possible_moves(self, engine):
+        self.behavior.all_possible_moves(self.pieces, engine)
+
+    def fulfill_move_parameters(self, engine, selected_move):
+        pieces = list(selected_move.keys())
+
+        piece = pieces[0]
+        move = selected_move[piece]
+        move_kind = move[0]
+        row, col = move[1]
+        action_tile = engine.board[row][col]
+        acting_tile = engine.board[piece.row][piece.col]
+        return self.behavior.fulfill_move_parameters[move_kind](engine, acting_tile, action_tile)
+
+    def determine_most_desired_action(self, desired_actions):
+        selected_move = None
+        for move_kind in self.behavior.move_priority:
+            for piece in desired_actions:
+                if desired_actions[piece] is not None:
+                    if move_kind == desired_actions[piece][0]:
+                        selected_move = {piece: desired_actions[piece]}
+                        break
+            if selected_move:
+                break
+        return selected_move
+
+    def update_desired_actions(self, engine):
+        # Select one legal move for each piece
+        desired_actions = self.behavior.desired_actions(engine)
+        return desired_actions
+
+    def harvest_resources(self, engine):
+        return self.behavior.harvest_resources(engine)

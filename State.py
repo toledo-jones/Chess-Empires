@@ -3,9 +3,10 @@ from Menu import *
 
 
 #
-#   Change each state class to have cleaner code.
-#   Change all direct references to changing engine variables to helper methods
-#   Use nested methods for reused logic
+#   GameEvent structure has changed:
+#   event = GameEvent(engine, acting_tile, action_tile)
+#   event.complete()
+#   misc variables are stored as fields in the engine object
 #
 
 
@@ -78,43 +79,66 @@ class MainMenu(State):
         self.window_height = pygame.display.Info().current_h
         self.font_size = round(Constant.SQ_SIZE * 1)
         self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
-        self.play_text = "play"
-        self.text_surf = self.font.render(self.play_text, True, self.color)
 
-        self.square = pygame.Surface((self.text_surf.get_width(), self.text_surf.get_height()))
+        single_player_text = "single player"
+        multiplayer_text = 'pass n\' play'
+        self.single_player_text_surf = self.font.render(single_player_text, True, self.color)
+        self.multiplayer_text_surf = self.font.render(multiplayer_text, True, self.color)
+
+        self.button_width = self.single_player_text_surf.get_width()
+        self.button_height = self.multiplayer_text_surf.get_height()
+
+        self.square = pygame.Surface((self.button_width, self.button_height))
         self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
         self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
 
-        self.play_text_highlight = False
+        self.single_player_text_highlight = False
+        self.multiplayer_text_highlight = False
 
-        self.play_text_display_x = self.window_width // 2 - self.text_surf.get_width() // 2
-        self.play_text_display_y = round(self.window_height * 3/4) - self.text_surf.get_height() // 2
+        self.single_player_text_display_x = self.window_width // 3 - self.button_width // 2
+        self.button_display_y = round(self.window_height * 3/4) - self.button_height // 2
 
-        self.play_button_range_x = range(self.play_text_display_x, self.play_text_display_x + self.text_surf.get_width())
-        self.play_button_range_y = range(self.play_text_display_y, self.play_text_display_y + self.text_surf.get_height())
+        self.multiplayer_text_display_x = round(self.window_width * 2/3) - self.button_width // 2
+
+        self.multiplayer_button_range_x = range(self.multiplayer_text_display_x, self.multiplayer_text_display_x + self.button_width)
+        self.single_player_button_range_x = range(self.single_player_text_display_x, self.single_player_text_display_x + self.button_width)
+        self.button_range_y = range(self.button_display_y, self.button_display_y + self.button_height)
 
     def draw(self):
         self.win.fill(Constant.MENU_COLOR)
         self.win.blit(self.main_menu_logo, self.logo_position)
-        if self.play_text_highlight:
-            self.win.blit(self.square, (self.play_text_display_x, self.play_text_display_y))
-        self.win.blit(self.text_surf, (self.play_text_display_x, self.play_text_display_y))
+        if self.single_player_text_highlight:
+            self.win.blit(self.square, (self.single_player_text_display_x, self.button_display_y))
+        elif self.multiplayer_text_highlight:
+            self.win.blit(self.square, (self.multiplayer_text_display_x, self.button_display_y))
+        self.win.blit(self.single_player_text_surf, (self.single_player_text_display_x, self.button_display_y))
+        self.win.blit(self.multiplayer_text_surf, (self.multiplayer_text_display_x, self.button_display_y))
 
     def left_click(self):
         pos = pygame.mouse.get_pos()
-        if pos[0] in self.play_button_range_x:
-            if pos[1] in self.play_button_range_y:
+        if pos[1] in self.button_range_y:
+            if pos[0] in self.single_player_button_range_x:
+                Constant.PLAY_AGAINST_AI = True
+                self.engine.set_state('starting')
+            elif pos[0] in self.multiplayer_button_range_x:
+                self.engine.create_player('w')
+                self.engine.create_player('b')
+                Constant.PLAY_AGAINST_AI = False
                 self.engine.set_state('starting')
 
     def mouse_move(self):
         pos = pygame.mouse.get_pos()
-        if pos[0] in self.play_button_range_x:
-            if pos[1] in self.play_button_range_y:
-                self.play_text_highlight = True
+        if pos[1] in self.button_range_y:
+            if pos[0] in self.single_player_button_range_x:
+                self.single_player_text_highlight = True
+            elif pos[0] in self.multiplayer_button_range_x:
+                self.multiplayer_text_highlight = True
             else:
-                self.play_text_highlight = False
+                self.single_player_text_highlight = False
+                self.multiplayer_text_highlight = False
         else:
-            self.play_text_highlight = False
+            self.single_player_text_highlight = False
+            self.multiplayer_text_highlight = False
 
 
 class Playing(State):
@@ -139,9 +163,9 @@ class Playing(State):
                 if currently_selected.actions_remaining > 0:
                     if self.engine.player_can_do_action(self.engine.turn):
                         return True
-        except AttributeError:
-            print("Attribute Error")
-            print("Line 68, State.py")
+        except AttributeError as e:
+            print("Cannot select piece")
+            print(e)
 
     def can_capture_piece(self, previously_selected, row, col, currently_selected):
         if previously_selected is not None:
@@ -165,95 +189,35 @@ class Playing(State):
                 return True
 
     def select(self, row, col):
-        #
-        #   Determine context of our select function
-        #   Returns a piece object to previousP if the piece is mining, purchasing, selected
-        #   or pre-selected
-        #
         previously_selected = self.engine.update_previously_selected()
-        #
-        #   Determine the piece which we are currently selecting on this call of the select function
-        #
         currently_selected = self.engine.get_occupying(row, col)
-        #
-        #   Move previously selected piece to empty square
-        #
         if self.can_move_to_square(previously_selected, row, col):
-            #
-            #   Store the position of previously selected piece
-            #
             prev_position = previously_selected.get_position()
-
-            #
-            #   Create move event using all data related to move
-            #
-            moveEvent = Move(previously_selected, prev_position, (row, col))
-
-            #
-            #   Complete move event a change the board accordingly
-            #
-            moveEvent.complete(self.engine)
-
-            #
-            #   Add the event to the engine list of all GameEvents
-            #
+            acting_tile = self.engine.board[prev_position[0]][prev_position[1]]
+            action_tile = self.engine.board[row][col]
+            moveEvent = Move(self.engine, acting_tile, action_tile)
+            moveEvent.complete()
             self.engine.events.append(moveEvent)
-
-            #
-            #   Reset selected piece and previously selected piece
-            #
             self.engine.reset_selected()
             return True
 
         elif self.same_piece_selected(previously_selected, row, col):
             self.engine.reset_selected()
             return True
-        #
-        #   Select Player piece for moving
-        #
+
         elif self.can_select_piece(currently_selected):
-            #
-            #   Update all pieces moves
-            #
             self.engine.update_moves()
-
-            #
-            #   Reset all selected pieces
-            #
             self.engine.reset_selected()
-
-            #
-            #   Set currently selected to True
-            #
             currently_selected.selected = True
             return True
-        #
-        #   Select enemy piece to be captured
-        #
+
         elif self.can_capture_piece(previously_selected, row, col, currently_selected):
-            #
-            #   Store position of previously selected piece
-            #
-            prev_position = previously_selected.get_position()
-
-            #
-            #   Create Capture Event, passing in all relevant data
-            #
-            capture_event = Capture(previously_selected, prev_position, (row, col), currently_selected)
-
-            #
-            #   Complete Event
-            #
-            capture_event.complete(self.engine)
-
-            #
-            #   Add event to engine list of GameEvents
-            #
+            prev_row, prev_col = previously_selected.get_position()
+            acting_tile = self.engine.board[prev_row][prev_col]
+            action_tile = self.engine.board[row][col]
+            capture_event = Capture(self.engine, acting_tile, action_tile)
+            capture_event.complete()
             self.engine.events.append(capture_event)
-
-            #
-            #   Remove all selections
-            #
             self.engine.reset_selected()
             return True
 
@@ -282,8 +246,13 @@ class Playing(State):
             self.engine.reset_selected()
         else:
             try:
-                self.engine.events[-1].undo(self.engine)
-                del self.engine.events[-1]
+                if isinstance(self.engine.events[-1], AITurn):
+                    for _ in range(2):
+                        self.engine.events[-1].undo()
+                        del self.engine.events[-1]
+                else:
+                    self.engine.events[-1].undo()
+                    del self.engine.events[-1]
             except IndexError as e:
                 print(e)
 
@@ -487,8 +456,125 @@ class SelectStartingPieces(State):
             self.revert_to_starting_state(self.engine.first)
         else:
             for x in range(2):
-                self.engine.events[-1].undo(self.engine)
+                self.engine.events[-1].undo()
                 del self.engine.events[-1]
+
+
+class AIPlaying(State):
+    def __init__(self, win, engine, turn_events=None):
+        super().__init__(win, engine)
+        if turn_events is None:
+            self.turn_events = []
+        else:
+            self.turn_events = turn_events
+        self.ai = self.engine.players[self.engine.turn]
+
+    def __repr__(self):
+        return 'ai playing'
+
+    def complete_turn(self):
+        if not self.act():
+            self.change_turn()
+            event = AITurn(self.engine, self.turn_events)
+            self.engine.events.append(event)
+            self.revert_to_playing_state()
+
+    def change_turn(self):
+        turn_change_event = ChangeTurn(self.engine)
+        turn_change_event.complete()
+        self.turn_events.append(turn_change_event)
+        self.engine.players[self.engine.turn].begin_turn(self)
+
+    def make_move(self, event):
+        self.turn_events.append(event)
+        event.complete()
+
+    def act(self):
+        self.ai.update_all_possible_moves(self.engine)
+        desired_actions = self.ai.update_desired_actions(self.engine)
+        selected_move = self.ai.determine_most_desired_action(desired_actions)
+        event = self.ai.fulfill_move_parameters(self.engine, selected_move)
+        if event is not None:
+            self.make_move(event)
+
+        if self.ai.actions_remaining == 0:
+            return False
+
+        self.act()
+
+
+class AIStartingSpawn(State):
+    def __init__(self, win, engine):
+        super().__init__(win, engine)
+        self.side_bar = Empty(win, engine)
+        self.first = True
+        self.play_random_sound_effect()
+        self.turn_events = []
+        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
+                                   Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
+                                   Constant.DOWN_LEFT)
+
+    def __repr__(self):
+        return 'ai start spawn'
+
+    def create_ai_player(self):
+        if not Constant.TURNS[self.engine.turn] in self.engine.players:
+            self.engine.create_ai(Constant.TURNS[self.engine.turn])
+
+        turn_change_event = ChangeTurn(self.engine)
+        turn_change_event.complete()
+        self.turn_events.append(turn_change_event)
+
+        self.engine.spawn_count = 0
+        self.engine.final_spawn = True
+
+        ai = self.engine.players[self.engine.turn]
+        choice = ai.behavior.select_starting_square(self.engine)
+
+        self.engine.spawn_list = ai.behavior.select_starting_pieces()
+        self.engine.spawning = 'castle'
+        self.create_ai_spawn_event(choice[0], choice[1], False)
+        self.engine.spawn_count = 0
+        self.engine.update_spawn_squares()
+        spawn_squares_list = self.engine.get_occupying(choice[0], choice[1]).spawn_squares_list
+        placements = ai.behavior.starting_piece_placements(self.engine.spawn_list, spawn_squares_list)
+        self.engine.update_spawn_squares()
+        for _ in self.engine.spawn_list:
+            self.engine.spawning = self.engine.spawn_list[self.engine.spawn_count]
+            row, col = placements[self.engine.spawn_count][0], placements[self.engine.spawn_count][1]
+            self.create_ai_spawn_event(row, col)
+        self.end_start_spawning()
+
+    def end_start_spawning(self):
+        self.engine.reset_selected()
+        self.engine.reset_piece_actions_remaining()
+        self.engine.spawn_success = False
+        unused_pieces = self.engine.count_unused_pieces()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+        self.engine.reset_player_actions_remaining(self.engine.turn)
+        self.engine.update_additional_actions()
+        self.engine.update_piece_limit()
+        self.engine.spawn_count = 0
+        new_state = AIPlaying(self.win, self.engine, self.turn_events)
+        self.engine.set_state(new_state)
+        new_state.complete_turn()
+
+    def create_ai_spawn_event(self, row, col, first=True):
+        action_tile = self.engine.board[row][col]
+        acting_tile = self.engine.update_previously_selected()
+        spawn_event = StartSpawn(self.engine, acting_tile, action_tile)
+        spawn_event.complete()
+        self.turn_events.append(spawn_event)
+        self.engine.update_spawn_squares()
+        self.first = first
+        self.engine.spawn_count += 1
+
+    @staticmethod
+    def play_random_sound_effect():
+            i = random.randint(0, len(Constant.start_game) - 1)
+            Constant.START_GAME_SOUNDS[i].set_volume(.1)
+            Constant.START_GAME_SOUNDS[i].play()
 
 
 class StartingSpawn(State):
@@ -501,9 +587,14 @@ class StartingSpawn(State):
     def __repr__(self):
         return 'start spawn'
 
+    def begin_ai_starting_spawn(self):
+        new_state = AIStartingSpawn(self.win, self.engine)
+        self.engine.set_state(new_state)
+        new_state.create_ai_player()
+
     def begin_next_player_piece_select(self):
         turn_change = ChangeTurn(self.engine)
-        turn_change.complete(self.engine)
+        turn_change.complete()
         self.engine.events.append(turn_change)
         new_state = SelectStartingPieces(self.win, self.engine)
         self.engine.set_state(new_state)
@@ -550,15 +641,23 @@ class StartingSpawn(State):
         Constant.START_GAME_SOUNDS[i].play()
 
     def create_spawn_event(self, row, col, first=True):
-        spawn_event = StartSpawn(self.engine.turn, self.engine.spawning, (row, col), self.engine.spawn_count,
-                                 self.engine.final_spawn, self.engine.update_previously_selected(), self.engine.spawn_list)
-        spawn_event.complete(self.engine)
+        if first:
+            self.engine.create_player(self.engine.turn)
+        action_tile = self.engine.board[row][col]
+        previously_selected = self.engine.update_previously_selected()
+        if previously_selected:
+            acting_tile = self.engine.board[previously_selected.row][previously_selected.col]
+        else:
+            acting_tile = None
+        spawn_event = StartSpawn(self.engine, acting_tile, action_tile)
+        spawn_event.complete()
         self.engine.reset_selected()
         self.engine.update_spawn_squares()
         self.engine.events.append(spawn_event)
         castle_row, castle_col = self.engine.find_player_castle()
         self.engine.set_purchasing(castle_row, castle_col, True)
         self.first = first
+
         self.engine.spawn_count += 1
 
     def left_click(self):
@@ -574,7 +673,9 @@ class StartingSpawn(State):
         try:
             self.engine.spawning = self.engine.spawn_list[self.engine.spawn_count]
         except IndexError:
-            if self.engine.final_spawn:
+            if Constant.PLAY_AGAINST_AI:
+                self.begin_ai_starting_spawn()
+            elif self.engine.final_spawn:
                 self.end_start_spawning()
             else:
                 self.begin_next_player_piece_select()
@@ -584,7 +685,7 @@ class StartingSpawn(State):
             if isinstance(self.engine.events[-1], ChangeTurn):
                 self.engine.transfer_to_piece_selection()
             else:
-                self.engine.events[-1].undo(self.engine)
+                self.engine.events[-1].undo()
                 del self.engine.events[-1]
         except IndexError:
             if self.engine.turn_count_display == .5:
@@ -632,7 +733,7 @@ class DebugStart(State):
 
     def begin_next_player_start_spawn(self):
         turn_change = ChangeTurn(self.engine)
-        turn_change.complete(self.engine)
+        turn_change.complete()
         self.engine.events.append(turn_change)
         self.engine.spawn_count = 0
         self.engine.final_spawn = True
@@ -684,18 +785,6 @@ class DebugStart(State):
         Constant.START_GAME_SOUNDS[i].set_volume(.1)
         Constant.START_GAME_SOUNDS[i].play()
 
-    def create_spawn_event(self, row, col, first=True):
-        spawn_event = StartSpawn(self.engine.turn, self.engine.spawning, (row, col), self.engine.spawn_count,
-                                 self.engine.final_spawn, self.engine.update_previously_selected(), self.engine.spawn_list)
-        spawn_event.complete(self.engine)
-        self.engine.reset_selected()
-        self.engine.update_spawn_squares()
-        self.engine.events.append(spawn_event)
-        castle_row, castle_col = self.engine.find_player_castle()
-        self.engine.set_purchasing(castle_row, castle_col, True)
-        self.first = first
-        self.engine.spawn_count += 1
-
     def left_click(self):
         row, col = self.get_valid_position
         previously_selected = self.engine.update_previously_selected()
@@ -719,6 +808,18 @@ class DebugStart(State):
         self.engine.spawning = None
         self.engine.first = first
         self.engine.set_state(new_state)
+
+    def create_spawn_event(self, row, col, first=True):
+        action_tile = self.engine.board[row][col]
+        acting_tile = self.engine.update_previously_selected()
+        spawn_event = StartSpawn(self.engine, acting_tile, action_tile)
+        spawn_event.complete()
+        self.engine.reset_selected()
+        self.engine.update_spawn_squares()
+        self.engine.events.append(spawn_event)
+        castle_row, castle_col = self.engine.find_player_castle()
+        self.engine.set_purchasing(castle_row, castle_col, True)
+        self.first = first
 
     def draw(self):
         super().draw()
@@ -780,9 +881,10 @@ class MiningStealing(State):
                 menu = StealingMenu(row, col, self.win, self.engine)
                 self.engine.menus.append(menu)
             elif self.in_mining_squares(row, col):
-                sel = self.engine.board[row][col].get_resource()
-                mining_event = Mine(sel, self.previously_selected)
-                mining_event.complete(self.engine)
+                acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+                action_tile = self.engine.board[row][col]
+                mining_event = Mine(self.engine, acting_tile, action_tile)
+                mining_event.complete()
                 self.engine.events.append(mining_event)
                 new_state = Playing(self.win, self.engine)
                 self.engine.reset_selected()
@@ -791,12 +893,10 @@ class MiningStealing(State):
                 self.revert_to_playing_state()
         if self.engine.stealing:
             self.engine.close_menus()
-            stolen_from = self.engine.get_occupying(self.row, self.col)
-            thief = self.previously_selected
-            resource_stolen = self.engine.stealing[0]
-            amount = self.engine.stealing[1]
-            event = Steal(stolen_from, thief, resource_stolen, amount)
-            event.complete(self.engine)
+            action_tile = self.engine.board[self.row][self.col]
+            acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+            event = Steal(self.engine, acting_tile, action_tile)
+            event.complete()
             self.engine.events.append(event)
             self.engine.stealing = None
             self.revert_to_playing_state()
@@ -824,7 +924,7 @@ class MiningStealing(State):
 
     def tab(self):
         try:
-            self.engine.events[-1].undo(self.engine)
+            self.engine.events[-1].undo()
             del self.engine.events[-1]
         except IndexError:
             print("IndexError")
@@ -881,11 +981,12 @@ class Mining(State):
         # try:
         if self.prev is not None:
             if Constant.tile_in_bounds(row, col):
-                sel = self.engine.board[row][col].get_resource()
                 mining_squares = self.prev.mining_squares_list
                 if (row, col) in mining_squares:
-                    mining_event = Mine(sel, self.prev)
-                    mining_event.complete(self.engine)
+                    acting_tile = self.engine.board[self.prev.row][self.prev.col]
+                    action_tile = self.engine.board[row][col]
+                    mining_event = Mine(self.engine, acting_tile, action_tile)
+                    mining_event.complete()
                     self.engine.events.append(mining_event)
                     new_state = Playing(self.win, self.engine)
                     self.engine.reset_selected()
@@ -899,7 +1000,7 @@ class Mining(State):
 
     def tab(self):
         try:
-            self.engine.events[-1].undo(self.engine)
+            self.engine.events[-1].undo()
             del self.engine.events[-1]
         except IndexError:
             print("IndexError")
@@ -948,12 +1049,10 @@ class Stealing(State):
 
         if self.engine.stealing:
             self.engine.close_menus()
-            stolen_from = self.engine.get_occupying(self.row, self.col)
-            thief = self.previously_selected
-            resource_stolen = self.engine.stealing[0]
-            amount = self.engine.stealing[1]
-            event = Steal(stolen_from, thief, resource_stolen, amount)
-            event.complete(self.engine)
+            action_tile = self.engine.board[self.row][self.col]
+            acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+            event = Steal(self.engine, acting_tile, action_tile)
+            event.complete()
             self.engine.events.append(event)
             self.engine.stealing = None
             self.revert_to_playing_state()
@@ -977,7 +1076,7 @@ class Stealing(State):
 
     def tab(self):
         try:
-            self.engine.events[-1].undo(self.engine)
+            self.engine.events[-1].undo()
             del self.engine.events[-1]
         except IndexError:
             print("IndexError")
@@ -1067,7 +1166,7 @@ class PreBuilding(State):
 
     def tab(self):
         try:
-            self.engine.events[-1].undo(self.engine)
+            self.engine.events[-1].undo()
             del self.engine.events[-1]
 
         except IndexError:
@@ -1123,8 +1222,10 @@ class Praying(State):
             sel = self.engine.board[row][col].get_occupying()
             praying_squares = prev.praying_squares_list
             if (row, col) in praying_squares:
-                prayer_event = Pray(prev, sel)
-                prayer_event.complete(self.engine)
+                acting_tile = self.engine.board[prev.row][prev.col]
+                action_tile = self.engine.board[row][col]
+                prayer_event = Pray(self.engine, acting_tile, action_tile)
+                prayer_event.complete()
                 self.engine.events.append(prayer_event)
                 new_state = Playing(self.win, self.engine)
                 self.engine.reset_selected()
@@ -1138,7 +1239,7 @@ class Praying(State):
 
     def tab(self):
         try:
-            self.engine.events[-1].undo(self.engine)
+            self.engine.events[-1].undo()
             del self.engine.events[-1]
 
         except IndexError:
@@ -1172,17 +1273,18 @@ class Spawning(State):
         pos = pygame.mouse.get_pos()
         row, col = Constant.convert_pos(pos)
         previousP = self.engine.update_previously_selected()
+
         if self.engine.spawning == 'quarry_1':
             previousP.spawn_squares_list = previousP.spawn_squares_for_quarry(self.engine)
-        piece_cost = Constant.PIECE_COSTS[self.engine.spawning]
         if (row, col) in previousP.spawn_squares_list:
+            acting_tile = self.engine.board[previousP.row][previousP.col]
+            action_tile = self.engine.board[row][col]
             if self.engine.spawning == 'quarry_1':
-                spawn_event = SpawnResource(self.engine.turn, self.engine.spawning, (row, col), previousP)
+                spawn_event = SpawnResource(self.engine, acting_tile, action_tile)
             else:
-                spawn_event = Spawn(self.engine.turn, self.engine.spawning, (row, col), previousP)
-            spawn_event.complete(self.engine)
+                spawn_event = Spawn(self.engine, acting_tile, action_tile)
+            spawn_event.complete()
             self.engine.events.append(spawn_event)
-            self.engine.players[self.engine.turn].purchase(piece_cost)
             state = Playing(self.win, self.engine)
             self.engine.set_state(state)
         else:
@@ -1357,7 +1459,9 @@ class SummonGoldGeneral(Ritual):
     def left_click(self):
         row, col = Constant.convert_pos(pygame.mouse.get_pos())
         if self.click_valid_square(row, col):
-            event = GoldGeneralEvent(self.engine,self.previously_selected, row, col)
+            acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+            action_tile = self.engine.board[row][col]
+            event = GoldGeneralEvent(self.engine, acting_tile, action_tile)
             event.complete()
             self.engine.events.append(event)
             self.revert_to_playing_state()
@@ -1397,7 +1501,9 @@ class PerformSmite(Ritual):
     def left_click(self):
         row, col = Constant.convert_pos(pygame.mouse.get_pos())
         if self.click_valid_square(row, col):
-            event = Smite(self.engine,self.previously_selected, row, col)
+            acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+            action_tile = self.engine.board[row][col]
+            event = Smite(self.engine, acting_tile, action_tile)
             event.complete()
             self.engine.events.append(event)
             self.revert_to_playing_state()
@@ -1434,7 +1540,9 @@ class PerformDestroyResource(Ritual):
         row, col = Constant.convert_pos(pygame.mouse.get_pos())
 
         if self.click_valid_square(row, col):
-            event = DestroyResource(self.engine,self.previously_selected, row, col)
+            acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+            action_tile = self.engine.board[row][col]
+            event = DestroyResource(self.engine, acting_tile, action_tile)
             event.complete()
             self.engine.events.append(event)
             self.revert_to_playing_state()
@@ -1495,7 +1603,9 @@ class PerformCreateResource(Ritual):
 
         if self.engine.ritual_summon_resource:
             self.engine.close_menus()
-            event = CreateResource(self.engine,self.previously_selected, self.row, self.col, self.engine.ritual_summon_resource)
+            acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+            action_tile = self.engine.board[row][col]
+            event = CreateResource(self.engine, acting_tile, action_tile)
             event.complete()
             self.engine.events.append(event)
             self.engine.ritual_summon_resource = None
@@ -1554,7 +1664,9 @@ class PerformTeleport(Ritual):
             self.selected = self.engine.get_occupying(row, col)
             self.previously_selected.ritual_squares_list = self.valid_teleport_squares()
         elif self.click_valid_square(row, col) and self.selected:
-            event = Teleport(self.engine,self.previously_selected, self.selected.row, self.selected.col, row, col)
+            acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+            action_tile = self.engine.board[row][col]
+            event = Teleport(self.engine, acting_tile, action_tile)
             event.complete()
             self.engine.events.append(event)
             self.revert_to_playing_state()
@@ -1599,7 +1711,9 @@ class PerformSwap(Ritual):
             self.previously_selected.ritual_squares_list = self.swap_ritual_squares()
         elif self.click_valid_square(row, col) and self.first_selected:
             self.second_selected = self.engine.get_occupying(row, col)
-            event = Swap(self.engine,self.previously_selected, self.first_selected.row, self.first_selected.col, self.second_selected.row, self.second_selected.col)
+            acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+            action_tile = self.engine.board[row][col]
+            event = Swap(self.engine, acting_tile, action_tile)
             event.complete()
             self.engine.events.append(event)
             self.revert_to_playing_state()
@@ -1661,7 +1775,10 @@ class PerformLineDestroy(Ritual):
     def left_click(self):
         row, col = Constant.convert_pos(pygame.mouse.get_pos())
         if self.click_valid_square(row, col):
-            event = LineDestroy(self.engine,self.previously_selected, row, col, self.selected_range)
+            self.engine.line_destroy_selected_range = self.selected_range
+            acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+            action_tile = self.engine.board[row][col]
+            event = LineDestroy(self.engine, acting_tile, action_tile)
             event.complete()
             self.engine.events.append(event)
             if self.engine.enemy_player_king_does_not_exist():
@@ -1709,7 +1826,9 @@ class PerformProtect(Ritual):
     def left_click(self):
         row, col = Constant.convert_pos(pygame.mouse.get_pos())
         if self.click_valid_square(row, col):
-            event = Protect(self.engine,self.previously_selected, row, col)
+            acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+            action_tile = self.engine.board[row][col]
+            event = Protect(self.engine, acting_tile, action_tile)
             event.complete()
             self.engine.events.append(event)
             self.revert_to_playing_state()

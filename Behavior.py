@@ -177,7 +177,7 @@ class Random(Behavior):
                 for capture in self.possible_moves[piece]['capture']:
                     captured_piece = engine.get_occupying(capture[0], capture[1])
                     if str(captured_piece) == 'king':
-                        move = ('capture', self.possible_moves[piece]['capture'])
+                        move = ('capture', capture)
                         actions[piece] = move
                         return actions
         if not move:

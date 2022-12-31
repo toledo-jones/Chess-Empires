@@ -812,8 +812,8 @@ class RogueKnight(Piece):
         squares = []
 
         for direction in self.directions:
-            r = self.row - direction[0]
-            c = self.col - direction[1]
+            r = self.row + direction[0]
+            c = self.col + direction[1]
             if self.can_capture(r, c, engine):
                 squares.append((r, c))
 
@@ -875,15 +875,11 @@ class RoguePawn(Piece):
         squares = []
 
         for direction in self.capture_directions:
-            for distance in range(1, self.capture_distance):
-                r = self.row + direction[0] * distance
-                c = self.col + direction[1] * distance
-                if not Constant.tile_in_bounds(r, c):
-                    break
-                if not self.can_capture(r, c, engine):
-                    break
-                else:
-                    squares.append((r, c))
+            r = self.row + direction[0]
+            c = self.col + direction[1]
+            if self.can_capture(r, c, engine):
+                squares.append((r, c))
+
         return squares
 
     def move_squares(self, engine):

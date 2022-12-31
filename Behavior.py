@@ -11,6 +11,7 @@ class Behavior:
         self.fulfill_move_parameters = {'pray': self.pray, 'steal': self.steal, 'mine': self.mine, 'spawn': self.spawn, 'move': self.move, 'capture': self.capture, 'persuade': self.persuade}
 
     def evaluate_position(self, engine):
+        evaluation = 0
         white_evaluation = self.count_material(engine.players['w'])
         black_evaluation = self.count_material(engine.players['b'])
         if engine.turn == 'w':
@@ -26,7 +27,6 @@ class Behavior:
             value = 10
             cost = Constant.PIECE_COSTS[str(piece)]
             for resource in cost:
-                value *= cost[resource]
                 value += cost[resource] * self.resource_values[resource]
             material += value
 
@@ -200,25 +200,24 @@ class MaterialCounter(Behavior):
                     for move in possible_moves[piece][move_kind]:
                         acting_tile = engine.board[piece.row][piece.col]
                         action_tile = engine.board[move[0]][move[1]]
-                        if acting_tile.get_occupying():
-                            event = self.fulfill_move_parameters[move_kind](engine, acting_tile, action_tile)
-                            event.complete()
-                            change_turn_event = None
-                            if engine.players[engine.turn].actions_remaining == 0:
-                                change_turn_event = ChangeTurn(engine)
-                            if change_turn_event:
-                                change_turn_event.complete()
-                                current_evaluation = self.search(engine, depth - 1, False)[1]
-                                # self.print_diagnostics(engine.turn, possible_moves, piece, move_kind, current_evaluation)
-                            else:
-                                current_evaluation = self.search(engine, depth-1, True)[1]
-                                # self.print_diagnostics(engine.turn, possible_moves, piece, move_kind, current_evaluation)
-                            if change_turn_event:
-                                change_turn_event.undo()
-                            event.undo()
-                            if current_evaluation > max_evaluation:
-                                max_evaluation = current_evaluation
-                                best_move = {piece: (move_kind, move)}
+                        event = self.fulfill_move_parameters[move_kind](engine, acting_tile, action_tile)
+                        event.complete()
+                        change_turn_event = None
+                        if engine.players[engine.turn].actions_remaining == 0:
+                            change_turn_event = ChangeTurn(engine)
+                        if change_turn_event:
+                            change_turn_event.complete()
+                            current_evaluation = self.search(engine, depth - 1, False)[1]
+                        else:
+                            current_evaluation = self.search(engine, depth-1, True)[1]
+                        if change_turn_event:
+                            change_turn_event.undo()
+                        event.undo()
+                        if current_evaluation > max_evaluation:
+                            max_evaluation = current_evaluation
+                            print('max evaluation')
+                            self.print_diagnostics(engine.turn, possible_moves, piece, move_kind, current_evaluation)
+                            best_move = {piece: (move_kind, move)}
             return best_move, max_evaluation
         else:
             for piece in possible_moves:
@@ -226,25 +225,26 @@ class MaterialCounter(Behavior):
                     for move in possible_moves[piece][move_kind]:
                         acting_tile = engine.board[piece.row][piece.col]
                         action_tile = engine.board[move[0]][move[1]]
-                        if acting_tile.get_occupying():
-                            event = self.fulfill_move_parameters[move_kind](engine, acting_tile, action_tile)
-                            event.complete()
-                            change_turn_event = None
-                            if engine.players[engine.turn].actions_remaining == 0:
-                                change_turn_event = ChangeTurn(engine)
-                            if change_turn_event:
-                                change_turn_event.complete()
-                                current_evaluation = self.search(engine, depth - 1, True)[1]
-                                # self.print_diagnostics(engine.turn, possible_moves, piece, move_kind, current_evaluation)
-                            else:
-                                current_evaluation = self.search(engine, depth-1, False)[1]
-                                # self.print_diagnostics(engine.turn, possible_moves, piece, move_kind, current_evaluation)
-                            if change_turn_event:
-                                change_turn_event.undo()
-                            event.undo()
-                            if current_evaluation > min_evaluation:
-                                min_evaluation = current_evaluation
-                                best_move = {piece: (move_kind, move)}
+                        event = self.fulfill_move_parameters[move_kind](engine, acting_tile, action_tile)
+                        event.complete()
+                        change_turn_event = None
+                        if engine.players[engine.turn].actions_remaining == 0:
+                            change_turn_event = ChangeTurn(engine)
+                        if change_turn_event:
+                            change_turn_event.complete()
+                            current_evaluation = self.search(engine, depth - 1, True)[1]
+                            # self.print_diagnostics(engine.turn, possible_moves, piece, move_kind, current_evaluation)
+                        else:
+                            current_evaluation = self.search(engine, depth-1, False)[1]
+                            # self.print_diagnostics(engine.turn, possible_moves, piece, move_kind, current_evaluation)
+                        if change_turn_event:
+                            change_turn_event.undo()
+                        event.undo()
+                        if current_evaluation > min_evaluation:
+                            min_evaluation = current_evaluation
+                            print('minimum evaluation')
+                            self.print_diagnostics(engine.turn, possible_moves, piece, move_kind, current_evaluation)
+                            best_move = {piece: (move_kind, move)}
             return best_move, min_evaluation
 
     def print_diagnostics(self,turn ,possible_moves, piece, move_kind, current_evaluation):

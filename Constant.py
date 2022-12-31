@@ -223,9 +223,9 @@ PIECE_POPULATION = {'king': 1,
                     'doe': 0,
                     'persuader': 1}
 
-PRAYER_COSTS = {'gold_general': {'prayer': 16, 'monk': 3},
-                'smite': {'prayer': 12, 'monk': 1},
-                'destroy_resource': {'prayer': 12, 'monk': 0},
+PRAYER_COSTS = {'gold_general': {'prayer': 12, 'monk': 3},
+                'smite': {'prayer': 8, 'monk': 1},
+                'destroy_resource': {'prayer': 8, 'monk': 0},
                 'create_resource': {'prayer': 4, 'monk': 0},
                 'teleport': {'prayer': 4, 'monk': 0},
                 'swap': {'prayer': 1, 'monk': 0},

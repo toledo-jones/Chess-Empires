@@ -55,7 +55,7 @@ DEBUG_STARTING_PRAYER = 12
 DEBUG_STARTING_WOOD = 99
 DEBUG_STARTING_GOLD = 99
 DEBUG_STARTING_STONE = 99
-DEBUG_STARTING_PIECES = ['castle', 'doe', 'persuader', 'king']
+DEBUG_STARTING_PIECES = ['castle', 'doe', 'monolith', 'king']
 DEBUG_RITUALS = False
 PLAY_AGAINST_AI = False
 BOARD_STARTS_WITH_RESOURCES = True
@@ -69,7 +69,7 @@ STARTING_PIECES = ['castle', 'king']
 
 SELECTABLE_STARTING_PIECES = ['pawn', 'builder', 'monk', 'pikeman', 'rogue_pawn', 'wall']
 NUMBER_OF_STARTING_PIECES = 5
-MONOLITH_RITUALS = ['gold_general', 'smite', 'swap', 'destroy_resource', 'line_destroy', 'protect', 'create_resource']
+MONOLITH_RITUALS = ['gold_general', 'create_resource', 'smite', 'swap', 'destroy_resource', 'teleport', 'line_destroy', 'protect', ]
 PRAYER_STONE_RITUALS = ['destroy_resource', 'create_resource', 'teleport', 'swap', 'protect']
 STEALING_KEY = {'building': {
     'wood': {'variance': (-2, 2), 'value': 4},
@@ -123,12 +123,12 @@ PIECE_COSTS = {'king': {'log': 999, 'gold': 999, 'stone': 999},
                'rook': {'log': 0, 'gold': 6, 'stone': 6},
                'bishop': {'log': 6, 'gold': 6, 'stone': 0},
                'knight': {'log': 0, 'gold': 0, 'stone': 3},
-               'jester': {'log': 0, 'gold': 8, 'stone': 0},
+               'jester': {'log': 0, 'gold': 10, 'stone': 0},
                'rogue_rook': {'log': 0, 'gold': 14, 'stone': 14},
                'rogue_bishop': {'log': 9, 'gold': 9, 'stone': 0},
                'rogue_knight': {'log': 0, 'gold': 9, 'stone': 0},
                'rogue_pawn': {'log': 6, 'gold': 0, 'stone': 0},
-               'elephant': {'log': 5, 'gold': 0, 'stone': 5},
+               'elephant': {'log': 6, 'gold': 0, 'stone': 6},
                'ram': {'log': 6, 'gold': 0, 'stone': 6},
                'unicorn': {'log': 12, 'gold': 0, 'stone': 12},
                'monolith': {'log': 0, 'gold': 0, 'stone': 15},
@@ -136,7 +136,7 @@ PIECE_COSTS = {'king': {'log': 999, 'gold': 999, 'stone': 999},
                'duke': {'log': 6, 'gold': 14, 'stone': 15},
                'oxen': {'log': 12, 'gold': 0, 'stone': 12},
                'champion': {'log': 0, 'gold': 9, 'stone': 9},
-               'wall': {'log': 0, 'gold': 0, 'stone': 7},
+               'wall': {'log': 0, 'gold': 0, 'stone': 5},
                'persuader': {'log': 0, 'gold': 10, 'stone': 0},
                'doe': {'log': 16, 'gold': 0, 'stone': 16},
 

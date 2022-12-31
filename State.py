@@ -1528,7 +1528,7 @@ class PerformCreateResource(Ritual):
         if self.engine.ritual_summon_resource:
             self.engine.close_menus()
             acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
-            action_tile = self.engine.board[row][col]
+            action_tile = self.engine.board[self.row][self.col]
             event = CreateResource(self.engine, acting_tile, action_tile)
             event.complete()
             self.engine.events.append(event)
@@ -1589,7 +1589,7 @@ class PerformTeleport(Ritual):
             self.previously_selected.ritual_squares_list = self.valid_teleport_squares()
         elif self.click_valid_square(row, col) and self.selected:
             acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
-            action_tile = self.engine.board[row][col]
+            action_tile = ((self.selected.row, self.selected.col), (row, col))
             event = Teleport(self.engine, acting_tile, action_tile)
             event.complete()
             self.engine.events.append(event)
@@ -1636,7 +1636,7 @@ class PerformSwap(Ritual):
         elif self.click_valid_square(row, col) and self.first_selected:
             self.second_selected = self.engine.get_occupying(row, col)
             acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
-            action_tile = self.engine.board[row][col]
+            action_tile = ((self.first_selected.row, self.first_selected.col), (row, col))
             event = Swap(self.engine, acting_tile, action_tile)
             event.complete()
             self.engine.events.append(event)

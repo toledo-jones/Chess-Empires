@@ -734,8 +734,10 @@ class CreateResource(RitualEvent):
 class Teleport(RitualEvent):
     def __init__(self, engine, acting_tile, action_tile):
         super().__init__(engine, acting_tile, action_tile)
-        self.row, self.col = self.acting_tile.get_position()
-        self.dest_row, self.dest_col = self.action_tile.get_position()
+        self.selected_first, self.selected_second = action_tile
+        self.dest_row, self.dest_col = self.selected_second
+        self.row, self.col = self.selected_first
+        self.previously_selected = self.acting_tile.get_position()
 
     def __repr__(self):
         return 'teleport'
@@ -767,8 +769,10 @@ class Teleport(RitualEvent):
 class Swap(RitualEvent):
     def __init__(self, engine, acting_tile, action_tile):
         super().__init__(engine, acting_tile, action_tile)
-        self.row, self.col = self.acting_tile.get_position()
-        self.dest_row, self.dest_col = self.action_tile.get_position()
+        self.selected_first, self.selected_second = action_tile
+        self.dest_row, self.dest_col = self.selected_second
+        self.row, self.col = self.selected_first
+        self.previously_selected = self.acting_tile.get_position()
         self.first_actions = self.engine.get_occupying(self.row, self.col).actions_remaining
         self.second_actions = self.engine.get_occupying(self.dest_row, self.dest_col).actions_remaining
 

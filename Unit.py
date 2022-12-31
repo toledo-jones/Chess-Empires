@@ -578,8 +578,8 @@ class Knight(Piece):
         squares = []
 
         for direction in self.directions:
-            r = self.row - direction[0]
-            c = self.col - direction[1]
+            r = self.row + direction[0]
+            c = self.col + direction[1]
             if self.can_capture(r, c, engine):
                 squares.append((r, c))
 
@@ -1026,8 +1026,8 @@ class Elephant(Piece):
         squares = []
 
         for direction in self.directions:
-            r = self.row - direction[0]
-            c = self.col - direction[1]
+            r = self.row + direction[0]
+            c = self.col + direction[1]
             if self.can_capture(r, c, engine):
                 squares.append((r, c))
 
@@ -1155,8 +1155,8 @@ class Pikeman(Piece):
         squares = []
 
         for direction in self.directions:
-            r = self.row - direction[0]
-            c = self.col - direction[1]
+            r = self.row + direction[0]
+            c = self.col + direction[1]
             if self.can_capture(r, c, engine):
                 squares.append((r, c))
 

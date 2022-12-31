@@ -220,7 +220,7 @@ PIECE_POPULATION = {'king': 1,
                     'ram': 1,
                     'oxen': 1,
                     'wall': 0,
-                    'doe': 0,
+                    'doe': 1,
                     'persuader': 1}
 
 PRAYER_COSTS = {'gold_general': {'prayer': 12, 'monk': 3},

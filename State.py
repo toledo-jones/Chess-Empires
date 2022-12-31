@@ -165,7 +165,6 @@ class Playing(State):
                 if self.engine.player_can_do_action(self.engine.turn):
                     return True
 
-
     def can_capture_piece(self, previously_selected, row, col, currently_selected):
         if previously_selected is not None:
             if previously_selected.actions_remaining > 0:
@@ -472,16 +471,14 @@ class AIPlaying(State):
         self.turn_events.append(turn_change_event)
         self.engine.players[self.engine.turn].begin_turn(self)
 
-
     def make_move(self, event):
         self.turn_events.append(event)
         event.complete()
 
     def act(self):
-        self.ai.update_all_possible_moves(self.engine)
-        desired_actions = self.ai.update_desired_actions(self.engine)
-        selected_move = self.ai.determine_most_desired_action(desired_actions)
-        event = self.ai.fulfill_move_parameters(self.engine, selected_move)
+        desired_action = self.ai.get_desired_action(self.engine)
+        print(desired_action)
+        event = self.ai.fulfill_move_parameters(self.engine, desired_action[0])
         if event is not None:
             self.make_move(event)
 
@@ -503,7 +500,7 @@ class AIStartingSpawn(State):
                                    Constant.DOWN_LEFT)
 
     def __repr__(self):
-        return 'ai start spawn'
+        return 'start spawn'
 
     def create_ai_player(self):
         if not Constant.TURNS[self.engine.turn] in self.engine.players:
@@ -704,7 +701,7 @@ class DebugStart(StartingSpawn):
         self.engine.spawning = self.spawn_list[0]
 
     def __repr__(self):
-        return 'debug'
+        return 'start spawn'
 
     def begin_next_player_start_spawn(self):
         turn_change = ChangeTurn(self.engine)
@@ -741,6 +738,7 @@ class DebugStart(StartingSpawn):
             if self.engine.final_spawn:
                 self.end_start_spawning()
             else:
+                self.engine.create_player(Constant.TURNS[self.engine.turn])
                 self.begin_next_player_start_spawn()
 
 
@@ -898,6 +896,63 @@ class Mining(State):
         #     self.engine.reset_selected()
         #     new_state = Playing(self.win, self.engine)
         #     self.engine.set_state(new_state)
+
+
+
+class Persuading(State):
+    def __init__(self, win, engine):
+        super().__init__(win, engine)
+        self.prev = engine.update_previously_selected()
+
+    def __repr__(self):
+        return 'mining'
+
+    def draw(self):
+        super().draw()
+        side_bar = Hud(self.win, self.engine)
+        side_bar.draw()
+        pos = pygame.mouse.get_pos()
+        display_pos_x = pos[0] - Constant.SQ_SIZE // 2
+        display_pos_y = pos[1] - Constant.SQ_SIZE // 2
+        if Constant.pos_in_bounds(pos):
+            row, col = Constant.convert_pos(pos)
+            if (row, col) in self.prev.persuader_squares_list:
+                self.win.blit(Constant.IMAGES['persuade'], (display_pos_x, display_pos_y))
+
+    def left_click(self):
+        pos = pygame.mouse.get_pos()
+        row, col = Constant.convert_pos(pos)
+        # try:
+        if self.select(row, col):
+            pass
+        else:
+            self.engine.reset_selected()
+            new_state = Playing(self.win, self.engine)
+            self.engine.set_state(new_state)
+        # except IndexError:
+        #     print("Index Error")
+        #     print(" -- Line 423, State.py")
+
+    def right_click(self):
+        self.engine.reset_selected()
+        self.engine.menus = []
+        state = Playing(self.win, self.engine)
+        self.engine.set_state(state)
+
+    def select(self, row, col):
+        if self.prev is not None:
+            if Constant.tile_in_bounds(row, col):
+                persuader_squares = self.prev.persuader_squares_list
+                if (row, col) in persuader_squares:
+                    acting_tile = self.engine.board[self.prev.row][self.prev.col]
+                    action_tile = self.engine.board[row][col]
+                    event = Persuade(self.engine, acting_tile, action_tile)
+                    event.complete()
+                    self.engine.events.append(event)
+                    if self.engine.enemy_player_king_does_not_exist():
+                        new_state = Winner(self.win, self.engine)
+                        self.engine.set_state(new_state)
+                        return True
 
 
 class Stealing(State):

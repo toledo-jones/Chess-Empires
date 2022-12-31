@@ -86,7 +86,10 @@ class Engine:
                        'gold_general': GoldGeneral,
                        'duke': Duke,
                        'oxen': Oxen,
-                       'wall': Wall}
+                       'wall': Wall,
+                       'doe': Doe,
+                       'persuader': Persuader,
+                       }
         self.STATES = {'playing': Playing,
                        'ai playing': AIPlaying,
                        'mining': Mining,
@@ -413,7 +416,7 @@ class Engine:
 
     def piece_is_selected(self, piece):
         selected_list = [piece.selected, piece.mining, piece.pre_selected, piece.purchasing, piece.praying,
-                         piece.casting, piece.stealing, piece.mining_stealing]
+                         piece.casting, piece.stealing, piece.mining_stealing, piece.persuading]
         if any(selected_list):
             return True
 
@@ -464,6 +467,7 @@ class Engine:
                 piece.update_move_squares(self)
                 piece.update_capture_squares(self)
                 piece.update_spawn_squares(self)
+                piece.update_persuader_squares(self)
 
     def update_mining_squares(self):
         for player in self.players:
@@ -498,6 +502,7 @@ class Engine:
                 piece.casting = False
                 piece.stealing = False
                 piece.mining_stealing = False
+                piece.persuading = False
 
     def reset_player_actions_remaining(self, color):
         self.players[color].reset_actions_remaining()
@@ -957,6 +962,10 @@ class Engine:
             if isinstance(r, Wood) or isinstance(r, Quarry) or isinstance(r, Gold) or isinstance(r, SunkenQuarry):
                 return True
 
+    def update_persuader_squares(self):
+        for piece in self.players[self.turn].pieces:
+            piece.update_persuader_squares(self)
+
     def update_praying_squares(self):
         for piece in self.players[self.turn].pieces:
             piece.update_praying_squares(self)
@@ -1081,6 +1090,16 @@ class Engine:
             self.menus = []
             return True
 
+    def transfer_to_persuading_state(self, row, col):
+        self.update_persuader_squares()
+        persuader_squares = self.board[row][col].get_occupying().persuader_squares_list
+        if persuader_squares:
+            self.board[row][col].get_occupying().persuading = True
+            new_state = Persuading(self.state[-1].win, self)
+            self.set_state(new_state)
+            self.menus = []
+            return True
+
     def transfer_to_mining_state(self, row, col):
         self.update_mining_squares()
         mining_squares = self.board[row][col].get_occupying().mining_squares_list
@@ -1132,6 +1151,18 @@ class Engine:
         self.update_spawn_squares()
         return True
 
+    def is_legal_starting_square(self, row, col):
+        player_is_too_close = False
+        if not self.can_be_occupied(row, col):
+            return False
+        if not self.players:
+            return True
+        for r in range(row - 3, row + 4):
+            for c in range(col - 3, col + 4):
+                if self.has_castle(r, c):
+                    player_is_too_close = True
+
+        return not player_is_too_close
     def is_legal_starting_square(self, row, col):
         player_is_too_close = False
         if not self.can_be_occupied(row, col):

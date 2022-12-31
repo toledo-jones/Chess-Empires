@@ -21,7 +21,9 @@ class Unit:
         self.casting = False
         self.stealing = False
         self.mining_stealing = False
+        self.persuading = False
 
+        self.can_be_persuaded = True
         self.intercepted = False
         self.is_rogue = False
         self.is_general = False
@@ -41,6 +43,7 @@ class Unit:
         self.stealing_squares_list = []
         self.ritual_squares_list = []
         self.capture_squares_list = []
+        self.persuader_squares_list = []
 
         self.square = pygame.Surface((Constant.SQ_SIZE, Constant.SQ_SIZE))
         self.self_selected_square_color = Constant.SELF_SQUARE_HIGHLIGHT_COLOR
@@ -56,6 +59,9 @@ class Unit:
 
     def update_interceptor_squares(self, engine):
         self.interceptor_squares_list = self.interceptor_squares(engine)
+
+    def update_persuader_squares(self, engine):
+        self.persuader_squares_list = self.persuader_squares(engine)
 
     def update_mining_squares(self, engine):
         self.mining_squares_list = self.mining_squares(engine)
@@ -75,7 +81,7 @@ class Unit:
     def possible_moves(self):
         return {'spawn': self.spawn_squares_list, 'move': self.move_squares_list, 'mine': self.mining_squares_list,
                 'steal': self.stealing_squares_list, 'pray': self.praying_squares_list,
-                'capture': self.capture_squares_list, 'ritual': self.ritual_squares_list}
+                'capture': self.capture_squares_list, 'ritual': self.ritual_squares_list, 'persuade': self.persuader_squares_list}
 
     def can_capture(self, r, c, engine):
         capture_tile = None
@@ -129,6 +135,9 @@ class Unit:
                     else:
                         if not engine.board[r][c].is_protected_by_opposite_color(self.color):
                             return True
+
+    def persuader_squares(self, engine):
+        return []
 
     def mining_squares(self, engine):
         return []
@@ -189,6 +198,9 @@ class Unit:
         if self.stealing:
             self.highlight_self_square(win)
             self.highlight_stealing_squares(win)
+        if self.persuading:
+            self.highlight_self_square(win)
+            self.highlight_persuader_squares(win)
         if self.actions_remaining == 0:
             self.unused_piece_highlight = False
 
@@ -238,6 +250,9 @@ class Unit:
     def highlight_capture_squares(self, win):
         self.draw_squares_in_list(win, self.capture_squares_list, self.move_square_color)
 
+    def highlight_persuader_squares(self, win):
+        self.draw_squares_in_list(win, self.persuader_squares_list, self.move_square_color)
+
     def get_additional_piece_limit(self):
         return self.additional_piece_limit
 
@@ -258,10 +273,20 @@ class Unit:
     def get_color(self):
         return self.color
 
+    def can_spawn(self, engine):
+        spawn_list = Constant.SPAWN_LISTS[str(self)]
+        legal_spawns = []
+        for spawn in spawn_list:
+            if engine.is_legal_spawn(spawn):
+                legal_spawns.append(spawn)
+        if legal_spawns:
+            return True
+
 
 class Building(Unit):
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
+        self.can_be_persuaded = False
 
     def right_click(self, engine):
         if self.actions_remaining > 0 and engine.players[engine.turn].actions_remaining > 0:
@@ -678,21 +703,6 @@ class RogueRook(Piece):
                     squares.append((r, c))
         return squares
 
-    def can_capture(self, r, c, engine):
-        capture_tile = None
-        if Constant.tile_in_bounds(r, c):
-            capture_tile = engine.board[r][c].get_occupying()
-        valid_square = isinstance(capture_tile, Piece) or isinstance(capture_tile, Building)
-        if valid_square:
-            if engine.can_be_legally_occupied_by_rogue(r, c):
-                if self.color != capture_tile.get_color():
-                    if not engine.board[r][c].is_protected():
-                        return True
-                    if not engine.board[r][c].is_protected_by_opposite_color(self.color):
-                        return True
-                    if not capture_tile.occupying.is_wall:
-                        return True
-
     def stealing_squares(self, engine):
         squares = []
 
@@ -754,21 +764,6 @@ class RogueBishop(Piece):
                 else:
                     squares.append((r, c))
         return squares
-
-    def can_capture(self, r, c, engine):
-        capture_tile = None
-        if Constant.tile_in_bounds(r, c):
-            capture_tile = engine.board[r][c].get_occupying()
-        valid_square = isinstance(capture_tile, Piece) or isinstance(capture_tile, Building)
-        if valid_square:
-            if engine.can_be_legally_occupied_by_rogue(r, c):
-                if self.color != capture_tile.get_color():
-                    if not engine.board[r][c].is_protected():
-                        return True
-                    if not engine.board[r][c].is_protected_by_opposite_color(self.color):
-                        return True
-                    if not capture_tile.occupying.is_wall:
-                        return True
 
     def stealing_squares(self, engine):
         squares = []
@@ -1090,6 +1085,63 @@ class Jester(Piece):
 
         return squares
 
+class Doe(Piece):
+    def __repr__(self):
+        return 'doe'
+
+    def __init__(self, row, col, color):
+        super().__init__(row, col, color)
+        self.knight_directions = (
+            Constant.TWO_UP_RIGHT, Constant.TWO_RIGHT_UP, Constant.TWO_DOWN_RIGHT, Constant.TWO_RIGHT_DOWN,
+            Constant.TWO_UP_LEFT, Constant.TWO_LEFT_UP, Constant.TWO_DOWN_LEFT, Constant.TWO_LEFT_DOWN)
+        self.bishop_directions = (Constant.UP_LEFT, Constant.UP_RIGHT, Constant.DOWN_RIGHT, Constant.DOWN_LEFT)
+        self.distance = Constant.BOARD_WIDTH_SQ
+        self.is_cavalry = True
+
+    def capture_squares(self, engine):
+        squares = []
+
+        for direction in self.knight_directions:
+            r = self.row + direction[0]
+            c = self.col + direction[1]
+            if self.can_capture(r, c, engine):
+                squares.append((r, c))
+
+        for direction in self.bishop_directions:
+            for i in range(1, self.distance):
+                r = self.row + direction[0] * i
+                c = self.col + direction[1] * i
+                if not Constant.tile_in_bounds(r, c):
+                    break
+                if self.can_capture(r, c, engine):
+                    squares.append((r, c))
+                    break
+                if not engine.can_be_occupied(r, c):
+                    break
+
+        return squares
+
+    def move_squares(self, engine):
+        squares = []
+
+        for direction in self.knight_directions:
+            r = self.row + direction[0]
+            c = self.col + direction[1]
+            if engine.can_be_occupied(r, c):
+                squares.append((r, c))
+
+        for direction in self.bishop_directions:
+            for i in range(1, self.distance):
+                r = self.row + direction[0] * i
+                c = self.col + direction[1] * i
+                if not Constant.tile_in_bounds(r, c):
+                    break
+                if not engine.can_be_occupied(r, c):
+                    break
+                else:
+                    squares.append((r, c))
+
+        return squares
 
 class Pikeman(Piece):
     def __repr__(self):
@@ -1160,6 +1212,9 @@ class Builder(Piece):
     def spawn_squares(self, engine):
 
         spawn_squares = []
+        if not self.can_spawn(engine):
+            return spawn_squares
+
         for direction in self.directions:
             r = self.row - direction[0]
             c = self.col - direction[1]
@@ -1375,6 +1430,45 @@ class Oxen(Piece):
         return squares
 
 
+class Persuader(Piece):
+    def __repr__(self):
+        return 'persuader'
+
+    def __init__(self, row, col, color):
+        super().__init__(row, col, color)
+        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
+                           Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
+                           Constant.DOWN_LEFT)
+
+    def persuader_squares(self, engine):
+        squares = []
+
+        for direction in self.directions:
+            r = self.row + direction[0]
+            c = self.col + direction[1]
+            if self.can_capture(r, c, engine):
+                if engine.get_occupying(r, c).can_be_persuaded:
+                    squares.append((r, c))
+
+        return squares
+
+    def move_squares(self, engine):
+        squares = []
+
+        for direction in self.directions:
+            r = self.row + direction[0]
+            c = self.col + direction[1]
+            if engine.can_be_occupied(r, c):
+                squares.append((r, c))
+
+        return squares
+
+    def right_click(self, engine):
+        if super().right_click(engine):
+            if engine.players[engine.turn].actions_remaining > 0:
+                return engine.transfer_to_persuading_state(self.row, self.col)
+
+
 class GoldGeneral(Piece):
     def __repr__(self):
         return 'gold_general'
@@ -1388,6 +1482,7 @@ class GoldGeneral(Piece):
         self.praying_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
                                    Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT, Constant.DOWN_LEFT)
         self.is_general = True
+        self.can_be_persuaded = False
 
     def praying_squares(self, engine):
         squares = []
@@ -1451,6 +1546,8 @@ class Stable(Building):
 
     def spawn_squares(self, engine):
         spawn_squares = []
+        if not self.can_spawn(engine):
+            return spawn_squares
 
         for direction in self.directions:
             r = self.row - direction[0]
@@ -1480,6 +1577,9 @@ class Barracks(Building):
     def spawn_squares(self, engine):
         spawn_squares = []
 
+        if not self.can_spawn(engine):
+            return spawn_squares
+
         for direction in self.directions:
             r = self.row - direction[0]
             c = self.col - direction[1]
@@ -1507,6 +1607,10 @@ class Castle(Building):
 
     def spawn_squares(self, engine):
         spawn_squares = []
+
+        if not str(engine.state[-1]) == 'start spawn':
+            if not self.can_spawn(engine):
+                return spawn_squares
 
         for direction in self.directions:
             r = self.row - direction[0]
@@ -1536,13 +1640,15 @@ class Fortress(Building):
     def spawn_squares(self, engine):
         spawn_squares = []
 
+        if not self.can_spawn(engine):
+            return spawn_squares
+
         for direction in self.directions:
             r = self.row - direction[0]
             c = self.col - direction[1]
             if engine.can_be_occupied_by_rogue(r, c):
                 spawn_squares.append((r, c))
         return spawn_squares
-
 
     def right_click(self, engine):
         if super().right_click(engine):

@@ -159,7 +159,7 @@ class Player:
 class AI(Player):
     def __init__(self, color):
         super().__init__(color)
-        self.BEHAVIORS = {'random': Random}
+        self.BEHAVIORS = {'material': MaterialCounter}
 
         rand = random.choice(list(self.BEHAVIORS))
 
@@ -174,7 +174,6 @@ class AI(Player):
 
     def fulfill_move_parameters(self, engine, selected_move):
         pieces = list(selected_move.keys())
-
         piece = pieces[0]
         move = selected_move[piece]
         move_kind = move[0]
@@ -183,22 +182,6 @@ class AI(Player):
         acting_tile = engine.board[piece.row][piece.col]
         return self.behavior.fulfill_move_parameters[move_kind](engine, acting_tile, action_tile)
 
-    def determine_most_desired_action(self, desired_actions):
-        selected_move = None
-        for move_kind in self.behavior.move_priority:
-            for piece in desired_actions:
-                if desired_actions[piece] is not None:
-                    if move_kind == desired_actions[piece][0]:
-                        selected_move = {piece: desired_actions[piece]}
-                        break
-            if selected_move:
-                break
-        return selected_move
+    def get_desired_action(self, engine):
+        return self.behavior.desired_action(engine)
 
-    def update_desired_actions(self, engine):
-        # Select one legal move for each piece
-        desired_actions = self.behavior.desired_actions(engine)
-        return desired_actions
-
-    def harvest_resources(self, engine):
-        return self.behavior.harvest_resources(engine)

@@ -2,8 +2,7 @@ import os
 import random
 import pygame
 import Constant
-from Piece import Piece
-from Building import Building
+from Unit import *
 
 
 class Menu:

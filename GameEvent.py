@@ -1,7 +1,6 @@
-from Piece import *
+from Unit import *
 from Resource import *
 from Tile import Tile
-from Building import *
 
 
 class GameEvent:
@@ -9,9 +8,6 @@ class GameEvent:
         self.engine = engine
         self.acting_tile = acting_tile
         self.action_tile = action_tile
-
-    def __repr__(self):
-        return 'parent'
 
     def complete(self):
         pass
@@ -92,7 +88,6 @@ class SpawnResource(GameEvent):
         self.spawner = self.acting_tile.get_occupying()
         self.piece_cost = Constant.PIECE_COSTS[self.engine.spawning]
 
-
     def __repr__(self):
         return 'spawn resource'
 
@@ -136,7 +131,6 @@ class Spawn(GameEvent):
         self.additional_piece_limit = 0
         self.additional_actions = 0
         self.piece_cost = Constant.PIECE_COSTS[self.engine.spawning]
-
 
     def __repr__(self):
         return 'spawn'
@@ -337,6 +331,52 @@ class Pray(GameEvent):
         i = random.randint(0, len(Constant.pray) - 1)
         Constant.PRAY_SOUNDS[i].set_volume(.5)
         Constant.PRAY_SOUNDS[i].play()
+
+
+class Persuade(GameEvent):
+    def __init__(self, engine, acting_tile, action_tile):
+        super().__init__(engine, acting_tile, action_tile)
+        self.persuader = self.acting_tile.get_occupying()
+        self.persuaded = self.action_tile.get_occupying()
+        self.persuaded_actions = self.persuaded.actions_remaining
+        self.persuaded_color = self.persuaded.color
+
+    def __repr__(self):
+        return 'persuade'
+
+    def complete(self):
+        super().complete()
+        self.persuader.actions_remaining -= 1
+        self.persuaded.actions_remaining -= 1
+        self.engine.players[self.persuaded.color].pieces.remove(self.persuaded)
+        self.engine.players[self.persuader.color].pieces.append(self.persuaded)
+        self.persuaded.color = self.persuader.color
+        self.engine.reset_selected()
+        self.engine.reset_unused_piece_highlight()
+        self.engine.intercept_pieces()
+        self.engine.correct_interceptions()
+        unused_pieces = self.engine.count_unused_pieces()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+        if Constant.PERSUADE_COSTS_ACTION:
+            self.engine.players[self.engine.turn].do_action()
+
+    def undo(self):
+        super().undo()
+        self.persuader.actions_remaining += 1
+        self.persuaded.actions_remaining = self.persuaded_actions
+        self.engine.players[self.persuader.color].pieces.remove(self.persuaded)
+        self.engine.players[self.persuaded_color].pieces.append(self.persuaded)
+        self.persuaded.color = self.persuaded_color
+        self.engine.reset_selected()
+        unused_pieces = self.engine.count_unused_pieces()
+        self.engine.reset_unused_piece_highlight()
+        self.engine.correct_interceptions()
+        for piece in unused_pieces:
+            if piece is not self.persuaded:
+                piece.unused_piece_highlight = True
+        if Constant.PERSUADE_COSTS_ACTION:
+            self.engine.players[self.engine.turn].undo_action()
 
 
 class Move(GameEvent):

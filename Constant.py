@@ -228,7 +228,7 @@ PRAYER_COSTS = {'gold_general': {'prayer': 12, 'monk': 3},
                 'destroy_resource': {'prayer': 8, 'monk': 0},
                 'create_resource': {'prayer': 4, 'monk': 0},
                 'teleport': {'prayer': 4, 'monk': 0},
-                'swap': {'prayer': 1, 'monk': 0},
+                'swap': {'prayer': 2, 'monk': 0},
                 'line_destroy': {'prayer': 8, 'monk': 1},
                 'protect': {'prayer': 1, 'monk': 0}}
 

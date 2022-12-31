@@ -541,7 +541,7 @@ class Engine:
         #
         #   Empty captured square
         #
-        self.board[dest_row][dest_col].occupying = None
+        self.board[dest_row][dest_col].set_occupying(None)
 
         #
         #   Move piece to newly emptied square

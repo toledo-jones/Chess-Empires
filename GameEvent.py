@@ -434,7 +434,6 @@ class Capture(GameEvent):
         super().complete()
         self.moved.actions_remaining -= 1
         self.play_random_sound_effect()
-        self.engine.players[self.engine.turn].captured_pieces.append(self.engine.get_occupying(self.end[0], self.end[1]))
         self.engine.capture(self.start[0], self.start[1], self.end[0], self.end[1])
         self.engine.players[self.engine.turn].do_action()
         self.engine.reset_unused_piece_highlight()
@@ -448,10 +447,8 @@ class Capture(GameEvent):
         super().undo()
         self.moved.actions_remaining += 1
         self.play_random_sound_effect()
-        del self.engine.players[self.engine.turn].captured_pieces[-1]
         self.engine.move(self.end[0], self.end[1], self.start[0], self.start[1])
-        piece = self.engine.PIECES[str(self.captured)](self.end[0], self.end[1], self.captured.color)
-        self.engine.create_piece(self.end[0], self.end[1], piece)
+        self.engine.create_piece(self.end[0], self.end[1], self.captured)
         self.engine.players[self.engine.turn].undo_action()
         self.engine.reset_unused_piece_highlight()
         self.engine.correct_interceptions()

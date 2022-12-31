@@ -23,10 +23,11 @@ class Behavior:
     def count_material(self, player):
         material = 0
         for piece in player.pieces:
-            value = 0
+            value = 10
             cost = Constant.PIECE_COSTS[str(piece)]
             for resource in cost:
-                value = cost[resource] * self.resource_values[resource]
+                value *= cost[resource]
+                value += cost[resource] * self.resource_values[resource]
             material += value
 
         wood_value = player.wood * self.resource_values['log']
@@ -208,10 +209,10 @@ class MaterialCounter(Behavior):
                             if change_turn_event:
                                 change_turn_event.complete()
                                 current_evaluation = self.search(engine, depth - 1, False)[1]
-                                self.print_diagnostics(engine.turn, possible_moves, piece, move_kind, current_evaluation)
+                                # self.print_diagnostics(engine.turn, possible_moves, piece, move_kind, current_evaluation)
                             else:
                                 current_evaluation = self.search(engine, depth-1, True)[1]
-                                self.print_diagnostics(engine.turn, possible_moves, piece, move_kind, current_evaluation)
+                                # self.print_diagnostics(engine.turn, possible_moves, piece, move_kind, current_evaluation)
                             if change_turn_event:
                                 change_turn_event.undo()
                             event.undo()
@@ -234,10 +235,10 @@ class MaterialCounter(Behavior):
                             if change_turn_event:
                                 change_turn_event.complete()
                                 current_evaluation = self.search(engine, depth - 1, True)[1]
-                                self.print_diagnostics(engine.turn, possible_moves, piece, move_kind, current_evaluation)
+                                # self.print_diagnostics(engine.turn, possible_moves, piece, move_kind, current_evaluation)
                             else:
                                 current_evaluation = self.search(engine, depth-1, False)[1]
-                                self.print_diagnostics(engine.turn, possible_moves, piece, move_kind, current_evaluation)
+                                # self.print_diagnostics(engine.turn, possible_moves, piece, move_kind, current_evaluation)
                             if change_turn_event:
                                 change_turn_event.undo()
                             event.undo()
@@ -252,7 +253,7 @@ class MaterialCounter(Behavior):
         print(f"{piece} {move_kind} {str(current_evaluation)}")
 
     def desired_action(self, engine):
-        return self.search(engine, 2, True)
+        return self.search(engine, 3, True)
 
     def desired_spawn(self, engine, acting_tile):
         spawner = acting_tile.get_occupying()

@@ -55,7 +55,7 @@ DEBUG_STARTING_PRAYER = 12
 DEBUG_STARTING_WOOD = 99
 DEBUG_STARTING_GOLD = 99
 DEBUG_STARTING_STONE = 99
-DEBUG_STARTING_PIECES = ['castle', 'doe', 'monolith', 'king']
+DEBUG_STARTING_PIECES = ['castle', 'rogue_rook', 'king']
 DEBUG_RITUALS = False
 PLAY_AGAINST_AI = False
 BOARD_STARTS_WITH_RESOURCES = True
@@ -122,8 +122,8 @@ PIECE_COSTS = {'king': {'log': 999, 'gold': 999, 'stone': 999},
                'queen': {'log': 0, 'gold': 14, 'stone': 14},
                'rook': {'log': 0, 'gold': 6, 'stone': 6},
                'bishop': {'log': 6, 'gold': 6, 'stone': 0},
-               'knight': {'log': 0, 'gold': 0, 'stone': 3},
-               'jester': {'log': 0, 'gold': 10, 'stone': 0},
+               'knight': {'log': 1, 'gold': 0, 'stone': 3},
+               'jester': {'log': 0, 'gold': 12, 'stone': 0},
                'rogue_rook': {'log': 0, 'gold': 14, 'stone': 14},
                'rogue_bishop': {'log': 9, 'gold': 9, 'stone': 0},
                'rogue_knight': {'log': 0, 'gold': 9, 'stone': 0},
@@ -136,10 +136,9 @@ PIECE_COSTS = {'king': {'log': 999, 'gold': 999, 'stone': 999},
                'duke': {'log': 6, 'gold': 14, 'stone': 15},
                'oxen': {'log': 12, 'gold': 0, 'stone': 12},
                'champion': {'log': 0, 'gold': 9, 'stone': 9},
-               'wall': {'log': 0, 'gold': 0, 'stone': 5},
-               'persuader': {'log': 0, 'gold': 10, 'stone': 0},
-               'doe': {'log': 16, 'gold': 0, 'stone': 16},
-
+               'wall': {'log': 0, 'gold': 0, 'stone': 3},
+               'persuader': {'log': 0, 'gold': 20, 'stone': 0},
+               'doe': {'log': 14, 'gold': 0, 'stone': 14},
                }
 # HOW TO ACCESS:
 # for line in Constant.DESCRIPTIONS['piece']
@@ -273,19 +272,19 @@ DEPLETED_QUARRY_TOTAL_MINED = 0
 SUNKEN_QUARRY_TOTAL_MINED = 1
 
 WOOD_VARIANCE = (-2, 2)
-GOLD_VARIANCE = (-4, 0)
+GOLD_VARIANCE = (-3, 1)
 STONE_VARIANCE = (-2, 2)
 
-WOOD_YIELD_PER_HARVEST = 6
-GOLD_YIELD_PER_HARVEST = 8
-STONE_YIELD_PER_HARVEST = 7
+WOOD_YIELD_PER_HARVEST = 7
+GOLD_YIELD_PER_HARVEST = 9
+STONE_YIELD_PER_HARVEST = 8
 SUNKEN_QUARRY_YIELD_PER_HARVEST = 1
 DEPLETED_QUARRY_YIELD_PER_HARVEST = 0
 
 PRAYER_STONE_YIELD = 1
 MONOLITH_YIELD = 2
 ADDITIONAL_PRAYER_FROM_MONK = 2
-ADDITIONAL_MINING_FROM_ROGUE = {'wood': -1, 'stone': -2, 'gold': -3}
+ADDITIONAL_MINING_FROM_ROGUE = {'wood': -2, 'stone': -3, 'gold': -2}
 
 RESOURCE_KEY = {'gold_tile_1': 'gold', 'quarry_1': 'stone',
                 'sunken_quarry_1': 'stone', 'tree_tile_1': 'wood',

@@ -683,7 +683,7 @@ class RogueRook(Piece):
                 if self.can_capture(r, c, engine):
                     squares.append((r, c))
                     break
-                if not engine.can_be_occupied(r, c):
+                if not engine.can_be_occupied_by_rogue(r, c):
                     break
 
         return squares
@@ -745,7 +745,7 @@ class RogueBishop(Piece):
                 if self.can_capture(r, c, engine):
                     squares.append((r, c))
                     break
-                if not engine.can_be_occupied(r, c):
+                if not engine.can_be_occupied_by_rogue(r, c):
                     break
 
         return squares

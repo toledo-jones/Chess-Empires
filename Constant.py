@@ -55,7 +55,7 @@ DEBUG_STARTING_PRAYER = 12
 DEBUG_STARTING_WOOD = 99
 DEBUG_STARTING_GOLD = 99
 DEBUG_STARTING_STONE = 99
-DEBUG_STARTING_PIECES = ['castle', 'rogue_rook', 'king']
+DEBUG_STARTING_PIECES = ['castle', 'monolith', 'king']
 DEBUG_RITUALS = False
 PLAY_AGAINST_AI = False
 BOARD_STARTS_WITH_RESOURCES = True
@@ -69,8 +69,17 @@ STARTING_PIECES = ['castle', 'king']
 
 SELECTABLE_STARTING_PIECES = ['pawn', 'builder', 'monk', 'pikeman', 'rogue_pawn', 'wall']
 NUMBER_OF_STARTING_PIECES = 5
-MONOLITH_RITUALS = ['gold_general', 'create_resource', 'smite', 'swap', 'destroy_resource', 'teleport', 'line_destroy', 'protect', ]
-PRAYER_STONE_RITUALS = ['destroy_resource', 'create_resource', 'teleport', 'swap', 'protect']
+MONOLITH_RITUALS = ['gold_general',
+                    'portal',
+                    'protect',
+                    'swap',
+                    'teleport',
+                    'create_resource',
+                    'smite',
+                    'destroy_resource',
+                    'line_destroy',
+                    ]
+PRAYER_STONE_RITUALS = []
 STEALING_KEY = {'building': {
     'wood': {'variance': (-2, 2), 'value': 4},
     'gold': {'variance': (-2, 2), 'value': 4},
@@ -98,7 +107,6 @@ MINING_COSTS_ACTION = False
 PRAYING_COSTS_ACTION = False
 STEALING_COSTS_ACTION = False
 PERSUADE_COSTS_ACTION = True
-
 
 CASTLE_ADDITIONAL_ACTIONS = 0
 BARRACKS_ADDITIONAL_ACTIONS = 0
@@ -140,17 +148,14 @@ PIECE_COSTS = {'king': {'log': 999, 'gold': 999, 'stone': 999},
                'persuader': {'log': 0, 'gold': 20, 'stone': 0},
                'doe': {'log': 14, 'gold': 0, 'stone': 14},
                }
-# HOW TO ACCESS:
-# for line in Constant.DESCRIPTIONS['piece']
-# print(line)
-# Constant.DESCRIPTIONS['piece'][description_line_index]
+
 DESCRIPTIONS = {'king': ['every player gets one', 'capture your opponent\'s to win'],
-                'gold_general': ['summons the strongest piece imaginable'],
+                'gold_general': ['summons a fierce demon who ', 'moves like a queen through and onto ', 'all resource tiles'],
                 'quarry_1': ['can be mined for stone', 'may cave in and begin to yield less stone',
-                             'cannot be dug onto a depleted quarry'],
+                             'eventually becomes depleted if mined after it caves in'],
                 'pawn': ['can mine resources'],
                 'builder': ['can create buildings'],
-                'monk': ['can pray at monoliths and prayer Stones'],
+                'monk': ['prays at monoliths to cast powerful rituals'],
                 'pikeman': ['attacks and defends all surrounding squares', 'a useful defender'],
                 'castle': ['creates basic pieces, such as pawns'],
                 'stable': ['creates leapers, such as the knight'],
@@ -170,8 +175,8 @@ DESCRIPTIONS = {'king': ['every player gets one', 'capture your opponent\'s to w
                 'champion': ['moves diagonally one square', 'then like a rook in that same direction'],
                 'elephant': ['a leaper who moves up three and over one', 'and who also moves like a knight'],
                 'ram': ['a leaper who moves like a knight, then like a bishop'],
-                'unicorn': ['a leaper who moves like a knight ', 'and can double jump'],
-                'monolith': ['a strange, powerful prayer site'],
+                'unicorn': ['a leaper who moves like a knight ', 'can double jump if nothing obstructs it\'s movement', ' also moves two forward in every direction'],
+                'monolith': ['a strange, powerful prayer site', 'can be used to cast rituals'],
                 'prayer_stone': ['a strange prayer site'],
                 'duke': ['moves like a queen', 'but has the ability to pray'],
                 'smite': ['select one piece or building to be destroyed'],
@@ -183,7 +188,9 @@ DESCRIPTIONS = {'king': ['every player gets one', 'capture your opponent\'s to w
                 'line_destroy': ['destroys everything in it\'s path'],
                 'protect': ['protects a square from capture or destruction'],
                 'doe': ['moves like a knight and a bishop'],
-                'persuader': ['can convert the color of nearby pieces']
+                'persuader': ['can convert the color of nearby pieces'],
+                'portal': ['creates a portal on any two squares',
+                           'pieces who land on either square will be transported', 'to the other one']
                 }
 
 PIECE_POPULATION = {'king': 1,
@@ -226,9 +233,10 @@ PRAYER_COSTS = {'gold_general': {'prayer': 12, 'monk': 3},
                 'smite': {'prayer': 8, 'monk': 1},
                 'destroy_resource': {'prayer': 8, 'monk': 0},
                 'create_resource': {'prayer': 4, 'monk': 0},
-                'teleport': {'prayer': 4, 'monk': 0},
+                'teleport': {'prayer': 8, 'monk': 0},
                 'swap': {'prayer': 2, 'monk': 0},
                 'line_destroy': {'prayer': 8, 'monk': 1},
+                'portal': {'prayer': 2, 'monk': 0},
                 'protect': {'prayer': 1, 'monk': 0}}
 
 ADDITIONAL_PIECE_LIMIT = {'castle': 5, 'barracks': 3, 'fortress': 3, 'stable': 3,
@@ -349,7 +357,6 @@ THREE_RIGHT_DOWN = (1, 3)
 THREE_DOWN_LEFT = (3, -1)
 THREE_LEFT_DOWN = (1, -3)
 
-
 #
 #   GRAPHICS / UX
 #
@@ -444,13 +451,14 @@ b_buildings = ['b_castle', 'b_fortress', 'b_barracks',
                'b_wall', 'b_monolith', 'b_prayer_stone',
                'b_flag', 'b_barracks', 'b_war_tower', 'b_stable']
 w_prayer_rituals = ['w_gold_general', 'w_smite', 'w_destroy_resource', 'w_create_resource', 'w_teleport',
-                    'w_swap', 'w_line_destroy', 'w_protect']
+                    'w_swap', 'w_line_destroy', 'w_protect', 'w_portal']
 b_prayer_rituals = ['b_gold_general', 'b_smite', 'b_destroy_resource', 'b_create_resource', 'b_teleport', 'b_swap',
-                    'b_line_destroy', 'b_protect']
+                    'b_line_destroy', 'b_protect', 'b_portal']
 images = ['icon', 'pickaxe', 'w_game_name', 'b_game_name', 'prayer', 'gold_coin', 'log', 'action', 'prayer_bar_end',
           'units', 'prayer', 'prayer_bar', 'stone', 'w_boat', 'b_boat', 'hour_glass', 'hammer', 'axe',
           'resources_button',
-          'b_no', 'b_yes', 'w_no', 'w_yes', 'b_protect', 'w_protect', 'steal', 'persuade']
+          'b_no', 'b_yes', 'w_no', 'w_yes', 'b_protect', 'w_protect', 'steal', 'persuade', 'w_block', 'b_block',
+          'w_portal', 'b_portal']
 music = ['music']
 resources = ['gold_tile_1',
              'tree_tile_1',
@@ -472,6 +480,7 @@ RITUAL_IMAGE_MODIFY = {'gold_general': {'SCALE': PRAYER_RITUAL_SCALE, 'OFFSET': 
                        'teleport': {'SCALE': PRAYER_RITUAL_SCALE, 'OFFSET': (0, 0)},
                        'swap': {'SCALE': PRAYER_RITUAL_SCALE, 'OFFSET': (0, 0)},
                        'line_destroy': {'SCALE': PRAYER_RITUAL_SCALE, 'OFFSET': (0, 0)},
+                       'portal': {'SCALE': PRAYER_RITUAL_SCALE, 'OFFSET': (0, 0)},
                        'protect': {'SCALE': PRAYER_RITUAL_SCALE, 'OFFSET': (0, 0)}}
 
 PIECE_IMAGE_MODIFY = {'king': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
@@ -534,7 +543,11 @@ IMAGES_IMAGE_MODIFY = {'icon': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                        'w_yes': {'SCALE': YES_BUTTON_SCALE, 'OFFSET': (0, 0)},
                        'w_protect': {'SCALE': PROTECT_SQUARE_SCALE, 'OFFSET': PROTECT_SQUARE_OFFSET},
                        'b_protect': {'SCALE': PROTECT_SQUARE_SCALE, 'OFFSET': PROTECT_SQUARE_OFFSET},
-                       'persuade': {'SCALE': PICKAXE_SCALE, 'OFFSET': (0,0)},
+                       'persuade': {'SCALE': PICKAXE_SCALE, 'OFFSET': (0, 0)},
+                       'w_block': {'SCALE': PROTECT_SQUARE_SCALE, 'OFFSET': PROTECT_SQUARE_OFFSET},
+                       'b_block': {'SCALE': PROTECT_SQUARE_SCALE, 'OFFSET': PROTECT_SQUARE_OFFSET},
+                       'w_portal': {'SCALE': PROTECT_SQUARE_SCALE, 'OFFSET': PROTECT_SQUARE_OFFSET},
+                       'b_portal': {'SCALE': PROTECT_SQUARE_SCALE, 'OFFSET': PROTECT_SQUARE_OFFSET},
                        'steal': {'SCALE': PICKAXE_SCALE, 'OFFSET': (0, 0)}}
 
 RESOURCES_IMAGE_MODIFY = {'gold_tile_1': {'SCALE': GOLD_SCALE, 'OFFSET': GOLD_OFFSET},

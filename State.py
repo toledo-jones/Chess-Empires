@@ -193,7 +193,10 @@ class Playing(State):
             prev_position = previously_selected.get_position()
             acting_tile = self.engine.board[prev_position[0]][prev_position[1]]
             action_tile = self.engine.board[row][col]
-            moveEvent = Move(self.engine, acting_tile, action_tile)
+            if action_tile.portal:
+                moveEvent = PortalMove(self.engine, acting_tile, action_tile)
+            else:
+                moveEvent = Move(self.engine, acting_tile, action_tile)
             moveEvent.complete()
             self.engine.events.append(moveEvent)
             self.engine.reset_selected()
@@ -213,7 +216,10 @@ class Playing(State):
             prev_row, prev_col = previously_selected.get_position()
             acting_tile = self.engine.board[prev_row][prev_col]
             action_tile = self.engine.board[row][col]
-            capture_event = Capture(self.engine, acting_tile, action_tile)
+            if not action_tile.portal:
+                capture_event = Capture(self.engine, acting_tile, action_tile)
+            else:
+                capture_event = PortalCapture(self.engine, acting_tile, action_tile)
             capture_event.complete()
             self.engine.events.append(capture_event)
             self.engine.reset_selected()
@@ -898,7 +904,6 @@ class Mining(State):
         #     self.engine.set_state(new_state)
 
 
-
 class Persuading(State):
     def __init__(self, win, engine):
         super().__init__(win, engine)
@@ -1206,7 +1211,10 @@ class Spawning(State):
             if self.engine.spawning == 'quarry_1':
                 spawn_event = SpawnResource(self.engine, acting_tile, action_tile)
             else:
-                spawn_event = Spawn(self.engine, acting_tile, action_tile)
+                if not action_tile.portal:
+                    spawn_event = Spawn(self.engine, acting_tile, action_tile)
+                else:
+                    spawn_event = PortalSpawn(self.engine, acting_tile, action_tile)
             spawn_event.complete()
             self.engine.events.append(spawn_event)
             state = Playing(self.win, self.engine)
@@ -1618,15 +1626,24 @@ class PerformSwap(Ritual):
         if self.first_selected:
             self.first_selected.highlight_self_square(self.win)
 
+    def swap_criteria(self, piece):
+        if not isinstance(piece, King):
+            return not isinstance(piece, Building)
+
     def swap_ritual_squares(self):
-        list_of_all_pieces = []
-        for player in self.engine.players:
-            for piece in self.engine.players[player].pieces:
-                if piece is not self.first_selected:
-                    if not isinstance(piece, Building):
-                        if not isinstance(piece, King):
-                            list_of_all_pieces.append((piece.row, piece.col))
-        return list_of_all_pieces
+        valid_pieces = []
+        # find first selected:
+        if not self.first_selected:
+            for piece in self.engine.players[self.turn].pieces:
+                if self.swap_criteria(piece):
+                    valid_pieces.append((piece.row, piece.col))
+            return valid_pieces
+        # find second selected:
+        for piece in self.engine.players[Constant.TURNS[self.turn]].pieces:
+            if self.swap_criteria(piece):
+                valid_pieces.append((piece.row, piece.col))
+        return valid_pieces
+
 
     def left_click(self):
         row, col = Constant.convert_pos(pygame.mouse.get_pos())
@@ -1753,6 +1770,59 @@ class PerformProtect(Ritual):
             acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
             action_tile = self.engine.board[row][col]
             event = Protect(self.engine, acting_tile, action_tile)
+            event.complete()
+            self.engine.events.append(event)
+            self.revert_to_playing_state()
+        else:
+            self.revert_to_playing_state()
+
+
+class PerformPortal(Ritual):
+    def __init__(self, win, engine):
+        super().__init__(win, engine)
+        self.side_bar = Hud(win, engine)
+        self.engine.close_menus()
+        self.selected = None
+        self.previously_selected.ritual_squares_list = self.valid_portal_squares()
+
+    def __repr__(self):
+        return 'portal'
+
+    def valid_portal_squares(self):
+        ritual_squares = []
+        for row in range(self.engine.rows):
+            for col in range(self.engine.cols):
+                if self.engine.is_empty(row, col):
+                    ritual_squares.append((row, col))
+                elif self.engine.get_occupying(row, col):
+                    piece = self.engine.get_occupying(row, col)
+                    if not isinstance(piece, King):
+                        ritual_squares.append((row, col))
+                elif self.engine.get_resource(row, col):
+                    ritual_squares.append((row, col))
+        if self.selected:
+            if (self.selected.row, self.selected.col) in ritual_squares:
+                ritual_squares.remove((self.selected.row, self.selected.col))
+        return ritual_squares
+
+    def draw(self):
+        super().draw()
+        self.side_bar.draw()
+        self.previously_selected.highlight_ritual_squares(self.win)
+        self.draw_ritual_at_mouse_position()
+        if self.selected:
+            self.selected.draw_portal_image(self.win)
+
+    def left_click(self):
+        row, col = Constant.convert_pos(pygame.mouse.get_pos())
+        if self.click_valid_square(row, col) and self.selected is None:
+            self.selected = self.engine.board[row][col]
+            self.selected.portal_image = Constant.IMAGES[self.turn+"_portal"]
+            self.previously_selected.ritual_squares_list = self.valid_portal_squares()
+        elif self.click_valid_square(row, col) and self.selected:
+            acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+            action_tile = ((self.selected.row, self.selected.col), (row, col))
+            event = Portal(self.engine, acting_tile, action_tile)
             event.complete()
             self.engine.events.append(event)
             self.revert_to_playing_state()

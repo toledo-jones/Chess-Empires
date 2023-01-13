@@ -44,13 +44,10 @@ class Engine:
         self.prayer_stone_rituals = []
         self.line_destroy_selected_range = None
         if Constant.DEBUG_RITUALS:
-            self.prayer_stone_rituals.append(Constant.PRAYER_STONE_RITUALS)
             self.monolith_rituals.append(Constant.MONOLITH_RITUALS)
         else:
             self.monolith_rituals.append(self.generate_available_rituals(Constant.MONOLITH_RITUALS,
                                                                          Constant.MAX_MONOLITH_RITUALS_PER_TURN))
-            self.prayer_stone_rituals.append(self.generate_available_rituals(Constant.PRAYER_STONE_RITUALS,
-                                                                             Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN))
         self.piece_stealing_offsets = []
         self.piece_stealing_offsets.append(self.generate_stealing_offsets(Constant.STEALING_KEY['piece']))
 
@@ -105,6 +102,7 @@ class Engine:
                        'select starting pieces': SelectStartingPieces,
                        'destroy_resource': PerformDestroyResource,
                        'create_resource': PerformCreateResource,
+                       'portal': PerformPortal,
                        'teleport': PerformTeleport,
                        'swap': PerformSwap,
                        'line_destroy': PerformLineDestroy,
@@ -431,11 +429,11 @@ class Engine:
 
     def tick_protected_tiles(self, protected_tiles):
         for tile in protected_tiles:
-            tile.tick_protect_timer()
+            tile.tick_protect_timer(self)
 
     def untick_protected_tiles(self, protected_tiles):
         for tile in protected_tiles:
-            tile.untick_protect_timer(tile.protected_by)
+            tile.untick_protect_timer(self, tile.protected_by)
 
     def generate_stealing_offsets(self, stealing_key):
         variance_list = [stealing_key['wood']['variance'], stealing_key['gold']['variance'],
@@ -552,29 +550,22 @@ class Engine:
         first_piece_to_swap = self.get_occupying(moving_row, moving_col)
         second_piece_to_swap = self.get_occupying(dest_row, dest_col)
 
-        self.board[moving_row][moving_col].occupying = second_piece_to_swap
-        self.board[dest_row][dest_col].occupying = first_piece_to_swap
-
-        first_piece_to_swap.change_pos(dest_row, dest_col)
-        second_piece_to_swap.change_pos(moving_row, moving_col)
+        self.board[moving_row][moving_col].set_occupying(second_piece_to_swap)
+        self.board[dest_row][dest_col].set_occupying(first_piece_to_swap)
+        if first_piece_to_swap:
+            first_piece_to_swap.change_pos(dest_row, dest_col)
+        if second_piece_to_swap:
+            second_piece_to_swap.change_pos(moving_row, moving_col)
 
     def move(self, moving_row, moving_col, dest_row, dest_col):
         piece = self.board[moving_row][moving_col].get_occupying()
-        #
-        #   Move the piece on the board array
-        #
-        self.board[dest_row][dest_col].occupying = piece
-
-        #
-        #   Change the Row, Col in the Piece object to reflect change
-        #
-
+        self.board[dest_row][dest_col].set_occupying(piece)
         piece.change_pos(dest_row, dest_col)
-
-        #
-        #   Set the position on the board array to where the piece was to None
-        #
         self.board[moving_row][moving_col].set_occupying(None)
+
+    def has_portal(self, r, c):
+        if Constant.tile_in_bounds(r, c):
+            return self.board[r][c].portal
 
     def has_gold(self, r, c):
         if Constant.tile_in_bounds(r, c):
@@ -1163,6 +1154,7 @@ class Engine:
                     player_is_too_close = True
 
         return not player_is_too_close
+
     def is_legal_starting_square(self, row, col):
         player_is_too_close = False
         if not self.can_be_occupied(row, col):

@@ -121,6 +121,72 @@ class SpawnResource(GameEvent):
         Constant.HARVESTING_ROCK_SOUNDS[i].play()
 
 
+class PortalSpawn(GameEvent):
+    def __init__(self, engine, acting_tile, action_tile):
+        super().__init__(engine, acting_tile, action_tile)
+        self.color = self.engine.turn
+        self.spawn = self.engine.spawning
+        self.dest = self.action_tile.get_position()
+        self.portal_end = self.action_tile.connected_portal.get_position()
+        self.spawner = self.acting_tile.get_occupying()
+        self.additional_piece_limit = 0
+        self.additional_actions = 0
+        self.piece_cost = Constant.PIECE_COSTS[self.engine.spawning]
+
+    def __repr__(self):
+        return 'spawn'
+
+    def complete(self):
+        super().complete()
+        self.engine.spawn(self.dest[0], self.dest[1], self.spawn)
+        self.spawner.actions_remaining -= 1
+        self.engine.spawn_success = True
+        self.engine.menus = []
+        self.engine.reset_selected()
+        self.engine.players[self.engine.turn].do_action()
+        self.engine.players[self.engine.turn].purchase(self.piece_cost)
+        if Constant.ACTIONS_UPDATE_ON_SPAWN:
+            self.additional_actions = self.engine.get_occupying(self.dest[0], self.dest[1]).get_additional_actions()
+            self.engine.players[self.engine.turn].add_additional_actions(self.additional_actions)
+        self.additional_piece_limit = self.engine.get_occupying(self.dest[0], self.dest[1]).get_additional_piece_limit()
+        self.play_random_sound_effect(self.engine.board[self.dest[0]][self.dest[1]].get_occupying())
+        self.engine.intercept_pieces()
+        self.engine.players[self.engine.turn].add_additional_piece_limit(self.additional_piece_limit)
+        self.engine.reset_unused_piece_highlight()
+        unused_pieces = self.engine.count_unused_pieces()
+        self.engine.swap(self.dest[0], self.dest[1], self.portal_end[0], self.portal_end[1])
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+
+    def undo(self):
+        super().undo()
+        self.spawner.actions_remaining += 1
+        self.engine.swap(self.portal_end[0], self.portal_end[1], self.dest[0], self.dest[1])
+        self.play_random_sound_effect(self.engine.board[self.dest[0]][self.dest[1]].get_occupying())
+        self.engine.players[self.engine.turn].un_purchase(self.piece_cost)
+        self.engine.delete_piece(self.dest[0], self.dest[1])
+        self.engine.players[self.engine.turn].undo_action()
+        if Constant.ACTIONS_UPDATE_ON_SPAWN:
+            self.engine.players[self.engine.turn].remove_additional_actions(self.additional_actions)
+        self.engine.players[self.engine.turn].remove_additional_piece_limit(self.additional_piece_limit)
+        self.engine.reset_unused_piece_highlight()
+        self.engine.correct_interceptions()
+        unused_pieces = self.engine.count_unused_pieces()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+
+    def play_random_sound_effect(self, spawned):
+        if isinstance(spawned, Building):
+            i = random.randint(0, len(Constant.building_spawning) - 1)
+            Constant.BUILDING_SPAWNING_SOUNDS[i].set_volume(.1)
+            Constant.BUILDING_SPAWNING_SOUNDS[i].play()
+        elif isinstance(spawned, Piece):
+            i = random.randint(0, len(Constant.piece_spawning) - 1)
+            Constant.PIECE_SPAWNING_SOUNDS[i].set_volume(.1)
+            Constant.PIECE_SPAWNING_SOUNDS[i].play()
+
+
+
 class Spawn(GameEvent):
     def __init__(self, engine, acting_tile, action_tile):
         super().__init__(engine, acting_tile, action_tile)
@@ -379,6 +445,52 @@ class Persuade(GameEvent):
             self.engine.players[self.engine.turn].undo_action()
 
 
+class PortalMove(GameEvent):
+    def __init__(self, engine, acting_tile, action_tile):
+        super().__init__(engine, acting_tile, action_tile)
+        self.moved = self.acting_tile.get_occupying()
+        self.start = self.moved.row, self.moved.col
+        self.end = self.action_tile.row, self.action_tile.col
+        self.portal_end = self.action_tile.connected_portal.get_position()
+
+    def __repr__(self):
+        return 'move'
+
+    def complete(self):
+        super().complete()
+        self.moved.actions_remaining -= 1
+        self.engine.move(self.start[0], self.start[1], self.end[0], self.end[1])
+        self.engine.swap(self.end[0], self.end[1], self.portal_end[0], self.portal_end[1])
+        self.play_random_sound_effect()
+        self.engine.reset_selected()
+        self.engine.reset_unused_piece_highlight()
+        self.engine.intercept_pieces()
+        self.engine.correct_interceptions()
+        unused_pieces = self.engine.count_unused_pieces()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+        self.engine.players[self.engine.turn].do_action()
+
+    def undo(self):
+        super().undo()
+        self.moved.actions_remaining += 1
+        self.engine.swap(self.portal_end[0], self.portal_end[1], self.end[0], self.end[1])
+        self.engine.move(self.end[0], self.end[1], self.start[0], self.start[1])
+        self.play_random_sound_effect()
+        self.engine.reset_selected()
+        unused_pieces = self.engine.count_unused_pieces()
+        self.engine.reset_unused_piece_highlight()
+        self.engine.correct_interceptions()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+        self.engine.players[self.engine.turn].undo_action()
+
+    def play_random_sound_effect(self):
+        i = random.randint(0, len(Constant.moves) - 1)
+        Constant.MOVE_SOUNDS[i].set_volume(.1)
+        Constant.MOVE_SOUNDS[i].play()
+
+
 class Move(GameEvent):
     def __init__(self, engine, acting_tile, action_tile):
         super().__init__(engine, acting_tile, action_tile)
@@ -420,6 +532,49 @@ class Move(GameEvent):
         i = random.randint(0, len(Constant.moves) - 1)
         Constant.MOVE_SOUNDS[i].set_volume(.1)
         Constant.MOVE_SOUNDS[i].play()
+
+
+class PortalCapture(GameEvent):
+    def __init__(self, engine, acting_tile, action_tile):
+        super().__init__(engine, acting_tile, action_tile)
+        self.moved = self.acting_tile.get_occupying()
+        self.start = self.moved.row, self.moved.col
+        self.end = self.action_tile.get_position()
+        self.portal_end = self.action_tile.connected_portal.get_position()
+        self.captured = self.action_tile.get_occupying()
+
+    def complete(self):
+        super().complete()
+        self.moved.actions_remaining -= 1
+        self.play_random_sound_effect()
+        self.engine.capture(self.start[0], self.start[1], self.end[0], self.end[1])
+        self.engine.swap(self.end[0], self.end[1], self.portal_end[0], self.portal_end[1])
+        self.engine.players[self.engine.turn].do_action()
+        self.engine.reset_unused_piece_highlight()
+        self.engine.intercept_pieces()
+        self.engine.correct_interceptions()
+        unused_pieces = self.engine.count_unused_pieces()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+
+    def undo(self):
+        super().undo()
+        self.moved.actions_remaining += 1
+        self.play_random_sound_effect()
+        self.engine.swap(self.portal_end[0], self.portal_end[1], self.end[0], self.end[1])
+        self.engine.move(self.end[0], self.end[1], self.start[0], self.start[1])
+        self.engine.create_piece(self.end[0], self.end[1], self.captured)
+        self.engine.players[self.engine.turn].undo_action()
+        self.engine.reset_unused_piece_highlight()
+        self.engine.correct_interceptions()
+        unused_pieces = self.engine.count_unused_pieces()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+
+    def play_random_sound_effect(self):
+        i = random.randint(0, len(Constant.captures) - 1)
+        Constant.CAPTURE_SOUNDS[i].set_volume(.1)
+        Constant.CAPTURE_SOUNDS[i].play()
 
 
 class Capture(GameEvent):
@@ -502,12 +657,8 @@ class ChangeTurn(GameEvent):
         protected_tiles = self.protected_tiles
         self.engine.tick_protected_tiles(protected_tiles)
         if Constant.DEBUG_RITUALS:
-            self.engine.prayer_stone_rituals.append(Constant.PRAYER_STONE_RITUALS)
             self.engine.monolith_rituals.append(Constant.MONOLITH_RITUALS)
         else:
-            if self.engine.turn_count_actual == len(self.engine.prayer_stone_rituals) - 1:
-                self.engine.prayer_stone_rituals.append(self.engine.generate_available_rituals(
-                    Constant.PRAYER_STONE_RITUALS, Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN))
             if self.engine.turn_count_actual == len(self.engine.monolith_rituals) - 1:
                 self.engine.monolith_rituals.append(self.engine.generate_available_rituals(Constant.MONOLITH_RITUALS, Constant.MAX_MONOLITH_RITUALS_PER_TURN))
         if self.engine.turn_count_actual == len(self.engine.piece_stealing_offsets) - 1:
@@ -615,12 +766,18 @@ class GoldGeneralEvent(RitualEvent):
         super().complete()
         piece = self.engine.PIECES[str(self)](self.row, self.col, self.turn)
         self.engine.create_piece(self.row, self.col, piece)
+        if self.engine.board[self.row][self.col].portal:
+            connected_portal = self.engine.board[self.row][self.col].conneceted_portal
+            self.engine.swap(self.row, self.col, connected_portal.row, connected_portal.col)
         self.player.do_action()
         self.player.do_ritual(self.ritual_cost)
         self.sacrifice_random_monks()
 
     def undo(self):
         super().undo()
+        if self.engine.board[self.row][self.col].portal:
+            connected_portal = self.engine.board[self.row][self.col].conneceted_portal
+            self.engine.swap(self.row, self.col, connected_portal.row, connected_portal.col)
         self.engine.delete_piece(self.row, self.col)
         self.respawn_deleted_monks()
         self.player.undo_ritual(self.ritual_cost)
@@ -736,6 +893,10 @@ class Teleport(RitualEvent):
         super().__init__(engine, acting_tile, action_tile)
         self.selected_first, self.selected_second = action_tile
         self.dest_row, self.dest_col = self.selected_second
+        self.portal_end = None
+        if self.engine.board[self.dest_row][self.dest_col].portal:
+            self.portal_end = self.engine.board[self.dest_row][self.dest_col].connected_portal.get_position()
+
         self.row, self.col = self.selected_first
         self.previously_selected = self.acting_tile.get_position()
 
@@ -750,10 +911,14 @@ class Teleport(RitualEvent):
         self.player.do_action()
         self.player.do_ritual(self.ritual_cost)
         self.sacrifice_random_monks()
+        if self.portal_end:
+            self.engine.swap(self.dest_row, self.dest_col, self.portal_end[0], self.portal_end[1])
 
     def undo(self):
         super().undo()
         self.respawn_deleted_monks()
+        if self.portal_end:
+            self.engine.swap(self.portal_end[0], self.portal_end[1], self.dest_row, self.dest_col)
         self.engine.move(self.dest_row, self.dest_col, self.row, self.col)
         self.engine.get_occupying(self.row, self.col).actions_remaining = 1
         self.player.undo_ritual(self.ritual_cost)
@@ -772,6 +937,12 @@ class Swap(RitualEvent):
         self.selected_first, self.selected_second = action_tile
         self.dest_row, self.dest_col = self.selected_second
         self.row, self.col = self.selected_first
+        self.first_is_portal = False
+        self.second_is_portal = False
+        if self.engine.board[self.row][self.col].portal:
+            self.first_is_portal = True
+        if self.engine.board[self.dest_row][self.dest_col].portal:
+            self.second_is_portal = True
         self.previously_selected = self.acting_tile.get_position()
         self.first_actions = self.engine.get_occupying(self.row, self.col).actions_remaining
         self.second_actions = self.engine.get_occupying(self.dest_row, self.dest_col).actions_remaining
@@ -782,8 +953,15 @@ class Swap(RitualEvent):
     def complete(self):
         super().complete()
         self.engine.swap(self.row, self.col, self.dest_row, self.dest_col)
+
         self.engine.get_occupying(self.dest_row, self.dest_col).actions_remaining = 0
         self.engine.get_occupying(self.row, self.col).actions_remaining = 0
+        if self.first_is_portal:
+            connected_portal = self.engine.board[self.row][self.col].connected_portal
+            self.engine.swap(self.row, self.col, connected_portal.row, connected_portal.col)
+        if self.second_is_portal:
+            connected_portal = self.engine.board[self.dest_row][self.dest_col].connected_portal
+            self.engine.swap(self.dest_row, self.dest_col, connected_portal.row, connected_portal.col)
         self.engine.intercept_pieces()
         self.player.do_action()
         self.player.do_ritual(self.ritual_cost)
@@ -792,6 +970,12 @@ class Swap(RitualEvent):
     def undo(self):
         super().undo()
         self.respawn_deleted_monks()
+        if self.first_is_portal:
+            connected_portal = self.engine.board[self.row][self.col].connected_portal
+            self.engine.swap(self.row, self.col, connected_portal.row, connected_portal.col)
+        if self.second_is_portal:
+            connected_portal = self.engine.board[self.dest_row][self.dest_col].connected_portal
+            self.engine.swap(self.dest_row, self.dest_col, connected_portal.row, connected_portal.col)
         self.engine.swap(self.dest_row, self.dest_col, self.row, self.col)
         self.engine.get_occupying(self.row, self.col).actions_remaining = self.first_actions
         self.engine.get_occupying(self.dest_row, self.dest_col).actions_remaining = self.second_actions
@@ -910,3 +1094,54 @@ class Protect(RitualEvent):
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
         self.engine.players[self.engine.turn].undo_action()
+
+
+class Portal(RitualEvent):
+    def __init__(self, engine, acting_tile, action_tile):
+        super().__init__(engine, acting_tile, action_tile)
+        self.selected_first, self.selected_second = action_tile
+        self.dest_row, self.dest_col = self.selected_second
+        self.row, self.col = self.selected_first
+        self.previously_selected = self.acting_tile.get_position()
+        self.first_saved_portal = None
+        self.second_saved_portal = None
+
+    def __repr__(self):
+        return 'portal'
+
+    def complete(self):
+        super().complete()
+        if self.engine.board[self.row][self.col].portal:
+            tile = self.engine.board[self.row][self.col]
+            self.first_saved_portal = (tile.portal_color, tile.connected_portal)
+        self.engine.board[self.row][self.col].create_portal(self.turn, self.engine.board[self.dest_row][self.dest_col])
+        if self.engine.board[self.dest_row][self.dest_col].portal:
+            tile = self.engine.board[self.dest_row][self.dest_col]
+            self.second_saved_portal = (tile.portal_color, tile.connected_portal)
+        self.engine.board[self.dest_row][self.dest_col].create_portal(self.turn, self.engine.board[self.row][self.col])
+        self.engine.intercept_pieces()
+        self.player.do_action()
+        self.player.do_ritual(self.ritual_cost)
+        self.sacrifice_random_monks()
+
+    def undo(self):
+        super().undo()
+        self.engine.board[self.row][self.col].delete_portal()
+        if self.first_saved_portal:
+            portal = self.first_saved_portal
+            self.engine.board[self.row][self.col].create_portal(portal[0], portal[1])
+        self.engine.board[self.dest_row][self.dest_col].delete_portal()
+        if self.second_saved_portal:
+            portal = self.second_saved_portal
+            self.engine.board[self.dest_row][self.dest_col].create_portal(portal[0], portal[1])
+        self.respawn_deleted_monks()
+        self.player.undo_ritual(self.ritual_cost)
+        self.engine.reset_selected()
+        self.engine.correct_interceptions()
+        unused_pieces = self.engine.count_unused_pieces()
+        self.engine.reset_unused_piece_highlight()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+        self.engine.players[self.engine.turn].undo_action()
+
+

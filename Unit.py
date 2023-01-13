@@ -287,6 +287,7 @@ class Building(Unit):
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
         self.can_be_persuaded = False
+        self.can_be_persuaded = False
 
     def right_click(self, engine):
         if self.actions_remaining > 0 and engine.players[engine.turn].actions_remaining > 0:
@@ -1081,6 +1082,7 @@ class Jester(Piece):
 
         return squares
 
+
 class Doe(Piece):
     def __repr__(self):
         return 'doe'
@@ -1139,6 +1141,7 @@ class Doe(Piece):
 
         return squares
 
+
 class Pikeman(Piece):
     def __repr__(self):
         return 'pikeman'
@@ -1196,12 +1199,15 @@ class Builder(Piece):
                 moves.append((r, c))
         return moves
 
+    def base_spawn_criteria(self, engine, row, col):
+        return engine.has_none_occupying(row, col) and not engine.has_portal(row, col)
+
     def spawn_squares_for_quarry(self, engine):
         spawn_squares = []
         for direction in self.directions:
             r = self.row - direction[0]
             c = self.col - direction[1]
-            if engine.has_no_resource(r, c) and engine.has_none_occupying(r, c):
+            if self.base_spawn_criteria(engine, r, c) and engine.has_no_resource(r, c):
                 spawn_squares.append((r, c))
         return spawn_squares
 
@@ -1214,10 +1220,9 @@ class Builder(Piece):
         for direction in self.directions:
             r = self.row - direction[0]
             c = self.col - direction[1]
-            if engine.has_no_resource(r, c) and engine.has_none_occupying(r, c):
-                spawn_squares.append((r, c))
-            elif engine.has_depleted_quarry(r, c) and engine.has_none_occupying(r, c):
-                spawn_squares.append((r, c))
+            if self.base_spawn_criteria(engine, r, c):
+                if engine.has_no_resource(r, c,) or engine.has_depleted_quarry(r, c):
+                    spawn_squares.append((r, c))
         return spawn_squares
 
     def right_click(self, engine):
@@ -1435,6 +1440,7 @@ class Persuader(Piece):
         self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
                            Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
                            Constant.DOWN_LEFT)
+        self.distance = Constant.BOARD_WIDTH_SQ
 
     def persuader_squares(self, engine):
         squares = []
@@ -1452,11 +1458,15 @@ class Persuader(Piece):
         squares = []
 
         for direction in self.directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if engine.can_be_occupied(r, c):
-                squares.append((r, c))
-
+            for distance in range(1, self.distance):
+                r = self.row + direction[0] * distance
+                c = self.col + direction[1] * distance
+                if not Constant.tile_in_bounds(r, c):
+                    break
+                if not engine.can_be_occupied(r, c):
+                    break
+                else:
+                    squares.append((r, c))
         return squares
 
     def right_click(self, engine):

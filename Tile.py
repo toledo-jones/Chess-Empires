@@ -11,8 +11,14 @@ class Tile:
         self.protected = False
         self.protected_image = None
         self.protect_timer = 0
+        self.portal_image = None
         self.protect_image_offset = Constant.IMAGES_IMAGE_MODIFY['w_protect']['OFFSET']
+        self.portal_image_offset = Constant.IMAGES_IMAGE_MODIFY['w_portal']['OFFSET']
         self.protected_by = None
+
+        self.portal = False
+        self.portal_color = None
+        self.connected_portal = None
 
     def set_occupying(self, occupying):
         self.occupying = occupying
@@ -40,22 +46,29 @@ class Tile:
     def remove_resource(self):
         self.resource = None
 
+    def draw_portal_image(self, win):
+        x = (self.col * Constant.SQ_SIZE) + self.protect_image_offset[0]
+        y = (self.row * Constant.SQ_SIZE) + self.protect_image_offset[1]
+        win.blit(self.portal_image, (x, y))
+
     def draw_protected_image(self, win):
         x = (self.col * Constant.SQ_SIZE) + self.protect_image_offset[0]
         y = (self.row * Constant.SQ_SIZE) + self.protect_image_offset[1]
         win.blit(self.protected_image, (x, y))
 
-    def untick_protect_timer(self, color):
+    def untick_protect_timer(self, engine, color):
         self.protect_timer += 1
         if self.protect_timer > 0:
             self.protected = True
             self.protected_image = Constant.IMAGES[color + "_protect"]
+            engine.protected_tiles.append(self)
 
-    def tick_protect_timer(self):
+    def tick_protect_timer(self, engine):
         self.protect_timer -= 1
         if self.protect_timer == 0:
             self.protected = False
             self.protected_image = None
+            engine.protected_tiles.remove(self)
 
     def unprotect(self):
         self.protect_timer = 0
@@ -69,8 +82,21 @@ class Tile:
         self.protect_timer = 2
         self.protected_by = color
 
+    def create_portal(self, color, connected_portal):
+        self.portal_image = Constant.IMAGES[color + "_" + "portal"]
+        self.portal_color = color
+        self.portal = True
+        self.connected_portal = connected_portal
+
+    def delete_portal(self):
+        self.portal_image = None
+        self.portal = False
+
     def is_protected(self):
         return self.protected
+
+    def is_portal(self):
+        return self.portal
 
     def is_protected_by_opposite_color(self, color):
         if color == self.protected_by:
@@ -84,6 +110,9 @@ class Tile:
 
         if self.protected:
             self.draw_protected_image(win)
+
+        if self.portal:
+            self.draw_portal_image(win)
 
         if self.has_occupying():
             self.occupying.draw_highlights(win)

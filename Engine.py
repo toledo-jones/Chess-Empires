@@ -1,7 +1,7 @@
 from Player import Player, AI
 from State import *
 from Tile import *
-
+from Map import *
 
 class Engine:
     def reset(self):
@@ -12,6 +12,7 @@ class Engine:
         self.cols = Constant.BOARD_WIDTH_SQ
         self.rows = Constant.BOARD_HEIGHT_SQ
         self.board = [[0 for y in range(self.cols)] for x in range(self.rows)]
+        self.map = None
         for c in range(self.cols):
             for r in range(self.rows):
                 self.board[r][c] = Tile(r, c)
@@ -43,6 +44,8 @@ class Engine:
         self.monolith_rituals = []
         self.prayer_stone_rituals = []
         self.line_destroy_selected_range = None
+        self.decrees = 0
+        self.rituals_banned = False
         if Constant.DEBUG_RITUALS:
             self.monolith_rituals.append(Constant.MONOLITH_RITUALS)
         else:
@@ -116,6 +119,8 @@ class Engine:
                           'tree_tile_3': Wood, 'tree_tile_4': Wood,
                           'sunken_quarry_1': SunkenQuarry,
                           'depleted_quarry_1': DepletedQuarry}
+        self.MAPS = [Default, Minimal, VTrees, GoldTopRight, SparseTriangleTrees, GoldTopLeft, TriangleTrees, UnbalancedForest, UltraBalanced, LeftRight, OnlyStoneAndGold, FourCorners, TotallyRandom]
+        # self.MAPS = [TotallyRandom]
         self.MENUS = {'stable': StableMenu,
                       'fortress': FortressMenu,
                       'barracks': BarracksMenu,
@@ -125,6 +130,9 @@ class Engine:
         self.EVENTS = {'pray': Pray, 'steal': Steal, 'mine': Mine, 'spawn': Spawn, 'move': Move, 'capture': Capture}
         self.STEALING_VALUES = {'wood': 0, 'gold': 1, 'stone': 2}
         self.KIND_TO_STEALING_LIST = {'piece': self.piece_stealing_offsets, 'building': self.building_stealing_offsets}
+
+    def get_decree_cost(self):
+        return Constant.DECREE_COST + (self.decrees * Constant.DECREE_INCREMENT)
 
     def stealing_values(self, resource, kind):
         offset_list = self.KIND_TO_STEALING_LIST[kind]
@@ -143,6 +151,10 @@ class Engine:
                 value = enemy_player.stone
 
         return value
+
+    def starting_resources(self):
+        self.map = random.choice(self.MAPS)(self)
+        self.map.generate_resources()
 
     def create_ai(self, color):
         player = AI(color)
@@ -221,164 +233,6 @@ class Engine:
         for player in self.players:
             for piece in self.players[player].pieces:
                 piece.update_stealing_squares(self)
-
-    def starting_resources(self):
-        #
-        #   Gather starting squares from Constant.py
-        #   Each is a list of (x,y) coordinates which correspond to the "starting square" of each player
-        #   A starting square is a 6x3 box on the left and right side of the board which will always have at least 1
-        #   gold resource inside
-        #
-        w_starting_squares, b_starting_squares = Constant.starting_squares()
-
-        #
-        #   Add those lists together into one master list
-        #
-        starting_squares = w_starting_squares + b_starting_squares
-
-        #
-        #   Find the four corners quarters of the board
-        #
-
-        top_left, top_right, bottom_left, bottom_right = Constant.quarter_squares()
-
-        gold_list = []
-        #
-        #   Resource Generating For Loop
-        #   Goes through each square on the board and decides what should spawn there
-        #
-        for r in range(self.rows):
-            for c in range(self.cols):
-                #
-                #   Boolean, True if (row, col) is in Center Squares
-                #
-                in_center_square = (r, c) in Constant.center_squares()
-
-                #
-                #   Boolean, True if (row, col) is in Edge Squares
-                #
-                in_edge_square = (r, c) in Constant.edge_squares()
-
-                #
-                #   Boolean, True if (row, col) is in Starting Squares
-                #   (not sure why the reference is different here... )
-                #
-                in_starting_square = (r, c) in starting_squares
-
-                #
-                #   Generate our random number from 0 to 100.
-                #   Used to give the maps variation
-                #
-                rand = random.randint(0, 100)
-
-                #
-                #
-                #
-                if in_starting_square:
-                    pass
-
-                elif in_edge_square:
-                    if rand in range(10, 100):
-                        # edges, trees
-                        self.create_resource(r, c, Wood(r, c))
-                    if rand in range(80, 100):
-                        if len(gold_list) < Constant.TOTAL_GOLD_ON_MAP - 2:
-                            pass
-                            # edges, gold
-                            # temporarily disabled
-                            # self.create_resource(r, c, Gold(r, c))
-                            # gold_list.append((r, c))
-                        else:
-                            self.create_resource(r, c, Wood(r, c))
-                else:
-                    if rand in range(1, 30):
-                        # field trees
-                        if self.has_no_resource(r, c):
-                            self.create_resource(r, c, Wood(r, c))
-                            c2 = c + 1
-                            if Constant.tile_in_bounds(r, c2):
-                                self.create_resource(r, c2, Wood(r, c2))
-                            if rand > 5:
-                                c2 = c - 1
-                                if Constant.tile_in_bounds(r, c2):
-                                    self.create_resource(r, c2, Wood(r, c2))
-
-                    if rand in range(80, 100):
-                        # field forest
-                        self.create_resource(r, c, Wood(r, c))
-
-                        # RIGHT
-                        c2 = c + 1
-                        if Constant.tile_in_bounds(r, c2):
-                            self.create_resource(r, c2, Wood(r, c2))
-
-                        # LEFT
-                        c2 = c - 1
-                        if Constant.tile_in_bounds(r, c2):
-                            self.create_resource(r, c2, Wood(r, c2))
-
-                        # DOWN
-                        r2 = r + 1
-                        if Constant.tile_in_bounds(r2, c):
-                            self.create_resource(r2, c, Wood(r2, c))
-
-                        if rand == 99:
-                            # UP
-                            r2 = r - 1
-                            if Constant.tile_in_bounds(r2, c):
-                                self.create_resource(r2, c, Wood(r2, c))
-
-        #
-        #   Pick a line near the center destroy all files around it
-        #
-        rand = random.randint(3, self.rows - 4)
-        for c in range(self.cols):
-            self.delete_resource(rand, c)
-
-        #
-        #   Generate a Gold in each corner
-        #
-
-        rand = random.randint(0, len(top_left) - 1)
-        r, c = top_left[rand][0], top_left[rand][1]
-        self.delete_resource(r, c)
-        self.create_resource(r, c, Gold(r, c))
-
-        rand = random.randint(0, len(top_right) - 1)
-        r, c = top_right[rand][0], top_right[rand][1]
-        self.delete_resource(r, c)
-        self.create_resource(r, c, Gold(r, c))
-
-        rand = random.randint(0, len(bottom_left) - 1)
-        r, c = bottom_left[rand][0], bottom_left[rand][1]
-        self.delete_resource(r, c)
-        self.create_resource(r, c, Gold(r, c))
-
-        rand = random.randint(0, len(bottom_right) - 1)
-        r, c = bottom_right[rand][0], bottom_right[rand][1]
-        self.delete_resource(r, c)
-        self.create_resource(r, c, Gold(r, c))
-
-        def play_random_sound_effect():
-            i = random.randint(0, len(Constant.generate_resources) - 1)
-            Constant.GENERATE_RESOURCES_SOUNDS[i].set_volume(.1)
-            Constant.GENERATE_RESOURCES_SOUNDS[i].play()
-
-        play_random_sound_effect()
-        # gen 1 gold resource inside each player's starting square
-        for sq in range(len(w_starting_squares) - 1):
-            rand = random.randint(0, (len(w_starting_squares) - 1))
-            r, c = w_starting_squares[rand]
-            if self.is_empty(r, c):
-                self.create_resource(r, c, Wood(r, c))
-                break
-
-        for sq in range(len(b_starting_squares) - 1):
-            rand = random.randint(0, (len(b_starting_squares) - 1))
-            r, c = b_starting_squares[rand]
-            if self.is_empty(r, c):
-                self.create_resource(r, c, Wood(r, c))
-                break
 
     def draw(self, win):
         for r in range(self.rows):
@@ -596,6 +450,27 @@ class Engine:
             p = self.board[r][c].get_occupying()
             if isinstance(p, Fortress):
                 return True
+
+    def enable_monoliths(self):
+        monoliths = []
+        for player in self.players:
+            for piece in self.players[player].pieces:
+                if isinstance(piece, Monolith):
+                    monoliths.append(piece)
+        for monolith in monoliths:
+            monolith.actions_remaining += 1
+        return monoliths
+
+    def disable_monoliths(self):
+        monoliths = []
+        for player in self.players:
+            for piece in self.players[player].pieces:
+                if isinstance(piece, Monolith):
+                    monoliths.append(piece)
+        for monolith in monoliths:
+            monolith.actions_remaining = 0
+            monolith.unused_piece_highlight = False
+        return monoliths
 
     def has_builder(self, r, c):
         if Constant.tile_in_bounds(r, c):
@@ -1134,6 +1009,22 @@ class Engine:
     def create_ritual_menu(self, row, col, ritual_list):
         ritual_menu = RitualMenu(row, col, self.state[-1].win, self, ritual_list)
         self.menus.append(ritual_menu)
+        return True
+
+    def can_decree(self, row, col):
+        color = self.get_occupying(row, col).color
+        return self.players[color].gold >= self.get_decree_cost()
+
+    def decree(self, row, col):
+        acting_tile = self.board[row][col]
+        event = Decree(self, acting_tile, None)
+        event.complete()
+        self.events.append(event)
+
+    def create_queen_menu(self, row, col):
+        queen_menu = QueenMenu(row, col, self.state[-1].win, self)
+        self.menus.append(queen_menu)
+        self.update_spawn_squares()
         return True
 
     def create_king_menu(self, row, col):

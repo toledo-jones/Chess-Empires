@@ -534,6 +534,52 @@ class Move(GameEvent):
         Constant.MOVE_SOUNDS[i].play()
 
 
+class Decree(GameEvent):
+    def __init__(self, engine, acting_tile, action_tile):
+        super().__init__(engine, acting_tile, action_tile)
+        self.piece = self.acting_tile.get_occupying()
+        self.player = self.engine.players[self.engine.turn]
+        self.cost = self.engine.get_decree_cost()
+        self.disabled_monoliths = None
+
+    def complete(self):
+        super().complete()
+        self.piece.actions_remaining -= 1
+        self.player.gold -= self.cost
+        self.engine.decrees += 1
+        self.engine.rituals_banned = not self.engine.rituals_banned
+        self.engine.close_menus()
+        self.engine.reset_selected()
+        if self.engine.rituals_banned:
+            self.disabled_monoliths = self.engine.disable_monoliths()
+        else:
+            self.engine.enable_monoliths()
+        self.engine.reset_unused_piece_highlight()
+        unused_pieces = self.engine.count_unused_pieces()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+        self.player.do_action()
+
+
+
+    def undo(self):
+        super().undo()
+        self.piece.actions_remaining += 1
+        self.player.gold += self.cost
+        self.engine.decrees -= 1
+        self.engine.rituals_banned = not self.engine.rituals_banned
+        self.engine.reset_selected()
+        if self.engine.rituals_banned:
+            self.disabled_monoliths = self.engine.disable_monoliths()
+        else:
+            self.engine.enable_monoliths()
+        unused_pieces = self.engine.count_unused_pieces()
+        self.engine.reset_unused_piece_highlight()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+        self.engine.players[self.engine.turn].undo_action()
+
+
 class PortalCapture(GameEvent):
     def __init__(self, engine, acting_tile, action_tile):
         super().__init__(engine, acting_tile, action_tile)
@@ -654,6 +700,8 @@ class ChangeTurn(GameEvent):
         self.engine.update_piece_limit()
         self.engine.intercept_pieces()
         self.engine.reset_unused_piece_highlight()
+        if self.engine.rituals_banned:
+            self.engine.disable_monoliths()
         protected_tiles = self.protected_tiles
         self.engine.tick_protected_tiles(protected_tiles)
         if Constant.DEBUG_RITUALS:
@@ -683,6 +731,8 @@ class ChangeTurn(GameEvent):
             used_piece.actions_remaining = 0
         unused_pieces = self.engine.count_unused_pieces()
         self.engine.reset_unused_piece_highlight()
+        if self.engine.rituals_banned:
+            self.engine.disable_monoliths()
         self.engine.correct_interceptions()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True

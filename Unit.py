@@ -378,6 +378,10 @@ class Queen(Piece):
                     squares.append((r, c))
         return squares
 
+    def right_click(self, engine):
+        if super().right_click(engine) and engine.players[self.color].actions_remaining > 0:
+            return engine.create_queen_menu(self.row, self.col)
+
 
 class Duke(Piece):
     def __repr__(self):
@@ -436,7 +440,8 @@ class Duke(Piece):
 
     def right_click(self, engine):
         if super().right_click(engine):
-            return engine.transfer_to_praying_state(self.row, self.col)
+            if not engine.rituals_banned:
+                return engine.transfer_to_praying_state(self.row, self.col)
 
 
 class Rook(Piece):
@@ -497,8 +502,9 @@ class Rook(Piece):
         return squares
 
     def right_click(self, engine):
-        super().right_click(engine)
-        return engine.transfer_to_praying_state(self.row, self.col)
+        if super().right_click(engine):
+            if not engine.rituals_banned:
+                return engine.transfer_to_praying_state(self.row, self.col)
 
 
 class Bishop(Piece):
@@ -560,7 +566,8 @@ class Bishop(Piece):
 
     def right_click(self, engine):
         if super().right_click(engine):
-            return engine.transfer_to_praying_state(self.row, self.col)
+            if not engine.rituals_banned:
+                return engine.transfer_to_praying_state(self.row, self.col)
 
 
 class Knight(Piece):
@@ -951,7 +958,8 @@ class Monk(Piece):
 
     def right_click(self, engine):
         if super().right_click(engine):
-            return engine.transfer_to_praying_state(self.row, self.col)
+            if not engine.rituals_banned:
+               return engine.transfer_to_praying_state(self.row, self.col)
 
 
 class Ram(Piece):
@@ -1367,8 +1375,9 @@ class Champion(Piece):
         return squares
 
     def right_click(self, engine):
-        super().right_click(engine)
-        return engine.transfer_to_praying_state(self.row, self.col)
+        if super().right_click(engine):
+            if not engine.rituals_banned:
+                return engine.transfer_to_praying_state(self.row, self.col)
 
 
 class Oxen(Piece):
@@ -1535,7 +1544,8 @@ class GoldGeneral(Piece):
 
     def right_click(self, engine):
         if super().right_click(engine):
-            return engine.transfer_to_building_state(self.row, self.col)
+            if not engine.rituals_banned:
+                return engine.transfer_to_building_state(self.row, self.col)
 
 
 class Stable(Building):
@@ -1708,8 +1718,9 @@ class Monolith(Building):
 
     def right_click(self, engine):
         if super().right_click(engine):
-            self.casting = True
-            return engine.create_ritual_menu(self.row, self.col, engine.monolith_rituals[engine.turn_count_actual])
+            if not engine.rituals_banned:
+                self.casting = True
+                return engine.create_ritual_menu(self.row, self.col, engine.monolith_rituals[engine.turn_count_actual])
 
 
 class Wall(Building):

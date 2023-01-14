@@ -1796,7 +1796,7 @@ class PerformPortal(Ritual):
                     ritual_squares.append((row, col))
                 elif self.engine.get_occupying(row, col):
                     piece = self.engine.get_occupying(row, col)
-                    if not isinstance(piece, King):
+                    if not isinstance(piece, Piece) and not isinstance(piece, Building):
                         ritual_squares.append((row, col))
                 elif self.engine.get_resource(row, col):
                     ritual_squares.append((row, col))

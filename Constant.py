@@ -1,15 +1,9 @@
 import os
 import random
 import time
-
 import pygame
 
-#
-#   INIT LOGIC
-#
-#
-#   COLORS
-#
+
 GOLD = pygame.Color('gold')
 DARK_ORANGE = pygame.Color('dark orange')
 WHITE = pygame.Color('white')
@@ -45,17 +39,13 @@ BOARD_WIDTH_SQ = 12
 BOARD_WIDTH_PX = BOARD_WIDTH_SQ * SQ_SIZE
 SIDE_MENU_WIDTH = pygame.display.Info().current_w - BOARD_WIDTH_PX
 
-#
-#   GAMEPLAY MECHANIC SETTINGS
-#
-
-
-DEBUG_START = False
+'DEBUG START'
+DEBUG_START = True
 DEBUG_STARTING_PRAYER = 12
 DEBUG_STARTING_WOOD = 99
 DEBUG_STARTING_GOLD = 99
 DEBUG_STARTING_STONE = 99
-DEBUG_STARTING_PIECES = ['castle', 'monolith', 'king']
+DEBUG_STARTING_PIECES = ['castle', 'queen', 'monolith', 'king']
 DEBUG_RITUALS = False
 PLAY_AGAINST_AI = False
 BOARD_STARTS_WITH_RESOURCES = True
@@ -115,6 +105,9 @@ STABLE_ADDITIONAL_ACTIONS = 0
 MONOLITH_ADDITIONAL_ACTIONS = 0
 PRAYER_STONE_ADDITIONAL_ACTIONS = 0
 
+DECREE_COST = 30
+DECREE_INCREMENT = 5
+
 DEFAULT_PIECE_LIMIT = 3
 PIECE_COSTS = {'king': {'log': 999, 'gold': 999, 'stone': 999},
                'gold_general': {'log': 0, 'gold': 0, 'stone': 0},
@@ -150,7 +143,8 @@ PIECE_COSTS = {'king': {'log': 999, 'gold': 999, 'stone': 999},
                }
 
 DESCRIPTIONS = {'king': ['every player gets one', 'capture your opponent\'s to win'],
-                'gold_general': ['summons a fierce demon who ', 'moves like a queen through and onto ', 'all resource tiles'],
+                'gold_general': ['summons a fierce demon who ', 'moves like a queen through and onto ',
+                                 'all resource tiles'],
                 'quarry_1': ['can be mined for stone', 'may cave in and begin to yield less stone',
                              'eventually becomes depleted if mined after it caves in'],
                 'pawn': ['can mine resources'],
@@ -175,7 +169,8 @@ DESCRIPTIONS = {'king': ['every player gets one', 'capture your opponent\'s to w
                 'champion': ['moves diagonally one square', 'then like a rook in that same direction'],
                 'elephant': ['a leaper who moves up three and over one', 'and who also moves like a knight'],
                 'ram': ['a leaper who moves like a knight, then like a bishop'],
-                'unicorn': ['a leaper who moves like a knight ', 'can double jump if nothing obstructs it\'s movement', ' also moves two forward in every direction'],
+                'unicorn': ['a leaper who moves like a knight ', 'can double jump if nothing obstructs it\'s movement',
+                            ' also moves two forward in every direction'],
                 'monolith': ['a strange, powerful prayer site', 'can be used to cast rituals'],
                 'prayer_stone': ['a strange prayer site'],
                 'duke': ['moves like a queen', 'but has the ability to pray'],
@@ -229,12 +224,12 @@ PIECE_POPULATION = {'king': 1,
                     'doe': 1,
                     'persuader': 1}
 
-PRAYER_COSTS = {'gold_general': {'prayer': 12, 'monk': 3},
-                'smite': {'prayer': 8, 'monk': 1},
+PRAYER_COSTS = {'gold_general': {'prayer': 9, 'monk': 3},
+                'smite': {'prayer': 12, 'monk': 1},
                 'destroy_resource': {'prayer': 8, 'monk': 0},
                 'create_resource': {'prayer': 4, 'monk': 0},
                 'teleport': {'prayer': 8, 'monk': 0},
-                'swap': {'prayer': 2, 'monk': 0},
+                'swap': {'prayer': 4, 'monk': 0},
                 'line_destroy': {'prayer': 8, 'monk': 1},
                 'portal': {'prayer': 2, 'monk': 0},
                 'protect': {'prayer': 1, 'monk': 0}}
@@ -290,7 +285,7 @@ SUNKEN_QUARRY_YIELD_PER_HARVEST = 1
 DEPLETED_QUARRY_YIELD_PER_HARVEST = 0
 
 PRAYER_STONE_YIELD = 1
-MONOLITH_YIELD = 2
+MONOLITH_YIELD = 1
 ADDITIONAL_PRAYER_FROM_MONK = 2
 ADDITIONAL_MINING_FROM_ROGUE = {'wood': -2, 'stone': -3, 'gold': -2}
 
@@ -360,9 +355,9 @@ THREE_LEFT_DOWN = (1, -3)
 #
 #   GRAPHICS / UX
 #
+
 DEFAULT_PIECE_SCALE = (SQ_SIZE, SQ_SIZE)
 HIGHLIGHT_ALPHA = 110
-
 SPAWNING_MENU_WIDTH = round(SQ_SIZE * 5.5)
 SPAWNING_MENU_HEIGHT_BUFFER = SQ_SIZE * 1.3
 SIDE_MENU_HEIGHT = BOARD_HEIGHT_PX
@@ -370,6 +365,9 @@ GAME_NAME_SCALE = (round(SQ_SIZE * 2.2), round(SQ_SIZE * 2.2))
 PICKAXE_SCALE = (SQ_SIZE * 2, SQ_SIZE * 2)
 CENTER_X = BOARD_WIDTH_SQ * SQ_SIZE // 2 + SQ_SIZE // 2
 CENTER_Y = BOARD_HEIGHT_SQ * SQ_SIZE // 2
+KING_MENU_HEIGHT = (SQ_SIZE // 6) * 2 + SQ_SIZE
+KING_MENU_WIDTH = KING_MENU_HEIGHT
+DECREE_SCALE = (KING_MENU_WIDTH, KING_MENU_HEIGHT)
 START_MENU_WIDTH = round(SQ_SIZE * 6.5)
 START_MENU_HEIGHT = round(SQ_SIZE * 3.5)
 PRAYER_BAR_WIDTH = round(SQ_SIZE // 64)
@@ -458,7 +456,7 @@ images = ['icon', 'pickaxe', 'w_game_name', 'b_game_name', 'prayer', 'gold_coin'
           'units', 'prayer', 'prayer_bar', 'stone', 'w_boat', 'b_boat', 'hour_glass', 'hammer', 'axe',
           'resources_button',
           'b_no', 'b_yes', 'w_no', 'w_yes', 'b_protect', 'w_protect', 'steal', 'persuade', 'w_block', 'b_block',
-          'w_portal', 'b_portal']
+          'w_portal', 'b_portal', 'w_decree', 'b_decree', 'w_decree_u', 'b_decree_u']
 music = ['music']
 resources = ['gold_tile_1',
              'tree_tile_1',
@@ -543,6 +541,10 @@ IMAGES_IMAGE_MODIFY = {'icon': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                        'w_yes': {'SCALE': YES_BUTTON_SCALE, 'OFFSET': (0, 0)},
                        'w_protect': {'SCALE': PROTECT_SQUARE_SCALE, 'OFFSET': PROTECT_SQUARE_OFFSET},
                        'b_protect': {'SCALE': PROTECT_SQUARE_SCALE, 'OFFSET': PROTECT_SQUARE_OFFSET},
+                       'w_decree': {'SCALE': DECREE_SCALE, 'OFFSET': (0, 0)},
+                       'b_decree': {'SCALE': DECREE_SCALE, 'OFFSET': (0, 0)},
+                       'w_decree_u': {'SCALE': DECREE_SCALE, 'OFFSET': (0, 0)},
+                       'b_decree_u': {'SCALE': DECREE_SCALE, 'OFFSET': (0, 0)},
                        'persuade': {'SCALE': PICKAXE_SCALE, 'OFFSET': (0, 0)},
                        'w_block': {'SCALE': PROTECT_SQUARE_SCALE, 'OFFSET': PROTECT_SQUARE_OFFSET},
                        'b_block': {'SCALE': PROTECT_SQUARE_SCALE, 'OFFSET': PROTECT_SQUARE_OFFSET},
@@ -770,16 +772,169 @@ def quarter_squares():
     return top_left, top_right, bottom_left, bottom_right
 
 
+def big_center_squares():
+    squares = []
+    # x, y equal max val col, row
+    x, y = board_max_index()
+
+    for c in range(x // 2 - 1, x // 2 + 3):
+        for r in range(y + 1):
+            square = (r, c)
+            squares.append(square)
+    return squares
+
+
 def center_squares():
     squares = []
     # x, y equal max val col, row
     x, y = board_max_index()
 
-    for c in range(x // 2 + 1, x // 2 + 2):
-        for r in range(y // 2, x // 2 + 2):
+    for c in range(x // 2, x // 2 + 2):
+        for r in range(y // 2, y // 2 + 2):
             square = (r, c)
             squares.append(square)
     return squares
+
+
+def quarter_triangle_sections_a():
+    bottom_left = []
+    bottom_right = []
+    top_left = []
+    top_right = []
+    # x, y equal max val col, row
+    x, y = board_max_index()
+
+    for r in range(6, y + 1):
+        for c in range(0, r - 2):
+            bottom_left.append((r, c))
+
+    for r in range(6, y + 1):
+        for c in range(x, x - (r - 2), -1):
+            bottom_right.append((r, c))
+
+    for r in range(0, 6):
+        for c in range(6 - r, -1, -1):
+            top_left.append((r, c))
+
+    # for r in range(6, 0, -1):
+    #     for c in range( x - (r - 2), x, -1):
+    #         top_right.append((r, c))
+
+    return bottom_left, bottom_right, top_left, top_right
+
+
+def quarter_triangle_sections_b():
+    bottom_left = []
+    bottom_right = []
+    top_left = []
+    top_right = []
+    # x, y equal max val col, row
+    x, y = board_max_index()
+
+    # for r in range(6, y + 1):
+    #     for c in range(0, r - 2):
+    #         bottom_left.append((r, c))
+    #
+    for r in range(6, y + 1):
+        for c in range(x, x - (r - 2), -1):
+            bottom_right.append((r, c))
+
+    for r in range(0, 6):
+        for c in range(6 - r, -1, -1):
+            top_left.append((r, c))
+
+    for r in range(0, 6):
+        for c in range(x, x - (6 - r), -1):
+            top_right.append((r, c))
+
+    return bottom_left, bottom_right, top_left, top_right
+
+
+def quarter_triangle_sections_c():
+    bottom_left = []
+    bottom_right = []
+    top_left = []
+    top_right = []
+    # x, y equal max val col, row
+    x, y = board_max_index()
+
+    for r in range(6, y + 1):
+        for c in range(0, r - 2):
+            bottom_left.append((r, c))
+
+    for r in range(6, y + 1):
+        for c in range(x, x - (r - 2), -1):
+            bottom_right.append((r, c))
+
+    # for r in range(0, 6):
+    #     for c in range(6-r, -1, -1):
+    #         top_left.append((r, c))
+
+    for r in range(0, 6):
+        for c in range(x, x - (6 - r), -1):
+            top_right.append((r, c))
+
+    return bottom_left, bottom_right, top_left, top_right
+
+
+def quarter_triangle_sections_d():
+    bottom_left = []
+    bottom_right = []
+    top_left = []
+    top_right = []
+    # x, y equal max val col, row
+    x, y = board_max_index()
+
+    for r in range(5, y + 1):
+        for c in range(0, r - 2):
+            bottom_left.append((r, c))
+
+    # for r in range(6, y + 1):
+    #     for c in range(x, x - (r - 2), -1):
+    #         bottom_right.append((r, c))
+
+    for r in range(0, 5):
+        for c in range(5 - r, -1, -1):
+            top_left.append((r, c))
+
+    for r in range(0, 5):
+        for c in range(x, x - (5 - r), -1):
+            top_right.append((r, c))
+
+    return bottom_left, bottom_right, top_left, top_right
+
+
+def left_and_right_triangle_sections():
+    left_triangle = []
+    right_triangle = []
+    # x, y equal max val col, row
+    x, y = board_max_index()
+
+    for r in range(4, y + 1):
+        for c in range(0, r - 2):
+            left_triangle.append((r, c))
+
+    for r in range(4, y + 1):
+        for c in range(x, x - (r - 2), -1):
+            right_triangle.append((r, c))
+
+    return left_triangle, right_triangle
+
+
+def top_and_bottom_squares():
+    top_squares = []
+    bottom_squares = []
+
+    # x, y equal max val col, row
+    x, y = board_max_index()
+    for c in range(3, x - 2):
+        for r in range(1, 3):
+            square = (r, c)
+            top_squares.append(square)
+        for r in range(y - 2, y):
+            square = (r, c)
+            bottom_squares.append(square)
+    return top_squares, bottom_squares
 
 
 def edge_squares():
@@ -794,6 +949,70 @@ def edge_squares():
             square = (r, c)
             squares.append(square)
     return squares
+
+
+def center_circle_squares():
+    squares = []
+    x, y = board_max_index()
+    x += 1
+    radius = 5
+    increment = 0
+    reached_peak = False
+    for r in range(y // 2 - radius, y // 2 + radius):
+        for c in range(x // 2 - increment, x // 2 + increment):
+            square = (r, c)
+            squares.append(square)
+        if increment == radius:
+            reached_peak = True
+        if not reached_peak:
+            increment+=1
+        else:
+            increment-=1
+
+    return squares
+
+
+def left_right_squares():
+    left_squares, right_squares = [], []
+    x, y = board_max_index()
+    for r in range(0, y+1):
+        for c in range(0, 3):
+            square = (r, c)
+            left_squares.append(square)
+        for c in range(x-2 , x+1):
+            square = (r, c)
+            right_squares.append(square)
+    return left_squares, right_squares
+
+
+def alt_starting_squares_a():
+    w_starting_squares, b_starting_squares = [], []
+    x, y = board_max_index()
+    y_center = y // 2
+    for c in range(1, 3):
+        for r in range(y_center - 2, y_center + 4):
+            square = (r, c)
+            w_starting_squares.append(square)
+    for c in range(x - 2, x):
+        for r in range(y_center - 2, y_center + 4):
+            square = (r, c)
+            b_starting_squares.append(square)
+    return w_starting_squares, b_starting_squares
+
+
+def alt_starting_squares():
+    w_starting_squares, b_starting_squares = [], []
+    x, y = board_max_index()
+    y_center = y // 2
+    for c in range(2, 4):
+        for r in range(y_center - 2, y_center + 4):
+            square = (r, c)
+            w_starting_squares.append(square)
+    for c in range(x - 3, x - 1):
+        for r in range(y_center - 2, y_center + 4):
+            square = (r, c)
+            b_starting_squares.append(square)
+    return w_starting_squares, b_starting_squares
 
 
 def starting_squares():

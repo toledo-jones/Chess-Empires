@@ -1,7 +1,4 @@
 import os
-import random
-import pygame
-import Constant
 from Unit import *
 
 
@@ -627,6 +624,69 @@ class KingMenu(Menu):
         if pos[0] > self.menu_position_x < self.menu_position_x + self.menu_width:
             if pos[1] > self.menu_position_y < self.menu_position_y + self.menu_height:
                 self.engine.transfer_to_surrender_state()
+
+
+class QueenMenu(Menu):
+    def __init__(self, row, col, win, engine):
+        super().__init__(win, engine)
+        self.row = row
+        self.col = col
+        self.font_size = Constant.SQ_SIZE // 2
+        self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
+        self.color = Constant.turn_to_color[self.engine.turn]
+        self.vertical_buffer_between_pieces = Constant.SQ_SIZE // 6
+        self.menu_width = Constant.SQ_SIZE + 2 * self.vertical_buffer_between_pieces
+        self.menu_height = Constant.SQ_SIZE + 2 * self.vertical_buffer_between_pieces
+        self.initial_menu_position = self.col * Constant.SQ_SIZE + Constant.SQ_SIZE // 2, self.row * Constant.SQ_SIZE + Constant.SQ_SIZE // 2
+        self.menu_boundary_buffer_y = self.menu_height + self.menu_boundary_buffer
+        self.menu_boundary_buffer_x = self.menu_width + self.menu_boundary_buffer
+        self.menu_position_x, self.menu_position_y = self.correct_menu_boundary()
+        if self.engine.rituals_banned:
+            self.image_string = self.engine.turn + '_decree_u'
+        else:
+            self.image_string = self.engine.turn + '_decree'
+        self.IMAGE = Constant.IMAGES[self.image_string]
+        self.cost = self.engine.get_decree_cost()
+        self.cost_text_surface = self.font.render(str(self.cost), True, self.color)
+        self.cost_display_x = Constant.SQ_SIZE // 2 + self.vertical_buffer_between_pieces
+        self.cost_display_y = 3 * self.vertical_buffer_between_pieces
+        self.gold_icon_display_x = self.vertical_buffer_between_pieces
+        self.gold_icon_display_y = 4 * self.vertical_buffer_between_pieces
+        self.GOLD_ICON = Constant.MENU_ICONS['gold_coin']
+        self.menu = pygame.Surface((self.menu_width, self.menu_height))
+        self.square = pygame.Surface((self.menu_width, self.menu_height))
+        self.high_light = False
+
+    def draw(self, win):
+        self.menu.fill(Constant.MENU_COLOR)
+        # fill menu with art and logic
+        if self.high_light:
+            self.menu.blit(self.square, (0, 0))
+        self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
+        self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
+        self.menu.blit(self.GOLD_ICON, (self.gold_icon_display_x,self.gold_icon_display_y))
+        self.menu.blit(self.cost_text_surface, (self.cost_display_x,self.cost_display_y))
+        self.menu.blit(self.IMAGE, (0, 0))
+        self.win.blit(self.menu, (self.menu_position_x, self.menu_position_y))
+        return self.menu_position_x, self.menu_position_y
+
+    def right_click(self):
+        self.engine.state[-1].revert_to_playing_state()
+
+    def mouse_move(self):
+        pos = pygame.mouse.get_pos()
+        if pos[0] > self.menu_position_x < self.menu_position_x + self.menu_width:
+            if pos[1] > self.menu_position_y < self.menu_position_y + self.menu_height:
+                self.high_light = True
+        else:
+            self.high_light = False
+
+    def left_click(self):
+        pos = pygame.mouse.get_pos()
+        if pos[0] > self.menu_position_x < self.menu_position_x + self.menu_width:
+            if pos[1] > self.menu_position_y < self.menu_position_y + self.menu_height:
+                if self.engine.can_decree(self.row, self.col):
+                    self.engine.decree(self.row, self.col)
 
 
 class PieceDescription:

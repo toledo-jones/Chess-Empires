@@ -53,6 +53,7 @@ def main():
         # CLICK CLOCK
         clock.tick(Constant.MAX_FPS)
     if not engine.running:
+
         main()
 
 if __name__ == "__main__":

@@ -101,7 +101,8 @@ class SpawnResource(GameEvent):
         self.engine.spawn_success = True
         self.engine.menus = []
         self.engine.reset_selected()
-        self.engine.players[self.engine.turn].do_action()
+        if Constant.QUARRY_COSTS_ACTION:
+            self.engine.players[self.engine.turn].do_action()
 
     def undo(self):
         super().undo()
@@ -111,7 +112,8 @@ class SpawnResource(GameEvent):
         self.engine.delete_resource(self.dest[0], self.dest[1])
         unused_pieces = self.engine.count_unused_pieces()
         self.engine.reset_unused_piece_highlight()
-        self.engine.players[self.engine.turn].undo_action()
+        if Constant.QUARRY_COSTS_ACTION:
+            self.engine.players[self.engine.turn].undo_action()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
 

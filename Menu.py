@@ -306,6 +306,7 @@ class ReceiveMenu(TraderMenu):
         row, col = Constant.convert_pos(pygame.mouse.get_pos())
         self.engine.create_trader_menu(row, col, False)
 
+
 class StealingMenu(Menu):
     def __init__(self, row, col, win, engine):
         self.row = row

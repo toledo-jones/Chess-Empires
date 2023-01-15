@@ -49,6 +49,7 @@ class State:
                     self.engine.events[-1].undo()
                     del self.engine.events[-1]
             else:
+                self.engine.close_menus()
                 self.engine.events[-1].undo()
                 del self.engine.events[-1]
         except IndexError as e:

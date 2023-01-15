@@ -264,6 +264,7 @@ class GiveMenu(TraderMenu):
         super().__init__(row, col, win, engine, resource_list, self.amounts, self.trade_arrow)
 
     def right_click(self):
+        self.engine.piece_trading = None
         self.engine.state[-1].revert_to_playing_state()
 
     def left_click(self):
@@ -297,7 +298,7 @@ class ReceiveMenu(TraderMenu):
             amount = self.engine.trade_handler.get_receive_conversion(self.amount_given, self.key[self.selected])
             self.engine.menus = []
             self.engine.trading.append((self.selected, amount))
-            self.engine.trade(self.row, self.col)
+            self.engine.trade()
 
     def right_click(self):
         self.engine.close_menus()

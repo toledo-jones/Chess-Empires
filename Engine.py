@@ -35,6 +35,7 @@ class Engine:
         self.side_bar = None
         self.surrendering = False
         self.stealing = None
+        self.piece_trading = None
         self.trading = []
         self.menus = []
         self.state = []
@@ -1032,8 +1033,8 @@ class Engine:
         event.complete()
         self.events.append(event)
 
-    def trade(self, row, col):
-        acting_tile = self.board[row][col]
+    def trade(self):
+        acting_tile = self.board[self.piece_trading.row][self.piece_trading.col]
         action_tile = None
         event = Trade(self, acting_tile, action_tile)
         event.complete()
@@ -1048,6 +1049,7 @@ class Engine:
             if getattr(player, resource) != 0:
                 resource_list.append(key[resource])
         if resource_list:
+            self.piece_trading = self.get_occupying(row, col)
             trader_menu = GiveMenu(row, col, self.state[-1].win, self, resource_list)
             self.menus.append(trader_menu)
             return True

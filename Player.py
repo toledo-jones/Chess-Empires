@@ -4,7 +4,6 @@ from Behavior import *
 class Player:
     def __init__(self, color):
         self.color = color
-
         self.gold = Constant.STARTING_GOLD
         self.wood = Constant.STARTING_WOOD
         self.stone = Constant.STARTING_STONE

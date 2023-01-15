@@ -186,6 +186,39 @@ class PortalSpawn(GameEvent):
             Constant.PIECE_SPAWNING_SOUNDS[i].play()
 
 
+class Trade(GameEvent):
+    def __init__(self, engine, acting_tile, action_tile):
+        super().__init__(engine, acting_tile, action_tile)
+        self.player = self.engine.players[self.engine.turn]
+        self.give = self.engine.trading[0]
+        self.receive = self.engine.trading[1]
+        self.give_resource, self.give_amount = self.give[0], self.give[1]
+        self.receive_resource, self.receive_amount = self.receive[0], self.receive[1]
+        self.give_resource = Constant.RESOURCE_KEY[self.give_resource]
+        self.receive_resource = Constant.RESOURCE_KEY[self.receive_resource]
+        self.piece = self.acting_tile.get_occupying()
+
+    def complete(self):
+        super().complete()
+        self.piece.actions_remaining -= 1
+        amount = getattr(self.player, self.give_resource)
+        setattr(self.player, self.give_resource, amount  - self.give_amount)
+        amount = getattr(self.player, self.receive_resource)
+        setattr(self.player, self.receive_resource, amount + self.receive_amount)
+        self.engine.trading = []
+
+    def undo(self):
+        super().undo()
+        self.piece.actions_remaining += 1
+        amount = getattr(self.player, self.give_resource)
+        setattr(self.player, self.give_resource, amount + self.give_amount)
+        amount = getattr(self.player, self.receive_resource)
+        setattr(self.player, self.receive_resource, amount - self.receive_amount)
+        self.engine.reset_unused_piece_highlight()
+        unused_pieces = self.engine.count_unused_pieces()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+
 
 class Spawn(GameEvent):
     def __init__(self, engine, acting_tile, action_tile):
@@ -233,8 +266,8 @@ class Spawn(GameEvent):
         if Constant.ACTIONS_UPDATE_ON_SPAWN:
             self.engine.players[self.engine.turn].remove_additional_actions(self.additional_actions)
         self.engine.players[self.engine.turn].remove_additional_piece_limit(self.additional_piece_limit)
-        self.engine.reset_unused_piece_highlight()
         self.engine.correct_interceptions()
+        self.engine.reset_unused_piece_highlight()
         unused_pieces = self.engine.count_unused_pieces()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
@@ -709,10 +742,14 @@ class ChangeTurn(GameEvent):
         else:
             if self.engine.turn_count_actual == len(self.engine.monolith_rituals) - 1:
                 self.engine.monolith_rituals.append(self.engine.generate_available_rituals(Constant.MONOLITH_RITUALS, Constant.MAX_MONOLITH_RITUALS_PER_TURN))
+        if self.engine.turn_count_actual == len(self.engine.trade_conversions) - 1:
+            self.engine.trade_conversions.append(self.engine.trade_handler.get_conversions())
         if self.engine.turn_count_actual == len(self.engine.piece_stealing_offsets) - 1:
             self.engine.piece_stealing_offsets.append(self.engine.generate_stealing_offsets(Constant.STEALING_KEY['piece']))
         if self.engine.turn_count_actual == len(self.engine.building_stealing_offsets) - 1:
             self.engine.building_stealing_offsets.append(self.engine.generate_stealing_offsets(Constant.STEALING_KEY['building']))
+        if self.engine.turn_count_actual == len(self.engine.trader_stealing_offsets) - 1:
+            self.engine.trader_stealing_offsets.append(self.engine.generate_stealing_offsets(Constant.STEALING_KEY['trader']))
         unused_pieces = self.engine.count_unused_pieces()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True

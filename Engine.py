@@ -2,6 +2,8 @@ from Player import Player, AI
 from State import *
 from Tile import *
 from Map import *
+from TradeHandler import *
+
 
 class Engine:
     def reset(self):
@@ -33,6 +35,7 @@ class Engine:
         self.side_bar = None
         self.surrendering = False
         self.stealing = None
+        self.trading = []
         self.menus = []
         self.state = []
         self.protected_tiles = []
@@ -50,12 +53,16 @@ class Engine:
             self.monolith_rituals.append(Constant.MONOLITH_RITUALS)
         else:
             self.monolith_rituals.append(self.generate_available_rituals(Constant.MONOLITH_RITUALS,
-                                                                         Constant.MAX_MONOLITH_RITUALS_PER_TURN))
+                                                                             Constant.MAX_MONOLITH_RITUALS_PER_TURN))
+
         self.piece_stealing_offsets = []
         self.piece_stealing_offsets.append(self.generate_stealing_offsets(Constant.STEALING_KEY['piece']))
 
         self.building_stealing_offsets = []
         self.building_stealing_offsets.append(self.generate_stealing_offsets(Constant.STEALING_KEY['building']))
+
+        self.trader_stealing_offsets = []
+        self.trader_stealing_offsets.append(self.generate_stealing_offsets(Constant.STEALING_KEY['trader']))
 
         self.events = []
         self.players = {}
@@ -89,6 +96,7 @@ class Engine:
                        'wall': Wall,
                        'doe': Doe,
                        'persuader': Persuader,
+                       'trader': Trader
                        }
         self.STATES = {'playing': Playing,
                        'ai playing': AIPlaying,
@@ -129,7 +137,10 @@ class Engine:
                       }
         self.EVENTS = {'pray': Pray, 'steal': Steal, 'mine': Mine, 'spawn': Spawn, 'move': Move, 'capture': Capture}
         self.STEALING_VALUES = {'wood': 0, 'gold': 1, 'stone': 2}
-        self.KIND_TO_STEALING_LIST = {'piece': self.piece_stealing_offsets, 'building': self.building_stealing_offsets}
+        self.KIND_TO_STEALING_LIST = {'piece': self.piece_stealing_offsets, 'building': self.building_stealing_offsets, 'trader': self.trader_stealing_offsets}
+        self.trade_handler = TradeHandler(self)
+        self.trade_conversions = []
+        self.trade_conversions.append(self.trade_handler.get_conversions())
 
     def get_decree_cost(self):
         return Constant.DECREE_COST + (self.decrees * Constant.DECREE_INCREMENT)
@@ -1021,10 +1032,29 @@ class Engine:
         event.complete()
         self.events.append(event)
 
+    def trade(self, row, col):
+        acting_tile = self.board[row][col]
+        action_tile = None
+        event = Trade(self, acting_tile, action_tile)
+        event.complete()
+        self.events.append(event)
+
+    def create_trader_menu(self, row, col):
+        player = self.players[self.turn]
+        resources = ['wood', 'gold', 'stone']
+        key = {'wood':'log', 'gold':'gold_coin', 'stone':'stone'}
+        resource_list = []
+        for resource in resources:
+            if getattr(player, resource) != 0:
+                resource_list.append(key[resource])
+        if resource_list:
+            trader_menu = GiveMenu(row, col, self.state[-1].win, self, resource_list)
+            self.menus.append(trader_menu)
+            return True
+
     def create_queen_menu(self, row, col):
         queen_menu = QueenMenu(row, col, self.state[-1].win, self)
         self.menus.append(queen_menu)
-        self.update_spawn_squares()
         return True
 
     def create_king_menu(self, row, col):

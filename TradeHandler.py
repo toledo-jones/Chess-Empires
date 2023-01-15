@@ -26,4 +26,7 @@ class TradeHandler:
         amount = getattr(player, give_resource)
         give_rate = self.engine.trade_conversions[self.engine.turn_count_actual][give_resource][0]
         give_amount = amount * give_rate
-        return round(give_amount)
+        give_amount = round(give_amount)
+        if give_amount == 0:
+            give_amount = 1
+        return give_amount

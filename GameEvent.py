@@ -206,6 +206,7 @@ class Trade(GameEvent):
         amount = getattr(self.player, self.receive_resource)
         setattr(self.player, self.receive_resource, amount + self.receive_amount)
         self.engine.trading = []
+        self.engine.piece_trading = None
 
     def undo(self):
         super().undo()

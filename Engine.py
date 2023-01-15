@@ -1040,7 +1040,7 @@ class Engine:
         event.complete()
         self.events.append(event)
 
-    def create_trader_menu(self, row, col):
+    def create_trader_menu(self, row, col, set_new_piece_trading=True):
         player = self.players[self.turn]
         resources = ['wood', 'gold', 'stone']
         key = {'wood':'log', 'gold':'gold_coin', 'stone':'stone'}
@@ -1049,7 +1049,9 @@ class Engine:
             if getattr(player, resource) != 0:
                 resource_list.append(key[resource])
         if resource_list:
-            self.piece_trading = self.get_occupying(row, col)
+            if set_new_piece_trading:
+                self.piece_trading = self.get_occupying(row, col)
+
             trader_menu = GiveMenu(row, col, self.state[-1].win, self, resource_list)
             self.menus.append(trader_menu)
             return True

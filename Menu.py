@@ -302,10 +302,11 @@ class ReceiveMenu(TraderMenu):
 
     def right_click(self):
         self.engine.close_menus()
-        self.engine.create_trader_menu(self.row, self.col)
+        self.engine.trading = []
+        row, col = Constant.convert_pos(pygame.mouse.get_pos())
+        self.engine.create_trader_menu(row, col, False)
 
 class StealingMenu(Menu):
-
     def __init__(self, row, col, win, engine):
         self.row = row
         self.col = col

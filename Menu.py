@@ -277,8 +277,10 @@ class GiveMenu(TraderMenu):
             for resource in resources:
                 if resource is not self.selected:
                     resource_list.append(resource)
-            menu = ReceiveMenu(self.row, self.col, self.win, self.engine, resource_list, amount_given)
+            row, col = Constant.convert_pos(pygame.mouse.get_pos())
+            menu = ReceiveMenu(row, col, self.win, self.engine, resource_list, amount_given)
             self.engine.menus.append(menu)
+
 
 class ReceiveMenu(TraderMenu):
     def __init__(self, row, col, win, engine, resource_list, amount_given):
@@ -288,8 +290,6 @@ class ReceiveMenu(TraderMenu):
                         'stone': engine.trade_handler.get_receive_conversion(self.amount_given, 'stone')}
         self.trade_arrow = Constant.IMAGES['receive']
         super().__init__(row, col, win, engine, resource_list, self.amounts, self.trade_arrow)
-
-
 
     def left_click(self):
         self.selected = self.resource_selected()

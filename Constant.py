@@ -40,12 +40,12 @@ BOARD_WIDTH_PX = BOARD_WIDTH_SQ * SQ_SIZE
 SIDE_MENU_WIDTH = pygame.display.Info().current_w - BOARD_WIDTH_PX
 
 'DEBUG START'
-DEBUG_START = False
+DEBUG_START = True
 DEBUG_STARTING_PRAYER = 12
 DEBUG_STARTING_WOOD = 99
 DEBUG_STARTING_GOLD = 99
 DEBUG_STARTING_STONE = 99
-DEBUG_STARTING_PIECES = ['castle', 'trader', 'rogue_rook', 'king']
+DEBUG_STARTING_PIECES = ['castle', 'pawn', 'monolith', 'king']
 DEBUG_RITUALS = False
 PLAY_AGAINST_AI = False
 BOARD_STARTS_WITH_RESOURCES = True
@@ -89,7 +89,7 @@ MAX_PRAYER_STONE_RITUALS_PER_TURN = 3
 STABLE_SPAWN_LIST = ['doe', 'oxen', 'unicorn', 'ram', 'elephant', 'knight']
 FORTRESS_SPAWN_LIST = ['rogue_rook', 'rogue_bishop', 'rogue_knight', 'rogue_pawn']
 CASTLE_SPAWN_LIST = ['pawn', 'builder', 'pikeman', 'monk', 'persuader', 'jester', 'trader']
-BUILDER_SPAWN_LIST = ['quarry_1', 'wall', 'stable', 'monolith', 'castle', 'barracks', 'fortress']
+BUILDER_SPAWN_LIST = ['wall', 'stable', 'monolith', 'castle', 'barracks', 'fortress']
 BARRACKS_SPAWN_LIST = ['duke', 'queen', 'champion', 'rook', 'bishop']
 
 SPAWN_LISTS = {'stable': STABLE_SPAWN_LIST, 'fortress': FORTRESS_SPAWN_LIST, 'castle': CASTLE_SPAWN_LIST,
@@ -105,6 +105,7 @@ PRAYING_COSTS_ACTION = False
 STEALING_COSTS_ACTION = False
 PERSUADE_COSTS_ACTION = True
 QUARRY_COSTS_ACTION = False
+QUARRY_COSTS_RESOURCE = False
 
 CASTLE_ADDITIONAL_ACTIONS = 0
 BARRACKS_ADDITIONAL_ACTIONS = 0
@@ -401,7 +402,7 @@ CASTLE_SCALE = round(SQ_SIZE * 1.1), round(SQ_SIZE * 1.1)
 CASTLE_OFFSET = (0, -10)
 MENU_ICON_DEFAULT_SCALE = (SQ_SIZE // 2, SQ_SIZE // 2)
 BARRACKS_SCALE = (round(SQ_SIZE * 1.2), round(SQ_SIZE * 1.2))
-BARRACKS_OFFSET = (0, -10)
+BARRACKS_OFFSET = (-10, -10)
 PAWN_MENU_ICON_SCALE = (100, 100)
 FORTRESS_SCALE = (round(SQ_SIZE * 1.15), round(SQ_SIZE * 1.15))
 FORTRESS_OFFSET = (0, -10)
@@ -518,7 +519,7 @@ PIECE_IMAGE_MODIFY = {'king': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'castle': {'SCALE': CASTLE_SCALE, 'OFFSET': CASTLE_OFFSET},
                       'fortress': {'SCALE': FORTRESS_SCALE, 'OFFSET': FORTRESS_OFFSET},
                       'wall': {'SCALE': FORTRESS_SCALE, 'OFFSET': WALL_OFFSET},
-                      'monolith': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
+                      'monolith': {'SCALE': BARRACKS_SCALE, 'OFFSET': BARRACKS_OFFSET},
                       'prayer_stone': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'flag': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'barracks': {'SCALE': BARRACKS_SCALE, 'OFFSET': BARRACKS_OFFSET},

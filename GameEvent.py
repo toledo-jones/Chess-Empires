@@ -95,7 +95,8 @@ class SpawnResource(GameEvent):
         super().complete()
         resource = self.engine.RESOURCES[self.spawn](self.dest[0], self.dest[1])
         self.engine.create_resource(self.dest[0], self.dest[1], resource)
-        self.engine.players[self.engine.turn].purchase(self.piece_cost)
+        if Constant.QUARRY_COSTS_RESOURCE:
+            self.engine.players[self.engine.turn].purchase(self.piece_cost)
         self.play_random_sound_effect()
         self.spawner.actions_remaining -= 1
         self.engine.spawn_success = True
@@ -108,7 +109,8 @@ class SpawnResource(GameEvent):
         super().undo()
         self.spawner.actions_remaining += 1
         self.play_random_sound_effect()
-        self.engine.players[self.engine.turn].un_purchase(self.piece_cost)
+        if Constant.QUARRY_COSTS_RESOURCE:
+            self.engine.players[self.engine.turn].un_purchase(self.piece_cost)
         self.engine.delete_resource(self.dest[0], self.dest[1])
         unused_pieces = self.engine.count_unused_pieces()
         self.engine.reset_unused_piece_highlight()

@@ -263,11 +263,11 @@ class Unit:
         return Constant.PIECE_POPULATION[str(self)]
 
     def get_sprite_offset(self):
-        if random.randint(1, 2) > 1:
-            r = random.randint(Constant.SQ_SIZE // -10, Constant.SQ_SIZE // 10)
-            z = random.randint(Constant.SQ_SIZE // -10, Constant.SQ_SIZE // 10)
-            return r, z
-        else:
+        # if random.randint(1, 2) > 1:
+        #     r = random.randint(Constant.SQ_SIZE // -10, Constant.SQ_SIZE // 10)
+        #     z = random.randint(Constant.SQ_SIZE // -10, Constant.SQ_SIZE // 10)
+        #     return r, z
+        # else:
             return Constant.PIECE_IMAGE_MODIFY[str(self)]['OFFSET']
 
     def get_color(self):
@@ -625,7 +625,7 @@ class Pawn(Piece):
         for direction in self.mining_directions:
             r = self.row - direction[0]
             c = self.col - direction[1]
-            if engine.has_mineable_resource(r, c):
+            if engine.has_mineable_resource(r, c) or engine.is_empty(r, c):
                 if engine.get_occupying(r, c):
                     if engine.get_occupying_color(r, c) is not self.color:
                         pass
@@ -868,7 +868,7 @@ class RoguePawn(Piece):
         for direction in self.mining_directions:
             r = self.row - direction[0]
             c = self.col - direction[1]
-            if engine.has_mineable_resource(r, c):
+            if engine.has_mineable_resource(r, c) or engine.is_empty(r, c):
                 if engine.get_occupying(r, c):
                     if engine.get_occupying_color(r, c) is not self.color:
                         pass

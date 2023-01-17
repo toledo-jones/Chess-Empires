@@ -775,7 +775,7 @@ class MiningStealing(State):
             row, col = Constant.convert_pos(pos)
             if self.in_mining_squares(row, col):
                 if self.engine.has_quarry(row, col) or self.engine.has_gold(row, col) or self.engine.has_sunken_quarry(
-                        row, col):
+                        row, col) or self.engine.is_empty(row, col):
                     self.win.blit(Constant.IMAGES['pickaxe'], (display_pos_x, display_pos_y))
                 elif self.engine.has_wood(row, col):
                     self.win.blit(Constant.IMAGES['axe'], (display_pos_x, display_pos_y))
@@ -796,7 +796,11 @@ class MiningStealing(State):
             elif self.in_mining_squares(row, col):
                 acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
                 action_tile = self.engine.board[row][col]
-                mining_event = Mine(self.engine, acting_tile, action_tile)
+                if action_tile.get_resource():
+                    mining_event = Mine(self.engine, acting_tile, action_tile)
+                else:
+                    self.engine.spawning = 'quarry_1'
+                    mining_event = SpawnResource(self.engine, acting_tile, action_tile)
                 mining_event.complete()
                 self.engine.events.append(mining_event)
                 new_state = Playing(self.win, self.engine)
@@ -855,7 +859,7 @@ class Mining(State):
             row, col = Constant.convert_pos(pos)
             if (row, col) in self.prev.mining_squares_list:
                 if self.engine.has_quarry(row, col) or self.engine.has_gold(row, col) or self.engine.has_sunken_quarry(
-                        row, col):
+                        row, col) or self.engine.is_empty(row, col):
                     self.win.blit(Constant.IMAGES['pickaxe'], (display_pos_x, display_pos_y))
                 elif self.engine.has_wood(row, col):
                     self.win.blit(Constant.IMAGES['axe'], (display_pos_x, display_pos_y))
@@ -891,7 +895,11 @@ class Mining(State):
                 if (row, col) in mining_squares:
                     acting_tile = self.engine.board[self.prev.row][self.prev.col]
                     action_tile = self.engine.board[row][col]
-                    mining_event = Mine(self.engine, acting_tile, action_tile)
+                    if action_tile.get_resource():
+                        mining_event = Mine(self.engine, acting_tile, action_tile)
+                    else:
+                        self.engine.spawning = 'quarry_1'
+                        mining_event = SpawnResource(self.engine, acting_tile, action_tile)
                     mining_event.complete()
                     self.engine.events.append(mining_event)
                     new_state = Playing(self.win, self.engine)

@@ -983,7 +983,7 @@ class Engine:
         mining_squares = self.board[row][col].get_occupying().mining_squares_list
         allow_mine = False
         for m in mining_squares:
-            if self.has_mineable_resource(m[0], m[1]):
+            if self.has_mineable_resource(m[0], m[1]) or self.is_empty(m[0], m[1]):
                 allow_mine = True
         if allow_mine:
             self.board[row][col].get_occupying().mining = True

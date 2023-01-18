@@ -2,7 +2,8 @@ from Player import Player, AI
 from State import *
 from Tile import *
 from Map import *
-from TradeHandler import *
+from Trades import *
+from Sounds import *
 
 
 class Engine:
@@ -97,7 +98,8 @@ class Engine:
                        'wall': Wall,
                        'doe': Doe,
                        'persuader': Persuader,
-                       'trader': Trader
+                       'trader': Trader,
+                       'circus': Circus,
                        }
         self.STATES = {'playing': Playing,
                        'ai playing': AIPlaying,
@@ -128,20 +130,22 @@ class Engine:
                           'tree_tile_3': Wood, 'tree_tile_4': Wood,
                           'sunken_quarry_1': SunkenQuarry,
                           'depleted_quarry_1': DepletedQuarry}
-        self.MAPS = [Default, Minimal, VTrees, GoldTopRight, SparseTriangleTrees, GoldTopLeft, TriangleTrees, UnbalancedForest, UltraBalanced, LeftRight, OnlyStoneAndGold, FourCorners, TotallyRandom]
-        # self.MAPS = [TotallyRandom]
+        self.MAPS = [Default, Minimal, VTrees, GoldTopRight, SparseTriangleTrees, GoldTopLeft, TriangleTrees, UnbalancedForest, UltraBalanced, LeftRight, OnlyStoneAndGold, FourCorners, TotallyRandom, RandomlyRandom]
+        # self.MAPS = [RandomlyRandom]
         self.MENUS = {'stable': StableMenu,
                       'fortress': FortressMenu,
                       'barracks': BarracksMenu,
                       'builder': BuilderMenu,
-                      'castle': CastleMenu
+                      'castle': CastleMenu,
+                      'circus': CircusMenu
                       }
         self.EVENTS = {'pray': Pray, 'steal': Steal, 'mine': Mine, 'spawn': Spawn, 'move': Move, 'capture': Capture}
         self.STEALING_VALUES = {'wood': 0, 'gold': 1, 'stone': 2}
         self.KIND_TO_STEALING_LIST = {'piece': self.piece_stealing_offsets, 'building': self.building_stealing_offsets, 'trader': self.trader_stealing_offsets}
-        self.trade_handler = TradeHandler(self)
+        self.trade_handler = Trades(self)
         self.trade_conversions = []
         self.trade_conversions.append(self.trade_handler.get_conversions())
+        self.sounds = Sounds()
 
     def get_decree_cost(self):
         return Constant.DECREE_COST + (self.decrees * Constant.DECREE_INCREMENT)

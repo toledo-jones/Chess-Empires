@@ -25,7 +25,6 @@ def main():
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 engine.state[-1].left_click()
             elif event.type == pygame.QUIT:
-                running = False
                 pygame.quit()
                 quit()
             # MOUSE MOVE:
@@ -52,8 +51,8 @@ def main():
         pygame.display.update()
         # CLICK CLOCK
         clock.tick(Constant.MAX_FPS)
-    if not engine.running:
 
+    if not engine.running:
         main()
 
 if __name__ == "__main__":

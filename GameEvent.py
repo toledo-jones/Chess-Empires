@@ -50,13 +50,15 @@ class StartSpawn(GameEvent):
     def complete(self):
         super().complete()
         self.engine.spawn(self.dest[0], self.dest[1], self.spawn)
-        self.play_random_sound_effect(self.engine.get_occupying(self.dest[0], self.dest[1]))
+        kind = self.engine.get_occupying(self.dest[0], self.dest[1]).get_unit_kind()
+        self.engine.sounds.play('spawn_' + kind)
         self.engine.spawnSuccess = True
         self.engine.spawning = None
 
     def undo(self):
         super().undo()
-        self.play_random_sound_effect(self.engine.get_occupying(self.dest[0], self.dest[1]))
+        kind = self.engine.get_occupying(self.dest[0], self.dest[1]).get_unit_kind()
+        self.engine.sounds.play('spawn_' + kind)
         self.engine.delete_piece(self.dest[0], self.dest[1])
         self.engine.spawn_count = self.spawn_count
         self.engine.final_spawn = self.final_spawn
@@ -67,16 +69,6 @@ class StartSpawn(GameEvent):
         self.engine.set_state(self.state)
         self.engine.update_spawn_squares()
         self.engine.players[self.engine.turn].reset_piece_limit()
-
-    def play_random_sound_effect(self, spawned):
-        if isinstance(spawned, Building):
-            i = random.randint(0, len(Constant.building_spawning) - 1)
-            Constant.BUILDING_SPAWNING_SOUNDS[i].set_volume(.1)
-            Constant.BUILDING_SPAWNING_SOUNDS[i].play()
-        elif isinstance(spawned, Piece):
-            i = random.randint(0, len(Constant.piece_spawning) - 1)
-            Constant.PIECE_SPAWNING_SOUNDS[i].set_volume(.1)
-            Constant.PIECE_SPAWNING_SOUNDS[i].play()
 
 
 class SpawnResource(GameEvent):
@@ -97,7 +89,7 @@ class SpawnResource(GameEvent):
         self.engine.create_resource(self.dest[0], self.dest[1], resource)
         if Constant.QUARRY_COSTS_RESOURCE:
             self.engine.players[self.engine.turn].purchase(self.piece_cost)
-        self.play_random_sound_effect()
+        self.engine.sounds.play('mine_stone')
         self.spawner.actions_remaining -= 1
         self.engine.spawn_success = True
         self.engine.menus = []
@@ -108,7 +100,7 @@ class SpawnResource(GameEvent):
     def undo(self):
         super().undo()
         self.spawner.actions_remaining += 1
-        self.play_random_sound_effect()
+        self.engine.sounds.play('mine_stone')
         if Constant.QUARRY_COSTS_RESOURCE:
             self.engine.players[self.engine.turn].un_purchase(self.piece_cost)
         self.engine.delete_resource(self.dest[0], self.dest[1])
@@ -118,11 +110,6 @@ class SpawnResource(GameEvent):
             self.engine.players[self.engine.turn].undo_action()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
-
-    def play_random_sound_effect(self):
-        i = random.randint(0, len(Constant.harvesting_rock) - 1)
-        Constant.HARVESTING_ROCK_SOUNDS[i].set_volume(.1)
-        Constant.HARVESTING_ROCK_SOUNDS[i].play()
 
 
 class PortalSpawn(GameEvent):
@@ -153,7 +140,8 @@ class PortalSpawn(GameEvent):
             self.additional_actions = self.engine.get_occupying(self.dest[0], self.dest[1]).get_additional_actions()
             self.engine.players[self.engine.turn].add_additional_actions(self.additional_actions)
         self.additional_piece_limit = self.engine.get_occupying(self.dest[0], self.dest[1]).get_additional_piece_limit()
-        self.play_random_sound_effect(self.engine.board[self.dest[0]][self.dest[1]].get_occupying())
+        kind = self.engine.board[self.dest[0]][self.dest[1]].get_occupying().get_unit_kind()
+        self.engine.sounds.play('spawn_' + kind)
         self.engine.intercept_pieces()
         self.engine.players[self.engine.turn].add_additional_piece_limit(self.additional_piece_limit)
         self.engine.reset_unused_piece_highlight()
@@ -166,7 +154,8 @@ class PortalSpawn(GameEvent):
         super().undo()
         self.spawner.actions_remaining += 1
         self.engine.swap(self.portal_end[0], self.portal_end[1], self.dest[0], self.dest[1])
-        self.play_random_sound_effect(self.engine.board[self.dest[0]][self.dest[1]].get_occupying())
+        kind = self.engine.board[self.dest[0]][self.dest[1]].get_occupying().get_unit_kind()
+        self.engine.sounds.play('spawn_' + kind)
         self.engine.players[self.engine.turn].un_purchase(self.piece_cost)
         self.engine.delete_piece(self.dest[0], self.dest[1])
         self.engine.players[self.engine.turn].undo_action()
@@ -178,16 +167,6 @@ class PortalSpawn(GameEvent):
         unused_pieces = self.engine.count_unused_pieces()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
-
-    def play_random_sound_effect(self, spawned):
-        if isinstance(spawned, Building):
-            i = random.randint(0, len(Constant.building_spawning) - 1)
-            Constant.BUILDING_SPAWNING_SOUNDS[i].set_volume(.1)
-            Constant.BUILDING_SPAWNING_SOUNDS[i].play()
-        elif isinstance(spawned, Piece):
-            i = random.randint(0, len(Constant.piece_spawning) - 1)
-            Constant.PIECE_SPAWNING_SOUNDS[i].set_volume(.1)
-            Constant.PIECE_SPAWNING_SOUNDS[i].play()
 
 
 class Trade(GameEvent):
@@ -242,6 +221,8 @@ class Spawn(GameEvent):
     def complete(self):
         super().complete()
         self.engine.spawn(self.dest[0], self.dest[1], self.spawn)
+        kind = self.engine.board[self.dest[0]][self.dest[1]].get_occupying().get_unit_kind()
+        self.engine.sounds.play('spawn_' + kind)
         self.spawner.actions_remaining -= 1
         self.engine.spawn_success = True
         self.engine.menus = []
@@ -253,7 +234,6 @@ class Spawn(GameEvent):
             self.additional_actions = self.engine.get_occupying(self.dest[0], self.dest[1]).get_additional_actions()
             self.engine.players[self.engine.turn].add_additional_actions(self.additional_actions)
         self.additional_piece_limit = self.engine.get_occupying(self.dest[0], self.dest[1]).get_additional_piece_limit()
-        self.play_random_sound_effect(self.engine.board[self.dest[0]][self.dest[1]].get_occupying())
         self.engine.intercept_pieces()
         self.engine.players[self.engine.turn].add_additional_piece_limit(self.additional_piece_limit)
         self.engine.reset_unused_piece_highlight()
@@ -264,7 +244,8 @@ class Spawn(GameEvent):
     def undo(self):
         super().undo()
         self.spawner.actions_remaining += 1
-        self.play_random_sound_effect(self.engine.board[self.dest[0]][self.dest[1]].get_occupying())
+        kind = self.engine.board[self.dest[0]][self.dest[1]].get_occupying().get_unit_kind()
+        self.engine.sounds.play('spawn_' + kind)
         self.engine.players[self.engine.turn].un_purchase(self.piece_cost)
         self.engine.delete_piece(self.dest[0], self.dest[1])
         self.engine.players[self.engine.turn].undo_action()
@@ -276,16 +257,6 @@ class Spawn(GameEvent):
         unused_pieces = self.engine.count_unused_pieces()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
-
-    def play_random_sound_effect(self, spawned):
-        if isinstance(spawned, Building):
-            i = random.randint(0, len(Constant.building_spawning) - 1)
-            Constant.BUILDING_SPAWNING_SOUNDS[i].set_volume(.1)
-            Constant.BUILDING_SPAWNING_SOUNDS[i].play()
-        elif isinstance(spawned, Piece):
-            i = random.randint(0, len(Constant.piece_spawning) - 1)
-            Constant.PIECE_SPAWNING_SOUNDS[i].set_volume(.1)
-            Constant.PIECE_SPAWNING_SOUNDS[i].play()
 
 
 class Steal(GameEvent):
@@ -302,7 +273,7 @@ class Steal(GameEvent):
 
     def complete(self):
         super().complete()
-        self.play_random_sound_effect()
+        self.engine.sounds.play('capture')
         self.thief.actions_remaining -= 1
         self.engine.players[self.engine.turn].steal(self.resource_stolen, self.amount)
         self.engine.players[Constant.TURNS[self.engine.turn]].invert_steal(self.resource_stolen, self.amount)
@@ -312,7 +283,7 @@ class Steal(GameEvent):
     def undo(self):
         super().undo()
         self.thief.actions_remaining += 1
-        self.play_random_sound_effect()
+        self.engine.sounds.play('capture')
         self.engine.players[self.engine.turn].invert_steal(self.resource_stolen, self.amount)
         self.engine.players[Constant.TURNS[self.engine.turn]].steal(self.resource_stolen, self.amount)
         if Constant.STEALING_COSTS_ACTION:
@@ -321,11 +292,6 @@ class Steal(GameEvent):
         self.engine.reset_unused_piece_highlight()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
-
-    def play_random_sound_effect(self):
-        i = random.randint(0, len(Constant.pray) - 1)
-        Constant.PRAY_SOUNDS[i].set_volume(.5)
-        Constant.PRAY_SOUNDS[i].play()
 
 
 class Mine(GameEvent):
@@ -353,7 +319,8 @@ class Mine(GameEvent):
             del self.mined.offsetIndex[-1]
         except IndexError:
             self.mined.offsetIndex = [0]
-        self.play_random_sound_effect(str(self.mined))
+        kind = Constant.RESOURCE_KEY[str(self.mined)]
+        self.engine.sounds.play('mine_' + kind)
         if self.mined.remaining == 0:
             if isinstance(self.mined, Quarry):
                 self.engine.create_resource(self.mined.row, self.mined.col, SunkenQuarry(self.mined.row, self.mined.col))
@@ -371,7 +338,8 @@ class Mine(GameEvent):
         col = self.mined.col
         self.mined.remaining += 1
         self.engine.players[self.engine.turn].un_mine(self.mined, self.miningOffset, self.additional_mining)
-        self.play_random_sound_effect(str(self.mined))
+        kind = Constant.RESOURCE_KEY[str(self.mined)]
+        self.engine.sounds.play('mine_' + kind)
         resource = self.engine.RESOURCES[str(self.mined)](row, col)
         resource.offset = self.sprite_offset
         self.engine.create_resource(row, col, resource)
@@ -384,17 +352,6 @@ class Mine(GameEvent):
             self.engine.players[self.engine.turn].undo_action()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
-
-    def play_random_sound_effect(self, kind):
-        if kind == 'quarry_1' or kind == 'gold_1' or kind == 'sunken_quarry_1':
-
-            i = random.randint(0, len(Constant.harvesting_rock) - 1)
-            Constant.HARVESTING_ROCK_SOUNDS[i].set_volume(.1)
-            Constant.HARVESTING_ROCK_SOUNDS[i].play()
-        else:
-            i = random.randint(0, len(Constant.harvesting_wood) - 1)
-            Constant.HARVESTING_WOOD_SOUNDS[i].set_volume(.1)
-            Constant.HARVESTING_WOOD_SOUNDS[i].play()
 
 
 class Pray(GameEvent):
@@ -411,7 +368,7 @@ class Pray(GameEvent):
 
     def complete(self):
         super().complete()
-        self.play_random_sound_effect()
+        self.engine.sounds.play('pray')
         self.praying_piece.actions_remaining -= 1
 
         self.engine.players[self.engine.turn].pray(self.prayed_on, self.additional_prayer)
@@ -422,7 +379,7 @@ class Pray(GameEvent):
         super().undo()
         praying_piece = self.engine.get_occupying(self.praying_piece.row, self.praying_piece.col)
         praying_piece.actions_remaining += 1
-        self.play_random_sound_effect()
+        self.engine.sounds.play('pray')
         self.engine.players[self.engine.turn].un_pray(self.prayed_on, self.additional_prayer)
         if Constant.PRAYING_COSTS_ACTION:
             self.engine.players[self.engine.turn].undo_action()
@@ -430,11 +387,6 @@ class Pray(GameEvent):
         self.engine.reset_unused_piece_highlight()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
-
-    def play_random_sound_effect(self):
-        i = random.randint(0, len(Constant.pray) - 1)
-        Constant.PRAY_SOUNDS[i].set_volume(.5)
-        Constant.PRAY_SOUNDS[i].play()
 
 
 class Persuade(GameEvent):
@@ -499,7 +451,7 @@ class PortalMove(GameEvent):
         self.moved.actions_remaining -= 1
         self.engine.move(self.start[0], self.start[1], self.end[0], self.end[1])
         self.engine.swap(self.end[0], self.end[1], self.portal_end[0], self.portal_end[1])
-        self.play_random_sound_effect()
+        self.engine.sounds.play('move')
         self.engine.reset_selected()
         self.engine.reset_unused_piece_highlight()
         self.engine.intercept_pieces()
@@ -514,7 +466,7 @@ class PortalMove(GameEvent):
         self.moved.actions_remaining += 1
         self.engine.swap(self.portal_end[0], self.portal_end[1], self.end[0], self.end[1])
         self.engine.move(self.end[0], self.end[1], self.start[0], self.start[1])
-        self.play_random_sound_effect()
+        self.engine.sounds.play('move')
         self.engine.reset_selected()
         unused_pieces = self.engine.count_unused_pieces()
         self.engine.reset_unused_piece_highlight()
@@ -523,10 +475,6 @@ class PortalMove(GameEvent):
             piece.unused_piece_highlight = True
         self.engine.players[self.engine.turn].undo_action()
 
-    def play_random_sound_effect(self):
-        i = random.randint(0, len(Constant.moves) - 1)
-        Constant.MOVE_SOUNDS[i].set_volume(.1)
-        Constant.MOVE_SOUNDS[i].play()
 
 
 class Move(GameEvent):
@@ -543,7 +491,7 @@ class Move(GameEvent):
         super().complete()
         self.moved.actions_remaining -= 1
         self.engine.move(self.start[0], self.start[1], self.end[0], self.end[1])
-        self.play_random_sound_effect()
+        self.engine.sounds.play('move')
         self.engine.reset_selected()
         self.engine.reset_unused_piece_highlight()
         self.engine.intercept_pieces()
@@ -557,7 +505,7 @@ class Move(GameEvent):
         super().undo()
         self.moved.actions_remaining += 1
         self.engine.move(self.end[0], self.end[1], self.start[0], self.start[1])
-        self.play_random_sound_effect()
+        self.engine.sounds.play('move')
         self.engine.reset_selected()
         unused_pieces = self.engine.count_unused_pieces()
         self.engine.reset_unused_piece_highlight()
@@ -565,11 +513,6 @@ class Move(GameEvent):
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
         self.engine.players[self.engine.turn].undo_action()
-
-    def play_random_sound_effect(self):
-        i = random.randint(0, len(Constant.moves) - 1)
-        Constant.MOVE_SOUNDS[i].set_volume(.1)
-        Constant.MOVE_SOUNDS[i].play()
 
 
 class Decree(GameEvent):
@@ -597,8 +540,6 @@ class Decree(GameEvent):
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
         self.player.do_action()
-
-
 
     def undo(self):
         super().undo()
@@ -630,7 +571,7 @@ class PortalCapture(GameEvent):
     def complete(self):
         super().complete()
         self.moved.actions_remaining -= 1
-        self.play_random_sound_effect()
+        self.engine.sounds.play('capture')
         self.engine.capture(self.start[0], self.start[1], self.end[0], self.end[1])
         self.engine.swap(self.end[0], self.end[1], self.portal_end[0], self.portal_end[1])
         self.engine.players[self.engine.turn].do_action()
@@ -644,7 +585,7 @@ class PortalCapture(GameEvent):
     def undo(self):
         super().undo()
         self.moved.actions_remaining += 1
-        self.play_random_sound_effect()
+        self.engine.sounds.play('capture')
         self.engine.swap(self.portal_end[0], self.portal_end[1], self.end[0], self.end[1])
         self.engine.move(self.end[0], self.end[1], self.start[0], self.start[1])
         self.engine.create_piece(self.end[0], self.end[1], self.captured)
@@ -654,11 +595,6 @@ class PortalCapture(GameEvent):
         unused_pieces = self.engine.count_unused_pieces()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
-
-    def play_random_sound_effect(self):
-        i = random.randint(0, len(Constant.captures) - 1)
-        Constant.CAPTURE_SOUNDS[i].set_volume(.1)
-        Constant.CAPTURE_SOUNDS[i].play()
 
 
 class Capture(GameEvent):
@@ -672,7 +608,7 @@ class Capture(GameEvent):
     def complete(self):
         super().complete()
         self.moved.actions_remaining -= 1
-        self.play_random_sound_effect()
+        self.engine.sounds.play('capture')
         self.engine.capture(self.start[0], self.start[1], self.end[0], self.end[1])
         self.engine.players[self.engine.turn].do_action()
         self.engine.reset_unused_piece_highlight()
@@ -685,7 +621,7 @@ class Capture(GameEvent):
     def undo(self):
         super().undo()
         self.moved.actions_remaining += 1
-        self.play_random_sound_effect()
+        self.engine.sounds.play('capture')
         self.engine.move(self.end[0], self.end[1], self.start[0], self.start[1])
         self.engine.create_piece(self.end[0], self.end[1], self.captured)
         self.engine.players[self.engine.turn].undo_action()
@@ -694,11 +630,6 @@ class Capture(GameEvent):
         unused_pieces = self.engine.count_unused_pieces()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
-
-    def play_random_sound_effect(self):
-        i = random.randint(0, len(Constant.captures) - 1)
-        Constant.CAPTURE_SOUNDS[i].set_volume(.1)
-        Constant.CAPTURE_SOUNDS[i].play()
 
 
 class ChangeTurn(GameEvent):
@@ -719,7 +650,7 @@ class ChangeTurn(GameEvent):
 
     def complete(self):
         super().complete()
-        self.play_random_sound_effect()
+        self.engine.sounds.play('change_turn')
         self.engine.reset_selected()
         self.engine.reset_piece_actions_remaining()
         self.engine.spawn_success = False
@@ -760,7 +691,7 @@ class ChangeTurn(GameEvent):
             piece.unused_piece_highlight = True
 
     def undo(self):
-        self.play_random_sound_effect()
+        self.engine.sounds.play('change_turn')
         self.engine.turn = Constant.TURNS[self.engine.turn]
         self.engine.turn_count_display -= .5
         self.engine.turn_count_actual -= 1
@@ -786,11 +717,6 @@ class ChangeTurn(GameEvent):
         for tile in self.protected_tiles:
             self.engine.board[tile.row][tile.col] = tile
 
-    def play_random_sound_effect(self):
-        i = random.randint(0, len(Constant.change_turn) - 1)
-        Constant.CHANGE_TURN_SOUNDS[i].set_volume(.1)
-        Constant.CHANGE_TURN_SOUNDS[i].play()
-
 
 class RitualEvent(GameEvent):
     def __init__(self, engine, acting_tile, action_tile):
@@ -805,18 +731,13 @@ class RitualEvent(GameEvent):
 
     def complete(self):
         super().complete()
-        self.play_random_sound_effect()
+        self.engine.sounds.play('ritual')
         self.ritual_building.actions_remaining -= 1
 
     def undo(self):
         super().undo()
-        self.play_random_sound_effect()
+        self.engine.sounds.play('ritual')
         self.ritual_building.actions_remaining += 1
-
-    def play_random_sound_effect(self):
-        i = random.randint(0, len(Constant.rituals) - 1)
-        Constant.PRAYER_RITUAL_SOUNDS[i].set_volume(.5)
-        Constant.PRAYER_RITUAL_SOUNDS[i].play()
 
     def respawn_deleted_monks(self):
         if self.monk_cost != 0:

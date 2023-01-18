@@ -500,7 +500,7 @@ class AIStartingSpawn(State):
         super().__init__(win, engine)
         self.side_bar = Empty(win, engine)
         self.first = True
-        self.play_random_sound_effect()
+        self.engine.sounds.play('start_game')
         self.turn_events = []
         self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
                                    Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
@@ -562,19 +562,13 @@ class AIStartingSpawn(State):
         self.first = first
         self.engine.spawn_count += 1
 
-    @staticmethod
-    def play_random_sound_effect():
-            i = random.randint(0, len(Constant.start_game) - 1)
-            Constant.START_GAME_SOUNDS[i].set_volume(.1)
-            Constant.START_GAME_SOUNDS[i].play()
-
 
 class StartingSpawn(State):
     def __init__(self, win, engine):
         super().__init__(win, engine)
         self.side_bar = Empty(win, engine)
         self.first = True
-        self.play_random_sound_effect()
+        self.engine.sounds.play('start_game')
 
     def __repr__(self):
         return 'start spawn'
@@ -612,12 +606,6 @@ class StartingSpawn(State):
         if Constant.pos_in_bounds(pos):
             row, col = Constant.convert_pos(pos)
         return row, col
-
-    @staticmethod
-    def play_random_sound_effect():
-        i = random.randint(0, len(Constant.start_game) - 1)
-        Constant.START_GAME_SOUNDS[i].set_volume(.1)
-        Constant.START_GAME_SOUNDS[i].play()
 
     def create_spawn_event(self, row, col, first=True):
         if first:
@@ -702,7 +690,7 @@ class DebugStart(StartingSpawn):
         super().__init__(win, engine)
         self.side_bar = Empty(win, engine)
         self.first = True
-        self.play_random_sound_effect()
+        self.engine.sounds.play('start_game')
         self.spawn_list = Constant.DEBUG_STARTING_PIECES
         self.engine.spawn_list = Constant.DEBUG_STARTING_PIECES
         self.engine.spawning = self.spawn_list[0]

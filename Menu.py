@@ -724,6 +724,17 @@ class BarracksMenu(SpawningMenu):
         return 'barracks'
 
 
+class CircusMenu(SpawningMenu):
+    def __init__(self, row, col, win, engine, spawner):
+        spawn_list = Constant.CIRCUS_SPAWN_LIST
+        self.spawner = spawner
+
+        super().__init__(row, col, win, engine, spawn_list, spawner)
+
+    def __repr__(self):
+        return 'circus'
+
+
 class KingMenu(Menu):
     def __init__(self, row, col, win, engine):
         super().__init__(win, engine)
@@ -992,7 +1003,7 @@ class CostMenu:
         self.pieces = {'w': Constant.W_PIECES | Constant.W_BUILDINGS,
                        'b': Constant.B_PIECES | Constant.B_BUILDINGS}
         self.MENUS = {'builder': BuilderCosts, 'castle': CastleCosts, 'stable': StableCosts, 'fortress': FortressCosts,
-                      'prayer_stone': PrayerStoneCosts, 'monolith': MonolithCosts, 'barracks': BarracksCosts}
+                      'prayer_stone': PrayerStoneCosts, 'monolith': MonolithCosts, 'barracks': BarracksCosts, 'circus': CircusCosts}
         self.RESOURCES = {'wood': Constant.MENU_ICONS['log'], 'gold': Constant.MENU_ICONS['gold_coin'],
                           'stone': Constant.MENU_ICONS['stone']}
 
@@ -1006,7 +1017,7 @@ class CostMenu:
         self.text_display_x = self.window_width // 2 - self.text_width // 2
         self.text_display_y = round(self.window_height * 1 / 6) - self.text_height // 2
 
-        self.x_buffer = Constant.SQ_SIZE
+        self.x_buffer = round(Constant.SQ_SIZE * 7 / 8)
         total_width_of_pieces = (len(self.spawn_list) * self.x_buffer * 2) - self.x_buffer
         self.piece_display_x = (self.window_width - total_width_of_pieces) // 2
         self.piece_display_y = round(self.window_height * 1 / 2)
@@ -1149,6 +1160,15 @@ class StableCosts(CostMenu):
 
     def __repr__(self):
         return 'stable'
+
+
+class CircusCosts(CostMenu):
+    def __init__(self, win, engine):
+        spawn_list = Constant.CIRCUS_SPAWN_LIST
+        super().__init__(win, engine, spawn_list)
+
+    def __repr__(self):
+        return 'circus'
 
 
 class FortressCosts(CostMenu):

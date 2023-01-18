@@ -2,7 +2,7 @@ import random
 import Constant
 
 
-class TradeHandler:
+class Trades:
     def __init__(self, engine):
         self.engine = engine
         self.resources = ('wood', 'gold', 'stone')

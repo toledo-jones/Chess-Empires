@@ -40,12 +40,12 @@ BOARD_WIDTH_PX = BOARD_WIDTH_SQ * SQ_SIZE
 SIDE_MENU_WIDTH = pygame.display.Info().current_w - BOARD_WIDTH_PX
 
 'DEBUG START'
-DEBUG_START = True
+DEBUG_START = False
 DEBUG_STARTING_PRAYER = 12
 DEBUG_STARTING_WOOD = 99
 DEBUG_STARTING_GOLD = 99
 DEBUG_STARTING_STONE = 99
-DEBUG_STARTING_PIECES = ['castle', 'pawn', 'monolith', 'king']
+DEBUG_STARTING_PIECES = ['castle', 'circus', 'rogue_rook', 'king']
 DEBUG_RITUALS = False
 PLAY_AGAINST_AI = False
 BOARD_STARTS_WITH_RESOURCES = True
@@ -75,9 +75,9 @@ STEALING_KEY = {'building': {
     'gold': {'variance': (-2, 2), 'value': 5},
     'stone': {'variance': (-2, 2), 'value': 5}},
     'trader': {
-    'wood': {'variance': (-3, 3), 'value': 10},
-    'gold': {'variance': (-3, 3), 'value': 10},
-    'stone': {'variance': (-3, 3), 'value': 10}},
+    'wood': {'variance': (-3, 4), 'value': 10},
+    'gold': {'variance': (-3, 4), 'value': 10},
+    'stone': {'variance': (-3, 4), 'value': 10}},
     'piece': {
         'wood': {'variance': (-2, 2), 'value': 4},
         'gold': {'variance': (-2, 2), 'value': 4},
@@ -88,15 +88,19 @@ MAX_PRAYER_STONE_RITUALS_PER_TURN = 3
 
 STABLE_SPAWN_LIST = ['doe', 'oxen', 'unicorn', 'ram', 'elephant', 'knight']
 FORTRESS_SPAWN_LIST = ['rogue_rook', 'rogue_bishop', 'rogue_knight', 'rogue_pawn']
-CASTLE_SPAWN_LIST = ['pawn', 'builder', 'pikeman', 'monk', 'persuader', 'jester', 'trader']
-BUILDER_SPAWN_LIST = ['wall', 'stable', 'monolith', 'castle', 'barracks', 'fortress']
+CASTLE_SPAWN_LIST = ['pawn', 'builder', 'pikeman', 'monk', 'trader']
+BUILDER_SPAWN_LIST = ['wall', 'stable', 'monolith', 'castle', 'barracks', 'fortress', 'circus']
 BARRACKS_SPAWN_LIST = ['duke', 'queen', 'champion', 'rook', 'bishop']
+CIRCUS_SPAWN_LIST = ['jester', 'persuader']
 
 SPAWN_LISTS = {'stable': STABLE_SPAWN_LIST, 'fortress': FORTRESS_SPAWN_LIST, 'castle': CASTLE_SPAWN_LIST,
-               'builder': BUILDER_SPAWN_LIST, 'barracks': BARRACKS_SPAWN_LIST, }
+               'builder': BUILDER_SPAWN_LIST, 'barracks': BARRACKS_SPAWN_LIST, 'circus': CIRCUS_SPAWN_LIST}
+MASTER_COST_LIST = ['builder', 'stable', 'monolith', 'castle', 'barracks', 'fortress', 'circus']
+
+SOUND_EFFECT_VOLUME = .5
 
 TRADING_GIVE_BOUNDS = (3/8, 1/2)
-TRADING_RECEIVE_BOUNDS = (3/4, 7/8)
+TRADING_RECEIVE_BOUNDS = (5/8, 15/16)
 
 DEFAULT_ACTIONS_REMAINING = 1
 ACTIONS_UPDATE_ON_SPAWN = False
@@ -113,6 +117,7 @@ FORTRESS_ADDITIONAL_ACTIONS = 0
 STABLE_ADDITIONAL_ACTIONS = 0
 MONOLITH_ADDITIONAL_ACTIONS = 0
 PRAYER_STONE_ADDITIONAL_ACTIONS = 0
+CIRCUS_ADDITIONAL_ACTIONS = 0
 
 DECREE_COST = 30
 DECREE_INCREMENT = 5
@@ -127,7 +132,7 @@ PIECE_COSTS = {'king': {'log': 999, 'gold': 999, 'stone': 999},
                'pikeman': {'log': 0, 'gold': 4, 'stone': 4},
                'castle': {'log': 10, 'gold': 0, 'stone': 0},
                'stable': {'log': 10, 'gold': 0, 'stone': 10},
-               'barracks': {'log': 0, 'gold': 10, 'stone': 0},
+               'barracks': {'log': 4, 'gold': 10, 'stone': 0},
                'fortress': {'log': 0, 'gold': 12, 'stone': 12},
                'queen': {'log': 0, 'gold': 14, 'stone': 14},
                'rook': {'log': 0, 'gold': 6, 'stone': 6},
@@ -136,10 +141,10 @@ PIECE_COSTS = {'king': {'log': 999, 'gold': 999, 'stone': 999},
                'jester': {'log': 0, 'gold': 12, 'stone': 0},
                'rogue_rook': {'log': 0, 'gold': 14, 'stone': 14},
                'rogue_bishop': {'log': 9, 'gold': 9, 'stone': 0},
-               'rogue_knight': {'log': 0, 'gold': 9, 'stone': 0},
+               'rogue_knight': {'log': 0, 'gold': 6, 'stone': 6},
                'rogue_pawn': {'log': 6, 'gold': 0, 'stone': 0},
-               'elephant': {'log': 6, 'gold': 0, 'stone': 6},
-               'ram': {'log': 6, 'gold': 0, 'stone': 6},
+               'elephant': {'log': 7, 'gold': 0, 'stone': 7},
+               'ram': {'log': 7, 'gold': 0, 'stone': 7},
                'unicorn': {'log': 12, 'gold': 0, 'stone': 12},
                'monolith': {'log': 0, 'gold': 0, 'stone': 15},
                'prayer_stone': {'log': 0, 'gold': 0, 'stone': 4},
@@ -149,7 +154,9 @@ PIECE_COSTS = {'king': {'log': 999, 'gold': 999, 'stone': 999},
                'wall': {'log': 0, 'gold': 0, 'stone': 3},
                'persuader': {'log': 0, 'gold': 20, 'stone': 0},
                'doe': {'log': 14, 'gold': 0, 'stone': 14},
-               'trader': {'log': 6, 'gold': 0, 'stone': 6},
+               'trader': {'log': 6, 'gold': 0, 'stone': 0},
+               'circus': {'log': 0, 'gold': 10, 'stone': 0},
+
                }
 
 DESCRIPTIONS = {'king': ['every player gets one', 'capture your opponent\'s to win'],
@@ -157,11 +164,11 @@ DESCRIPTIONS = {'king': ['every player gets one', 'capture your opponent\'s to w
                                  'all resource tiles'],
                 'quarry_1': ['can be mined for stone', 'may cave in and begin to yield less stone',
                              'eventually becomes depleted if mined after it caves in'],
-                'pawn': ['can mine resources'],
+                'pawn': ['can mine resources', 'mine an empty space to create a quarry'],
                 'builder': ['can create buildings'],
                 'monk': ['prays at monoliths to cast powerful rituals'],
                 'pikeman': ['attacks and defends all surrounding squares', 'a useful defender'],
-                'castle': ['creates basic pieces, such as pawns'],
+                'castle': ['creates basic pieces, such as pawns and the builder'],
                 'stable': ['creates leapers, such as the knight'],
                 'barracks': ['creates basic attacking pieces', 'a staple in any good kingdom'],
                 'fortress': ['creates rogue pieces who', 'can move through forest tiles and',
@@ -196,7 +203,8 @@ DESCRIPTIONS = {'king': ['every player gets one', 'capture your opponent\'s to w
                 'persuader': ['can convert the color of nearby pieces'],
                 'portal': ['creates a portal on any two squares',
                            'pieces who land on either square will be transported', 'to the other one'],
-                'trader': ['converts resources into one another ']
+                'trader': ['converts resources into one another '],
+                'circus': ['creates unique and strange pieces like the jester']
                 }
 
 PIECE_POPULATION = {'king': 1,
@@ -234,9 +242,10 @@ PIECE_POPULATION = {'king': 1,
                     'wall': 0,
                     'doe': 1,
                     'persuader': 1,
-                    'trader': 1}
+                    'trader': 1,
+                    'circus': 0}
 
-PRAYER_COSTS = {'gold_general': {'prayer': 9, 'monk': 3},
+PRAYER_COSTS = {'gold_general': {'prayer': 12, 'monk': 2},
                 'smite': {'prayer': 12, 'monk': 1},
                 'destroy_resource': {'prayer': 8, 'monk': 0},
                 'create_resource': {'prayer': 4, 'monk': 0},
@@ -246,7 +255,7 @@ PRAYER_COSTS = {'gold_general': {'prayer': 9, 'monk': 3},
                 'portal': {'prayer': 2, 'monk': 0},
                 'protect': {'prayer': 1, 'monk': 0}}
 
-ADDITIONAL_PIECE_LIMIT = {'castle': 5, 'barracks': 3, 'fortress': 3, 'stable': 3,
+ADDITIONAL_PIECE_LIMIT = {'castle': 5, 'barracks': 3, 'fortress': 3, 'stable': 3, 'circus':3,
                           'king': 0,
                           'queen': 0,
                           'rook': 0,
@@ -308,7 +317,6 @@ RESOURCE_KEY = {'gold_tile_1': 'gold', 'quarry_1': 'stone',
                 'gold': 'gold',
                 'tree_tile_4': 'wood', 'log': 'wood', 'gold_coin': 'gold', 'stone': 'stone'}
 
-MASTER_COST_LIST = ['builder', 'castle', 'stable', 'barracks', 'fortress', 'monolith']
 
 FACTION_NAMES = ['clique', 'coterie', 'cabal', 'bloc', 'camp', 'grouping',
                  'side', 'division', 'wing', 'section', 'countrymen', 'squad', 'faction',
@@ -452,7 +460,8 @@ w_buildings = ['w_castle',
                'w_flag',
                'w_barracks',
                'w_war_tower',
-               'w_stable']
+               'w_stable',
+               'w_circus']
 b_pieces = ['b_king', 'b_queen', 'b_rook', 'b_bishop',
             'b_knight', 'b_pawn', 'b_monk', 'b_duke',
             'b_rogue_bishop', 'b_jester', 'b_pikeman',
@@ -463,7 +472,7 @@ b_pieces = ['b_king', 'b_queen', 'b_rook', 'b_bishop',
             'b_persuader', 'b_doe', 'b_trader']
 b_buildings = ['b_castle', 'b_fortress', 'b_barracks',
                'b_wall', 'b_monolith', 'b_prayer_stone',
-               'b_flag', 'b_barracks', 'b_war_tower', 'b_stable']
+               'b_flag', 'b_barracks', 'b_war_tower', 'b_stable', 'b_circus']
 w_prayer_rituals = ['w_gold_general', 'w_smite', 'w_destroy_resource', 'w_create_resource', 'w_teleport',
                     'w_swap', 'w_line_destroy', 'w_protect', 'w_portal']
 b_prayer_rituals = ['b_gold_general', 'b_smite', 'b_destroy_resource', 'b_create_resource', 'b_teleport', 'b_swap',
@@ -532,6 +541,8 @@ PIECE_IMAGE_MODIFY = {'king': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'trader': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'doe': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'persuader': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
+                      'circus': {'SCALE': BARRACKS_SCALE, 'OFFSET': BARRACKS_OFFSET},
+
                       }
 
 IMAGES_IMAGE_MODIFY = {'icon': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},

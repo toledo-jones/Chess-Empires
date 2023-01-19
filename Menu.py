@@ -7,7 +7,10 @@ class Menu:
         self.win = win
         self.engine = engine
         self.pieces = {'w': Constant.W_PIECES | Constant.W_BUILDINGS, 'b': Constant.B_PIECES | Constant.B_BUILDINGS}
-        self.menu_boundary_buffer = Constant.SQ_SIZE
+        self.menu_boundary_buffer = round(Constant.SQ_SIZE * 1.5)
+
+    def get_initial_menu_position(self, row, col):
+        return col * Constant.SQ_SIZE + Constant.SQ_SIZE // 2, row * Constant.SQ_SIZE + Constant.SQ_SIZE // 2
 
     def correct_menu_boundary(self):
         x, y = self.initial_menu_position
@@ -45,6 +48,63 @@ class Menu:
                 menu_open = False
 
         return menu_open
+
+
+class Notification(Menu):
+    def __init__(self, row, col, win, engine, message='blank'):
+        super().__init__(win, engine)
+        self.row = row
+        self.col = col
+        self.color = Constant.turn_to_color[self.engine.turn]
+        self.message = Constant.NOTIFICATIONS[message]
+        self.font_size = round(Constant.SQ_SIZE * .5)
+        self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
+
+        self.menu_width = Constant.SQ_SIZE * 3
+        self.menu_height = Constant.SQ_SIZE + len(self.message) * round(Constant.SQ_SIZE * .8)
+
+        self.menu_boundary_buffer_y = self.menu_height + self.menu_boundary_buffer
+        self.menu_boundary_buffer_x = self.menu_width + self.menu_boundary_buffer
+
+        self.initial_menu_position = self.get_initial_menu_position(self.row, self.col)
+        self.menu_position_x, self.menu_position_y = self.correct_menu_boundary()
+
+        self.menu = pygame.Surface((self.menu_width, self.menu_height))
+
+        self.text = 'ok'
+        self.ok_text_surface = self.font.render(self.text, True, self.color)
+
+        self.ok_display_x = self.menu_width // 2 - self.ok_text_surface.get_width() // 2
+        self.ok_display_y = self.menu_height - Constant.SQ_SIZE // 2
+
+        self.highlight_display_x = 0
+        self.highlight_display_y = self.menu_height - Constant.SQ_SIZE
+
+        self.square = pygame.Surface((self.menu_width, Constant.SQ_SIZE))
+        self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
+        self.highlight = False
+
+    def draw(self):
+        self.menu.fill(Constant.MENU_COLOR)
+        if self.highlight:
+            self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
+            self.menu.blit(self.square, (self.highlight_display_x, self.highlight_display_y))
+        self.menu.blit(self.ok_text_surface, (self.ok_display_x, self.ok_display_y))
+        self.win.blit(self.menu, (self.menu_position_x, self.menu_position_y))
+
+    def left_click(self):
+        pass
+
+    def right_click(self):
+        pass
+
+    def mouse_move(self):
+        pos = pygame.mouse.get_pos()
+        if pos[0] > self.menu_position_x < self.menu_position_x + self.menu_width:
+            if pos[1] > self.menu_position_y < self.menu_position_y + self.menu_height:
+                self.highlight = True
+        else:
+            self.highlight = False
 
 
 class RitualMenu(Menu):

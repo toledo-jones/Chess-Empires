@@ -1662,7 +1662,11 @@ class Castle(Building):
         for direction in self.directions:
             r = self.row - direction[0]
             c = self.col - direction[1]
-            if engine.can_be_occupied(r, c):
+            if engine.spawning == 'rogue_pawn':
+                if engine.can_be_occupied_by_rogue(r, c):
+                    spawn_squares.append((r, c))
+
+            elif engine.can_be_occupied(r, c):
                 spawn_squares.append((r, c))
         return spawn_squares
 

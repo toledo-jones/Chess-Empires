@@ -300,6 +300,7 @@ class Mine(GameEvent):
         self.miner = self.acting_tile.get_occupying()
         self.mined = self.action_tile.get_resource()
         self.additional_mining = 0
+        self.piece_removed = None
         if str(self.miner) == 'rogue_pawn':
             self.additional_mining = Constant.ADDITIONAL_MINING_FROM_ROGUE[Constant.RESOURCE_KEY[str(self.mined)]]
         self.miningOffset = self.mined.offsetIndex[-1]
@@ -324,6 +325,9 @@ class Mine(GameEvent):
         if self.mined.remaining == 0:
             if isinstance(self.mined, Quarry):
                 self.engine.create_resource(self.mined.row, self.mined.col, SunkenQuarry(self.mined.row, self.mined.col))
+                if self.engine.get_occupying(self.mined.row, self.mined.col):
+                    self.piece_removed = self.engine.get_occupying(self.mined.row, self.mined.col)
+                    self.engine.delete_piece(self.mined.row, self.mined.col)
             elif isinstance(self.mined, SunkenQuarry):
                 self.engine.create_resource(self.mined.row, self.mined.col, DepletedQuarry(self.mined.row, self.mined.col))
             else:
@@ -343,6 +347,9 @@ class Mine(GameEvent):
         resource = self.engine.RESOURCES[str(self.mined)](row, col)
         resource.offset = self.sprite_offset
         self.engine.create_resource(row, col, resource)
+        if self.piece_removed:
+            self.engine.create_piece(self.mined.row, self.mined.col, self.piece_removed)
+        self.engine.correct_interceptions()
         self.engine.get_resource(row, col).remaining = self.mined.remaining
         self.engine.get_resource(row, col).offsetIndex.append(self.miningOffset)
         self.engine.get_resource(row, col).sprite_id = self.sprite_id
@@ -474,7 +481,6 @@ class PortalMove(GameEvent):
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
         self.engine.players[self.engine.turn].undo_action()
-
 
 
 class Move(GameEvent):

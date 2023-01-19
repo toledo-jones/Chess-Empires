@@ -14,11 +14,9 @@ class Engine:
         self.running = True
         self.cols = Constant.BOARD_WIDTH_SQ
         self.rows = Constant.BOARD_HEIGHT_SQ
-        self.board = [[0 for y in range(self.cols)] for x in range(self.rows)]
+        self.board = [[Tile(x, y)for y in range(self.cols)] for x in range(self.rows)]
         self.map = None
-        for c in range(self.cols):
-            for r in range(self.rows):
-                self.board[r][c] = Tile(r, c)
+        self.winner = None
         self.spawn_list = []
         self.turn = None
         self.first = True
@@ -262,6 +260,13 @@ class Engine:
         for r in range(self.rows):
             for c in range(self.cols):
                 self.board[r][c].draw(win)
+
+    def player_king_does_not_exist(self):
+        does_king_exist = False
+        for piece in self.players[self.turn].pieces:
+            if isinstance(piece, King):
+                does_king_exist = True
+        return not does_king_exist
 
     def enemy_player_king_does_not_exist(self):
         does_king_exist = False
@@ -780,10 +785,21 @@ class Engine:
     def close_menus(self):
         self.menus = []
 
+    def win(self):
+        self.winner = self.turn
+
+    def add_event(self, event):
+        event.complete()
+        self.events.append(event)
+        if self.player_king_does_not_exist():
+            self.turn = Constant.TURNS[self.turn]
+            self.win()
+        elif self.enemy_player_king_does_not_exist():
+            self.win()
+
     def change_turn(self):
-        turn_change_event = ChangeTurn(self)
-        turn_change_event.complete()
-        self.events.append(turn_change_event)
+        event = ChangeTurn(self)
+        self.add_event(event)
         self.players[self.turn].begin_turn(self)
 
     def get_occupying_color(self, r, c):
@@ -818,6 +834,13 @@ class Engine:
             tally_additional_actions += piece.get_additional_actions()
 
         self.players[self.turn].total_additional_actions_this_turn = tally_additional_actions
+
+    def determine_winner(self):
+        if self.winner is not None:
+            self.set_state('winner')
+
+    def update(self):
+        self.determine_winner()
 
     def is_legal_ritual(self, ritual):
         ritual_cost = Constant.PRAYER_COSTS[ritual]['prayer']
@@ -1034,15 +1057,13 @@ class Engine:
     def decree(self, row, col):
         acting_tile = self.board[row][col]
         event = Decree(self, acting_tile, None)
-        event.complete()
-        self.events.append(event)
+        self.add_event(event)
 
     def trade(self):
         acting_tile = self.board[self.piece_trading.row][self.piece_trading.col]
         action_tile = None
         event = Trade(self, acting_tile, action_tile)
-        event.complete()
-        self.events.append(event)
+        self.add_event(event)
 
     def create_trader_menu(self, row, col, set_new_piece_trading=True):
         player = self.players[self.turn]
@@ -1071,28 +1092,35 @@ class Engine:
         self.update_spawn_squares()
         return True
 
+    def starting_square_has_enough_open_spaces(self, row, col):
+        open_spaces = 0
+        rogue_spaces = 0
+        rogues = 0
+        for piece in self.spawn_list:
+            if piece == 'rogue_pawn':
+                rogues += 1
+
+        open_spaces_needed = 7 - rogues
+        for r in range(row - 1, row + 2):
+            for c in range(col - 1, col + 2):
+                if self.can_be_occupied(r, c):
+                    open_spaces += 1
+                elif self.can_be_occupied_by_rogue(r, c):
+                    rogue_spaces += 1
+        return open_spaces >= open_spaces_needed
+
     def is_legal_starting_square(self, row, col):
-        player_is_too_close = False
+        no_players_nearby = True
+        square_has_enough_spaces = True
         if not self.can_be_occupied(row, col):
             return False
-        if not self.players:
-            return True
+        if not self.starting_square_has_enough_open_spaces(row, col):
+            square_has_enough_spaces = False
         for r in range(row - 3, row + 4):
             for c in range(col - 3, col + 4):
                 if self.has_castle(r, c):
-                    player_is_too_close = True
+                    no_players_nearby = False
 
-        return not player_is_too_close
+        return no_players_nearby and square_has_enough_spaces
 
-    def is_legal_starting_square(self, row, col):
-        player_is_too_close = False
-        if not self.can_be_occupied(row, col):
-            return False
-        if not self.players:
-            return True
-        for r in range(row - 3, row + 4):
-            for c in range(col - 3, col + 4):
-                if self.has_castle(r, c):
-                    player_is_too_close = True
 
-        return not player_is_too_close

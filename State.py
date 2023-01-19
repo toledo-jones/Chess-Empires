@@ -17,6 +17,24 @@ class State:
         new_state = Playing(self.win, self.engine)
         self.engine.set_state(new_state)
 
+    def mouse_in_menu_bounds(self):
+        pos = Constant.convert_pos(pygame.mouse.get_pos())
+        if self.engine.menus:
+            for menu in self.engine.menus:
+                if not menu.mouse_in_menu_bounds():
+                    self.engine.close_menus()
+
+    def side_bar_input(self, input_type):
+        if self.engine.side_bar:
+            function = getattr(self.engine.side_bar, input_type)
+            function()
+
+    def menu_input(self, input_type):
+        if self.engine.menus:
+            for menu in self.engine.menus:
+                function = getattr(menu, input_type)
+                function()
+
     def draw(self):
         #
         #   Default: draw the engine and fill the window background
@@ -127,6 +145,9 @@ class MainMenu(State):
                 Constant.PLAY_AGAINST_AI = False
                 self.engine.set_state('starting')
 
+    def enter(self):
+        pass
+
     def mouse_move(self):
         pos = pygame.mouse.get_pos()
         if pos[1] in self.button_range_y:
@@ -195,11 +216,10 @@ class Playing(State):
             acting_tile = self.engine.board[prev_position[0]][prev_position[1]]
             action_tile = self.engine.board[row][col]
             if action_tile.portal:
-                moveEvent = PortalMove(self.engine, acting_tile, action_tile)
+                event = PortalMove(self.engine, acting_tile, action_tile)
             else:
-                moveEvent = Move(self.engine, acting_tile, action_tile)
-            moveEvent.complete()
-            self.engine.events.append(moveEvent)
+                event = Move(self.engine, acting_tile, action_tile)
+            self.engine.add_event(event)
             self.engine.reset_selected()
             return True
 
@@ -218,11 +238,10 @@ class Playing(State):
             acting_tile = self.engine.board[prev_row][prev_col]
             action_tile = self.engine.board[row][col]
             if not action_tile.portal:
-                capture_event = Capture(self.engine, acting_tile, action_tile)
+                event = Capture(self.engine, acting_tile, action_tile)
             else:
-                capture_event = PortalCapture(self.engine, acting_tile, action_tile)
-            capture_event.complete()
-            self.engine.events.append(capture_event)
+                event = PortalCapture(self.engine, acting_tile, action_tile)
+            self.engine.add_event(event)
             self.engine.reset_selected()
             return True
 
@@ -259,14 +278,9 @@ class Playing(State):
                         self.revert_to_playing_state()
 
     def mouse_move(self):
-        if self.engine.menus:
-            for menu in self.engine.menus:
-                menu.mouse_move()
-                if not menu.mouse_in_menu_bounds():
-                    self.revert_to_playing_state()
-
-        if self.side_bar:
-            self.side_bar.mouse_move()
+        self.menu_input('mouse_move')
+        self.mouse_in_menu_bounds()
+        self.side_bar_input('mouse_move')
 
     def draw(self):
         super().draw()
@@ -463,19 +477,14 @@ class AIPlaying(State):
 
     def complete_turn(self):
         if not self.act():
-            if not self.engine.enemy_player_king_does_not_exist():
-                self.change_turn()
-                event = AITurn(self.engine, self.turn_events)
-                self.engine.events.append(event)
-                self.revert_to_playing_state()
-            else:
-                self.engine.set_state('winner')
-                self.engine.change_turn()
+            self.change_turn()
+            event = AITurn(self.engine, self.turn_events)
+            self.engine.add_event(event)
+            self.revert_to_playing_state()
 
     def change_turn(self):
-        turn_change_event = ChangeTurn(self.engine)
-        turn_change_event.complete()
-        self.turn_events.append(turn_change_event)
+        event = ChangeTurn(self.engine)
+        self.engine.add_event(event)
         self.engine.players[self.engine.turn].begin_turn(self)
 
     def make_move(self, event):
@@ -555,9 +564,9 @@ class AIStartingSpawn(State):
     def create_ai_spawn_event(self, row, col, first=True):
         action_tile = self.engine.board[row][col]
         acting_tile = self.engine.update_previously_selected()
-        spawn_event = StartSpawn(self.engine, acting_tile, action_tile)
-        spawn_event.complete()
-        self.turn_events.append(spawn_event)
+        event = StartSpawn(self.engine, acting_tile, action_tile)
+        event.complete()
+        self.turn_events.append(event)
         self.engine.update_spawn_squares()
         self.first = first
         self.engine.spawn_count += 1
@@ -579,9 +588,9 @@ class StartingSpawn(State):
         new_state.create_ai_player()
 
     def begin_next_player_piece_select(self):
-        turn_change = ChangeTurn(self.engine)
-        turn_change.complete()
-        self.engine.events.append(turn_change)
+        event = ChangeTurn(self.engine)
+        event.complete()
+        self.engine.events.append(event)
         new_state = SelectStartingPieces(self.win, self.engine)
         self.engine.set_state(new_state)
         self.engine.spawn_count = 0
@@ -616,29 +625,39 @@ class StartingSpawn(State):
             acting_tile = self.engine.board[previously_selected.row][previously_selected.col]
         else:
             acting_tile = None
-        spawn_event = StartSpawn(self.engine, acting_tile, action_tile)
-        spawn_event.complete()
+        event = StartSpawn(self.engine, acting_tile, action_tile)
+        event.complete()
         self.engine.reset_selected()
-        self.engine.update_spawn_squares()
-        self.engine.events.append(spawn_event)
+        self.engine.events.append(event)
         castle_row, castle_col = self.engine.find_player_castle()
         self.engine.set_purchasing(castle_row, castle_col, True)
+        self.engine.update_spawn_squares()
         self.first = first
 
         self.engine.spawn_count += 1
 
+    def create_invalid_square_popup(self, row, col):
+        # self.engine.menus.append(Notification(row, col, self.win, self.engine))
+        pass
+
     def left_click(self):
         row, col = self.get_valid_position
+        self.menu_input('left_click')
         previously_selected = self.engine.update_previously_selected()
         if previously_selected is not None:
             previously_selected.update_spawn_squares(self.engine)
             if (row, col) in previously_selected.spawn_squares_list:
                 self.create_spawn_event(row, col, False)
+            else:
+                self.create_invalid_square_popup(row, col)
         else:
             if self.engine.is_legal_starting_square(row, col):
                 self.create_spawn_event(row, col)
+            else:
+                self.create_invalid_square_popup(row, col)
         try:
             self.engine.spawning = self.engine.spawn_list[self.engine.spawn_count]
+            self.engine.update_spawn_squares()
         except IndexError:
             if Constant.PLAY_AGAINST_AI:
                 self.begin_ai_starting_spawn()
@@ -667,6 +686,7 @@ class StartingSpawn(State):
     def draw(self):
         super().draw()
         self.side_bar.draw()
+        self.menu_input('draw')
         pos = pygame.mouse.get_pos()
         spawnTable = Constant.W_BUILDINGS | Constant.W_PIECES | Constant.B_BUILDINGS | Constant.B_PIECES
         displayPosX = pos[0] - Constant.SQ_SIZE // 2
@@ -676,7 +696,8 @@ class StartingSpawn(State):
             return True
 
     def mouse_move(self):
-        pass
+        self.menu_input('mouse_move')
+        self.mouse_in_menu_bounds()
 
     def enter(self):
         pass
@@ -699,9 +720,9 @@ class DebugStart(StartingSpawn):
         return 'start spawn'
 
     def begin_next_player_start_spawn(self):
-        turn_change = ChangeTurn(self.engine)
-        turn_change.complete()
-        self.engine.events.append(turn_change)
+        event = ChangeTurn(self.engine)
+        event.complete()
+        self.engine.events.append(event)
         self.engine.spawn_count = 0
         self.engine.final_spawn = True
         new_state = DebugStart(self.win, self.engine)
@@ -785,12 +806,11 @@ class MiningStealing(State):
                 acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
                 action_tile = self.engine.board[row][col]
                 if action_tile.get_resource():
-                    mining_event = Mine(self.engine, acting_tile, action_tile)
+                    event = Mine(self.engine, acting_tile, action_tile)
                 else:
                     self.engine.spawning = 'quarry_1'
-                    mining_event = SpawnResource(self.engine, acting_tile, action_tile)
-                mining_event.complete()
-                self.engine.events.append(mining_event)
+                    event = SpawnResource(self.engine, acting_tile, action_tile)
+                self.engine.add_event(event)
                 new_state = Playing(self.win, self.engine)
                 self.engine.reset_selected()
                 self.engine.set_state(new_state)
@@ -801,8 +821,7 @@ class MiningStealing(State):
             action_tile = self.engine.board[self.row][self.col]
             acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
             event = Steal(self.engine, acting_tile, action_tile)
-            event.complete()
-            self.engine.events.append(event)
+            self.engine.add_event(event)
             self.engine.stealing = None
             self.revert_to_playing_state()
 
@@ -884,12 +903,11 @@ class Mining(State):
                     acting_tile = self.engine.board[self.prev.row][self.prev.col]
                     action_tile = self.engine.board[row][col]
                     if action_tile.get_resource():
-                        mining_event = Mine(self.engine, acting_tile, action_tile)
+                        event = Mine(self.engine, acting_tile, action_tile)
                     else:
                         self.engine.spawning = 'quarry_1'
-                        mining_event = SpawnResource(self.engine, acting_tile, action_tile)
-                    mining_event.complete()
-                    self.engine.events.append(mining_event)
+                        event = SpawnResource(self.engine, acting_tile, action_tile)
+                    self.engine.add_event(event)
                     new_state = Playing(self.win, self.engine)
                     self.engine.reset_selected()
                     self.engine.set_state(new_state)
@@ -949,8 +967,7 @@ class Persuading(State):
                     acting_tile = self.engine.board[self.prev.row][self.prev.col]
                     action_tile = self.engine.board[row][col]
                     event = Persuade(self.engine, acting_tile, action_tile)
-                    event.complete()
-                    self.engine.events.append(event)
+                    self.engine.add_event(event)
                     if self.engine.enemy_player_king_does_not_exist():
                         new_state = Winner(self.win, self.engine)
                         self.engine.set_state(new_state)
@@ -1002,8 +1019,7 @@ class Stealing(State):
             action_tile = self.engine.board[self.row][self.col]
             acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
             event = Steal(self.engine, acting_tile, action_tile)
-            event.complete()
-            self.engine.events.append(event)
+            self.engine.add_event(event)
             self.engine.stealing = None
             self.revert_to_playing_state()
 
@@ -1158,9 +1174,8 @@ class Praying(State):
             if (row, col) in praying_squares:
                 acting_tile = self.engine.board[prev.row][prev.col]
                 action_tile = self.engine.board[row][col]
-                prayer_event = Pray(self.engine, acting_tile, action_tile)
-                prayer_event.complete()
-                self.engine.events.append(prayer_event)
+                event = Pray(self.engine, acting_tile, action_tile)
+                self.engine.add_event(event)
                 new_state = Playing(self.win, self.engine)
                 self.engine.reset_selected()
                 self.engine.set_state(new_state)
@@ -1206,14 +1221,13 @@ class Spawning(State):
             acting_tile = self.engine.board[previousP.row][previousP.col]
             action_tile = self.engine.board[row][col]
             if self.engine.spawning == 'quarry_1':
-                spawn_event = SpawnResource(self.engine, acting_tile, action_tile)
+                event = SpawnResource(self.engine, acting_tile, action_tile)
             else:
                 if not action_tile.portal:
-                    spawn_event = Spawn(self.engine, acting_tile, action_tile)
+                    event = Spawn(self.engine, acting_tile, action_tile)
                 else:
-                    spawn_event = PortalSpawn(self.engine, acting_tile, action_tile)
-            spawn_event.complete()
-            self.engine.events.append(spawn_event)
+                    event = PortalSpawn(self.engine, acting_tile, action_tile)
+            self.engine.add_event(event)
             state = Playing(self.win, self.engine)
             self.engine.set_state(state)
         else:
@@ -1391,8 +1405,7 @@ class SummonGoldGeneral(Ritual):
             acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
             action_tile = self.engine.board[row][col]
             event = GoldGeneralEvent(self.engine, acting_tile, action_tile)
-            event.complete()
-            self.engine.events.append(event)
+            self.engine.add_event(event)
             self.revert_to_playing_state()
         else:
             self.revert_to_playing_state()
@@ -1433,8 +1446,7 @@ class PerformSmite(Ritual):
             acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
             action_tile = self.engine.board[row][col]
             event = Smite(self.engine, acting_tile, action_tile)
-            event.complete()
-            self.engine.events.append(event)
+            self.engine.add_event(event)
             self.revert_to_playing_state()
         else:
             self.revert_to_playing_state()
@@ -1472,8 +1484,7 @@ class PerformDestroyResource(Ritual):
             acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
             action_tile = self.engine.board[row][col]
             event = DestroyResource(self.engine, acting_tile, action_tile)
-            event.complete()
-            self.engine.events.append(event)
+            self.engine.add_event(event)
             self.revert_to_playing_state()
         else:
             self.revert_to_playing_state()
@@ -1535,8 +1546,7 @@ class PerformCreateResource(Ritual):
             acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
             action_tile = self.engine.board[self.row][self.col]
             event = CreateResource(self.engine, acting_tile, action_tile)
-            event.complete()
-            self.engine.events.append(event)
+            self.engine.add_event(event)
             self.engine.ritual_summon_resource = None
             self.revert_to_playing_state()
 
@@ -1596,8 +1606,7 @@ class PerformTeleport(Ritual):
             acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
             action_tile = ((self.selected.row, self.selected.col), (row, col))
             event = Teleport(self.engine, acting_tile, action_tile)
-            event.complete()
-            self.engine.events.append(event)
+            self.engine.add_event(event)
             self.revert_to_playing_state()
         else:
             self.revert_to_playing_state()
@@ -1652,8 +1661,7 @@ class PerformSwap(Ritual):
             acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
             action_tile = ((self.first_selected.row, self.first_selected.col), (row, col))
             event = Swap(self.engine, acting_tile, action_tile)
-            event.complete()
-            self.engine.events.append(event)
+            self.engine.add_event(event)
             self.revert_to_playing_state()
         else:
             self.revert_to_playing_state()
@@ -1717,8 +1725,7 @@ class PerformLineDestroy(Ritual):
             acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
             action_tile = self.engine.board[row][col]
             event = LineDestroy(self.engine, acting_tile, action_tile)
-            event.complete()
-            self.engine.events.append(event)
+            self.engine.add_event(event)
             if self.engine.enemy_player_king_does_not_exist():
                 new_state = Winner(self.win, self.engine)
                 self.engine.set_state(new_state)
@@ -1767,8 +1774,7 @@ class PerformProtect(Ritual):
             acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
             action_tile = self.engine.board[row][col]
             event = Protect(self.engine, acting_tile, action_tile)
-            event.complete()
-            self.engine.events.append(event)
+            self.engine.add_event(event)
             self.revert_to_playing_state()
         else:
             self.revert_to_playing_state()
@@ -1820,8 +1826,7 @@ class PerformPortal(Ritual):
             acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
             action_tile = ((self.selected.row, self.selected.col), (row, col))
             event = Portal(self.engine, acting_tile, action_tile)
-            event.complete()
-            self.engine.events.append(event)
+            self.engine.add_event(event)
             self.revert_to_playing_state()
         else:
             self.revert_to_playing_state()

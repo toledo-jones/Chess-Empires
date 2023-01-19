@@ -159,6 +159,11 @@ PIECE_COSTS = {'king': {'log': 999, 'gold': 999, 'stone': 999},
 
                }
 
+NOTIFICATIONS = {'blank': ['an unknown error occurred'],
+                 '': ['', '', '']
+                 }
+
+
 DESCRIPTIONS = {'king': ['every player gets one', 'capture your opponent\'s to win'],
                 'gold_general': ['summons a fierce demon who ', 'moves like a queen through and onto ',
                                  'all resource tiles'],

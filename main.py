@@ -45,6 +45,7 @@ def main():
             elif event.type == MUSIC_END:
                 Constant.load_music()
 
+        engine.update()
         # DRAW GAME STATES:
         engine.state[-1].draw()
         # UPDATE DISPLAY

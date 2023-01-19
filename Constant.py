@@ -160,7 +160,8 @@ PIECE_COSTS = {'king': {'log': 999, 'gold': 999, 'stone': 999},
                }
 
 NOTIFICATIONS = {'blank': ['an unknown error occurred'],
-                 '': ['', '', '']
+                 'invalid_start_spawn': ['invalid square selected'],
+
                  }
 
 

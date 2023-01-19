@@ -57,11 +57,12 @@ class Notification(Menu):
         self.col = col
         self.color = Constant.turn_to_color[self.engine.turn]
         self.message = Constant.NOTIFICATIONS[message]
-        self.font_size = round(Constant.SQ_SIZE * .5)
+        self.font_size = round(Constant.SQ_SIZE * .3)
         self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
 
         self.menu_width = Constant.SQ_SIZE * 3
-        self.menu_height = Constant.SQ_SIZE + len(self.message) * round(Constant.SQ_SIZE * .8)
+        self.menu_height = Constant.SQ_SIZE + len(self.message) * Constant.SQ_SIZE
+        self.y_buffer_between_messages = Constant.SQ_SIZE
 
         self.menu_boundary_buffer_y = self.menu_height + self.menu_boundary_buffer
         self.menu_boundary_buffer_x = self.menu_width + self.menu_boundary_buffer
@@ -74,8 +75,12 @@ class Notification(Menu):
         self.text = 'ok'
         self.ok_text_surface = self.font.render(self.text, True, self.color)
 
+        self.message_text_surfaces = []
+        for message in self.message:
+            self.message_text_surfaces.append(self.font.render(message, True, self.color))
+
         self.ok_display_x = self.menu_width // 2 - self.ok_text_surface.get_width() // 2
-        self.ok_display_y = self.menu_height - Constant.SQ_SIZE // 2
+        self.ok_display_y = self.menu_height - self.ok_text_surface.get_height()
 
         self.highlight_display_x = 0
         self.highlight_display_y = self.menu_height - Constant.SQ_SIZE
@@ -86,6 +91,11 @@ class Notification(Menu):
 
     def draw(self):
         self.menu.fill(Constant.MENU_COLOR)
+        y_buffer = 0
+        for message in self.message_text_surfaces:
+            text_display_x = self.menu_width // 2 - message.get_width() // 2
+            self.menu.blit(message, (text_display_x, y_buffer))
+            y_buffer += self.y_buffer_between_messages
         if self.highlight:
             self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
             self.menu.blit(self.square, (self.highlight_display_x, self.highlight_display_y))
@@ -99,12 +109,14 @@ class Notification(Menu):
         pass
 
     def mouse_move(self):
+        menu_above_ok_button = len(self.message) * round(Constant.SQ_SIZE * .8)
         pos = pygame.mouse.get_pos()
-        if pos[0] > self.menu_position_x < self.menu_position_x + self.menu_width:
-            if pos[1] > self.menu_position_y < self.menu_position_y + self.menu_height:
+        if self.menu_position_x < pos[0] < self.menu_position_x + self.menu_width:
+            if self.menu_position_y + menu_above_ok_button < pos[1] < self.menu_position_y + self.menu_height:
                 self.highlight = True
-        else:
-            self.highlight = False
+                return
+
+        self.highlight = False
 
 
 class RitualMenu(Menu):

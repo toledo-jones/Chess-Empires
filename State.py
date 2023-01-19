@@ -7,6 +7,9 @@ class State:
         self.win = win
         self.engine = engine
 
+    def create_popup(self, row, col, message='blank'):
+        self.engine.menus.append(Notification(row, col, self.win, self.engine, message))
+
     def revert_to_playing_state(self):
         #
         #   used by many states to return to the 'playing' state, or default state
@@ -28,12 +31,14 @@ class State:
         if self.engine.side_bar:
             function = getattr(self.engine.side_bar, input_type)
             function()
+            return True
 
     def menu_input(self, input_type):
         if self.engine.menus:
             for menu in self.engine.menus:
                 function = getattr(menu, input_type)
                 function()
+            return True
 
     def draw(self):
         #
@@ -636,25 +641,22 @@ class StartingSpawn(State):
 
         self.engine.spawn_count += 1
 
-    def create_invalid_square_popup(self, row, col):
-        # self.engine.menus.append(Notification(row, col, self.win, self.engine))
-        pass
-
     def left_click(self):
         row, col = self.get_valid_position
-        self.menu_input('left_click')
+        if self.menu_input('left_click'):
+            return
         previously_selected = self.engine.update_previously_selected()
         if previously_selected is not None:
             previously_selected.update_spawn_squares(self.engine)
             if (row, col) in previously_selected.spawn_squares_list:
                 self.create_spawn_event(row, col, False)
             else:
-                self.create_invalid_square_popup(row, col)
+                self.create_popup(row, col, 'invalid_start_spawn')
         else:
             if self.engine.is_legal_starting_square(row, col):
                 self.create_spawn_event(row, col)
             else:
-                self.create_invalid_square_popup(row, col)
+                self.create_popup(row, col, 'invalid_start_spawn')
         try:
             self.engine.spawning = self.engine.spawn_list[self.engine.spawn_count]
             self.engine.update_spawn_squares()
@@ -686,7 +688,8 @@ class StartingSpawn(State):
     def draw(self):
         super().draw()
         self.side_bar.draw()
-        self.menu_input('draw')
+        if self.menu_input('draw'):
+            return
         pos = pygame.mouse.get_pos()
         spawnTable = Constant.W_BUILDINGS | Constant.W_PIECES | Constant.B_BUILDINGS | Constant.B_PIECES
         displayPosX = pos[0] - Constant.SQ_SIZE // 2

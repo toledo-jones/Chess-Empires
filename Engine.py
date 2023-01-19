@@ -1112,7 +1112,7 @@ class Engine:
     def is_legal_starting_square(self, row, col):
         no_players_nearby = True
         square_has_enough_spaces = True
-        if not self.can_be_occupied(row, col):
+        if not self.can_be_occupied(row, col) or self.has_quarry(row, col):
             return False
         if not self.starting_square_has_enough_open_spaces(row, col):
             square_has_enough_spaces = False

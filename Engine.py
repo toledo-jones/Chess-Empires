@@ -17,6 +17,7 @@ class Engine:
         self.board = [[Tile(x, y)for y in range(self.cols)] for x in range(self.rows)]
         self.map = None
         self.winner = None
+        self.popup_reason = None
         self.spawn_list = []
         self.turn = None
         self.first = True
@@ -98,6 +99,8 @@ class Engine:
                        'persuader': Persuader,
                        'trader': Trader,
                        'circus': Circus,
+                       'trapper': Trapper,
+                       'trap': Trap
                        }
         self.STATES = {'playing': Playing,
                        'ai playing': AIPlaying,
@@ -135,7 +138,8 @@ class Engine:
                       'barracks': BarracksMenu,
                       'builder': BuilderMenu,
                       'castle': CastleMenu,
-                      'circus': CircusMenu
+                      'circus': CircusMenu,
+                      'trapper': TrapperMenu
                       }
         self.EVENTS = {'pray': Pray, 'steal': Steal, 'mine': Mine, 'spawn': Spawn, 'move': Move, 'capture': Capture}
         self.STEALING_VALUES = {'wood': 0, 'gold': 1, 'stone': 2}
@@ -168,6 +172,7 @@ class Engine:
 
     def starting_resources(self):
         self.map = random.choice(self.MAPS)(self)
+        self.map.generate_stone()
         self.map.generate_resources()
 
     def create_ai(self, color):
@@ -390,10 +395,20 @@ class Engine:
             for c in range(self.cols):
                 self.board[r][c] = Tile(r, c)
 
+    def can_contain_quarry(self, r, c):
+        return self.board[r][c].can_contain_quarry
+
     def reset_unused_piece_highlight(self):
         for player in self.players:
             for piece in self.players[player].pieces:
                 piece.unused_piece_highlight = False
+
+    def untrap(self, row, col):
+        self.board[row][col].untrap()
+
+    def trap(self, row, col, trap):
+        self.board[row][col].set_trap(trap)
+        self.players[trap.get_color()].pieces.append(trap)
 
     def spawn(self, dest_row, dest_col, spawned):
         #
@@ -694,7 +709,7 @@ class Engine:
                 return True
             elif self.has_gold(r, c):
                 return True
-            elif self.has_sunken_quarry(self, r, c):
+            elif self.has_sunken_quarry(r, c):
                 return True
             elif self.has_wood(r, c):
                 return True
@@ -713,6 +728,7 @@ class Engine:
                 return True
             elif self.has_none_occupying(r, c) and self.has_sunken_quarry(r, c):
                 return True
+
 
     def can_be_occupied(self, r, c):
         if Constant.tile_in_bounds(r, c):
@@ -785,7 +801,7 @@ class Engine:
     def close_menus(self):
         self.menus = []
 
-    def win(self):
+    def set_winner(self):
         self.winner = self.turn
 
     def add_event(self, event):
@@ -793,9 +809,9 @@ class Engine:
         self.events.append(event)
         if self.player_king_does_not_exist():
             self.turn = Constant.TURNS[self.turn]
-            self.win()
+            self.set_winner()
         elif self.enemy_player_king_does_not_exist():
-            self.win()
+            self.set_winner()
 
     def change_turn(self):
         event = ChangeTurn(self)
@@ -879,6 +895,9 @@ class Engine:
         for player in self.players:
             for piece in self.players[player].pieces:
                 piece.update_interceptor_squares(self)
+
+    def has_trap(self, row, col):
+        return self.board[row][col].has_trap()
 
     def has_prayable_building(self, r, c):
         if Constant.tile_in_bounds(r, c):
@@ -1092,6 +1111,10 @@ class Engine:
         self.update_spawn_squares()
         return True
 
+    def create_popup_menu(self, row, col, message='blank'):
+        self.menus.append(Notification(row, col, self.state[-1].win, self, message))
+        self.popup_reason = None
+
     def starting_square_has_enough_open_spaces(self, row, col):
         open_spaces = 0
         rogue_spaces = 0
@@ -1113,12 +1136,15 @@ class Engine:
         no_players_nearby = True
         square_has_enough_spaces = True
         if not self.can_be_occupied(row, col) or self.has_quarry(row, col):
+            self.popup_reason = 'non_occupyable'
             return False
         if not self.starting_square_has_enough_open_spaces(row, col):
+            self.popup_reason = 'open_spaces'
             square_has_enough_spaces = False
         for r in range(row - 3, row + 4):
             for c in range(col - 3, col + 4):
                 if self.has_castle(r, c):
+                    self.popup_reason = 'players_nearby'
                     no_players_nearby = False
 
         return no_players_nearby and square_has_enough_spaces

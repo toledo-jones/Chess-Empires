@@ -7,9 +7,6 @@ class State:
         self.win = win
         self.engine = engine
 
-    def create_popup(self, row, col, message='blank'):
-        self.engine.menus.append(Notification(row, col, self.win, self.engine, message))
-
     def revert_to_playing_state(self):
         #
         #   used by many states to return to the 'playing' state, or default state
@@ -203,7 +200,6 @@ class Playing(State):
 
     def same_piece_selected(self, previously_selected, row, col):
         """
-
         :param previously_selected: piece selected on the last left_click() -> select()
         :param row: currently_selected.row
         :param col: currently_selected.col
@@ -222,6 +218,8 @@ class Playing(State):
             action_tile = self.engine.board[row][col]
             if action_tile.portal:
                 event = PortalMove(self.engine, acting_tile, action_tile)
+            elif action_tile.trap and action_tile.trap.color != acting_tile.get_occupying().color:
+                event = TrapMove(self.engine, acting_tile, action_tile)
             else:
                 event = Move(self.engine, acting_tile, action_tile)
             self.engine.add_event(event)
@@ -651,12 +649,12 @@ class StartingSpawn(State):
             if (row, col) in previously_selected.spawn_squares_list:
                 self.create_spawn_event(row, col, False)
             else:
-                self.create_popup(row, col, 'invalid_start_spawn')
+                self.engine.create_popup_menu(row, col, 'invalid_start_spawn')
         else:
             if self.engine.is_legal_starting_square(row, col):
                 self.create_spawn_event(row, col)
             else:
-                self.create_popup(row, col, 'invalid_start_spawn')
+                self.engine.create_popup_menu(row, col, self.engine.popup_reason)
         try:
             self.engine.spawning = self.engine.spawn_list[self.engine.spawn_count]
             self.engine.update_spawn_squares()
@@ -669,6 +667,8 @@ class StartingSpawn(State):
                 self.begin_next_player_piece_select()
 
     def right_click(self):
+        if self.menu_input('right_click'):
+            return
         try:
             if isinstance(self.engine.events[-1], ChangeTurn):
                 self.engine.transfer_to_piece_selection()
@@ -696,7 +696,6 @@ class StartingSpawn(State):
         displayPosY = pos[1] - Constant.SQ_SIZE // 2
         if Constant.pos_in_bounds(pos):
             self.win.blit(spawnTable[(self.engine.turn + "_" + self.engine.spawning)], (displayPosX, displayPosY))
-            return True
 
     def mouse_move(self):
         self.menu_input('mouse_move')
@@ -1217,19 +1216,16 @@ class Spawning(State):
         pos = pygame.mouse.get_pos()
         row, col = Constant.convert_pos(pos)
         previousP = self.engine.update_previously_selected()
-
-        if self.engine.spawning == 'quarry_1':
-            previousP.spawn_squares_list = previousP.spawn_squares_for_quarry(self.engine)
         if (row, col) in previousP.spawn_squares_list:
             acting_tile = self.engine.board[previousP.row][previousP.col]
             action_tile = self.engine.board[row][col]
-            if self.engine.spawning == 'quarry_1':
-                event = SpawnResource(self.engine, acting_tile, action_tile)
-            else:
-                if not action_tile.portal:
-                    event = Spawn(self.engine, acting_tile, action_tile)
+            if not action_tile.portal:
+                if self.engine.spawning == 'trap':
+                    event = SpawnTrap(self.engine, acting_tile, action_tile)
                 else:
-                    event = PortalSpawn(self.engine, acting_tile, action_tile)
+                    event = Spawn(self.engine, acting_tile, action_tile)
+            else:
+                event = PortalSpawn(self.engine, acting_tile, action_tile)
             self.engine.add_event(event)
             state = Playing(self.win, self.engine)
             self.engine.set_state(state)

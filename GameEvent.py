@@ -204,6 +204,50 @@ class Trade(GameEvent):
             piece.unused_piece_highlight = True
 
 
+class SpawnTrap(GameEvent):
+    def __init__(self, engine, acting_tile, action_tile):
+        super().__init__(engine, acting_tile, action_tile)
+        self.color = self.engine.turn
+        self.spawn = self.engine.spawning
+        self.dest = self.action_tile.get_position()
+        self.spawner = self.acting_tile.get_occupying()
+        self.piece_cost = Constant.PIECE_COSTS[self.engine.spawning]
+
+    def __repr__(self):
+        return 'trap'
+
+    def complete(self):
+        super().complete()
+        self.engine.trap(self.dest[0], self.dest[1], self.engine.PIECES['trap'](self.dest[0], self.dest[1], self.color))
+        self.engine.sounds.play('spawn_building')
+        self.spawner.actions_remaining -= 1
+        self.engine.spawn_success = True
+        self.engine.menus = []
+        self.engine.reset_selected()
+        if Constant.TRAP_COSTS_ACTION:
+            self.engine.players[self.engine.turn].do_action()
+        self.engine.players[self.engine.turn].purchase(self.piece_cost)
+        self.engine.intercept_pieces()
+        self.engine.reset_unused_piece_highlight()
+        unused_pieces = self.engine.count_unused_pieces()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+
+    def undo(self):
+        super().undo()
+        self.spawner.actions_remaining += 1
+        self.engine.sounds.play('spawn_building')
+        self.engine.players[self.engine.turn].un_purchase(self.piece_cost)
+        self.engine.delete_piece(self.dest[0], self.dest[1])
+        if Constant.TRAP_COSTS_ACTION:
+            self.engine.players[self.engine.turn].undo_action()
+        self.engine.correct_interceptions()
+        self.engine.reset_unused_piece_highlight()
+        unused_pieces = self.engine.count_unused_pieces()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+
+
 class Spawn(GameEvent):
     def __init__(self, engine, acting_tile, action_tile):
         super().__init__(engine, acting_tile, action_tile)
@@ -227,7 +271,9 @@ class Spawn(GameEvent):
         self.engine.spawn_success = True
         self.engine.menus = []
         self.engine.reset_selected()
-        self.engine.players[self.engine.turn].do_action()
+        if not self.spawn == 'trap':
+            self.engine.players[self.engine.turn].do_action()
+
         self.engine.players[self.engine.turn].purchase(self.piece_cost)
 
         if Constant.ACTIONS_UPDATE_ON_SPAWN:
@@ -248,7 +294,9 @@ class Spawn(GameEvent):
         self.engine.sounds.play('spawn_' + kind)
         self.engine.players[self.engine.turn].un_purchase(self.piece_cost)
         self.engine.delete_piece(self.dest[0], self.dest[1])
-        self.engine.players[self.engine.turn].undo_action()
+        if not self.spawn == 'trap':
+            self.engine.players[self.engine.turn].undo_action()
+
         if Constant.ACTIONS_UPDATE_ON_SPAWN:
             self.engine.players[self.engine.turn].remove_additional_actions(self.additional_actions)
         self.engine.players[self.engine.turn].remove_additional_piece_limit(self.additional_piece_limit)
@@ -482,7 +530,6 @@ class PortalMove(GameEvent):
             piece.unused_piece_highlight = True
         self.engine.players[self.engine.turn].undo_action()
 
-
 class Move(GameEvent):
     def __init__(self, engine, acting_tile, action_tile):
         super().__init__(engine, acting_tile, action_tile)
@@ -510,6 +557,49 @@ class Move(GameEvent):
     def undo(self):
         super().undo()
         self.moved.actions_remaining += 1
+        self.engine.move(self.end[0], self.end[1], self.start[0], self.start[1])
+        self.engine.sounds.play('move')
+        self.engine.reset_selected()
+        unused_pieces = self.engine.count_unused_pieces()
+        self.engine.reset_unused_piece_highlight()
+        self.engine.correct_interceptions()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+        self.engine.players[self.engine.turn].undo_action()
+
+
+class TrapMove(GameEvent):
+    def __init__(self, engine, acting_tile, action_tile):
+        super().__init__(engine, acting_tile, action_tile)
+        self.moved = self.acting_tile.get_occupying()
+        self.start = self.moved.row, self.moved.col
+        self.end = self.action_tile.get_position()
+        self.trap = self.action_tile.trap
+
+    def __repr__(self):
+        return 'move'
+
+    def complete(self):
+        super().complete()
+        self.moved.actions_remaining -= 1
+        self.engine.move(self.start[0], self.start[1], self.end[0], self.end[1])
+        self.engine.untrap(self.end[0], self.end[1])
+        self.engine.delete_piece(self.end[0], self.end[1])
+        self.engine.sounds.play('capture')
+        self.engine.reset_selected()
+        self.engine.reset_unused_piece_highlight()
+        self.engine.intercept_pieces()
+        self.engine.correct_interceptions()
+        unused_pieces = self.engine.count_unused_pieces()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+        self.engine.players[self.engine.turn].do_action()
+
+    def undo(self):
+        super().undo()
+        self.moved.actions_remaining += 1
+        self.engine.create_piece(self.end[0], self.end[1], self.moved)
+        self.engine.trap(self.end[0], self.end[1], self.trap)
         self.engine.move(self.end[0], self.end[1], self.start[0], self.start[1])
         self.engine.sounds.play('move')
         self.engine.reset_selected()

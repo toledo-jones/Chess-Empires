@@ -45,7 +45,7 @@ DEBUG_STARTING_PRAYER = 12
 DEBUG_STARTING_WOOD = 99
 DEBUG_STARTING_GOLD = 99
 DEBUG_STARTING_STONE = 99
-DEBUG_STARTING_PIECES = ['castle', 'circus', 'rogue_rook', 'king']
+DEBUG_STARTING_PIECES = ['castle', 'trapper', 'gold_general', 'king']
 DEBUG_RITUALS = False
 PLAY_AGAINST_AI = False
 BOARD_STARTS_WITH_RESOURCES = True
@@ -57,7 +57,7 @@ STARTING_GOLD = 0
 STARTING_STONE = 0
 STARTING_PIECES = ['castle', 'king']
 
-SELECTABLE_STARTING_PIECES = ['pawn', 'builder', 'monk', 'pikeman', 'rogue_pawn', 'trader', 'wall']
+SELECTABLE_STARTING_PIECES = ['pawn', 'builder', 'trader', 'trapper', 'rogue_pawn', 'monk', 'pikeman', 'wall']
 NUMBER_OF_STARTING_PIECES = 5
 MONOLITH_RITUALS = ['gold_general',
                     'portal',
@@ -88,13 +88,14 @@ MAX_PRAYER_STONE_RITUALS_PER_TURN = 3
 
 STABLE_SPAWN_LIST = ['doe', 'oxen', 'unicorn', 'ram', 'elephant', 'knight']
 FORTRESS_SPAWN_LIST = ['rogue_rook', 'rogue_bishop', 'rogue_knight', 'rogue_pawn']
-CASTLE_SPAWN_LIST = ['pawn', 'builder', 'pikeman', 'monk', 'trader']
+CASTLE_SPAWN_LIST = ['pawn', 'builder', 'pikeman', 'monk', 'trader', 'trapper']
 BUILDER_SPAWN_LIST = ['wall', 'stable', 'monolith', 'castle', 'barracks', 'fortress', 'circus']
 BARRACKS_SPAWN_LIST = ['duke', 'queen', 'champion', 'rook', 'bishop']
 CIRCUS_SPAWN_LIST = ['jester', 'persuader']
+TRAPPER_SPAWN_LIST = ['trap']
 
 SPAWN_LISTS = {'stable': STABLE_SPAWN_LIST, 'fortress': FORTRESS_SPAWN_LIST, 'castle': CASTLE_SPAWN_LIST,
-               'builder': BUILDER_SPAWN_LIST, 'barracks': BARRACKS_SPAWN_LIST, 'circus': CIRCUS_SPAWN_LIST}
+               'builder': BUILDER_SPAWN_LIST, 'barracks': BARRACKS_SPAWN_LIST, 'circus': CIRCUS_SPAWN_LIST, 'trapper': TRAPPER_SPAWN_LIST}
 MASTER_COST_LIST = ['builder', 'stable', 'monolith', 'castle', 'barracks', 'fortress', 'circus']
 
 SOUND_EFFECT_VOLUME = .5
@@ -110,6 +111,7 @@ STEALING_COSTS_ACTION = False
 PERSUADE_COSTS_ACTION = True
 QUARRY_COSTS_ACTION = False
 QUARRY_COSTS_RESOURCE = False
+TRAP_COSTS_ACTION = False
 
 CASTLE_ADDITIONAL_ACTIONS = 0
 BARRACKS_ADDITIONAL_ACTIONS = 0
@@ -143,8 +145,8 @@ PIECE_COSTS = {'king': {'log': 999, 'gold': 999, 'stone': 999},
                'rogue_bishop': {'log': 9, 'gold': 9, 'stone': 0},
                'rogue_knight': {'log': 0, 'gold': 6, 'stone': 6},
                'rogue_pawn': {'log': 6, 'gold': 0, 'stone': 0},
-               'elephant': {'log': 7, 'gold': 0, 'stone': 7},
-               'ram': {'log': 7, 'gold': 0, 'stone': 7},
+               'elephant': {'log': 8, 'gold': 0, 'stone': 8},
+               'ram': {'log': 8, 'gold': 0, 'stone': 8},
                'unicorn': {'log': 12, 'gold': 0, 'stone': 12},
                'monolith': {'log': 0, 'gold': 0, 'stone': 15},
                'prayer_stone': {'log': 0, 'gold': 0, 'stone': 4},
@@ -156,11 +158,17 @@ PIECE_COSTS = {'king': {'log': 999, 'gold': 999, 'stone': 999},
                'doe': {'log': 14, 'gold': 0, 'stone': 14},
                'trader': {'log': 6, 'gold': 0, 'stone': 0},
                'circus': {'log': 0, 'gold': 10, 'stone': 0},
+               'trapper': {'log': 6, 'gold': 0, 'stone': 0},
+               'trap': {'log': 0, 'gold': 0, 'stone': 1},
 
                }
 
 NOTIFICATIONS = {'blank': ['an unknown error occurred'],
-                 'invalid_start_spawn': ['invalid square selected'],
+                 'invalid_start_spawn': ['select a valid spawn square'],
+                 'non_occupyable': ['square cannot be occupied'],
+                 'players_nearby': ['a player is too close'],
+                 'open_spaces' : ['not enough open spaces']
+
 
                  }
 
@@ -210,7 +218,8 @@ DESCRIPTIONS = {'king': ['every player gets one', 'capture your opponent\'s to w
                 'portal': ['creates a portal on any two squares',
                            'pieces who land on either square will be transported', 'to the other one'],
                 'trader': ['converts resources into one another '],
-                'circus': ['creates unique and strange pieces like the jester']
+                'circus': ['creates unique and strange pieces like the jester'],
+                'trapper': ['creates traps which, once captured ', 'destroy the piece that captured them']
                 }
 
 PIECE_POPULATION = {'king': 1,
@@ -249,7 +258,9 @@ PIECE_POPULATION = {'king': 1,
                     'doe': 1,
                     'persuader': 1,
                     'trader': 1,
-                    'circus': 0}
+                    'circus': 0,
+                    'trapper': 1,
+                    'trap': 0}
 
 PRAYER_COSTS = {'gold_general': {'prayer': 12, 'monk': 2},
                 'smite': {'prayer': 12, 'monk': 1},
@@ -261,7 +272,7 @@ PRAYER_COSTS = {'gold_general': {'prayer': 12, 'monk': 2},
                 'portal': {'prayer': 2, 'monk': 0},
                 'protect': {'prayer': 1, 'monk': 0}}
 
-ADDITIONAL_PIECE_LIMIT = {'castle': 5, 'barracks': 3, 'fortress': 3, 'stable': 3, 'circus':3,
+ADDITIONAL_PIECE_LIMIT = {'castle': 5, 'barracks': 3, 'fortress': 3, 'stable': 3, 'circus': 3,
                           'king': 0,
                           'queen': 0,
                           'rook': 0,
@@ -293,7 +304,9 @@ ADDITIONAL_PIECE_LIMIT = {'castle': 5, 'barracks': 3, 'fortress': 3, 'stable': 3
                           'oxen': 0,
                           'doe': 0,
                           'persuader': 0,
-                          'trader': 0}
+                          'trader': 0,
+                          'trapper': 0,
+                          'trap':0}
 TOTAL_GOLD_ON_MAP = 6
 
 WOOD_TOTAL_MINED = 1
@@ -456,7 +469,9 @@ w_pieces = ['w_king',
             'w_oxen',
             'w_persuader',
             'w_doe',
-            'w_trader']
+            'w_trader',
+            'w_trapper',
+            'w_trap']
 w_buildings = ['w_castle',
                'w_fortress',
                'w_barracks',
@@ -475,7 +490,7 @@ b_pieces = ['b_king', 'b_queen', 'b_rook', 'b_bishop',
             'b_rogue_rook', 'b_elephant', 'b_elephant_cart',
             'b_champion', 'b_rogue_pawn', 'b_rogue_knight',
             'b_builder', 'b_unicorn', 'b_ram', 'b_oxen',
-            'b_persuader', 'b_doe', 'b_trader']
+            'b_persuader', 'b_doe', 'b_trader', 'b_trapper', 'b_trap']
 b_buildings = ['b_castle', 'b_fortress', 'b_barracks',
                'b_wall', 'b_monolith', 'b_prayer_stone',
                'b_flag', 'b_barracks', 'b_war_tower', 'b_stable', 'b_circus']
@@ -548,6 +563,8 @@ PIECE_IMAGE_MODIFY = {'king': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'doe': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'persuader': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'circus': {'SCALE': BARRACKS_SCALE, 'OFFSET': BARRACKS_OFFSET},
+                      'trapper': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
+                      'trap': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
 
                       }
 

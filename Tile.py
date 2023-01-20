@@ -5,6 +5,7 @@ class Tile:
     def __init__(self, row, col):
         self.row = row
         self.col = col
+        self.can_contain_quarry = False
         self.occupying = None
         self.resource = None
         self.color = None
@@ -16,6 +17,7 @@ class Tile:
         self.portal_image_offset = Constant.IMAGES_IMAGE_MODIFY['w_portal']['OFFSET']
         self.protected_by = None
 
+        self.trap = None
         self.portal = False
         self.portal_color = None
         self.connected_portal = None
@@ -104,6 +106,16 @@ class Tile:
         else:
             return True
 
+    def has_trap(self):
+        if self.trap:
+            return True
+
+    def untrap(self):
+        self.trap = None
+
+    def set_trap(self, trap):
+        self.trap = trap
+
     def draw(self, win):
         if self.has_resource():
             self.resource.draw(win)
@@ -113,6 +125,9 @@ class Tile:
 
         if self.portal:
             self.draw_portal_image(win)
+
+        if self.trap:
+            self.trap.draw(win)
 
         if self.has_occupying():
             self.occupying.draw_highlights(win)

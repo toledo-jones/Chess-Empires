@@ -100,13 +100,17 @@ class Notification(Menu):
             self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
             self.menu.blit(self.square, (self.highlight_display_x, self.highlight_display_y))
         self.menu.blit(self.ok_text_surface, (self.ok_display_x, self.ok_display_y))
-        self.win.blit(self.menu, (self.menu_position_x, self.menu_position_y))
+        self.win.blit(self.menu, (self.menu_position_x,self.menu_position_y))
 
     def left_click(self):
-        pass
+        menu_above_ok_button = len(self.message) * round(Constant.SQ_SIZE * .8)
+        pos = pygame.mouse.get_pos()
+        if self.menu_position_x < pos[0] < self.menu_position_x + self.menu_width:
+            if self.menu_position_y + menu_above_ok_button < pos[1] < self.menu_position_y + self.menu_height:
+                self.engine.close_menus()
 
     def right_click(self):
-        pass
+        self.engine.close_menus()
 
     def mouse_move(self):
         menu_above_ok_button = len(self.message) * round(Constant.SQ_SIZE * .8)
@@ -805,6 +809,17 @@ class CircusMenu(SpawningMenu):
 
     def __repr__(self):
         return 'circus'
+
+
+class TrapperMenu(SpawningMenu):
+    def __init__(self, row, col, win, engine, spawner):
+        spawn_list = Constant.TRAPPER_SPAWN_LIST
+        self.spawner = spawner
+
+        super().__init__(row, col, win, engine, spawn_list, spawner)
+
+    def __repr__(self):
+        return 'trapper'
 
 
 class KingMenu(Menu):

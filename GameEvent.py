@@ -248,6 +248,52 @@ class SpawnTrap(GameEvent):
             piece.unused_piece_highlight = True
 
 
+class TrapSpawn(GameEvent):
+    def __init__(self, engine, acting_tile, action_tile):
+        super().__init__(engine, acting_tile, action_tile)
+        self.color = self.engine.turn
+        self.spawn = self.engine.spawning
+        self.dest = self.action_tile.get_position()
+        self.spawner = self.acting_tile.get_occupying()
+        self.additional_piece_limit = 0
+        self.additional_actions = 0
+        self.piece_cost = Constant.PIECE_COSTS[self.engine.spawning]
+        self.trap = action_tile.trap
+
+    def __repr__(self):
+        return 'spawn'
+
+    def complete(self):
+        super().complete()
+        self.engine.spawn(self.dest[0], self.dest[1], self.spawn)
+        kind = self.engine.board[self.dest[0]][self.dest[1]].get_occupying().get_unit_kind()
+        self.engine.sounds.play('spawn_' + kind)
+        self.spawner.actions_remaining -= 1
+        self.engine.spawn_success = True
+        self.engine.menus = []
+        self.engine.reset_selected()
+        self.engine.players[self.engine.turn].purchase(self.piece_cost)
+        self.engine.untrap(self.dest[0], self.dest[1])
+        self.engine.delete_piece(self.dest[0], self.dest[1], self.spawn)
+        self.engine.reset_unused_piece_highlight()
+        unused_pieces = self.engine.count_unused_pieces()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+
+    def undo(self):
+        super().undo()
+        self.spawner.actions_remaining += 1
+        self.engine.players[self.engine.turn].un_purchase(self.piece_cost)
+        if not self.spawn == 'trap':
+            self.engine.players[self.engine.turn].undo_action()
+        self.trap(self.dest[0], self.dest[1], self.trap)
+        self.engine.correct_interceptions()
+        self.engine.reset_unused_piece_highlight()
+        unused_pieces = self.engine.count_unused_pieces()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+
+
 class Spawn(GameEvent):
     def __init__(self, engine, acting_tile, action_tile):
         super().__init__(engine, acting_tile, action_tile)
@@ -712,6 +758,7 @@ class TrapCapture(GameEvent):
         super().undo()
         self.moved.actions_remaining += 1
         self.engine.sounds.play('capture')
+        self.engine.create_piece(self.end[0], self.end[1], self.moved)
         self.engine.move(self.end[0], self.end[1], self.start[0], self.start[1])
         self.engine.create_piece(self.end[0], self.end[1], self.captured)
         self.engine.trap(self.end[0], self.end[1], self.trap)

@@ -190,6 +190,37 @@ class Playing(State):
                 if self.engine.player_can_do_action(self.engine.turn):
                     return True
 
+    def type_of_move(self, acting_tile, action_tile):
+        piece = acting_tile.get_occupying()
+        has_portal = False
+        if action_tile.portal:
+            has_portal = True
+        has_trap = False
+        if action_tile.trap:
+            has_trap = True
+        if has_portal:
+            return PortalMove
+        if has_trap:
+            if action_tile.trap.color != piece.color:
+                return TrapMove
+        return Move
+
+    def type_of_capture(self, acting_tile, action_tile):
+        piece = acting_tile.get_occupying()
+        has_portal = False
+        if action_tile.portal:
+            has_portal = True
+        has_trap = False
+        if action_tile.trap:
+            has_trap = True
+
+        if has_portal:
+            return PortalCapture
+        if has_trap:
+            if action_tile.trap.color != piece.color:
+                return TrapCapture
+        return Capture
+
     def can_capture_piece(self, previously_selected, row, col, currently_selected):
         if previously_selected is not None:
             if previously_selected.actions_remaining > 0:
@@ -217,12 +248,8 @@ class Playing(State):
             prev_position = previously_selected.get_position()
             acting_tile = self.engine.board[prev_position[0]][prev_position[1]]
             action_tile = self.engine.board[row][col]
-            if action_tile.portal:
-                event = PortalMove(self.engine, acting_tile, action_tile)
-            elif action_tile.trap and action_tile.trap.color != acting_tile.get_occupying().color:
-                event = TrapMove(self.engine, acting_tile, action_tile)
-            else:
-                event = Move(self.engine, acting_tile, action_tile)
+            move = self.type_of_move(acting_tile, action_tile)
+            event = move(self.engine, acting_tile, action_tile)
             self.engine.add_event(event)
             self.engine.reset_selected()
             return True
@@ -241,10 +268,8 @@ class Playing(State):
             prev_row, prev_col = previously_selected.get_position()
             acting_tile = self.engine.board[prev_row][prev_col]
             action_tile = self.engine.board[row][col]
-            if not action_tile.portal:
-                event = Capture(self.engine, acting_tile, action_tile)
-            else:
-                event = PortalCapture(self.engine, acting_tile, action_tile)
+            capture = self.type_of_capture(acting_tile, action_tile)
+            event = capture(self.engine, acting_tile, action_tile)
             self.engine.add_event(event)
             self.engine.reset_selected()
             return True
@@ -1213,6 +1238,24 @@ class Spawning(State):
                               (displayPosX, displayPosY))
             return True
 
+    def type_of_spawn(self, acting_tile, action_tile):
+        piece = acting_tile.get_occupying()
+        has_portal = False
+        if action_tile.portal:
+            has_portal = True
+        has_trap = False
+        if action_tile.trap:
+            has_trap = True
+
+        if self.engine.spawning == 'trap':
+            return SpawnTrap
+        if has_portal:
+            return PortalSpawn
+        if has_trap:
+            if action_tile.trap.color != piece.color:
+                return TrapSpawn
+        return Spawn
+
     def left_click(self):
         pos = pygame.mouse.get_pos()
         row, col = Constant.convert_pos(pos)
@@ -1220,13 +1263,8 @@ class Spawning(State):
         if (row, col) in previousP.spawn_squares_list:
             acting_tile = self.engine.board[previousP.row][previousP.col]
             action_tile = self.engine.board[row][col]
-            if not action_tile.portal:
-                if self.engine.spawning == 'trap':
-                    event = SpawnTrap(self.engine, acting_tile, action_tile)
-                else:
-                    event = Spawn(self.engine, acting_tile, action_tile)
-            else:
-                event = PortalSpawn(self.engine, acting_tile, action_tile)
+            spawn = self.type_of_spawn(acting_tile, action_tile)
+            event = spawn(self.engine, acting_tile, action_tile)
             self.engine.add_event(event)
             state = Playing(self.win, self.engine)
             self.engine.set_state(state)

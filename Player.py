@@ -47,21 +47,13 @@ class Player:
         elif kind == 'stone':
             self.stone -= value
 
-    def get_harvest(self, resource, offset, additional_mining):
-        harvest = resource.yield_per_harvest + offset + additional_mining
-        if harvest < 0:
-            harvest = 0
-        return harvest
-
-    def mine(self, resource, offset, additional_mining):
-        harvest = self.get_harvest(resource, offset, additional_mining)
-        player_resource = Constant.RESOURCE_KEY[str(resource)]
+    def mine(self, resource, harvest):
+        player_resource = Constant.RESOURCE_KEY[resource]
         current_resource = getattr(self, player_resource)
         setattr(self, player_resource, current_resource + harvest)
 
-    def un_mine(self, resource, offset, additional_mining):
-        harvest = self.get_harvest(resource, offset, additional_mining)
-        player_resource = Constant.RESOURCE_KEY[str(resource)]
+    def un_mine(self, resource, harvest):
+        player_resource = Constant.RESOURCE_KEY[resource]
         current_resource = getattr(self, player_resource)
         setattr(self, player_resource, current_resource - harvest)
 

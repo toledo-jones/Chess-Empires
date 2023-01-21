@@ -18,11 +18,12 @@ class State:
         self.engine.set_state(new_state)
 
     def mouse_in_menu_bounds(self):
-        pos = Constant.convert_pos(pygame.mouse.get_pos())
         if self.engine.menus:
             for menu in self.engine.menus:
                 if not menu.mouse_in_menu_bounds():
                     self.engine.close_menus()
+                    self.engine.reset_selected()
+                    self.revert_to_playing_state()
 
     def side_bar_input(self, input_type):
         if self.engine.side_bar:

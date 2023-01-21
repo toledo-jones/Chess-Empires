@@ -395,8 +395,16 @@ class Engine:
             for c in range(self.cols):
                 self.board[r][c] = Tile(r, c)
 
+    def has_enemy_occupying(self, color, r, c):
+        if Constant.tile_in_bounds(r, c):
+            if not self.has_occupying(r, c):
+                return False
+            if self.get_occupying(r, c).color is not color:
+                return True
+            return False
+
     def can_contain_quarry(self, r, c):
-        return self.board[r][c].can_contain_quarry
+        return self.board[r][c].can_contain_quarry and not self.has_depleted_quarry(r, c)
 
     def reset_unused_piece_highlight(self):
         for player in self.players:
@@ -404,6 +412,8 @@ class Engine:
                 piece.unused_piece_highlight = False
 
     def untrap(self, row, col):
+        color = self.board[row][col].trap.get_color()
+        self.players[color].pieces.remove(self.board[row][col].trap)
         self.board[row][col].untrap()
 
     def trap(self, row, col, trap):

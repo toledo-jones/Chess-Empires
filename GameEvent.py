@@ -238,7 +238,7 @@ class SpawnTrap(GameEvent):
         self.spawner.actions_remaining += 1
         self.engine.sounds.play('spawn_building')
         self.engine.players[self.engine.turn].un_purchase(self.piece_cost)
-        self.engine.delete_piece(self.dest[0], self.dest[1])
+        self.engine.untrap(self.dest[0], self.dest[1])
         if Constant.TRAP_COSTS_ACTION:
             self.engine.players[self.engine.turn].undo_action()
         self.engine.correct_interceptions()
@@ -349,27 +349,22 @@ class Mine(GameEvent):
         self.mined = self.action_tile.get_resource()
         self.additional_mining = 0
         self.piece_removed = None
-        if str(self.miner) == 'rogue_pawn':
-            self.additional_mining = Constant.ADDITIONAL_MINING_FROM_ROGUE[Constant.RESOURCE_KEY[str(self.mined)]]
-        self.miningOffset = self.mined.offsetIndex[-1]
-        self.offsetIndex = self.mined.offsetIndex[:]
+        self.harvest_yield = None
+        self.player = self.engine.players[self.engine.turn]
         self.sprite_id = self.mined.sprite_id
-        self.sprite_offset = self.mined.offset
+        self.sprite_offset = self.mined.sprite_offset
 
     def __repr__(self):
         return 'mine'
 
     def complete(self):
         super().complete()
-        self.engine.players[self.engine.turn].mine(self.mined, self.miningOffset, self.additional_mining)
-        self.mined.remaining -= 1
+        self.harvest_yield = self.mined.harvest(str(self.miner))
+        self.player.mine(str(self.mined), self.harvest_yield)
         self.miner.actions_remaining -= 1
-        try:
-            del self.mined.offsetIndex[-1]
-        except IndexError:
-            self.mined.offsetIndex = [0]
         kind = Constant.RESOURCE_KEY[str(self.mined)]
         self.engine.sounds.play('mine_' + kind)
+
         if self.mined.remaining == 0:
             if isinstance(self.mined, Quarry):
                 self.engine.create_resource(self.mined.row, self.mined.col, SunkenQuarry(self.mined.row, self.mined.col))
@@ -388,19 +383,14 @@ class Mine(GameEvent):
         self.miner.actions_remaining += 1
         row = self.mined.row
         col = self.mined.col
-        self.mined.remaining += 1
-        self.engine.players[self.engine.turn].un_mine(self.mined, self.miningOffset, self.additional_mining)
+        self.mined.unharvest(self.harvest_yield)
+        self.engine.players[self.engine.turn].un_mine(str(self.mined), self.harvest_yield)
         kind = Constant.RESOURCE_KEY[str(self.mined)]
         self.engine.sounds.play('mine_' + kind)
-        resource = self.engine.RESOURCES[str(self.mined)](row, col)
-        resource.offset = self.sprite_offset
-        self.engine.create_resource(row, col, resource)
+        self.engine.create_resource(row, col, self.mined)
         if self.piece_removed:
             self.engine.create_piece(self.mined.row, self.mined.col, self.piece_removed)
         self.engine.correct_interceptions()
-        self.engine.get_resource(row, col).remaining = self.mined.remaining
-        self.engine.get_resource(row, col).offsetIndex.append(self.miningOffset)
-        self.engine.get_resource(row, col).sprite_id = self.sprite_id
         unused_pieces = self.engine.count_unused_pieces()
         self.engine.reset_unused_piece_highlight()
         if Constant.MINING_COSTS_ACTION:
@@ -529,6 +519,7 @@ class PortalMove(GameEvent):
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
         self.engine.players[self.engine.turn].undo_action()
+
 
 class Move(GameEvent):
     def __init__(self, engine, acting_tile, action_tile):
@@ -685,6 +676,45 @@ class PortalCapture(GameEvent):
         self.engine.swap(self.portal_end[0], self.portal_end[1], self.end[0], self.end[1])
         self.engine.move(self.end[0], self.end[1], self.start[0], self.start[1])
         self.engine.create_piece(self.end[0], self.end[1], self.captured)
+        self.engine.players[self.engine.turn].undo_action()
+        self.engine.reset_unused_piece_highlight()
+        self.engine.correct_interceptions()
+        unused_pieces = self.engine.count_unused_pieces()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+
+
+class TrapCapture(GameEvent):
+    def __init__(self, engine, acting_tile, action_tile):
+        super().__init__(engine, acting_tile, action_tile)
+        self.moved = self.acting_tile.get_occupying()
+        self.start = self.moved.row, self.moved.col
+        self.end = self.action_tile.get_position()
+        self.captured = self.action_tile.get_occupying()
+        self.trap = self.action_tile.trap
+
+    def complete(self):
+        super().complete()
+        self.moved.actions_remaining -= 1
+        self.engine.sounds.play('capture')
+        self.engine.capture(self.start[0], self.start[1], self.end[0], self.end[1])
+        self.engine.delete_piece(self.end[0], self.end[1])
+        self.engine.untrap(self.end[0], self.end[1])
+        self.engine.players[self.engine.turn].do_action()
+        self.engine.reset_unused_piece_highlight()
+        self.engine.intercept_pieces()
+        self.engine.correct_interceptions()
+        unused_pieces = self.engine.count_unused_pieces()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+
+    def undo(self):
+        super().undo()
+        self.moved.actions_remaining += 1
+        self.engine.sounds.play('capture')
+        self.engine.move(self.end[0], self.end[1], self.start[0], self.start[1])
+        self.engine.create_piece(self.end[0], self.end[1], self.captured)
+        self.engine.trap(self.end[0], self.end[1], self.trap)
         self.engine.players[self.engine.turn].undo_action()
         self.engine.reset_unused_piece_highlight()
         self.engine.correct_interceptions()

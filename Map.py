@@ -63,7 +63,6 @@ class Map:
         self.engine.create_resource(r, c, SunkenQuarry(r, c))
         self.engine.board[r][c].can_contain_stone = True
 
-    # Override this to give each map unique resource generation
     def generate_resources(self):
         self.engine.sounds.play('create_resource')
 

@@ -287,6 +287,7 @@ class Building(Unit):
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
         self.can_be_persuaded = False
+        self.is_effected_by_jester = False
 
     def get_unit_kind(self):
         return 'building'
@@ -449,6 +450,69 @@ class Duke(Piece):
                 return engine.transfer_to_praying_state(self.row, self.col)
 
 
+class Lion(Piece):
+    def __repr__(self):
+        return 'lion'
+
+    def __init__(self, row, col, color):
+        super().__init__(row, col, color)
+        self.directions = (Constant.UP, Constant.RIGHT, Constant.DOWN, Constant.LEFT)
+        self.praying_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
+                                   Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
+                                   Constant.DOWN_LEFT)
+        self.distance = Constant.BOARD_WIDTH_SQ
+
+    def praying_squares(self, engine):
+        moves = []
+
+        for direction in range(len(self.praying_directions)):
+            d = self.praying_directions[direction]
+            r = self.row - d[0]
+            c = self.col - d[1]
+            if engine.has_prayable_building(r, c):
+                if engine.get_occupying(r, c).color is self.color:
+                    moves.append((r, c))
+
+        return moves
+
+    def capture_squares(self, engine):
+        squares = []
+
+        for direction in self.directions:
+            for distance in range(1, self.distance):
+                r = self.row + direction[0] * distance
+                c = self.col + direction[1] * distance
+                if not Constant.tile_in_bounds(r, c):
+                    break
+                if self.can_capture(r, c, engine):
+                    squares.append((r, c))
+                    break
+                if not engine.can_be_occupied(r, c):
+                    break
+
+        return squares
+
+    def move_squares(self, engine):
+        squares = []
+
+        for direction in self.directions:
+            for distance in range(1, self.distance):
+                r = self.row + direction[0] * distance
+                c = self.col + direction[1] * distance
+                if not Constant.tile_in_bounds(r, c):
+                    break
+                if not engine.can_be_occupied(r, c):
+                    break
+                else:
+                    squares.append((r, c))
+        return squares
+
+    def right_click(self, engine):
+        if super().right_click(engine):
+            if not engine.rituals_banned:
+                return engine.transfer_to_praying_state(self.row, self.col)
+
+
 class Rook(Piece):
     def __repr__(self):
         return 'rook'
@@ -512,7 +576,7 @@ class Rook(Piece):
                 return engine.transfer_to_praying_state(self.row, self.col)
 
 
-class Bishop(Piece):
+class Acrobat(Piece):
     def __repr__(self):
         return 'bishop'
 
@@ -1255,7 +1319,7 @@ class Builder(Piece):
         return moves
 
     def base_spawn_criteria(self, engine, row, col):
-        return engine.has_none_occupying(row, col) and not engine.has_portal(row, col)
+        return engine.has_none_occupying(row, col) and not engine.has_portal(row, col) and not engine.has_trap(row, col)
 
     def spawn_squares_for_quarry(self, engine):
         spawn_squares = []
@@ -1620,6 +1684,9 @@ class Trapper(Piece):
                 squares.append((r, c))
         return squares
 
+    def base_spawn_criteria(self, engine, row, col):
+        return not engine.has_portal(row, col) and not engine.has_trap(row, col)
+
     def spawn_squares(self, engine):
         squares = []
         if not self.can_spawn(engine):
@@ -1628,8 +1695,9 @@ class Trapper(Piece):
         for direction in self.trapping_directions:
             r = self.row - direction[0]
             c = self.col - direction[1]
-            if engine.can_be_occupied_by_rogue(r, c):
-                squares.append((r, c))
+            if self.base_spawn_criteria(engine, r, c):
+                if engine.can_be_occupied_by_gold_general(r, c):
+                    squares.append((r, c))
 
         return squares
 

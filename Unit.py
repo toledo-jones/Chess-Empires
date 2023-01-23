@@ -22,6 +22,7 @@ class Unit:
         self.stealing = False
         self.mining_stealing = False
         self.persuading = False
+        self.praying_building = False
 
         self.can_be_persuaded = True
         self.intercepted = False
@@ -195,6 +196,10 @@ class Unit:
             self.highlight_self_square(win)
             self.highlight_stealing_squares(win)
             self.highlight_mining_squares(win)
+        if self.praying_building:
+            self.highlight_self_square(win)
+            self.highlight_spawn_squares(win)
+            self.highlight_praying_squares(win)
         if self.stealing:
             self.highlight_self_square(win)
             self.highlight_stealing_squares(win)
@@ -288,6 +293,9 @@ class Building(Unit):
         super().__init__(row, col, color)
         self.can_be_persuaded = False
         self.is_effected_by_jester = False
+
+    def base_spawn_criteria(self, engine, row, col):
+        return not engine.board[row][col].is_protected_by_opposite_color(self.color)
 
     def get_unit_kind(self):
         return 'building'
@@ -736,7 +744,7 @@ class Pawn(Piece):
         for direction in self.mining_directions:
             r = self.row - direction[0]
             c = self.col - direction[1]
-            if engine.has_mineable_resource(r, c) or engine.can_contain_quarry(r, c):
+            if engine.has_mineable_resource(r, c):
                 if engine.get_occupying(r, c):
                     if engine.get_occupying_color(r, c) is not self.color:
                         pass
@@ -744,6 +752,8 @@ class Pawn(Piece):
                         mining_squares.append((r, c))
                 elif engine.has_none_occupying(r, c):
                     mining_squares.append((r, c))
+            elif engine.can_contain_quarry(r, c) and engine.is_empty(r, c):
+                mining_squares.append((r, c))
 
         return mining_squares
 
@@ -979,7 +989,7 @@ class RoguePawn(Piece):
         for direction in self.mining_directions:
             r = self.row - direction[0]
             c = self.col - direction[1]
-            if engine.has_mineable_resource(r, c) or engine.can_contain_quarry(r, c):
+            if engine.has_mineable_resource(r, c):
                 if engine.get_occupying(r, c):
                     if engine.get_occupying_color(r, c) is not self.color:
                         pass
@@ -987,6 +997,8 @@ class RoguePawn(Piece):
                         mining_squares.append((r, c))
                 elif engine.has_none_occupying(r, c):
                     mining_squares.append((r, c))
+            elif engine.can_contain_quarry(r, c) and engine.is_empty(r, c):
+                mining_squares.append((r, c))
 
         return mining_squares
 
@@ -1055,6 +1067,23 @@ class Monk(Piece):
 
         return squares
 
+    def base_spawn_criteria(self, engine, row, col):
+        return engine.has_none_occupying(row, col) and not engine.has_portal(row, col) and not engine.has_trap(row,
+                                                                                                                   col)
+    def spawn_squares(self, engine):
+
+        spawn_squares = []
+        if not self.can_spawn(engine):
+            return spawn_squares
+
+        for direction in self.directions:
+            r = self.row - direction[0]
+            c = self.col - direction[1]
+            if self.base_spawn_criteria(engine, r, c):
+                if engine.has_no_resource(r, c,) or engine.has_depleted_quarry(r, c):
+                    spawn_squares.append((r, c))
+        return spawn_squares
+
     def praying_squares(self, engine):
         squares = []
 
@@ -1070,7 +1099,7 @@ class Monk(Piece):
     def right_click(self, engine):
         if super().right_click(engine):
             if not engine.rituals_banned:
-               return engine.transfer_to_praying_state(self.row, self.col)
+               return engine.transfer_to_praying_building_state(self.row, self.col)
 
 
 class Ram(Piece):
@@ -1685,7 +1714,7 @@ class Trapper(Piece):
         return squares
 
     def base_spawn_criteria(self, engine, row, col):
-        return not engine.has_portal(row, col) and not engine.has_trap(row, col)
+        return not engine.has_trap(row, col) and not engine.board[row][col].is_protected_by_opposite_color(self.color)
 
     def spawn_squares(self, engine):
         squares = []
@@ -1767,8 +1796,9 @@ class Stable(Building):
         for direction in self.directions:
             r = self.row - direction[0]
             c = self.col - direction[1]
-            if engine.can_be_occupied(r, c):
-                spawn_squares.append((r, c))
+            if self.base_spawn_criteria(engine, r, c):
+                if engine.can_be_occupied(r, c):
+                    spawn_squares.append((r, c))
         return spawn_squares
 
     def right_click(self, engine):
@@ -1798,8 +1828,9 @@ class Barracks(Building):
         for direction in self.directions:
             r = self.row - direction[0]
             c = self.col - direction[1]
-            if engine.can_be_occupied(r, c):
-                spawn_squares.append((r, c))
+            if self.base_spawn_criteria(engine, r, c):
+                if engine.can_be_occupied(r, c):
+                    spawn_squares.append((r, c))
         return spawn_squares
 
     def right_click(self, engine):
@@ -1833,9 +1864,9 @@ class Castle(Building):
             if engine.spawning == 'rogue_pawn':
                 if engine.can_be_occupied_by_rogue(r, c):
                     spawn_squares.append((r, c))
-
-            elif engine.can_be_occupied(r, c):
-                spawn_squares.append((r, c))
+            elif self.base_spawn_criteria(engine, r, c):
+                if engine.can_be_occupied(r, c):
+                    spawn_squares.append((r, c))
         return spawn_squares
 
     def right_click(self, engine):
@@ -1865,8 +1896,9 @@ class Circus(Building):
         for direction in self.directions:
             r = self.row - direction[0]
             c = self.col - direction[1]
-            if engine.can_be_occupied(r, c):
-                spawn_squares.append((r, c))
+            if self.base_spawn_criteria(engine, r, c):
+                if engine.can_be_occupied(r, c):
+                    spawn_squares.append((r, c))
         return spawn_squares
 
     def right_click(self, engine):
@@ -1895,8 +1927,9 @@ class Fortress(Building):
         for direction in self.directions:
             r = self.row - direction[0]
             c = self.col - direction[1]
-            if engine.can_be_occupied_by_rogue(r, c):
-                spawn_squares.append((r, c))
+            if self.base_spawn_criteria(engine, r, c):
+                if engine.can_be_occupied_by_rogue(r, c):
+                    spawn_squares.append((r, c))
         return spawn_squares
 
     def right_click(self, engine):
@@ -1943,8 +1976,9 @@ class Monolith(Building):
             for i in range(self.distance):
                 r = self.row + direction[0] * i
                 c = self.col + direction[1] * i
-                if engine.can_be_occupied_by_gold_general(r, c):
-                    ritual_squares.append((r, c))
+                if self.base_spawn_criteria(engine, r, c):
+                    if engine.can_be_occupied_by_gold_general(r, c):
+                        ritual_squares.append((r, c))
 
         return ritual_squares
 

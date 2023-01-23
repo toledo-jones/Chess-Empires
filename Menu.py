@@ -811,6 +811,17 @@ class CircusMenu(SpawningMenu):
         return 'circus'
 
 
+class MonkMenu(SpawningMenu):
+    def __init__(self, row, col, win, engine, spawner):
+        spawn_list = Constant.MONK_SPAWN_LIST
+        self.spawner = spawner
+
+        super().__init__(row, col, win, engine, spawn_list, spawner)
+
+    def __repr__(self):
+        return 'monk'
+
+
 class TrapperMenu(SpawningMenu):
     def __init__(self, row, col, win, engine, spawner):
         spawn_list = Constant.TRAPPER_SPAWN_LIST
@@ -1256,6 +1267,15 @@ class CircusCosts(CostMenu):
 
     def __repr__(self):
         return 'circus'
+
+
+class MonkCosts(CostMenu):
+    def __init__(self, win, engine):
+        spawn_list = Constant.MONK_SPAWN_LIST
+        super().__init__(win, engine, spawn_list)
+
+    def __repr__(self):
+        return 'monk'
 
 
 class FortressCosts(CostMenu):

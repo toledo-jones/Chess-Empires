@@ -93,10 +93,10 @@ DEBUG_STARTING_PRAYER = 12
 DEBUG_STARTING_WOOD = 99
 DEBUG_STARTING_GOLD = 99
 DEBUG_STARTING_STONE = 99
-DEBUG_STARTING_PIECES = ['castle', 'trapper', 'builder', 'king']
-DEBUG_RITUALS = False
+DEBUG_STARTING_PIECES = ['castle', 'monolith', 'trapper', 'queen', 'king']
+DEBUG_RITUALS = True
 PLAY_AGAINST_AI = False
-BOARD_STARTS_WITH_RESOURCES = True
+BOARD_STARTS_WITH_RESOURCES = False
 
 'DEFAULT START'
 STARTING_PRAYER = 0
@@ -105,17 +105,18 @@ STARTING_GOLD = 0
 STARTING_STONE = 0
 STARTING_PIECES = ['castle', 'king']
 DEFAULT_ACTIONS_REMAINING = 1
-SELECTABLE_STARTING_PIECES = ['pawn', 'builder', 'trader', 'trapper', 'rogue_pawn', 'monk', 'pikeman', 'wall']
+SELECTABLE_STARTING_PIECES = ['pawn', 'builder', 'trader', 'trapper', 'rogue_pawn', 'monk', 'pikeman']
 NUMBER_OF_STARTING_PIECES = 5
 MONOLITH_RITUALS = ['gold_general',
                     'portal',
+                    'line_destroy',
                     'protect',
                     'swap',
                     'teleport',
                     'create_resource',
                     'smite',
                     'destroy_resource',
-                    'line_destroy',
+
                     ]
 PRAYER_STONE_RITUALS = []
 STEALING_KEY = {'building': {
@@ -133,19 +134,20 @@ STEALING_KEY = {'building': {
 
 MAX_MONOLITH_RITUALS_PER_TURN = 3
 MAX_PRAYER_STONE_RITUALS_PER_TURN = 3
-MASTER_COST_LIST = ['builder', 'stable', 'monolith', 'castle', 'barracks', 'fortress', 'circus']
+MASTER_COST_LIST = ['builder', 'monk', 'stable', 'monolith', 'castle', 'barracks', 'fortress', 'circus']
 
 STABLE_SPAWN_LIST = ['doe', 'oxen', 'unicorn', 'ram', 'elephant', 'knight']
 FORTRESS_SPAWN_LIST = ['rogue_rook', 'rogue_bishop', 'rogue_knight', 'rogue_pawn']
 CASTLE_SPAWN_LIST = ['pawn', 'builder', 'pikeman', 'monk', 'trader', 'trapper']
-BUILDER_SPAWN_LIST = ['wall', 'stable', 'monolith', 'castle', 'barracks', 'fortress', 'circus']
+BUILDER_SPAWN_LIST = ['wall', 'stable', 'castle', 'barracks', 'fortress', 'circus']
 BARRACKS_SPAWN_LIST = ['duke', 'queen', 'champion', 'rook', 'bishop']
 CIRCUS_SPAWN_LIST = ['jester', 'persuader']
 TRAPPER_SPAWN_LIST = ['trap']
+MONK_SPAWN_LIST = ['monolith', 'prayer_stone']
 
 SPAWN_LISTS = {'stable': STABLE_SPAWN_LIST, 'fortress': FORTRESS_SPAWN_LIST, 'castle': CASTLE_SPAWN_LIST,
                'builder': BUILDER_SPAWN_LIST, 'barracks': BARRACKS_SPAWN_LIST, 'circus': CIRCUS_SPAWN_LIST,
-               'trapper': TRAPPER_SPAWN_LIST}
+               'trapper': TRAPPER_SPAWN_LIST, 'monk': MONK_SPAWN_LIST}
 
 PIECE_COSTS = {'king': {'log': 999, 'gold': 999, 'stone': 999},
                'gold_general': {'log': 0, 'gold': 0, 'stone': 0},
@@ -171,7 +173,7 @@ PIECE_COSTS = {'king': {'log': 999, 'gold': 999, 'stone': 999},
                'ram': {'log': 8, 'gold': 0, 'stone': 8},
                'unicorn': {'log': 12, 'gold': 0, 'stone': 12},
                'monolith': {'log': 0, 'gold': 0, 'stone': 15},
-               'prayer_stone': {'log': 0, 'gold': 0, 'stone': 4},
+               'prayer_stone': {'log': 0, 'gold': 0, 'stone': 1},
                'duke': {'log': 6, 'gold': 14, 'stone': 15},
                'oxen': {'log': 12, 'gold': 0, 'stone': 12},
                'champion': {'log': 0, 'gold': 9, 'stone': 9},
@@ -188,8 +190,9 @@ NOTIFICATIONS = {'blank': ['an unknown error occurred'],
                  'invalid_start_spawn': ['select a valid spawn square'],
                  'non_occupyable': ['square cannot be occupied'],
                  'players_nearby': ['a player is too close'],
-                 'open_spaces': ['not enough open spaces']
-
+                 'open_spaces': ['not enough open spaces'],
+                 'piece_action': [],
+                 'player_action': [],
                  }
 DESCRIPTIONS = {'king': ['every player gets one', 'capture your opponent\'s to win'],
                 'gold_general': ['summons a fierce demon who ', 'moves like a queen through and onto ',

@@ -53,14 +53,26 @@ class Tile:
         y = (self.row * Constant.SQ_SIZE) + self.protect_image_offset[1]
         win.blit(self.portal_image, (x, y))
 
+    def replace_values(self, protect_values):
+        self.protected_image = protect_values['image']
+        self.protected_by = protect_values['color']
+        self.protect_timer = protect_values['timer']
+        self.protected = True
+
+    def get_protect_values(self):
+        return {'image': self.protected_image, 'color': self.protected_by, 'timer': self.protect_timer}
+
     def draw_protected_image(self, win):
         x = (self.col * Constant.SQ_SIZE) + self.protect_image_offset[0]
         y = (self.row * Constant.SQ_SIZE) + self.protect_image_offset[1]
         win.blit(self.protected_image, (x, y))
 
     def untick_protect_timer(self, engine, color):
+        re_create_protect = False
+        if self.protect_timer == 0:
+            re_create_protect = True
         self.protect_timer += 1
-        if self.protect_timer > 0:
+        if re_create_protect:
             self.protected = True
             self.protected_image = Constant.IMAGES[color + "_protect"]
             engine.protected_tiles.append(self)
@@ -81,7 +93,7 @@ class Tile:
     def protect(self, color):
         self.protected_image = Constant.IMAGES[color + "_" + "protect"]
         self.protected = True
-        self.protect_timer = 2
+        self.protect_timer = 4
         self.protected_by = color
 
     def create_portal(self, color, connected_portal):
@@ -100,11 +112,19 @@ class Tile:
     def is_portal(self):
         return self.portal
 
-    def is_protected_by_opposite_color(self, color):
-        if color == self.protected_by:
+    def is_protected_by_same_color(self, color):
+        if self.protected:
+            if color == self.protected_by:
+                return True
             return False
-        else:
+        return False
+
+    def is_protected_by_opposite_color(self, color):
+        if self.protected:
+            if color == self.protected_by:
+                return False
             return True
+        return False
 
     def has_trap(self):
         if self.trap:

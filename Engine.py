@@ -139,7 +139,8 @@ class Engine:
                       'builder': BuilderMenu,
                       'castle': CastleMenu,
                       'circus': CircusMenu,
-                      'trapper': TrapperMenu
+                      'trapper': TrapperMenu,
+                      'monk': MonkMenu
                       }
         self.EVENTS = {'pray': Pray, 'steal': Steal, 'mine': Mine, 'spawn': Spawn, 'move': Move, 'capture': Capture}
         self.STEALING_VALUES = {'wood': 0, 'gold': 1, 'stone': 2}
@@ -294,7 +295,7 @@ class Engine:
 
     def piece_is_selected(self, piece):
         selected_list = [piece.selected, piece.mining, piece.pre_selected, piece.purchasing, piece.praying,
-                         piece.casting, piece.stealing, piece.mining_stealing, piece.persuading]
+                         piece.casting, piece.stealing, piece.mining_stealing, piece.persuading, piece.praying_building]
         if any(selected_list):
             return True
 
@@ -381,6 +382,7 @@ class Engine:
                 piece.stealing = False
                 piece.mining_stealing = False
                 piece.persuading = False
+                piece.praying_building = False
 
     def reset_player_actions_remaining(self, color):
         self.players[color].reset_actions_remaining()
@@ -416,7 +418,7 @@ class Engine:
         self.players[color].pieces.remove(self.board[row][col].trap)
         self.board[row][col].untrap()
 
-    def trap(self, row, col, trap):
+    def set_trap(self, row, col, trap):
         self.board[row][col].set_trap(trap)
         self.players[trap.get_color()].pieces.append(trap)
 
@@ -838,6 +840,9 @@ class Engine:
     def set_stealing(self, row, col, boolean):
         self.board[row][col].occupying.stealing = boolean
 
+    def set_praying_building(self, row, col, boolean):
+        self.board[row][col].occupying.praying_building = boolean
+
     def set_mining_stealing(self, row, col, boolean):
         self.board[row][col].occupying.mining_stealing = boolean
 
@@ -907,7 +912,8 @@ class Engine:
                 piece.update_interceptor_squares(self)
 
     def has_trap(self, row, col):
-        return self.board[row][col].has_trap()
+        if Constant.tile_in_bounds(row, col):
+            return self.board[row][col].has_trap()
 
     def has_prayable_building(self, r, c):
         if Constant.tile_in_bounds(r, c):
@@ -985,6 +991,23 @@ class Engine:
         if allow_spawn:
             self.set_pre_selected(row, col, True)
             new_state = PreBuilding(self.state[-1].win, self)
+            self.menus = []
+            new_state.add_menu_to_menu_queue(str(self.get_occupying(row, col)))
+            new_state.spawning_piece = self.get_occupying(row, col)
+            self.set_state(new_state)
+            return True
+
+    def transfer_to_praying_building_state(self, row, col):
+        self.update_praying_squares()
+        self.update_spawn_squares()
+        selectable_squares = self.board[row][col].get_occupying().spawn_squares_list + self.board[row][
+            col].get_occupying().praying_squares_list
+        allow_state = False
+        if selectable_squares:
+            allow_state = True
+        if allow_state:
+            self.set_praying_building(row, col, True)
+            new_state = PrayingBuilding(self.state[-1].win, self)
             self.menus = []
             new_state.add_menu_to_menu_queue(str(self.get_occupying(row, col)))
             new_state.spawning_piece = self.get_occupying(row, col)

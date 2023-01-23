@@ -7,6 +7,62 @@ class State:
         self.win = win
         self.engine = engine
 
+    def type_of_move(self, acting_tile, action_tile):
+        piece = acting_tile.get_occupying()
+        has_portal = False
+        if action_tile.portal:
+            has_portal = True
+        has_trap = False
+        if action_tile.trap:
+            has_trap = True
+            if action_tile.is_protected_by_same_color(piece.color):
+                has_trap = False
+        if has_trap:
+            if action_tile.trap.color != piece.color:
+                return TrapMove
+        if has_portal:
+            return PortalMove
+
+        return Move
+
+    def type_of_capture(self, acting_tile, action_tile):
+        piece = acting_tile.get_occupying()
+        has_portal = False
+        if action_tile.portal:
+            has_portal = True
+        has_trap = False
+        if action_tile.trap:
+            has_trap = True
+            if action_tile.is_protected_by_same_color(piece.color):
+                has_trap = False
+        if has_trap:
+            if action_tile.trap.color != piece.color:
+                return TrapCapture
+        if has_portal:
+            return PortalCapture
+        return Capture
+
+    def type_of_spawn(self, acting_tile, action_tile):
+        piece = acting_tile.get_occupying()
+        has_portal = False
+        if action_tile.portal:
+            has_portal = True
+        has_trap = False
+
+        if action_tile.trap:
+            has_trap = True
+            if action_tile.is_protected_by_same_color(piece.color):
+                has_trap = False
+        if self.engine.spawning == 'trap':
+            return SpawnTrap
+        if has_trap:
+            if action_tile.trap.color != piece.color:
+                return TrapSpawn
+        if has_portal:
+            return PortalSpawn
+
+        return Spawn
+
     def revert_to_playing_state(self):
         #
         #   used by many states to return to the 'playing' state, or default state
@@ -189,37 +245,6 @@ class Playing(State):
             if currently_selected.actions_remaining > 0:
                 if self.engine.player_can_do_action(self.engine.turn):
                     return True
-
-    def type_of_move(self, acting_tile, action_tile):
-        piece = acting_tile.get_occupying()
-        has_portal = False
-        if action_tile.portal:
-            has_portal = True
-        has_trap = False
-        if action_tile.trap:
-            has_trap = True
-        if has_portal:
-            return PortalMove
-        if has_trap:
-            if action_tile.trap.color != piece.color:
-                return TrapMove
-        return Move
-
-    def type_of_capture(self, acting_tile, action_tile):
-        piece = acting_tile.get_occupying()
-        has_portal = False
-        if action_tile.portal:
-            has_portal = True
-        has_trap = False
-        if action_tile.trap:
-            has_trap = True
-
-        if has_portal:
-            return PortalCapture
-        if has_trap:
-            if action_tile.trap.color != piece.color:
-                return TrapCapture
-        return Capture
 
     def can_capture_piece(self, previously_selected, row, col, currently_selected):
         if previously_selected is not None:
@@ -786,6 +811,103 @@ class DebugStart(StartingSpawn):
                 self.begin_next_player_start_spawn()
 
 
+class PrayingBuilding(State):
+    def __init__(self, win, engine):
+        super().__init__(win, engine)
+        self.side_bar = Hud(self.win, self.engine)
+        self.previously_selected = self.engine.update_previously_selected()
+        self.menu_queue = None
+        self.spawning_piece = None
+
+    def __repr__(self):
+        return 'praying building'
+
+    def add_menu_to_menu_queue(self, menu):
+        self.menu_queue = menu
+
+    def can_select_piece(self, row, col):
+        currently_selected = self.engine.get_occupying(row, col)
+        try:
+            if self.engine.turn == currently_selected.color:
+                if currently_selected.actions_remaining > 0:
+                    if self.engine.player_can_do_action(self.engine.turn):
+                        return True
+        except AttributeError:
+            print("Attribute Error")
+            print("Line 68, State.py")
+
+    def draw(self):
+        super().draw()
+        self.side_bar.draw()
+        pos = pygame.mouse.get_pos()
+        display_pos_x = pos[0] - Constant.SQ_SIZE // 2
+        display_pos_y = pos[1] - Constant.SQ_SIZE // 2
+        if self.engine.menus:
+            for menu in self.engine.menus:
+                menu.draw(self.win)
+        elif Constant.pos_in_bounds(pos):
+            row, col = Constant.convert_pos(pos)
+            if self.in_praying_squares(row, col):
+                self.win.blit(Constant.IMAGES['prayer'], (display_pos_x, display_pos_y))
+            elif self.click_square_in_spawn_squares(row, col):
+                self.win.blit(Constant.IMAGES['hammer'], (display_pos_x, display_pos_y))
+
+    def left_click(self):
+        row, col = Constant.convert_pos(pygame.mouse.get_pos())
+        if self.engine.menus:
+            for menu in self.engine.menus:
+                menu.left_click()
+            if self.engine.spawning is not None:
+                new_state = Spawning(self.win, self.engine)
+                self.engine.set_state(new_state)
+        elif self.select(row, col):
+            pass
+        else:
+            self.engine.reset_selected()
+            new_state = Playing(self.win, self.engine)
+            self.engine.set_state(new_state)
+
+    def right_click(self):
+        self.engine.reset_selected()
+        self.engine.menus = []
+        state = Playing(self.win, self.engine)
+        self.engine.set_state(state)
+
+    def mouse_move(self):
+        if self.engine.menus:
+            for menu in self.engine.menus:
+                menu.mouse_move()
+                if not menu.mouse_in_menu_bounds():
+                    self.engine.reset_selected()
+                    self.engine.menus = []
+                    state = Playing(self.win, self.engine)
+                    self.engine.set_state(state)
+
+    def click_square_in_spawn_squares(self, row, col):
+        if (row, col) in self.previously_selected.spawn_squares(self.engine):
+            return True
+
+    def in_praying_squares(self, row, col):
+        if (row, col) in self.previously_selected.praying_squares_list:
+            return True
+
+    def select(self, row, col):
+        if self.click_square_in_spawn_squares(row, col):
+            self.engine.menus.append(
+                self.engine.MENUS[self.menu_queue](row, col, self.win, self.engine, self.spawning_piece))
+            self.spawning_piece.spawn_squares_list = [(row, col)]
+            return True
+        elif self.in_praying_squares(row, col):
+            acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+            action_tile = self.engine.board[row][col]
+            event = Pray(self.engine, acting_tile, action_tile)
+            self.engine.add_event(event)
+            new_state = Playing(self.win, self.engine)
+            self.engine.reset_selected()
+            self.engine.set_state(new_state)
+            return True
+
+
 class MiningStealing(State):
     def __init__(self, win, engine):
         super().__init__(win, engine)
@@ -1238,23 +1360,6 @@ class Spawning(State):
                               (displayPosX, displayPosY))
             return True
 
-    def type_of_spawn(self, acting_tile, action_tile):
-        piece = acting_tile.get_occupying()
-        has_portal = False
-        if action_tile.portal:
-            has_portal = True
-        has_trap = False
-        if action_tile.trap:
-            has_trap = True
-
-        if self.engine.spawning == 'trap':
-            return SpawnTrap
-        if has_portal:
-            return PortalSpawn
-        if has_trap:
-            if action_tile.trap.color != piece.color:
-                return TrapSpawn
-        return Spawn
 
     def left_click(self):
         pos = pygame.mouse.get_pos()
@@ -1753,7 +1858,10 @@ class PerformLineDestroy(Ritual):
         if selected_range:
             for r in selected_range[0]:
                 for c in selected_range[1]:
-                    active_line_squares.append((r, c))
+                    if self.engine.board[r][c].is_protected_by_opposite_color(self.engine.turn):
+                        break
+                    else:
+                        active_line_squares.append((r, c))
         return active_line_squares
 
     def left_click(self):

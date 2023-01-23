@@ -314,6 +314,16 @@ class Piece(Unit):
     def get_unit_kind(self):
         return 'piece'
 
+    def base_move_criteria(self, engine, r, c):
+        if engine.can_be_occupied(r, c):
+            if engine.board[r][c].is_protected_by_opposite_color(self.color):
+                return False
+            elif engine.has_trap(r, c):
+                if engine.board[r][c].trap.color != self.color:
+                    return False
+            return True
+
+
     def right_click(self, engine):
         if self.actions_remaining > 0:
             return True

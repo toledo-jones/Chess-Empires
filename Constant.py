@@ -93,7 +93,7 @@ DEBUG_STARTING_PRAYER = 12
 DEBUG_STARTING_WOOD = 99
 DEBUG_STARTING_GOLD = 99
 DEBUG_STARTING_STONE = 99
-DEBUG_STARTING_PIECES = ['castle', 'unicorn', 'king',]
+DEBUG_STARTING_PIECES = ['castle', 'monk', 'king']
 DEBUG_RITUALS = False
 PLAY_AGAINST_AI = False
 BOARD_STARTS_WITH_RESOURCES = True
@@ -183,7 +183,7 @@ PIECE_COSTS = {'king': {'log': 999, 'gold': 999, 'stone': 999},
                'trader': {'log': 6, 'gold': 0, 'stone': 0},
                'circus': {'log': 0, 'gold': 10, 'stone': 0},
                'trapper': {'log': 6, 'gold': 0, 'stone': 0},
-               'trap': {'log': 0, 'gold': 0, 'stone': 1},
+               'trap': {'log': 0, 'gold': 0, 'stone': 2},
 
                }
 NOTIFICATIONS = {'blank': ['an unknown error occurred'],

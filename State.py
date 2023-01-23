@@ -6,6 +6,7 @@ class State:
     def __init__(self, win, engine):
         self.win = win
         self.engine = engine
+        self.side_bar = None
 
     def type_of_move(self, acting_tile, action_tile):
         piece = acting_tile.get_occupying()
@@ -82,8 +83,8 @@ class State:
                     self.revert_to_playing_state()
 
     def side_bar_input(self, input_type):
-        if self.engine.side_bar:
-            function = getattr(self.engine.side_bar, input_type)
+        if self.side_bar:
+            function = getattr(self.side_bar, input_type)
             function()
             return True
 

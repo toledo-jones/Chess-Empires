@@ -1101,7 +1101,7 @@ class CostMenu:
         self.pieces = {'w': Constant.W_PIECES | Constant.W_BUILDINGS,
                        'b': Constant.B_PIECES | Constant.B_BUILDINGS}
         self.MENUS = {'builder': BuilderCosts, 'castle': CastleCosts, 'stable': StableCosts, 'fortress': FortressCosts,
-                      'prayer_stone': PrayerStoneCosts, 'monolith': MonolithCosts, 'barracks': BarracksCosts, 'circus': CircusCosts}
+                      'prayer_stone': PrayerStoneCosts, 'monolith': MonolithCosts, 'barracks': BarracksCosts, 'circus': CircusCosts, 'monk':MonkCosts}
         self.RESOURCES = {'wood': Constant.MENU_ICONS['log'], 'gold': Constant.MENU_ICONS['gold_coin'],
                           'stone': Constant.MENU_ICONS['stone']}
 

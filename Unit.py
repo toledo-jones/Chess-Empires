@@ -82,7 +82,8 @@ class Unit:
     def possible_moves(self):
         return {'spawn': self.spawn_squares_list, 'move': self.move_squares_list, 'mine': self.mining_squares_list,
                 'steal': self.stealing_squares_list, 'pray': self.praying_squares_list,
-                'capture': self.capture_squares_list, 'ritual': self.ritual_squares_list, 'persuade': self.persuader_squares_list}
+                'capture': self.capture_squares_list, 'ritual': self.ritual_squares_list,
+                'persuade': self.persuader_squares_list}
 
     def can_capture(self, r, c, engine):
         capture_tile = None
@@ -273,7 +274,7 @@ class Unit:
         #     z = random.randint(Constant.SQ_SIZE // -10, Constant.SQ_SIZE // 10)
         #     return r, z
         # else:
-            return Constant.PIECE_IMAGE_MODIFY[str(self)]['OFFSET']
+        return Constant.PIECE_IMAGE_MODIFY[str(self)]['OFFSET']
 
     def get_color(self):
         return self.color
@@ -295,7 +296,8 @@ class Building(Unit):
         self.is_effected_by_jester = False
 
     def base_spawn_criteria(self, engine, row, col):
-        return not engine.board[row][col].is_protected_by_opposite_color(self.color)
+        if Constant.tile_in_bounds(row, col):
+            return not engine.board[row][col].is_protected_by_opposite_color(self.color)
 
     def get_unit_kind(self):
         return 'building'
@@ -1068,10 +1070,10 @@ class Monk(Piece):
         return squares
 
     def base_spawn_criteria(self, engine, row, col):
-        return engine.has_none_occupying(row, col) and not engine.has_portal(row, col) and not engine.has_trap(row,
-                                                                                                                   col)
+        if Constant.tile_in_bounds(row, col):
+            return engine.has_none_occupying(row, col) and not engine.has_portal(row, col) and not engine.has_trap(row,
+                                                                                                               col)
     def spawn_squares(self, engine):
-
         spawn_squares = []
         if not self.can_spawn(engine):
             return spawn_squares
@@ -1080,7 +1082,7 @@ class Monk(Piece):
             r = self.row - direction[0]
             c = self.col - direction[1]
             if self.base_spawn_criteria(engine, r, c):
-                if engine.has_no_resource(r, c,) or engine.has_depleted_quarry(r, c):
+                if engine.has_no_resource(r, c, ) or engine.has_depleted_quarry(r, c):
                     spawn_squares.append((r, c))
         return spawn_squares
 
@@ -1097,9 +1099,9 @@ class Monk(Piece):
         return squares
 
     def right_click(self, engine):
-        if super().right_click(engine):
+        if self.actions_remaining > 0 and engine.players[engine.turn].actions_remaining > 0:
             if not engine.rituals_banned:
-               return engine.transfer_to_praying_building_state(self.row, self.col)
+                return engine.transfer_to_praying_building_state(self.row, self.col)
 
 
 class Ram(Piece):
@@ -1348,7 +1350,8 @@ class Builder(Piece):
         return moves
 
     def base_spawn_criteria(self, engine, row, col):
-        return engine.has_none_occupying(row, col) and not engine.has_portal(row, col) and not engine.has_trap(row, col)
+        if Constant.tile_in_bounds(row, col):
+            return engine.has_none_occupying(row, col) and not engine.has_portal(row, col) and not engine.has_trap(row, col)
 
     def spawn_squares_for_quarry(self, engine):
         spawn_squares = []
@@ -1369,7 +1372,7 @@ class Builder(Piece):
             r = self.row - direction[0]
             c = self.col - direction[1]
             if self.base_spawn_criteria(engine, r, c):
-                if engine.has_no_resource(r, c,) or engine.has_depleted_quarry(r, c):
+                if engine.has_no_resource(r, c, ) or engine.has_depleted_quarry(r, c):
                     spawn_squares.append((r, c))
         return spawn_squares
 
@@ -1695,8 +1698,8 @@ class Trapper(Piece):
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
         self.trapping_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                                  Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                                  Constant.DOWN_LEFT)
+                                    Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
+                                    Constant.DOWN_LEFT)
         self.move_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN)
         self.capture_directions = (Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
                                    Constant.DOWN_LEFT)
@@ -1714,7 +1717,8 @@ class Trapper(Piece):
         return squares
 
     def base_spawn_criteria(self, engine, row, col):
-        return not engine.has_trap(row, col) and not engine.board[row][col].is_protected_by_opposite_color(self.color)
+        if Constant.tile_in_bounds(row, col):
+            return not engine.has_trap(row, col) and not engine.board[row][col].is_protected_by_opposite_color(self.color)
 
     def spawn_squares(self, engine):
         squares = []

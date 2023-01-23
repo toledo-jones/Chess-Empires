@@ -741,7 +741,6 @@ class Engine:
             elif self.has_none_occupying(r, c) and self.has_sunken_quarry(r, c):
                 return True
 
-
     def can_be_occupied(self, r, c):
         if Constant.tile_in_bounds(r, c):
             if self.has_none_occupying(r, c) and self.has_quarry(r, c):

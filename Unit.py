@@ -1414,7 +1414,7 @@ class Unicorn(Piece):
                                                  Constant.TWO_LEFT_DOWN: Constant.TWO_DOWN_LEFT}
         self.distance = 1
 
-    def capture_moves(self, engine):
+    def capture_squares(self, engine):
         squares = []
 
         for direction in self.cardinal_directions:

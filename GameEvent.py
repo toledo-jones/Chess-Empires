@@ -329,9 +329,12 @@ class ChangeTurn(GameEvent):
         self.engine.tick_protected_tiles(self.engine.protected_tiles)
         if Constant.DEBUG_RITUALS:
             self.engine.monolith_rituals.append(Constant.MONOLITH_RITUALS)
+            self.engine.prayer_stone_rituals.append(Constant.PRAYER_STONE_RITUALS)
         else:
             if self.engine.turn_count_actual == len(self.engine.monolith_rituals) - 1:
                 self.engine.monolith_rituals.append(self.engine.generate_available_rituals(Constant.MONOLITH_RITUALS, Constant.MAX_MONOLITH_RITUALS_PER_TURN))
+            if self.engine.turn_count_actual == len(self.engine.prayer_stone_rituals) - 1:
+                self.engine.prayer_stone_rituals.append(self.engine.generate_available_rituals(Constant.PRAYER_STONE_RITUALS, Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN))
         if self.engine.turn_count_actual == len(self.engine.trade_conversions) - 1:
             self.engine.trade_conversions.append(self.engine.trade_handler.get_conversions())
         if self.engine.turn_count_actual == len(self.engine.piece_stealing_offsets) - 1:

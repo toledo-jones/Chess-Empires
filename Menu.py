@@ -1100,8 +1100,7 @@ class CostMenu:
         self.player = self.engine.players[self.engine.turn]
         self.pieces = {'w': Constant.W_PIECES | Constant.W_BUILDINGS,
                        'b': Constant.B_PIECES | Constant.B_BUILDINGS}
-        self.MENUS = {'builder': BuilderCosts, 'castle': CastleCosts, 'stable': StableCosts, 'fortress': FortressCosts,
-                      'prayer_stone': PrayerStoneCosts, 'monolith': MonolithCosts, 'barracks': BarracksCosts, 'circus': CircusCosts, 'monk':MonkCosts}
+        self.MENUS = self.engine.COST_MENUS
         self.RESOURCES = {'wood': Constant.MENU_ICONS['log'], 'gold': Constant.MENU_ICONS['gold_coin'],
                           'stone': Constant.MENU_ICONS['stone']}
 
@@ -1273,6 +1272,12 @@ class MonkCosts(CostMenu):
     def __init__(self, win, engine):
         spawn_list = Constant.MONK_SPAWN_LIST
         super().__init__(win, engine, spawn_list)
+
+    def left_click(self):
+        piece_selected = self.piece_selected()
+        if piece_selected is not None:
+            menu = self.MENUS[piece_selected](self.win, self.engine)
+            self.engine.menus.append(menu)
 
     def __repr__(self):
         return 'monk'

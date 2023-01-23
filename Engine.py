@@ -14,7 +14,7 @@ class Engine:
         self.running = True
         self.cols = Constant.BOARD_WIDTH_SQ
         self.rows = Constant.BOARD_HEIGHT_SQ
-        self.board = [[Tile(x, y)for y in range(self.cols)] for x in range(self.rows)]
+        self.board = [[Tile(x, y) for y in range(self.cols)] for x in range(self.rows)]
         self.map = None
         self.winner = None
         self.popup_reason = None
@@ -52,9 +52,13 @@ class Engine:
         self.rituals_banned = False
         if Constant.DEBUG_RITUALS:
             self.monolith_rituals.append(Constant.MONOLITH_RITUALS)
+            self.prayer_stone_rituals.append(Constant.PRAYER_STONE_RITUALS)
         else:
             self.monolith_rituals.append(self.generate_available_rituals(Constant.MONOLITH_RITUALS,
-                                                                             Constant.MAX_MONOLITH_RITUALS_PER_TURN))
+                                                                         Constant.MAX_MONOLITH_RITUALS_PER_TURN))
+            self.prayer_stone_rituals.append(
+                self.generate_available_rituals(Constant.PRAYER_STONE_RITUALS,
+                                                Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN))
 
         self.piece_stealing_offsets = []
         self.piece_stealing_offsets.append(self.generate_stealing_offsets(Constant.STEALING_KEY['piece']))
@@ -131,7 +135,9 @@ class Engine:
                           'tree_tile_3': Wood, 'tree_tile_4': Wood,
                           'sunken_quarry_1': SunkenQuarry,
                           'depleted_quarry_1': DepletedQuarry}
-        self.MAPS = [Default, Minimal, VTrees, GoldTopRight, SparseTriangleTrees, GoldTopLeft, TriangleTrees, UnbalancedForest, UltraBalanced, LeftRight, OnlyStoneAndGold, FourCorners, TotallyRandom, RandomlyRandom]
+        self.MAPS = [Default, Minimal, VTrees, GoldTopRight, SparseTriangleTrees, GoldTopLeft, TriangleTrees,
+                     UnbalancedForest, UltraBalanced, LeftRight, OnlyStoneAndGold, FourCorners, TotallyRandom,
+                     RandomlyRandom]
         # self.MAPS = [RandomlyRandom]
         self.MENUS = {'stable': StableMenu,
                       'fortress': FortressMenu,
@@ -142,9 +148,12 @@ class Engine:
                       'trapper': TrapperMenu,
                       'monk': MonkMenu
                       }
+        self.COST_MENUS = {'builder': BuilderCosts, 'castle': CastleCosts, 'stable': StableCosts, 'fortress': FortressCosts,
+                      'prayer_stone': PrayerStoneCosts, 'monolith': MonolithCosts, 'barracks': BarracksCosts, 'circus': CircusCosts, 'monk': MonkCosts}
         self.EVENTS = {'pray': Pray, 'steal': Steal, 'mine': Mine, 'spawn': Spawn, 'move': Move, 'capture': Capture}
         self.STEALING_VALUES = {'wood': 0, 'gold': 1, 'stone': 2}
-        self.KIND_TO_STEALING_LIST = {'piece': self.piece_stealing_offsets, 'building': self.building_stealing_offsets, 'trader': self.trader_stealing_offsets}
+        self.KIND_TO_STEALING_LIST = {'piece': self.piece_stealing_offsets, 'building': self.building_stealing_offsets,
+                                      'trader': self.trader_stealing_offsets}
         self.trade_handler = Trades(self)
         self.trade_conversions = []
         self.trade_conversions.append(self.trade_handler.get_conversions())
@@ -919,8 +928,9 @@ class Engine:
     def has_prayable_building(self, r, c):
         if Constant.tile_in_bounds(r, c):
             b = self.board[r][c].get_occupying()
-            if isinstance(b, PrayerStone) or isinstance(b, Monolith):
-                return True
+            if not self.rituals_banned:
+                if isinstance(b, PrayerStone) or isinstance(b, Monolith):
+                    return True
 
     def get_intercepted_pieces(self):
         intercepted_pieces = []
@@ -1121,7 +1131,7 @@ class Engine:
     def create_trader_menu(self, row, col, set_new_piece_trading=True):
         player = self.players[self.turn]
         resources = ['wood', 'gold', 'stone']
-        key = {'wood':'log', 'gold':'gold_coin', 'stone':'stone'}
+        key = {'wood': 'log', 'gold': 'gold_coin', 'stone': 'stone'}
         resource_list = []
         for resource in resources:
             if getattr(player, resource) != 0:
@@ -1182,5 +1192,3 @@ class Engine:
                     no_players_nearby = False
 
         return no_players_nearby and square_has_enough_spaces
-
-

@@ -88,37 +88,50 @@ PROTECT_SQUARE_OFFSET = (SQ_SIZE // 2 - PROTECT_SQUARE_SCALE[0] // 2, SQ_SIZE //
 # GAME MECHANIC SETTINGS
 
 'DEBUG START'
-DEBUG_START = False
+DEBUG_START = True
+BOARD_STARTS_WITH_RESOURCES = False
+DEBUG_RITUALS = True
+
 DEBUG_STARTING_PRAYER = 12
 DEBUG_STARTING_WOOD = 99
 DEBUG_STARTING_GOLD = 99
 DEBUG_STARTING_STONE = 99
 DEBUG_STARTING_PIECES = ['castle', 'monk', 'king']
-DEBUG_RITUALS = False
-PLAY_AGAINST_AI = False
-BOARD_STARTS_WITH_RESOURCES = True
 
 'DEFAULT START'
+# DEBUG_START = False
+# BOARD_STARTS_WITH_RESOURCES = True
+# DEBUG_RITUALS = False
+
 STARTING_PRAYER = 0
 STARTING_WOOD = 0
 STARTING_GOLD = 0
 STARTING_STONE = 0
-STARTING_PIECES = ['castle', 'king']
-DEFAULT_ACTIONS_REMAINING = 1
+
 SELECTABLE_STARTING_PIECES = ['pawn', 'builder', 'trader', 'trapper', 'rogue_pawn', 'monk', 'pikeman']
 NUMBER_OF_STARTING_PIECES = 5
+DEFAULT_ACTIONS_REMAINING = 1
+STARTING_PIECES = ['castle', 'king']
 MONOLITH_RITUALS = ['gold_general',
-                    'portal',
                     'line_destroy',
-                    'protect',
-                    'swap',
-                    'teleport',
-                    'create_resource',
-                    'smite',
-                    'destroy_resource',
+                    'smite']
+PRAYER_STONE_RITUALS = ['protect',
+                        'swap',
+                        'teleport',
+                        'create_resource',
+                        'portal',
+                        'destroy_resource', ]
+DECREE_COST = 30
+DECREE_INCREMENT = 5
+DEFAULT_PIECE_LIMIT = 3
 
-                    ]
-PRAYER_STONE_RITUALS = []
+TRADING_GIVE_BOUNDS = (3 / 8, 1 / 2)
+TRADING_RECEIVE_BOUNDS = (5 / 8, 15 / 16)
+
+PRAYER_STONE_YIELD = 2
+MONOLITH_YIELD = 2
+ADDITIONAL_PRAYER_FROM_MONK = 1
+
 STEALING_KEY = {'building': {
     'wood': {'variance': (-2, 2), 'value': 5},
     'gold': {'variance': (-2, 2), 'value': 5},
@@ -131,10 +144,9 @@ STEALING_KEY = {'building': {
         'wood': {'variance': (-2, 2), 'value': 4},
         'gold': {'variance': (-2, 2), 'value': 4},
         'stone': {'variance': (-2, 2), 'value': 4}}}
-
-MAX_MONOLITH_RITUALS_PER_TURN = 3
+MAX_MONOLITH_RITUALS_PER_TURN = 2
 MAX_PRAYER_STONE_RITUALS_PER_TURN = 3
-MASTER_COST_LIST = ['builder', 'monk', 'stable', 'monolith', 'castle', 'barracks', 'fortress', 'circus']
+MASTER_COST_LIST = ['builder', 'monk', 'stable', 'castle', 'barracks', 'fortress', 'circus']
 
 STABLE_SPAWN_LIST = ['doe', 'oxen', 'unicorn', 'ram', 'elephant', 'knight']
 FORTRESS_SPAWN_LIST = ['rogue_rook', 'rogue_bishop', 'rogue_knight', 'rogue_pawn']
@@ -143,7 +155,7 @@ BUILDER_SPAWN_LIST = ['wall', 'stable', 'castle', 'barracks', 'fortress', 'circu
 BARRACKS_SPAWN_LIST = ['duke', 'queen', 'champion', 'rook', 'bishop']
 CIRCUS_SPAWN_LIST = ['jester', 'persuader']
 TRAPPER_SPAWN_LIST = ['trap']
-MONK_SPAWN_LIST = ['monolith']
+MONK_SPAWN_LIST = ['monolith', 'prayer_stone']
 
 SPAWN_LISTS = {'stable': STABLE_SPAWN_LIST, 'fortress': FORTRESS_SPAWN_LIST, 'castle': CASTLE_SPAWN_LIST,
                'builder': BUILDER_SPAWN_LIST, 'barracks': BARRACKS_SPAWN_LIST, 'circus': CIRCUS_SPAWN_LIST,
@@ -172,8 +184,8 @@ PIECE_COSTS = {'king': {'log': 999, 'gold': 999, 'stone': 999},
                'elephant': {'log': 8, 'gold': 0, 'stone': 8},
                'ram': {'log': 8, 'gold': 0, 'stone': 8},
                'unicorn': {'log': 12, 'gold': 0, 'stone': 12},
-               'monolith': {'log': 0, 'gold': 0, 'stone': 15},
-               'prayer_stone': {'log': 0, 'gold': 0, 'stone': 1},
+               'monolith': {'log': 0, 'gold': 0, 'stone': 16},
+               'prayer_stone': {'log': 0, 'gold': 0, 'stone': 8},
                'duke': {'log': 6, 'gold': 14, 'stone': 15},
                'oxen': {'log': 12, 'gold': 0, 'stone': 12},
                'champion': {'log': 0, 'gold': 9, 'stone': 9},
@@ -282,8 +294,8 @@ PIECE_POPULATION = {'king': 1,
                     'circus': 0,
                     'trapper': 1,
                     'trap': 0}
-PRAYER_COSTS = {'gold_general': {'prayer': 12, 'monk': 2},
-                'smite': {'prayer': 12, 'monk': 1},
+PRAYER_COSTS = {'gold_general': {'prayer': 12, 'monk': 2},          # monk yields 3, other pieces yield 2
+                'smite': {'prayer': 12, 'monk': 1},                 # rituals have a prayer cost & monk cost
                 'destroy_resource': {'prayer': 8, 'monk': 0},
                 'create_resource': {'prayer': 4, 'monk': 0},
                 'teleport': {'prayer': 8, 'monk': 0},
@@ -326,7 +338,28 @@ ADDITIONAL_PIECE_LIMIT = {'castle': 5, 'barracks': 3, 'fortress': 3, 'stable': 3
                           'trader': 0,
                           'trapper': 0,
                           'trap': 0}
-
+BASE_TOTAL_YIELD = {'wood': 9,
+                    'gold': 55,
+                    'quarry': 23,
+                    'sunken_quarry': 4}
+TOTAL_YIELD_VARIANCE = {'wood': (-3, 3),
+                        'gold': (-10, 5),
+                        'quarry': (-5, 5),
+                        'sunken_quarry': (0, 2)}
+BASE_YIELD_PER_HARVEST = {'pawn':
+                              {'wood': 7,
+                               'gold': 9,
+                               'quarry': 8,
+                               'sunken_quarry': 1},
+                          'rogue_pawn':
+                              {'wood': 6,
+                               'gold': 7,
+                               'quarry': 6,
+                               'sunken_quarry': 1}}
+HARVEST_YIELD_VARIANCE = {'wood': (-3, 3),
+                          'gold': (-3, 3),
+                          'quarry': (-3, 3),
+                          'sunken_quarry': (0, 2)}
 w_pieces = ['w_king',
             'w_queen',
             'w_rook',
@@ -500,8 +533,6 @@ MENU_ICONS_IMAGE_MODIFY = {'gold_coin': {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFS
                            'prayer': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)}}
 
 SOUND_EFFECT_VOLUME = .5
-TRADING_GIVE_BOUNDS = (3 / 8, 1 / 2)
-TRADING_RECEIVE_BOUNDS = (5 / 8, 15 / 16)
 
 CASTLE_ADDITIONAL_ACTIONS = 0
 BARRACKS_ADDITIONAL_ACTIONS = 0
@@ -511,6 +542,7 @@ MONOLITH_ADDITIONAL_ACTIONS = 0
 PRAYER_STONE_ADDITIONAL_ACTIONS = 0
 CIRCUS_ADDITIONAL_ACTIONS = 0
 
+PLAY_AGAINST_AI = False
 ACTIONS_UPDATE_ON_SPAWN = False
 MINING_COSTS_ACTION = False
 PRAYING_COSTS_ACTION = False
@@ -520,14 +552,6 @@ QUARRY_COSTS_ACTION = False
 QUARRY_COSTS_RESOURCE = False
 TRAP_COSTS_ACTION = False
 
-DECREE_COST = 30
-DECREE_INCREMENT = 5
-DEFAULT_PIECE_LIMIT = 3
-
-PRAYER_STONE_YIELD = 1
-MONOLITH_YIELD = 1
-ADDITIONAL_PRAYER_FROM_MONK = 2
-
 RESOURCE_YIELD_KEY = {'gold_tile_1': 'gold',
                       'quarry_1': 'quarry',
                       'sunken_quarry_1': 'sunken_quarry',
@@ -536,28 +560,6 @@ RESOURCE_YIELD_KEY = {'gold_tile_1': 'gold',
                       'tree_tile_2': 'wood',
                       'tree_tile_3': 'wood',
                       'depleted_quarry_1': None}
-BASE_TOTAL_YIELD = {'wood': 9,
-                    'gold': 55,
-                    'quarry': 23,
-                    'sunken_quarry': 4}
-TOTAL_YIELD_VARIANCE = {'wood': (-3, 3),
-                        'gold': (-10, 5),
-                        'quarry': (-5, 5),
-                        'sunken_quarry': (0, 2)}
-BASE_YIELD_PER_HARVEST = {'pawn':
-                              {'wood': 7,
-                               'gold': 9,
-                               'quarry': 8,
-                               'sunken_quarry': 1},
-                          'rogue_pawn':
-                              {'wood': 6,
-                               'gold': 7,
-                               'quarry': 6,
-                               'sunken_quarry': 1}}
-HARVEST_YIELD_VARIANCE = {'wood': (-3, 3),
-                          'gold': (-3, 3),
-                          'quarry': (-3, 3),
-                          'sunken_quarry': (0, 2)}
 
 RESOURCE_KEY = {'gold_tile_1': 'gold', 'quarry_1': 'stone',
                 'sunken_quarry_1': 'stone', 'tree_tile_1': 'wood',

@@ -543,21 +543,21 @@ BASE_TOTAL_YIELD = {'wood': 9,
 TOTAL_YIELD_VARIANCE = {'wood': (-3, 3),
                         'gold': (-10, 5),
                         'quarry': (-5, 5),
-                        'sunken_quarry': (-2, 2)}
+                        'sunken_quarry': (0, 2)}
 BASE_YIELD_PER_HARVEST = {'pawn':
                               {'wood': 7,
                                'gold': 9,
                                'quarry': 8,
                                'sunken_quarry': 1},
                           'rogue_pawn':
-                              {'wood': 4,
-                               'gold': 5,
-                               'quarry': 5,
+                              {'wood': 6,
+                               'gold': 7,
+                               'quarry': 6,
                                'sunken_quarry': 1}}
 HARVEST_YIELD_VARIANCE = {'wood': (-3, 3),
                           'gold': (-3, 3),
                           'quarry': (-3, 3),
-                          'sunken_quarry': (-2, 2)}
+                          'sunken_quarry': (0, 2)}
 
 RESOURCE_KEY = {'gold_tile_1': 'gold', 'quarry_1': 'stone',
                 'sunken_quarry_1': 'stone', 'tree_tile_1': 'wood',

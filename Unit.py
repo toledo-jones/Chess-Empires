@@ -1426,14 +1426,16 @@ class Unicorn(Piece):
         for direction in self.knight_directions:
             r = self.row + direction[0]
             c = self.col + direction[1]
-            if engine.can_be_occupied(r, c):
+            if self.can_capture(r, c, engine):
+                squares.append((r, c))
+
+            elif engine.can_be_occupied(r, c):
                 extra_move_direction = self.knight_directions_to_extra_moves[direction]
                 r += extra_move_direction[0]
                 c += extra_move_direction[1]
                 if self.can_capture(r, c, engine):
                     squares.append((r, c))
-            elif self.can_capture(r, c, engine):
-                squares.append((r, c))
+
         return squares
 
     def move_squares(self, engine):

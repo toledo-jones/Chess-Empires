@@ -93,10 +93,10 @@ DEBUG_STARTING_PRAYER = 12
 DEBUG_STARTING_WOOD = 99
 DEBUG_STARTING_GOLD = 99
 DEBUG_STARTING_STONE = 99
-DEBUG_STARTING_PIECES = ['castle', 'monolith', 'queen', 'king', 'trapper']
-DEBUG_RITUALS = True
+DEBUG_STARTING_PIECES = ['castle', 'unicorn', 'king',]
+DEBUG_RITUALS = False
 PLAY_AGAINST_AI = False
-BOARD_STARTS_WITH_RESOURCES = False
+BOARD_STARTS_WITH_RESOURCES = True
 
 'DEFAULT START'
 STARTING_PRAYER = 0
@@ -143,7 +143,7 @@ BUILDER_SPAWN_LIST = ['wall', 'stable', 'castle', 'barracks', 'fortress', 'circu
 BARRACKS_SPAWN_LIST = ['duke', 'queen', 'champion', 'rook', 'bishop']
 CIRCUS_SPAWN_LIST = ['jester', 'persuader']
 TRAPPER_SPAWN_LIST = ['trap']
-MONK_SPAWN_LIST = ['monolith',]
+MONK_SPAWN_LIST = ['monolith']
 
 SPAWN_LISTS = {'stable': STABLE_SPAWN_LIST, 'fortress': FORTRESS_SPAWN_LIST, 'castle': CASTLE_SPAWN_LIST,
                'builder': BUILDER_SPAWN_LIST, 'barracks': BARRACKS_SPAWN_LIST, 'circus': CIRCUS_SPAWN_LIST,

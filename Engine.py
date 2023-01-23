@@ -406,7 +406,8 @@ class Engine:
             return False
 
     def can_contain_quarry(self, r, c):
-        return self.board[r][c].can_contain_quarry and not self.has_depleted_quarry(r, c)
+        if Constant.tile_in_bounds(r, c):
+            return self.board[r][c].can_contain_quarry and not self.has_depleted_quarry(r, c)
 
     def reset_unused_piece_highlight(self):
         for player in self.players:
@@ -679,7 +680,8 @@ class Engine:
                 return True
 
     def get_resource(self, r, c):
-        return self.board[r][c].get_resource()
+        if Constant.tile_in_bounds(r, c):
+            return self.board[r][c].get_resource()
 
     def can_be_legally_occupied(self, r, c):
         if Constant.tile_in_bounds(r, c):

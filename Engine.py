@@ -513,7 +513,7 @@ class Engine:
         monoliths = []
         for player in self.players:
             for piece in self.players[player].pieces:
-                if isinstance(piece, Monolith):
+                if isinstance(piece, Monolith) or isinstance(piece, PrayerStone):
                     monoliths.append(piece)
         for monolith in monoliths:
             monolith.actions_remaining += 1
@@ -523,7 +523,7 @@ class Engine:
         monoliths = []
         for player in self.players:
             for piece in self.players[player].pieces:
-                if isinstance(piece, Monolith):
+                if isinstance(piece, Monolith) or isinstance(piece, PrayerStone):
                     monoliths.append(piece)
         for monolith in monoliths:
             monolith.actions_remaining = 0

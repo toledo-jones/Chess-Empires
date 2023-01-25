@@ -315,10 +315,6 @@ class Playing(State):
             except IndexError as e:
                 print(e)
 
-        if self.engine.enemy_player_king_does_not_exist():
-            new_state = Winner(self.win, self.engine)
-            self.engine.set_state(new_state)
-
     def right_click(self):  # STATE, PLAYING
         if self.engine.menus:
             for menu in self.engine.menus:
@@ -1493,6 +1489,7 @@ class Ritual(State):
     def __init__(self, win, engine):
         super().__init__(win, engine)
         self.previously_selected = engine.update_previously_selected()
+        self.cost_type = None
         self.turn = self.engine.turn
         self.player = self.engine.players[self.turn]
         self.ritual_image = Constant.PRAYER_RITUALS[self.turn + '_' + str(self)]

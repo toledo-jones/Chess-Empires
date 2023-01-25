@@ -96,7 +96,7 @@ DEBUG_STARTING_PRAYER = 12
 DEBUG_STARTING_WOOD = 99
 DEBUG_STARTING_GOLD = 99
 DEBUG_STARTING_STONE = 99
-DEBUG_STARTING_PIECES = ['castle', 'acrobat', 'queen', 'king']
+DEBUG_STARTING_PIECES = ['castle', 'magician', 'monolith', 'king']
 
 'DEFAULT START'
 # DEBUG_START = False
@@ -121,6 +121,7 @@ PRAYER_STONE_RITUALS = ['protect',
                         'create_resource',
                         'portal',
                         'destroy_resource', ]
+MAGICIAN_RITUALS = ['portal', 'swap', 'teleport']
 DECREE_COST = 30
 DECREE_INCREMENT = 5
 DEFAULT_PIECE_LIMIT = 3
@@ -146,6 +147,7 @@ STEALING_KEY = {'building': {
         'stone': {'variance': (-2, 2), 'value': 4}}}
 MAX_MONOLITH_RITUALS_PER_TURN = 2
 MAX_PRAYER_STONE_RITUALS_PER_TURN = 3
+MAX_MAGICIAN_RITUALS_PER_TURN = 2
 MASTER_COST_LIST = ['builder', 'monk', 'stable', 'castle', 'barracks', 'fortress', 'circus']
 
 STABLE_SPAWN_LIST = ['doe', 'oxen', 'unicorn', 'ram', 'elephant', 'knight']
@@ -153,7 +155,7 @@ FORTRESS_SPAWN_LIST = ['rogue_rook', 'rogue_bishop', 'rogue_knight', 'rogue_pawn
 CASTLE_SPAWN_LIST = ['pawn', 'builder', 'pikeman', 'monk', 'trader', 'trapper']
 BUILDER_SPAWN_LIST = ['wall', 'stable', 'castle', 'barracks', 'fortress', 'circus']
 BARRACKS_SPAWN_LIST = ['duke', 'queen', 'champion', 'rook', 'bishop']
-CIRCUS_SPAWN_LIST = ['jester', 'persuader', 'lion', 'fire_spinner', 'acrobat']
+CIRCUS_SPAWN_LIST = ['jester', 'persuader', 'lion', 'fire_spinner', 'acrobat', 'magician']
 TRAPPER_SPAWN_LIST = ['trap']
 MONK_SPAWN_LIST = ['monolith', 'prayer_stone']
 
@@ -199,6 +201,7 @@ PIECE_COSTS = {'king': {'log': 999, 'gold': 999, 'stone': 999},
                'lion': {'log': 0, 'gold': 18, 'stone': 0},
                'fire_spinner': {'log': 0, 'gold': 20, 'stone': 0},
                'acrobat': {'log': 0, 'gold': 20, 'stone': 0},
+               'magician': {'log': 0, 'gold': 20, 'stone': 0},
 
                }
 NOTIFICATIONS = {'blank': ['an unknown error occurred'],
@@ -259,7 +262,8 @@ DESCRIPTIONS = {'king': ['every player gets one', 'capture your opponent\'s to w
                 'lion': ['moves like a knight and a rook'],
                 'fire_spinner': ['makes knight moves until it is blocked'],
                 'acrobat': ['moves like a bishop but can jump over a piece'],
-                'trapper': ['creates traps which, once captured ', 'destroy the piece that captured them']
+                'trapper': ['creates traps which, once captured ', 'destroy the piece that captured them'],
+                'magician': ['casts certain rituals for a gold cost'],
                 }
 PIECE_POPULATION = {'king': 1,
                     'queen': 2,
@@ -302,13 +306,14 @@ PIECE_POPULATION = {'king': 1,
                     'trap': 0,
                     'lion': 1,
                     'fire_spinner': 1,
-                    'acrobat': 1}
+                    'acrobat': 1,
+                    'magician': 1}
 PRAYER_COSTS = {'gold_general': {'prayer': 12, 'monk': 2, 'gold': 0},          # monk yields 3, other pieces yield 2
                 'smite': {'prayer': 12, 'monk': 1, 'gold': 0},                 # rituals have a prayer cost & monk cost
                 'destroy_resource': {'prayer': 8, 'monk': 0, 'gold': 0},        # & a gold cost, accessed by the magician or rogue monk?
                 'create_resource': {'prayer': 4, 'monk': 0, 'gold': 0},
-                'teleport': {'prayer': 8, 'monk': 0, 'gold': 0},
-                'swap': {'prayer': 4, 'monk': 0, 'gold': 0},
+                'teleport': {'prayer': 8, 'monk': 0, 'gold': 10},
+                'swap': {'prayer': 4, 'monk': 0, 'gold': 10},
                 'line_destroy': {'prayer': 8, 'monk': 1, 'gold': 0},
                 'portal': {'prayer': 2, 'monk': 0, 'gold': 10},
                 'protect': {'prayer': 1, 'monk': 0, 'gold': 0}}
@@ -349,7 +354,8 @@ ADDITIONAL_PIECE_LIMIT = {'castle': 5, 'barracks': 3, 'fortress': 3, 'stable': 3
                           'trap': 0,
                           'lion': 0,
                           'fire_spinner': 0,
-                          'acrobat': 0}
+                          'acrobat': 0,
+                          'magician': 0}
 BASE_TOTAL_YIELD = {'wood': 10,
                     'gold': 35,
                     'quarry': 23,
@@ -401,7 +407,8 @@ w_pieces = ['w_king',
             'w_trapper',
             'w_lion',
             'w_fire_spinner',
-            'w_acrobat'
+            'w_acrobat',
+            'w_magician',
             ]
 b_pieces = ['b_king', 'b_queen', 'b_rook', 'b_bishop',
             'b_knight', 'b_pawn', 'b_monk', 'b_duke',
@@ -410,7 +417,7 @@ b_pieces = ['b_king', 'b_queen', 'b_rook', 'b_bishop',
             'b_rogue_rook', 'b_elephant', 'b_elephant_cart',
             'b_champion', 'b_rogue_pawn', 'b_rogue_knight',
             'b_builder', 'b_unicorn', 'b_ram', 'b_oxen',
-            'b_persuader', 'b_doe', 'b_trader', 'b_trapper', 'b_lion', 'b_fire_spinner', 'b_acrobat']
+            'b_persuader', 'b_doe', 'b_trader', 'b_trapper', 'b_lion', 'b_fire_spinner', 'b_acrobat', 'b_magician']
 w_buildings = ['w_castle',
                'w_fortress',
                'w_barracks',
@@ -499,6 +506,7 @@ PIECE_IMAGE_MODIFY = {'king': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'lion': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'fire_spinner': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'acrobat': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
+                      'magician': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
 
                       }
 IMAGES_IMAGE_MODIFY = {'icon': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},

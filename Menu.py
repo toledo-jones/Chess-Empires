@@ -1,4 +1,6 @@
 import os
+import random
+
 from Unit import *
 
 
@@ -124,11 +126,16 @@ class Notification(Menu):
 
 
 class RitualMenu(Menu):
-    def __init__(self, row, col, win, engine, ritual_list):
+    def __init__(self, row, col, win, engine, ritual_list, cost_type):
+        self.cost_type = cost_type
         self.ritual_list = ritual_list
         self.row = row
         self.col = col
         super().__init__(win, engine)
+
+        self.font_size = round(Constant.SQ_SIZE / 2)
+        self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
+        self.player = self.engine.players[self.engine.turn]
         self.initial_menu_position = self.col * Constant.SQ_SIZE + Constant.SQ_SIZE // 2, self.row * Constant.SQ_SIZE + Constant.SQ_SIZE // 2
         self.vertical_buffer_between_pieces = Constant.SQ_SIZE // 6
         self.horizontal_buffer_between_costs = round(Constant.SQ_SIZE * 1.3)
@@ -138,8 +145,16 @@ class RitualMenu(Menu):
         self.rituals = Constant.PRAYER_RITUALS
         self.ritual_width = self.rituals['w_gold_general'].get_width()
         self.ritual_height = self.rituals['w_gold_general'].get_height()
-        self.menu_width = self.ritual_width + self.vertical_buffer_between_pieces + self.bar_end_width * 16 + self.bar_width
+        self.gold_icon = Constant.MENU_ICONS['gold_coin']
+        self.gold_icon_display_x = self.ritual_width + self.vertical_buffer_between_pieces
+        self.gold_cost_text_display_x = self.ritual_width + self.vertical_buffer_between_pieces * 2
+        if not self.cost_type == 'gold':
+            self.menu_width = self.ritual_width + self.vertical_buffer_between_pieces + self.bar_end_width * 16 + self.bar_width
+        else:
+            self.menu_width = self.ritual_width + self.vertical_buffer_between_pieces + self.gold_icon.get_width() * 2
+
         self.menu_height = len(ritual_list) * self.ritual_height
+
         self.menu_position_x, self.menu_position_y = self.correct_menu_boundary()
         self.menu = pygame.Surface((self.menu_width, self.menu_height))
 
@@ -200,11 +215,11 @@ class RitualMenu(Menu):
 
     def left_click(self):
         self.casting = self.ritual_clicked()
-        if self.casting is None or not self.engine.is_legal_ritual(self.casting):
+        if self.casting is None or not self.engine.is_legal_ritual(self.casting, self.cost_type):
             self.engine.state[-1].revert_to_playing_state()
         else:
             self.engine.menus = []
-            self.engine.transfer_to_ritual_state(self.casting)
+            self.engine.transfer_to_ritual_state(self.casting, self.cost_type)
 
     def right_click(self):
         self.engine.state[-1].revert_to_playing_state()
@@ -221,20 +236,33 @@ class RitualMenu(Menu):
         self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
 
         # Prayer Counter
-        y_buffer_piece = 0
+        y_buffer_ritual = 0
         y_buffer_prayer = self.y_buffer
         for ritual in self.ritual_list:
-            length_of_this_prayer_bar = self.full_length_of_prayer_bar(Constant.PRAYER_COSTS[ritual]['prayer'])
-            bar_end_edge = self.ritual_width + self.available_menu_space_for_prayer_bar // 2 - length_of_this_prayer_bar // 2
-            bar_edge = bar_end_edge - self.bar_width
-            self.menu.blit(Constant.IMAGES['prayer_bar'], (bar_edge, y_buffer_prayer))
-            for z in range(Constant.PRAYER_COSTS[ritual]['prayer']):
-                new_edge = bar_end_edge + self.bar_end_width * (z)
-                self.menu.blit(Constant.IMAGES['prayer_bar_end'], (new_edge, y_buffer_prayer))
+            if self.cost_type == 'prayer':
+                length_of_this_prayer_bar = self.full_length_of_prayer_bar(Constant.PRAYER_COSTS[ritual]['prayer'])
+                bar_end_edge = self.ritual_width + self.available_menu_space_for_prayer_bar // 2 - length_of_this_prayer_bar // 2
+                bar_edge = bar_end_edge - self.bar_width
+                self.menu.blit(Constant.IMAGES['prayer_bar'], (bar_edge, y_buffer_prayer))
+                for z in range(Constant.PRAYER_COSTS[ritual]['prayer']):
+                    new_edge = bar_end_edge + self.bar_end_width * (z)
+                    self.menu.blit(Constant.IMAGES['prayer_bar_end'], (new_edge, y_buffer_prayer))
+                y_buffer_prayer += self.y_buffer + self.ritual_height // 2
+            elif self.cost_type == 'gold':
+                if Constant.PRAYER_COSTS[ritual]['gold'] != 0:
+                    cost = Constant.PRAYER_COSTS[ritual]['gold']
+                    if self.player.gold >= cost:
+                        color = Constant.turn_to_color[self.engine.turn]
+                    else:
+                        color = Constant.RED
+                    gold_cost = self.font.render(str(cost), True, color)
+                    gold_icon_display_y = y_buffer_ritual + self.gold_icon.get_height() // 2
+                    gold_text_display_y = y_buffer_ritual + gold_cost.get_height() // 2
+                    self.menu.blit(self.gold_icon, (self.gold_icon_display_x, gold_icon_display_y))
+                    self.menu.blit(gold_cost, (self.gold_cost_text_display_x, gold_text_display_y))
 
-            y_buffer_prayer += self.y_buffer + self.ritual_height // 2
-            self.menu.blit(self.rituals[self.engine.turn + "_" + ritual], (0, y_buffer_piece))
-            y_buffer_piece += self.ritual_height
+            self.menu.blit(self.rituals[self.engine.turn + "_" + ritual], (0, y_buffer_ritual))
+            y_buffer_ritual += self.ritual_height
 
         self.win.blit(self.menu, (self.menu_position_x, self.menu_position_y))
 

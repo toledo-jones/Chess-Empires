@@ -47,18 +47,21 @@ class Engine:
         self.ritual_summon_resource = None
         self.monolith_rituals = []
         self.prayer_stone_rituals = []
+        self.magician_rituals = []
         self.line_destroy_selected_range = None
         self.decrees = 0
         self.rituals_banned = False
         if Constant.DEBUG_RITUALS:
             self.monolith_rituals.append(Constant.MONOLITH_RITUALS)
             self.prayer_stone_rituals.append(Constant.PRAYER_STONE_RITUALS)
+            self.magician_rituals.append(Constant.MAGICIAN_RITUALS)
         else:
             self.monolith_rituals.append(self.generate_available_rituals(Constant.MONOLITH_RITUALS,
                                                                          Constant.MAX_MONOLITH_RITUALS_PER_TURN))
             self.prayer_stone_rituals.append(
                 self.generate_available_rituals(Constant.PRAYER_STONE_RITUALS,
                                                 Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN))
+            self.magician_rituals.append(self.generate_available_rituals(Constant.MAGICIAN_RITUALS, Constant.MAX_MAGICIAN_RITUALS_PER_TURN))
 
         self.piece_stealing_offsets = []
         self.piece_stealing_offsets.append(self.generate_stealing_offsets(Constant.STEALING_KEY['piece']))
@@ -107,7 +110,8 @@ class Engine:
                        'trap': Trap,
                        'lion': Lion,
                        'fire_spinner': FireSpinner,
-                       'acrobat': Acrobat
+                       'acrobat': Acrobat,
+                       'magician': Magician,
                        }
         self.STATES = {'playing': Playing,
                        'ai playing': AIPlaying,
@@ -227,18 +231,12 @@ class Engine:
         else:
             return False
 
-    def valid_ritual(self, cost):
-        #
-        #   Check each value in the cost of the piece being spawned against
-        #   the amount of that resource the player has
-        #
-        valid_prayer = self.players[self.turn].prayer - cost >= 0
+    def valid_ritual(self, cost, cost_type):
+        if cost_type == 'prayer':
+            return self.players[self.turn].prayer - cost >= 0
 
-        #
-        #   If all three values are true then the function returns True
-        #
-        if valid_prayer:
-            return True
+        elif cost_type == 'gold':
+            return self.players[self.turn].gold - cost >= 0
 
     def valid_purchase(self, cost):
         #
@@ -886,9 +884,9 @@ class Engine:
     def update(self):
         self.determine_winner()
 
-    def is_legal_ritual(self, ritual):
-        ritual_cost = Constant.PRAYER_COSTS[ritual]['prayer']
-        if self.valid_ritual(ritual_cost):
+    def is_legal_ritual(self, ritual, cost_type):
+        ritual_cost = Constant.PRAYER_COSTS[ritual][cost_type]
+        if self.valid_ritual(ritual_cost, cost_type):
             return True
 
     def player_has_gold_general(self, color):
@@ -1095,8 +1093,9 @@ class Engine:
         self.spawning = spawning
         self.set_state(new_state)
 
-    def transfer_to_ritual_state(self, ritual):
+    def transfer_to_ritual_state(self, ritual, cost_type):
         new_state = self.STATES[ritual](self.state[-1].win, self)
+        new_state.cost_type = cost_type
         self.menus = []
         self.set_state(new_state)
         return True
@@ -1111,8 +1110,8 @@ class Engine:
         state = SelectStartingPieces(self.state[-1].win, self)
         self.set_state(state)
 
-    def create_ritual_menu(self, row, col, ritual_list):
-        ritual_menu = RitualMenu(row, col, self.state[-1].win, self, ritual_list)
+    def create_ritual_menu(self, row, col, ritual_list, cost_type='prayer'):
+        ritual_menu = RitualMenu(row, col, self.state[-1].win, self, ritual_list, cost_type)
         self.menus.append(ritual_menu)
         return True
 

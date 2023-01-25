@@ -72,11 +72,13 @@ class Player:
     def get_prayer(self):
         return self.prayer
 
-    def do_ritual(self, cost):
-        self.prayer -= cost
+    def do_ritual(self, cost, cost_type):
+        resource = getattr(self, cost_type)
+        setattr(self, cost_type, resource - cost)
 
-    def undo_ritual(self, cost):
-        self.prayer += cost
+    def undo_ritual(self, cost, cost_type):
+        resource = getattr(self, cost_type)
+        setattr(self, cost_type, resource + cost)
 
     def set_prayer(self, prayer):
         self.prayer = prayer

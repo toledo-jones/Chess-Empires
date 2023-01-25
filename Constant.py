@@ -303,15 +303,15 @@ PIECE_POPULATION = {'king': 1,
                     'lion': 1,
                     'fire_spinner': 1,
                     'acrobat': 1}
-PRAYER_COSTS = {'gold_general': {'prayer': 12, 'monk': 2},          # monk yields 3, other pieces yield 2
-                'smite': {'prayer': 12, 'monk': 1},                 # rituals have a prayer cost & monk cost
-                'destroy_resource': {'prayer': 8, 'monk': 0},
-                'create_resource': {'prayer': 4, 'monk': 0},
-                'teleport': {'prayer': 8, 'monk': 0},
-                'swap': {'prayer': 4, 'monk': 0},
-                'line_destroy': {'prayer': 8, 'monk': 1},
-                'portal': {'prayer': 2, 'monk': 0},
-                'protect': {'prayer': 1, 'monk': 0}}
+PRAYER_COSTS = {'gold_general': {'prayer': 12, 'monk': 2, 'gold': 0},          # monk yields 3, other pieces yield 2
+                'smite': {'prayer': 12, 'monk': 1, 'gold': 0},                 # rituals have a prayer cost & monk cost
+                'destroy_resource': {'prayer': 8, 'monk': 0, 'gold': 0},        # & a gold cost, accessed by the magician or rogue monk?
+                'create_resource': {'prayer': 4, 'monk': 0, 'gold': 0},
+                'teleport': {'prayer': 8, 'monk': 0, 'gold': 0},
+                'swap': {'prayer': 4, 'monk': 0, 'gold': 0},
+                'line_destroy': {'prayer': 8, 'monk': 1, 'gold': 0},
+                'portal': {'prayer': 2, 'monk': 0, 'gold': 10},
+                'protect': {'prayer': 1, 'monk': 0, 'gold': 0}}
 ADDITIONAL_PIECE_LIMIT = {'castle': 5, 'barracks': 3, 'fortress': 3, 'stable': 3, 'circus': 3,
                           'king': 0,
                           'queen': 0,

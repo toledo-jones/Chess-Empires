@@ -37,7 +37,7 @@ MAX_FPS = 120
 BOARD_HEIGHT_PX = pygame.display.Info().current_h
 SQ_SIZE = BOARD_HEIGHT_PX // 10
 BOARD_HEIGHT_SQ = BOARD_HEIGHT_PX // SQ_SIZE
-BOARD_WIDTH_SQ = 12
+BOARD_WIDTH_SQ = 14
 BOARD_WIDTH_PX = BOARD_WIDTH_SQ * SQ_SIZE
 SIDE_MENU_WIDTH = pygame.display.Info().current_w - BOARD_WIDTH_PX
 
@@ -88,20 +88,20 @@ PROTECT_SQUARE_OFFSET = (SQ_SIZE // 2 - PROTECT_SQUARE_SCALE[0] // 2, SQ_SIZE //
 # GAME MECHANIC SETTINGS
 
 'DEBUG START'
-# DEBUG_START = True
-# BOARD_STARTS_WITH_RESOURCES = False
-# DEBUG_RITUALS = True
+DEBUG_START = True
+BOARD_STARTS_WITH_RESOURCES = False
+DEBUG_RITUALS = True
 
 DEBUG_STARTING_PRAYER = 12
 DEBUG_STARTING_WOOD = 99
 DEBUG_STARTING_GOLD = 99
 DEBUG_STARTING_STONE = 99
-DEBUG_STARTING_PIECES = ['castle', 'monk', 'king']
+DEBUG_STARTING_PIECES = ['castle', 'acrobat', 'queen', 'king']
 
 'DEFAULT START'
-DEBUG_START = False
-BOARD_STARTS_WITH_RESOURCES = True
-DEBUG_RITUALS = False
+# DEBUG_START = False
+# BOARD_STARTS_WITH_RESOURCES = True
+# DEBUG_RITUALS = False
 
 STARTING_PRAYER = 0
 STARTING_WOOD = 0
@@ -153,7 +153,7 @@ FORTRESS_SPAWN_LIST = ['rogue_rook', 'rogue_bishop', 'rogue_knight', 'rogue_pawn
 CASTLE_SPAWN_LIST = ['pawn', 'builder', 'pikeman', 'monk', 'trader', 'trapper']
 BUILDER_SPAWN_LIST = ['wall', 'stable', 'castle', 'barracks', 'fortress', 'circus']
 BARRACKS_SPAWN_LIST = ['duke', 'queen', 'champion', 'rook', 'bishop']
-CIRCUS_SPAWN_LIST = ['jester', 'persuader']
+CIRCUS_SPAWN_LIST = ['jester', 'persuader', 'lion', 'fire_spinner', 'acrobat']
 TRAPPER_SPAWN_LIST = ['trap']
 MONK_SPAWN_LIST = ['monolith', 'prayer_stone']
 
@@ -196,6 +196,9 @@ PIECE_COSTS = {'king': {'log': 999, 'gold': 999, 'stone': 999},
                'circus': {'log': 0, 'gold': 10, 'stone': 0},
                'trapper': {'log': 6, 'gold': 0, 'stone': 0},
                'trap': {'log': 0, 'gold': 0, 'stone': 2},
+               'lion': {'log': 0, 'gold': 18, 'stone': 0},
+               'fire_spinner': {'log': 0, 'gold': 20, 'stone': 0},
+               'acrobat': {'log': 0, 'gold': 20, 'stone': 0},
 
                }
 NOTIFICATIONS = {'blank': ['an unknown error occurred'],
@@ -253,6 +256,9 @@ DESCRIPTIONS = {'king': ['every player gets one', 'capture your opponent\'s to w
                            'pieces who land on either square will be transported', 'to the other one'],
                 'trader': ['converts resources into one another '],
                 'circus': ['creates unique and strange pieces like the jester'],
+                'lion': ['moves like a knight and a rook'],
+                'fire_spinner': ['makes knight moves until it is blocked'],
+                'acrobat': ['moves like a bishop but can jump over a piece'],
                 'trapper': ['creates traps which, once captured ', 'destroy the piece that captured them']
                 }
 PIECE_POPULATION = {'king': 1,
@@ -293,7 +299,10 @@ PIECE_POPULATION = {'king': 1,
                     'trader': 1,
                     'circus': 0,
                     'trapper': 1,
-                    'trap': 0}
+                    'trap': 0,
+                    'lion': 1,
+                    'fire_spinner': 1,
+                    'acrobat': 1}
 PRAYER_COSTS = {'gold_general': {'prayer': 12, 'monk': 2},          # monk yields 3, other pieces yield 2
                 'smite': {'prayer': 12, 'monk': 1},                 # rituals have a prayer cost & monk cost
                 'destroy_resource': {'prayer': 8, 'monk': 0},
@@ -337,26 +346,29 @@ ADDITIONAL_PIECE_LIMIT = {'castle': 5, 'barracks': 3, 'fortress': 3, 'stable': 3
                           'persuader': 0,
                           'trader': 0,
                           'trapper': 0,
-                          'trap': 0}
-BASE_TOTAL_YIELD = {'wood': 9,
-                    'gold': 55,
+                          'trap': 0,
+                          'lion': 0,
+                          'fire_spinner': 0,
+                          'acrobat': 0}
+BASE_TOTAL_YIELD = {'wood': 10,
+                    'gold': 35,
                     'quarry': 23,
                     'sunken_quarry': 4}
-TOTAL_YIELD_VARIANCE = {'wood': (-3, 3),
-                        'gold': (-10, 5),
+TOTAL_YIELD_VARIANCE = {'wood': (-4, 4),
+                        'gold': (-5, 5),
                         'quarry': (-5, 5),
                         'sunken_quarry': (0, 2)}
 BASE_YIELD_PER_HARVEST = {'pawn':
-                              {'wood': 7,
+                              {'wood': 10,
                                'gold': 9,
                                'quarry': 8,
                                'sunken_quarry': 1},
                           'rogue_pawn':
-                              {'wood': 6,
+                              {'wood': 8,
                                'gold': 7,
                                'quarry': 6,
                                'sunken_quarry': 1}}
-HARVEST_YIELD_VARIANCE = {'wood': (-3, 3),
+HARVEST_YIELD_VARIANCE = {'wood': (-2, 2),
                           'gold': (-3, 3),
                           'quarry': (-3, 3),
                           'sunken_quarry': (0, 2)}
@@ -387,6 +399,9 @@ w_pieces = ['w_king',
             'w_doe',
             'w_trader',
             'w_trapper',
+            'w_lion',
+            'w_fire_spinner',
+            'w_acrobat'
             ]
 b_pieces = ['b_king', 'b_queen', 'b_rook', 'b_bishop',
             'b_knight', 'b_pawn', 'b_monk', 'b_duke',
@@ -395,7 +410,7 @@ b_pieces = ['b_king', 'b_queen', 'b_rook', 'b_bishop',
             'b_rogue_rook', 'b_elephant', 'b_elephant_cart',
             'b_champion', 'b_rogue_pawn', 'b_rogue_knight',
             'b_builder', 'b_unicorn', 'b_ram', 'b_oxen',
-            'b_persuader', 'b_doe', 'b_trader', 'b_trapper', ]
+            'b_persuader', 'b_doe', 'b_trader', 'b_trapper', 'b_lion', 'b_fire_spinner', 'b_acrobat']
 w_buildings = ['w_castle',
                'w_fortress',
                'w_barracks',
@@ -481,6 +496,9 @@ PIECE_IMAGE_MODIFY = {'king': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'circus': {'SCALE': BARRACKS_SCALE, 'OFFSET': BARRACKS_OFFSET},
                       'trapper': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                       'trap': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
+                      'lion': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
+                      'fire_spinner': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
+                      'acrobat': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
 
                       }
 IMAGES_IMAGE_MODIFY = {'icon': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},

@@ -104,7 +104,10 @@ class Engine:
                        'trader': Trader,
                        'circus': Circus,
                        'trapper': Trapper,
-                       'trap': Trap
+                       'trap': Trap,
+                       'lion': Lion,
+                       'fire_spinner': FireSpinner,
+                       'acrobat': Acrobat
                        }
         self.STATES = {'playing': Playing,
                        'ai playing': AIPlaying,

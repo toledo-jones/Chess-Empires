@@ -962,6 +962,8 @@ class RitualEvent(GameEvent):
         super().complete()
         self.engine.sounds.play('ritual')
         self.player.do_ritual(self.ritual_cost, self.cost_type)
+        self.player.do_action()
+        self.sacrifice_random_monks()
         self.ritual_building.actions_remaining -= 1
 
     def undo(self):
@@ -969,6 +971,8 @@ class RitualEvent(GameEvent):
         self.engine.sounds.play('ritual')
         self.player.undo_ritual(self.ritual_cost, self.cost_type)
         self.ritual_building.actions_remaining += 1
+        self.respawn_deleted_monks()
+        self.player.undo_action()
 
     def respawn_deleted_monks(self):
         if self.monk_cost != 0:
@@ -1013,8 +1017,6 @@ class GoldGeneralEvent(RitualEvent):
     def complete(self):
         super().complete()
         piece = self.engine.PIECES[str(self)](self.row, self.col, self.turn)
-        self.player.do_action()
-        self.sacrifice_random_monks()
         # Spawn on Trap
         if self.action_tile_has_effective_trap(self.acting_tile, self.action_tile):
             self.trap = self.engine.board[self.row][self.col].trap
@@ -1034,8 +1036,7 @@ class GoldGeneralEvent(RitualEvent):
 
     def undo(self):
         super().undo()
-        self.respawn_deleted_monks()
-        self.player.undo_action()
+
         self.engine.reset_selected()
         unused_pieces = self.engine.count_unused_pieces()
         self.engine.reset_unused_piece_highlight()
@@ -1090,8 +1091,7 @@ class Teleport(RitualEvent):
         self.engine.move(self.row, self.col, self.dest_row, self.dest_col)
         self.engine.get_occupying(self.dest_row, self.dest_col).actions_remaining = 0
         self.engine.intercept_pieces()
-        self.player.do_action()
-        self.sacrifice_random_monks()
+
         if self.trap:
             self.deleted_piece = self.engine.get_occupying(self.dest_row, self.dest_col)
             self.engine.delete_piece(self.dest_row, self.dest_col)
@@ -1107,7 +1107,6 @@ class Teleport(RitualEvent):
 
     def undo(self):
         super().undo()
-        self.respawn_deleted_monks()
         if self.trap:
             self.engine.create_piece(self.dest_row, self.dest_col, self.deleted_piece)
             self.engine.set_trap(self.dest_row, self.dest_col, self.trap)
@@ -1125,7 +1124,6 @@ class Teleport(RitualEvent):
         unused_pieces = self.engine.count_unused_pieces()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
-        self.engine.players[self.engine.turn].undo_action()
 
 
 class Swap(RitualEvent):
@@ -1201,12 +1199,10 @@ class Swap(RitualEvent):
                 self.engine.untrap(connected_portal.row, connected_portal.col)
 
         self.engine.intercept_pieces()
-        self.player.do_action()
-        self.sacrifice_random_monks()
+
 
     def undo(self):
         super().undo()
-        self.respawn_deleted_monks()
         if self.first_trap:
             self.engine.create_piece(self.row, self.col, self.first_deleted_piece)
             self.engine.set_trap(self.row, self.col, self.first_trap)
@@ -1235,7 +1231,6 @@ class Swap(RitualEvent):
         self.engine.reset_unused_piece_highlight()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
-        self.engine.players[self.engine.turn].undo_action()
 
 
 class Smite(RitualEvent):
@@ -1250,12 +1245,10 @@ class Smite(RitualEvent):
     def complete(self):
         super().complete()
         self.engine.delete_piece(self.row, self.col)
-        self.player.do_action()
-        self.sacrifice_random_monks()
+
 
     def undo(self):
         super().undo()
-        self.respawn_deleted_monks()
         self.engine.create_piece(self.row, self.col, self.deleted_piece)
         self.engine.reset_selected()
         unused_pieces = self.engine.count_unused_pieces()
@@ -1263,7 +1256,6 @@ class Smite(RitualEvent):
         self.engine.correct_interceptions()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
-        self.engine.players[self.engine.turn].undo_action()
 
 
 class Trade(GameEvent):
@@ -1313,12 +1305,10 @@ class DestroyResource(RitualEvent):
     def complete(self):
         super().complete()
         self.engine.delete_resource(self.row, self.col)
-        self.player.do_action()
-        self.sacrifice_random_monks()
+
 
     def undo(self):
         super().undo()
-        self.respawn_deleted_monks()
         self.engine.create_resource(self.row, self.col, self.deleted_resource)
 
         self.engine.reset_selected()
@@ -1327,7 +1317,6 @@ class DestroyResource(RitualEvent):
         self.engine.correct_interceptions()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
-        self.engine.players[self.engine.turn].undo_action()
 
 
 class CreateResource(RitualEvent):
@@ -1344,12 +1333,10 @@ class CreateResource(RitualEvent):
         super().complete()
 
         self.engine.create_resource(self.row, self.col, self.created_resource)
-        self.player.do_action()
-        self.sacrifice_random_monks()
+
 
     def undo(self):
         super().undo()
-        self.respawn_deleted_monks()
         self.engine.delete_resource(self.row, self.col)
         self.engine.reset_selected()
         unused_pieces = self.engine.count_unused_pieces()
@@ -1357,7 +1344,6 @@ class CreateResource(RitualEvent):
         self.engine.correct_interceptions()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
-        self.engine.players[self.engine.turn].undo_action()
 
 
 class LineDestroy(RitualEvent):
@@ -1414,23 +1400,19 @@ class LineDestroy(RitualEvent):
         super().complete()
         self.destroy_squares()
         self.remove_destroyed_pieces_from_player_list()
-        self.sacrifice_random_monks()
         self.engine.intercept_pieces()
-        self.player.do_action()
         self.engine.line_destroy_selected_range = None
 
     def undo(self):
         super().undo()
         self.restore_destroyed_pieces_to_player_list()
         self.replace_destroyed_squares()
-        self.respawn_deleted_monks()
         self.engine.reset_selected()
         self.engine.correct_interceptions()
         unused_pieces = self.engine.count_unused_pieces()
         self.engine.reset_unused_piece_highlight()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
-        self.engine.players[self.engine.turn].undo_action()
 
 
 class Protect(RitualEvent):
@@ -1451,8 +1433,7 @@ class Protect(RitualEvent):
         self.engine.board[self.row][self.col].protect(self.turn)
         self.engine.protected_tiles.append(self.engine.board[self.row][self.col])
         self.engine.intercept_pieces()
-        self.player.do_action()
-        self.sacrifice_random_monks()
+
 
     def undo(self):
         super().undo()
@@ -1462,14 +1443,12 @@ class Protect(RitualEvent):
         if self.replace_protect:
             self.action_tile.replace_values(self.protect_information)
             self.engine.protected_tiles.append(self.engine.board[self.row][self.col])
-        self.respawn_deleted_monks()
         self.engine.reset_selected()
         self.engine.correct_interceptions()
         unused_pieces = self.engine.count_unused_pieces()
         self.engine.reset_unused_piece_highlight()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
-        self.engine.players[self.engine.turn].undo_action()
 
 
 class Portal(RitualEvent):
@@ -1496,8 +1475,7 @@ class Portal(RitualEvent):
             self.second_saved_portal = (tile.portal_color, tile.connected_portal)
         self.engine.board[self.dest_row][self.dest_col].create_portal(self.turn, self.engine.board[self.row][self.col])
         self.engine.intercept_pieces()
-        self.player.do_action()
-        self.sacrifice_random_monks()
+
 
     def undo(self):
         super().undo()
@@ -1509,14 +1487,12 @@ class Portal(RitualEvent):
         if self.second_saved_portal:
             portal = self.second_saved_portal
             self.engine.board[self.dest_row][self.dest_col].create_portal(portal[0], portal[1])
-        self.respawn_deleted_monks()
         self.engine.reset_selected()
         self.engine.correct_interceptions()
         unused_pieces = self.engine.count_unused_pieces()
         self.engine.reset_unused_piece_highlight()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
-        self.engine.players[self.engine.turn].undo_action()
 
 
 class AITurn(GameEvent):

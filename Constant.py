@@ -102,6 +102,7 @@ DEBUG_STARTING_PIECES = ['castle', 'magician', 'monolith', 'king']
 DEBUG_START = False
 BOARD_STARTS_WITH_RESOURCES = True
 DEBUG_RITUALS = False
+POP_UPS_ON = True
 
 STARTING_PRAYER = 0
 STARTING_WOOD = 0
@@ -204,13 +205,13 @@ PIECE_COSTS = {'king': {'log': 999, 'gold': 999, 'stone': 999},
                'magician': {'log': 0, 'gold': 20, 'stone': 0},
 
                }
-NOTIFICATIONS = {'blank': ['an unknown error occurred'],
+NOTIFICATIONS = {None: ['cannot select'],
                  'invalid_start_spawn': ['select a valid spawn square'],
                  'non_occupyable': ['square cannot be occupied'],
                  'players_nearby': ['a player is too close'],
                  'open_spaces': ['not enough open spaces'],
-                 'piece_action': [],
-                 'player_action': [],
+                 'piece_action': ['no piece actions remaining'],
+                 'player_action': ['no turn actions remaining'],
                  }
 DESCRIPTIONS = {'king': ['every player gets one', 'capture your opponent\'s to win'],
                 'gold_general': ['summons a fierce demon who ', 'moves like a queen through and onto ',
@@ -308,15 +309,16 @@ PIECE_POPULATION = {'king': 1,
                     'fire_spinner': 1,
                     'acrobat': 1,
                     'magician': 1}
-PRAYER_COSTS = {'gold_general': {'prayer': 12, 'monk': 2, 'gold': 0},          # monk yields 3, other pieces yield 2
-                'smite': {'prayer': 12, 'monk': 1, 'gold': 0},                 # rituals have a prayer cost & monk cost
-                'destroy_resource': {'prayer': 8, 'monk': 0, 'gold': 0},        # & a gold cost, accessed by the magician or rogue monk?
-                'create_resource': {'prayer': 4, 'monk': 0, 'gold': 0},
-                'teleport': {'prayer': 8, 'monk': 0, 'gold': 10},
-                'swap': {'prayer': 4, 'monk': 0, 'gold': 10},
-                'line_destroy': {'prayer': 8, 'monk': 1, 'gold': 0},
+PRAYER_COSTS = {'gold_general': {'prayer': 9, 'monk': 2, 'gold': 0},  # monk yields 3, other pieces yield 2
+                'smite': {'prayer': 12, 'monk': 1, 'gold': 0},  # rituals have a prayer cost & monk cost
+                'destroy_resource': {'prayer': 6, 'monk': 0, 'gold': 0},
+                # & a gold cost, accessed by the magician or rogue monk?
+                'create_resource': {'prayer': 3, 'monk': 0, 'gold': 0},
+                'teleport': {'prayer': 6, 'monk': 0, 'gold': 10},
+                'swap': {'prayer': 2, 'monk': 0, 'gold': 10},
+                'line_destroy': {'prayer': 9, 'monk': 1, 'gold': 0},
                 'portal': {'prayer': 2, 'monk': 0, 'gold': 10},
-                'protect': {'prayer': 1, 'monk': 0, 'gold': 0}}
+                'protect': {'prayer': 2, 'monk': 0, 'gold': 0}}
 ADDITIONAL_PIECE_LIMIT = {'castle': 5, 'barracks': 3, 'fortress': 3, 'stable': 3, 'circus': 3,
                           'king': 0,
                           'queen': 0,
@@ -356,13 +358,13 @@ ADDITIONAL_PIECE_LIMIT = {'castle': 5, 'barracks': 3, 'fortress': 3, 'stable': 3
                           'fire_spinner': 0,
                           'acrobat': 0,
                           'magician': 0}
-BASE_TOTAL_YIELD = {'wood': 10,
-                    'gold': 35,
-                    'quarry': 23,
-                    'sunken_quarry': 4}
+BASE_TOTAL_YIELD = {'wood': 8,
+                    'gold': 25,
+                    'quarry': 12,
+                    'sunken_quarry': 2}
 TOTAL_YIELD_VARIANCE = {'wood': (-4, 4),
                         'gold': (-5, 5),
-                        'quarry': (-5, 5),
+                        'quarry': (-2, 2),
                         'sunken_quarry': (0, 2)}
 BASE_YIELD_PER_HARVEST = {'pawn':
                               {'wood': 10,
@@ -370,9 +372,9 @@ BASE_YIELD_PER_HARVEST = {'pawn':
                                'quarry': 8,
                                'sunken_quarry': 1},
                           'rogue_pawn':
-                              {'wood': 8,
+                              {'wood': 7,
                                'gold': 7,
-                               'quarry': 6,
+                               'quarry': 5,
                                'sunken_quarry': 1}}
 HARVEST_YIELD_VARIANCE = {'wood': (-2, 2),
                           'gold': (-3, 3),
@@ -853,7 +855,7 @@ def big_center_squares():
     # x, y equal max val col, row
     x, y = board_max_index()
 
-    for c in range(x // 2 - 1, x // 2 + 3):
+    for c in range(x // 2 - 2, x // 2 + 4):
         for r in range(y + 1):
             square = (r, c)
             squares.append(square)

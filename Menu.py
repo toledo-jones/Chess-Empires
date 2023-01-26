@@ -224,7 +224,7 @@ class RitualMenu(Menu):
     def right_click(self):
         self.engine.state[-1].revert_to_playing_state()
 
-    def draw(self, win):
+    def draw(self):
         self.menu.fill(Constant.MENU_COLOR)
         for x in range(len(self.ritual_list)):
             a = x / len(self.ritual_list)
@@ -338,7 +338,7 @@ class TraderMenu(Menu):
             for _ in self.spawn_highlight_list:
                 _ = False
 
-    def draw(self, win):
+    def draw(self):
         self.menu.fill(Constant.MENU_COLOR)
         for x in range(len(self.resource_list)):
             a = x / len(self.resource_list)
@@ -507,7 +507,7 @@ class StealingMenu(Menu):
             for _ in self.spawn_highlight_list:
                 _ = False
 
-    def draw(self, win):
+    def draw(self):
         self.menu.fill(Constant.MENU_COLOR)
         for x in range(len(self.spawn_list)):
             a = x / len(self.spawn_list)
@@ -604,7 +604,7 @@ class ResourceMenu(Menu):
             for _ in self.spawn_highlight_list:
                 _ = False
 
-    def draw(self, win):
+    def draw(self):
         self.menu.fill(Constant.MENU_COLOR)
         for x in range(len(self.spawn_list)):
             a = x / len(self.spawn_list)
@@ -712,7 +712,7 @@ class SpawningMenu(Menu):
             for _ in self.spawn_highlight_list:
                 _ = False
 
-    def draw(self, win):
+    def draw(self):
         self.menu.fill(Constant.MENU_COLOR)
         y_buffer = self.vertical_buffer_between_pieces
         for x in range(len(self.spawn_list)):
@@ -879,7 +879,7 @@ class KingMenu(Menu):
         self.square = pygame.Surface((self.menu_width, self.menu_height))
         self.high_light = False
 
-    def draw(self, win):
+    def draw(self):
         self.menu.fill(Constant.MENU_COLOR)
         # fill menu with art and logic
         if self.high_light:
@@ -940,7 +940,7 @@ class QueenMenu(Menu):
         self.square = pygame.Surface((self.menu_width, self.menu_height))
         self.high_light = False
 
-    def draw(self, win):
+    def draw(self):
         self.menu.fill(Constant.MENU_COLOR)
         # fill menu with art and logic
         if self.high_light:

@@ -5,6 +5,7 @@ class Map:
     def __init__(self, engine):
         self.engine = engine
         self.w_starting_squares, self.b_starting_squares = Constant.starting_squares()
+        self.default_start_squares = Constant.starting_squares()
         self.starting_squares = self.w_starting_squares + self.b_starting_squares
         self.top_left, self.top_right, self.bottom_left, self.bottom_right = Constant.quarter_squares()
         self.quarters = [self.top_left, self.top_right, self.bottom_left, self.bottom_right]
@@ -17,12 +18,41 @@ class Map:
             Constant.UP, Constant.RIGHT, Constant.LEFT, Constant.DOWN, Constant.UP_RIGHT, Constant.DOWN_RIGHT,
             Constant.UP_LEFT, Constant.DOWN_LEFT)
 
+    def get_random(self):
+        rand = random.randint(0, 100)
+        return rand
+
     def spawn_wood_nearby(self, row, col):
         direction = random.choice(self.directions)
         r = row + direction[0]
         c = col + direction[1]
         if Constant.tile_in_bounds(r, c):
             self.spawn_wood(r, c)
+
+    def spawn_wood_clover(self, row, col, distance=None):
+        directions = (Constant.UP, Constant.RIGHT, Constant.LEFT, Constant.DOWN)
+        self.spawn_wood(row, col)
+        for direction in directions:
+            r = row+direction[0]
+            c = col+direction[1]
+            if Constant.tile_in_bounds(r, c):
+                self.spawn_wood(r, c)
+
+    def spawn_wood_line(self, row, col, distance):
+        directions = (Constant.UP, Constant.RIGHT, Constant.LEFT, Constant.DOWN)
+        self.spawn_wood(row, col)
+        for direction in directions:
+            for d in range(distance):
+                r = row + direction[0] * d
+                c = col + direction[1] * d
+                if Constant.tile_in_bounds(r, c):
+                    self.spawn_wood(r, c)
+
+    def spawn_wood_nearby_pattern(self, row, col):
+        patterns = self.spawn_wood_clover, self.spawn_wood_line,
+        distance = random.randint(1, 3)
+        choice = random.choice(patterns)
+        choice(row, col, distance)
 
     def generate_stone(self):
         for row in range(self.engine.rows):
@@ -41,12 +71,19 @@ class Map:
         self.engine.create_resource(r, c, Wood(r, c))
 
     def delete_resources_in_random_row(self, boundaries=None, iterations=1):
+
         if boundaries is None:
-            boundaries = [0, 0]
-        for _ in range(iterations):
-            rand = random.randint(boundaries[0], self.engine.rows - (boundaries[1] + 1))
+            boundaries = [0, Constant.BOARD_HEIGHT_SQ]
+        else:
+            boundaries[-1] = Constant.BOARD_HEIGHT_SQ - boundaries[-1]
+        boundary_sequence = []
+        for i in range(boundaries[0]-1 , boundaries[1]):
+            boundary_sequence.append(i)
+        rows_to_delete = random.sample(boundary_sequence, iterations)
+
+        for row in rows_to_delete:
             for c in range(self.engine.cols):
-                self.engine.delete_resource(rand, c)
+                self.engine.delete_resource(row, c)
 
     def spawn_gold(self, r, c):
         self.engine.create_resource(r, c, Gold(r, c))
@@ -73,77 +110,34 @@ class Default(Map):
 
     def generate_resources(self):
         super().generate_resources()
-        for r in range(self.engine.rows):
-            for c in range(self.engine.cols):
-                in_center_square = (r, c) in Constant.center_squares()
-                in_edge_square = (r, c) in Constant.edge_squares()
-                in_starting_square = (r, c) in self.starting_squares
-                rand = random.randint(0, 100)
-                if in_starting_square:
-                    pass
-                elif in_edge_square:
-                    if rand in range(10, 100):
-                        self.engine.create_resource(r, c, Wood(r, c))
-                    if rand in range(80, 100):
-                        self.engine.create_resource(r, c, Wood(r, c))
-                else:
-                    if rand in range(1, 30):
-                        if self.engine.has_no_resource(r, c):
-                            self.engine.create_resource(r, c, Wood(r, c))
-                            c2 = c + 1
-                            if Constant.tile_in_bounds(r, c2):
-                                self.engine.create_resource(r, c2, Wood(r, c2))
-                            if rand > 5:
-                                c2 = c - 1
-                                if Constant.tile_in_bounds(r, c2):
-                                    self.engine.create_resource(r, c2, Wood(r, c2))
-                    if rand in range(80, 100):
-                        self.engine.create_resource(r, c, Wood(r, c))
-                        c2 = c + 1
-                        if Constant.tile_in_bounds(r, c2):
-                            self.engine.create_resource(r, c2, Wood(r, c2))
-                        c2 = c - 1
-                        if Constant.tile_in_bounds(r, c2):
-                            self.engine.create_resource(r, c2, Wood(r, c2))
-                        r2 = r + 1
-                        if Constant.tile_in_bounds(r2, c):
-                            self.engine.create_resource(r2, c, Wood(r2, c))
-                        if rand == 99:
-                            r2 = r - 1
-                            if Constant.tile_in_bounds(r2, c):
-                                self.engine.create_resource(r2, c, Wood(r2, c))
-        rand = random.randint(3, self.engine.rows - 4)
-        for c in range(self.engine.cols):
-            self.engine.delete_resource(rand, c)
-        rand = random.randint(0, len(self.top_left) - 1)
-        r, c = self.top_left[rand][0], self.top_left[rand][1]
-        self.engine.delete_resource(r, c)
-        self.engine.create_resource(r, c, Gold(r, c))
-        rand = random.randint(0, len(self.top_right) - 1)
-        r, c = self.top_right[rand][0], self.top_right[rand][1]
-        self.engine.delete_resource(r, c)
-        self.engine.create_resource(r, c, Gold(r, c))
-        rand = random.randint(0, len(self.bottom_left) - 1)
-        r, c = self.bottom_left[rand][0], self.bottom_left[rand][1]
-        self.engine.delete_resource(r, c)
-        self.engine.create_resource(r, c, Gold(r, c))
-        rand = random.randint(0, len(self.bottom_right) - 1)
-        r, c = self.bottom_right[rand][0], self.bottom_right[rand][1]
-        self.engine.delete_resource(r, c)
-        self.engine.create_resource(r, c, Gold(r, c))
-        # gen 1 wood resource inside each player's starting square
-        for sq in range(len(self.w_starting_squares) - 1):
-            rand = random.randint(0, (len(self.w_starting_squares) - 1))
-            r, c = self.w_starting_squares[rand]
-            if self.engine.is_empty(r, c):
-                self.engine.create_resource(r, c, Wood(r, c))
-                break
-        for sq in range(len(self.b_starting_squares) - 1):
-            rand = random.randint(0, (len(self.b_starting_squares) - 1))
-            r, c = self.b_starting_squares[rand]
-            if self.engine.is_empty(r, c):
-                self.engine.create_resource(r, c, Wood(r, c))
-                break
+
+        # Edge squares with Trees
+        for square in self.edge_squares:
+            rand = self.get_random()
+            r, c = square[0], square[1]
+            if rand > 30:
+                self.spawn_wood(r, c)
+
+        # Middle Squares fill with Tree patterns
+        for square in Constant.big_center_squares():
+            rand = self.get_random()
+            r, c = square[0], square[1]
+            if rand > 45:
+                self.spawn_wood(r, c)
+
+        # 1 tree in each players starting square
+        for square_set in self.default_start_squares:
+            square = random.choice(square_set)
+            r, c = square[0], square[1]
+            self.spawn_wood(r, c)
+
+        self.delete_resources_in_random_row([4, 3], 2)
+
+        # 4 gold on map, 1 in each corner
+        for square_set in Constant.quarter_squares():
+            square = random.choice(square_set)
+            r, c = square[0], square[1]
+            self.spawn_gold(r,c)
 
 
 class Minimal(Map):
@@ -154,7 +148,6 @@ class Minimal(Map):
         self.directions = (Constant.UP, Constant.DOWN, Constant.LEFT, Constant.RIGHT)
 
     def generate_wood(self, squares):
-        super().generate_resources()
         choice = random.choice(squares)
         row, col = choice[0], choice[1]
         for direction in self.directions:
@@ -162,6 +155,7 @@ class Minimal(Map):
             c = col + direction[1]
             if Constant.tile_in_bounds(r, c):
                 self.spawn_wood(r, c)
+                self.spawn_wood_nearby(r, c)
         choice = random.choice(self.directions)
         n_row, n_col = choice[0] + row, choice[1] + col
         for direction in self.directions:
@@ -169,16 +163,18 @@ class Minimal(Map):
             c = n_col + direction[1]
             if Constant.tile_in_bounds(r, c):
                 self.spawn_wood(r, c)
+                self.spawn_wood_nearby(r, c)
         self.spawn_gold(row, col)
 
     def generate_resources(self):
+        super().generate_resources()
 
         self.generate_wood(self.b_starting_squares)
         self.generate_wood(self.w_starting_squares)
         choices = [self.spawn_quarry, self.spawn_sunken_quarry, self.spawn_depleted_quarry]
         for square in self.edge_squares:
             rand = random.randint(0, 100)
-            if rand > 70:
+            if rand > 98:
                 r, c = square[0], square[1]
                 if self.engine.has_no_resource(r, c):
                     random.choice(choices)(r, c)
@@ -224,49 +220,20 @@ class GoldTopRight(Map):
         for section in self.quarter_triangle_sections:
             for square in section:
                 rand = random.randint(0, 100)
-                if rand > 70:
+                if rand > 30:
                     row, col = square[0], square[1]
                     self.spawn_wood(row, col)
-        choices = [self.spawn_quarry, self.spawn_sunken_quarry]
         for square in self.edge_squares:
             rand = random.randint(0, 100)
-            if rand > 89:
-                random.choice(choices)(square[0], square[1])
+            r, c = square[0], square[1]
+            if rand > 95:
+                self.spawn_quarry(r, c)
 
-        for square in self.top_right_squares:
-            rand = random.randint(0, 100)
-            if rand > 60:
-                r, c = square[0], square[1]
-                self.spawn_gold(r, c)
+        top_right_squares = random.sample(self.top_right_squares, 4)
+        for square in top_right_squares:
+            r, c = square[0], square[1]
+            self.spawn_gold(r, c)
 
-
-class SparseTriangleTrees(Map):
-    def __init__(self, engine):
-        super().__init__(engine)
-        self.quarter_triangle_sections = Constant.quarter_triangle_sections_b()
-
-    def generate_resources(self):
-        super().generate_resources()
-        for section in self.quarter_triangle_sections:
-            for square in section:
-                rand = random.randint(0, 100)
-                if rand > 40:
-                    row, col = square[0], square[1]
-                    self.spawn_wood(row, col)
-        choices = [self.spawn_quarry, self.spawn_sunken_quarry]
-        for square in self.edge_squares:
-            rand = random.randint(0, 100)
-            if rand > 91:
-                random.choice(choices)(square[0], square[1])
-        w_starting_squares, b_starting_squares = Constant.alt_starting_squares()
-
-        choice = random.choice(w_starting_squares)
-        r, c = choice[0], choice[1]
-        self.spawn_gold(r, c)
-
-        choice = random.choice(b_starting_squares)
-        r, c = choice[0], choice[1]
-        self.spawn_gold(r, c)
 
 
 class GoldTopLeft(Map):
@@ -288,20 +255,20 @@ class GoldTopLeft(Map):
         for section in self.quarter_triangle_sections:
             for square in section:
                 rand = random.randint(0, 100)
-                if rand > 40:
+                if rand > 30:
                     row, col = square[0], square[1]
                     self.spawn_wood(row, col)
         choices = [self.spawn_quarry, self.spawn_sunken_quarry]
         for square in self.edge_squares:
-            rand = random.randint(0, 100)
-            if rand > 88:
-                random.choice(choices)(square[0], square[1])
+            if square not in self.top_left:
+                rand = random.randint(0, 100)
+                if rand > 88:
+                    random.choice(choices)(square[0], square[1])
 
-        for square in self.top_left:
-            rand = random.randint(0, 100)
-            if rand > 75:
-                r, c = square[0], square[1]
-                self.spawn_gold(r, c)
+        top_left = random.sample(self.top_left, 4)
+        for square in top_left:
+            r, c = square[0], square[1]
+            self.spawn_gold(r, c)
 
 
 class TriangleTrees(Map):
@@ -335,6 +302,7 @@ class UnbalancedForest(Map):
             if rand > 30:
                 r, c = square[0], square[1]
                 self.spawn_wood(r, c)
+        self.delete_resources_in_random_row()
 
         square = random.choice(self.w_starting_squares)
         r, c = square[0], square[1]
@@ -367,13 +335,10 @@ class UltraBalanced(Map):
         super().generate_resources()
         for square in self.center_squares:
             r, c = square[0], square[1]
-            if random.randint(0, 100) > 40:
+            if random.randint(0, 100) > 30:
                 self.spawn_wood(r, c)
 
-        row = random.randint(0, Constant.BOARD_HEIGHT_SQ)
-        for c in range(self.engine.cols):
-            if self.engine.has_resource(row, c):
-                self.engine.delete_resource(row, c)
+        self.delete_resources_in_random_row(iterations=3)
 
         for section in self.quarters:
             self.spawn_gold_randomly(section)
@@ -420,18 +385,19 @@ class LeftRight(Map):
 class OnlyStoneAndGold(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.choices = [self.spawn_sunken_quarry, self.spawn_quarry, self.spawn_depleted_quarry, self.spawn_gold]
+        self.choices = [self.spawn_quarry, self.spawn_depleted_quarry, self.spawn_gold]
 
     def generate_resources(self):
         for square in self.edge_squares:
             rand = random.randint(0, 100)
-            if rand > 25:
+            if rand > 40:
                 r, c = square[0], square[1]
                 random.choice(self.choices)(r, c)
-        for section in self.quarters:
-            square = random.choice(section)
-            r, c = square[0], square[1]
-            self.spawn_wood(r, c)
+        for section in Constant.left_right_squares():
+            sample = random.sample(section, 2)
+            for square in sample:
+                r, c = square[0], square[1]
+                self.spawn_wood_nearby_pattern(r, c)
 
 
 class CenterCircle(Map):
@@ -458,21 +424,11 @@ class CenterCircle(Map):
                 if rand > 80:
                     for _ in range(2):
                         self.spawn_wood_nearby(r, c)
-        choice = random.choice(self.center_squares)
-        r, c = choice[0], choice[1]
-        for _ in range(3):
-            direction = random.choice(self.directions)
-            r += direction[0]
-            c += direction[1]
-            self.spawn_gold(r, c)
-        section = random.choice(Constant.left_right_squares())
-        for square in section:
-            rand = random.randint(0, 100)
+
+        gold_squares = random.sample(self.center_squares, 3)
+        for square in gold_squares:
             r, c = square[0], square[1]
-            if rand > 65:
-                random.choice(self.choices)(r, c)
-            elif rand < 9:
-                self.spawn_gold(r, c)
+            self.spawn_gold(r, c)
 
 
 class FourCorners(Map):
@@ -482,7 +438,7 @@ class FourCorners(Map):
         self.triangle_sections = self.quarter_triangle_sections_d()
         self.directions = [Constant.UP, Constant.RIGHT, Constant.DOWN, Constant.LEFT, Constant.UP_RIGHT,
                            Constant.UP_LEFT, Constant.DOWN_RIGHT, Constant.DOWN_LEFT]
-        self.choices = [self.spawn_sunken_quarry, self.spawn_quarry, self.spawn_depleted_quarry, self.spawn_wood]
+        self.choices = [self.spawn_depleted_quarry, self.spawn_quarry, self.spawn_wood]
 
     def quarter_triangle_sections_d(self):
         bottom_left = []
@@ -519,7 +475,7 @@ class FourCorners(Map):
         col += direction[1]
         if Constant.tile_in_bounds(row, col):
             random.choice(self.choices)(row, col)
-            if rand > 95:
+            if rand > 80:
                 self.populate_randomly(row, col)
 
     def generate_resources(self):
@@ -529,7 +485,7 @@ class FourCorners(Map):
             for c in range(self.engine.cols):
                 if self.engine.has_no_resource(r, c):
                     rand = random.randint(0, 100)
-                    if rand > 90:
+                    if rand > 95:
                         self.populate_randomly(r, c)
 
     def generate_wood(self, squares):
@@ -551,117 +507,3 @@ class FourCorners(Map):
         self.spawn_gold(row, col)
 
 
-class RandomlyRandom(Map):
-    def __init__(self, engine):
-        super().__init__(engine)
-        self.single_squares = [Constant.big_center_squares(),
-                               Constant.center_squares(),
-                               Constant.edge_squares(),
-                               Constant.center_circle_squares(), ]
-        self.double_squares = [Constant.left_and_right_triangle_sections(),
-                               Constant.top_and_bottom_squares(), Constant.left_right_squares(),
-                               Constant.alt_starting_squares_a(),
-                               Constant.alt_starting_squares(),
-                               Constant.starting_squares()]
-        self.four_squares = [Constant.quarter_squares(),
-                             Constant.quarter_triangle_sections_a(),
-                             Constant.quarter_triangle_sections_b(),
-                             Constant.quarter_triangle_sections_c(),
-                             Constant.quarter_triangle_sections_d()]
-
-        self.square_choices = [self.double_squares, self.four_squares]
-
-        self.choices = [self.spawn_wood, self.spawn_depleted_quarry, self.spawn_quarry]
-
-    def generate_resources(self):
-        squares_set = random.choice(self.square_choices)
-        sets_used = []
-        for outer_set in squares_set:
-            for inner_set in outer_set:
-                sets_used.append(inner_set)
-                for square in inner_set:
-                    rand = random.randint(0, 100)
-                    if rand > 80:
-                        r, c = square[0], square[1]
-                        random.sample(self.choices, counts=[6, 1, 1], k=1)[0](r, c)
-
-        square_set = random.choice(self.single_squares)
-        sets_used.append(square_set)
-        for square in square_set:
-            rand = random.randint(0, 100)
-            if rand > 80:
-                r, c = square[0], square[1]
-                random.sample(self.choices, counts=[6, 1, 1], k=1)[0](r, c)
-
-        self.delete_resources_in_random_row([1, 1], 2)
-        rand = random.randint(0, 100)
-        if rand > 15:
-            rand = random.randint(0, 100)
-            if rand > 50:
-                set_choice = self.every_square_on_board()
-            else:
-                set_choice = random.choice(sets_used)
-            try:
-                sample = random.sample(set_choice, 4)
-            except ValueError:
-                sample = set_choice
-            for square in sample:
-                r, c = square[0], square[1]
-                self.spawn_gold(r, c)
-
-    def every_square_on_board(self):
-        squares = []
-        for r in range(self.engine.rows):
-            for c in range(self.engine.cols):
-                squares.append((r, c))
-        return squares
-
-
-class TotallyRandom(Map):
-    def __init__(self, engine):
-        super().__init__(engine)
-        self.choices = [self.spawn_sunken_quarry, self.spawn_quarry, self.spawn_wood, self.spawn_depleted_quarry,
-                        self.spawn_wood, self.spawn_gold]
-
-    def generate_resources(self):
-        for r in range(self.engine.rows):
-            for c in range(self.engine.cols):
-                rand = random.randint(0, 100)
-                if rand > 80:
-                    random.choice(self.choices)(r, c)
-                    if Constant.tile_in_bounds(r + 1, c + 1):
-                        self.spawn_wood(r + 1, c + 1)
-
-
-class CenterCircle(Map):
-    def __init__(self, engine):
-        super().__init__(engine)
-        self.circle_center_squares = Constant.center_circle_squares()
-        self.directions = [Constant.UP, Constant.RIGHT, Constant.DOWN, Constant.LEFT, Constant.UP_RIGHT,
-                           Constant.UP_LEFT, Constant.DOWN_RIGHT, Constant.DOWN_LEFT]
-        self.choices = [self.spawn_sunken_quarry, self.spawn_quarry, self.spawn_depleted_quarry, self.spawn_wood]
-
-    def generate_resources(self):
-        for square in self.circle_center_squares:
-            rand = random.randint(0, 100)
-            if rand > 15:
-                r, c = square[0], square[1]
-                self.spawn_wood(r, c)
-                if rand > 80:
-                    for _ in range(2):
-                        self.spawn_wood_nearby(r, c)
-        choice = random.choice(self.center_squares)
-        r, c = choice[0], choice[1]
-        for _ in range(3):
-            direction = random.choice(self.directions)
-            r += direction[0]
-            c += direction[1]
-            self.spawn_gold(r, c)
-        section = random.choice(Constant.left_right_squares())
-        for square in section:
-            rand = random.randint(0, 100)
-            r, c = square[0], square[1]
-            if rand > 65:
-                random.choice(self.choices)(r, c)
-            elif rand < 9:
-                self.spawn_gold(r, c)

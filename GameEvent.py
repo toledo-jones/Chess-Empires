@@ -1476,7 +1476,6 @@ class Portal(RitualEvent):
         self.engine.board[self.dest_row][self.dest_col].create_portal(self.turn, self.engine.board[self.row][self.col])
         self.engine.intercept_pieces()
 
-
     def undo(self):
         super().undo()
         self.engine.board[self.row][self.col].delete_portal()

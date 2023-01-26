@@ -311,6 +311,7 @@ class Playing(State):
         else:
             try:
                 if not self.select(row, col):
+                    self.engine.create_popup_menu(row, col, self.engine.popup_reason)
                     self.engine.reset_selected()
             except IndexError as e:
                 print(e)
@@ -336,7 +337,7 @@ class Playing(State):
     def draw(self):
         super().draw()
         for menu in self.engine.menus:
-            menu.draw(self.win)
+            menu.draw()
         self.side_bar.draw()
 
 
@@ -841,7 +842,7 @@ class PrayingBuilding(State):
         display_pos_y = pos[1] - Constant.SQ_SIZE // 2
         if self.engine.menus:
             for menu in self.engine.menus:
-                menu.draw(self.win)
+                menu.draw()
         elif Constant.pos_in_bounds(pos):
             row, col = Constant.convert_pos(pos)
             if self.in_praying_squares(row, col):
@@ -926,7 +927,7 @@ class MiningStealing(State):
         display_pos_y = pos[1] - Constant.SQ_SIZE // 2
         if self.engine.menus:
             for menu in self.engine.menus:
-                menu.draw(self.win)
+                menu.draw()
         elif Constant.pos_in_bounds(pos):
             row, col = Constant.convert_pos(pos)
             if self.in_mining_squares(row, col):
@@ -1141,7 +1142,7 @@ class Stealing(State):
         self.side_bar.draw()
         if self.engine.menus:
             for menu in self.engine.menus:
-                menu.draw(self.win)
+                menu.draw()
         elif Constant.pos_in_bounds(pos):
             row, col = Constant.convert_pos(pos)
             if (row, col) in self.previously_selected.stealing_squares_list:
@@ -1216,7 +1217,7 @@ class PreBuilding(State):
     def draw(self):
         super().draw()
         for menu in self.engine.menus:
-            menu.draw(self.win)
+            menu.draw()
         self.side_bar.draw()
         pos = pygame.mouse.get_pos()
         display_pos_x = pos[0] - Constant.SQ_SIZE // 2
@@ -1649,7 +1650,7 @@ class PerformCreateResource(Ritual):
         # Display Gold General at mouse position while mouse is on valid spawn square
         if self.engine.menus:
             for menu in self.engine.menus:
-                menu.draw(self.win)
+                menu.draw()
         else:
             self.previously_selected.highlight_ritual_squares(self.win)
             self.draw_ritual_at_mouse_position()

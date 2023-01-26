@@ -1193,8 +1193,10 @@ class Monk(Piece):
         self.distance = 1
 
     def right_click(self, engine):
-        if self.actions_remaining > 0 and engine.players[engine.turn].actions_remaining > 0:
+        if self.actions_remaining > 0:
             if not engine.rituals_banned:
+                if not engine.players[engine.turn].actions_remaining > 0:
+                    return engine.transfer_to_praying_state(self.row, self.col)
                 return engine.transfer_to_praying_building_state(self.row, self.col)
 
     def move_squares(self, engine):

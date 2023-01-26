@@ -142,10 +142,9 @@ class Engine:
                           'tree_tile_3': Wood, 'tree_tile_4': Wood,
                           'sunken_quarry_1': SunkenQuarry,
                           'depleted_quarry_1': DepletedQuarry}
-        self.MAPS = [Default, Minimal, VTrees, GoldTopRight, SparseTriangleTrees, GoldTopLeft, TriangleTrees,
-                     UnbalancedForest, UltraBalanced, LeftRight, OnlyStoneAndGold, FourCorners, TotallyRandom,
-                     RandomlyRandom]
-        # self.MAPS = [RandomlyRandom]
+        self.MAPS = [Default, Minimal, VTrees, GoldTopRight, GoldTopLeft, TriangleTrees,
+                     UnbalancedForest, UltraBalanced, LeftRight, OnlyStoneAndGold, FourCorners, CenterCircle]
+        # self.MAPS = []
         self.MENUS = {'stable': StableMenu,
                       'fortress': FortressMenu,
                       'barracks': BarracksMenu,
@@ -868,6 +867,8 @@ class Engine:
     def player_can_do_action(self, color):
         if self.players[color].can_do_action():
             return True
+        else:
+            self.popup_reason = 'player_action'
 
     def update_additional_actions(self):
         tally_additional_actions = 0
@@ -1157,9 +1158,10 @@ class Engine:
         self.update_spawn_squares()
         return True
 
-    def create_popup_menu(self, row, col, message='blank'):
-        self.menus.append(Notification(row, col, self.state[-1].win, self, message))
-        self.popup_reason = None
+    def create_popup_menu(self, row, col, messages=None):
+        if Constant.POP_UPS_ON:
+            self.menus.append(Notification(row, col, self.state[-1].win, self, messages))
+            self.popup_reason = None
 
     def starting_square_has_enough_open_spaces(self, row, col):
         open_spaces = 0

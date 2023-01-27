@@ -212,6 +212,7 @@ NOTIFICATIONS = {None: ['cannot select'],
                  'open_spaces': ['not enough open spaces'],
                  'piece_action': ['no piece actions remaining'],
                  'player_action': ['no turn actions remaining'],
+                 'invalid_move': ['cannot move to that square']
                  }
 DESCRIPTIONS = {'king': ['every player gets one', 'capture your opponent\'s to win'],
                 'gold_general': ['summons a fierce demon who ', 'moves like a queen through and onto ',

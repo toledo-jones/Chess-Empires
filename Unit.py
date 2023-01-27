@@ -334,6 +334,8 @@ class Piece(Unit):
     def right_click(self, engine):
         if self.actions_remaining > 0:
             return True
+        else:
+            engine.set_popup_reason('piece_action')
 
 
 class King(Piece):

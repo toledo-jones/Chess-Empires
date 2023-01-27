@@ -864,11 +864,14 @@ class Engine:
             if isinstance(piece, Castle):
                 return piece.get_position()
 
+    def set_popup_reason(self, reason):
+        self.popup_reason = reason
+
     def player_can_do_action(self, color):
         if self.players[color].can_do_action():
             return True
         else:
-            self.popup_reason = 'player_action'
+            self.set_popup_reason('player_action')
 
     def update_additional_actions(self):
         tally_additional_actions = 0
@@ -1184,15 +1187,15 @@ class Engine:
         no_players_nearby = True
         square_has_enough_spaces = True
         if not self.can_be_occupied(row, col) or self.has_quarry(row, col):
-            self.popup_reason = 'non_occupyable'
+            self.set_popup_reason('non_occupyable')
             return False
         if not self.starting_square_has_enough_open_spaces(row, col):
-            self.popup_reason = 'open_spaces'
+            self.set_popup_reason('open_spaces')
             square_has_enough_spaces = False
         for r in range(row - 3, row + 4):
             for c in range(col - 3, col + 4):
                 if self.has_castle(r, c):
-                    self.popup_reason = 'players_nearby'
+                    self.set_popup_reason('players_nearby')
                     no_players_nearby = False
 
         return no_players_nearby and square_has_enough_spaces

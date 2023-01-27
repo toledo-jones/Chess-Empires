@@ -238,6 +238,8 @@ class Playing(State):
                     if (row, col) in previously_selected.move_squares_list:
                         if self.engine.get_occupying(row, col) is None:
                             return True
+                    else:
+                        self.engine.set_popup_reason('invalid_move')
 
     def can_select_piece(self, currently_selected):
         if not isinstance(currently_selected, Piece):
@@ -246,6 +248,8 @@ class Playing(State):
             if currently_selected.actions_remaining > 0:
                 if self.engine.player_can_do_action(self.engine.turn):
                     return True
+            else:
+                self.engine.set_popup_reason('piece_action')
 
     def can_capture_piece(self, previously_selected, row, col, currently_selected):
         if previously_selected is not None:
@@ -257,12 +261,6 @@ class Playing(State):
                                 return True
 
     def same_piece_selected(self, previously_selected, row, col):
-        """
-        :param previously_selected: piece selected on the last left_click() -> select()
-        :param row: currently_selected.row
-        :param col: currently_selected.col
-        :return:
-        """
         if previously_selected is not None:
             if previously_selected.get_position() == (row, col):
                 return True
@@ -327,6 +325,7 @@ class Playing(State):
             if piece:
                 if piece.color is self.engine.turn:
                     if not piece.right_click(self.engine):
+                        self.engine.create_popup_menu(row, col, self.engine.popup_reason)
                         self.revert_to_playing_state()
 
     def mouse_move(self):
@@ -733,6 +732,12 @@ class StartingSpawn(State):
         self.engine.spawning = None
         self.engine.first = first
         self.engine.set_state(new_state)
+
+    def mouse_in_menu_bounds(self):
+        if self.engine.menus:
+            for menu in self.engine.menus:
+                if not menu.mouse_in_menu_bounds():
+                    self.engine.close_menus()
 
     def draw(self):
         super().draw()

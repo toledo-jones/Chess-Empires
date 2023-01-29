@@ -306,7 +306,7 @@ class Building(Unit):
             if engine.players[engine.turn].actions_remaining > 0:
                 return True
             else:
-                engine.set_popup_reason('turn_action')
+                engine.set_popup_reason('player_action')
         else:
             engine.set_popup_reason('piece_action')
 
@@ -484,8 +484,7 @@ class Duke(Piece):
                 return engine.transfer_to_praying_state(self.row, self.col)
 
 
-
-class NFireSpinner(Piece):
+class FireSpinner(Piece):
     def __repr__(self):
         return 'fire_spinner'
 
@@ -503,86 +502,37 @@ class NFireSpinner(Piece):
             c = self.col + direction[1]
             if self.base_move_criteria(engine, r, c):
                 squares.append((r, c))
-                
+                for i in range(self.depth):
+                    new_r = r + direction[0]
+                    new_c = c + direction[1]
+                    if self.base_move_criteria(engine, new_r, new_c):
+                        if (new_r, new_c) not in squares:
+                            squares.append((new_r, new_c))
+                    else:
+                        break
+
         return squares
 
     def capture_squares(self, engine):
         squares = []
+        for direction in self.knight_directions:
+            r = self.row + direction[0]
+            c = self.col + direction[1]
+            if self.can_capture(r, c, engine):
+                squares.append((r, c))
+            elif self.base_move_criteria(engine, r, c):
+                for i in range(self.depth):
+                    new_r = r + direction[0]
+                    new_c = c + direction[1]
+                    if self.can_capture(new_r, new_c, engine):
+                        if (new_r, new_c) not in squares:
+                            squares.append((new_r, new_c))
+                        break
+                    elif not self.base_move_criteria(engine, new_r, new_c):
+                        break
 
         return squares
 
-class FireSpinner(Piece):
-    def __repr__(self):
-        return 'fire_spinner'
-
-    def __init__(self, row, col, color):
-        super().__init__(row, col, color)
-        self.directions = (Constant.UP, Constant.DOWN, Constant.RIGHT, Constant.LEFT)
-        self.directions_to_extra_directions = {Constant.UP: (Constant.RIGHT, Constant.LEFT),
-                                               Constant.DOWN: (Constant.RIGHT, Constant.LEFT),
-                                               Constant.LEFT: (Constant.UP,Constant.DOWN),
-                                               Constant.RIGHT: (Constant.UP, Constant.DOWN)}
-
-        self.knight_directions = (
-            Constant.TWO_UP_RIGHT, Constant.TWO_RIGHT_UP, Constant.TWO_DOWN_RIGHT, Constant.TWO_RIGHT_DOWN,
-            Constant.TWO_UP_LEFT, Constant.TWO_LEFT_UP, Constant.TWO_DOWN_LEFT, Constant.TWO_LEFT_DOWN)
-        self.distance = 3
-        self.depth = 3
-
-    def recurse_move_squares(self, engine, row, col, squares, depth, directions):
-        if depth >= self.depth:
-            return squares
-        for direction in directions:
-            for distance in range(1, self.distance):
-                r = row + direction[0] * distance
-                c = col + direction[1] * distance
-                if not self.base_move_criteria(engine, r, c):
-                    break
-                if distance == self.distance - 1:
-                    ndirections = (direction,)
-                    for extra_direction in self.directions_to_extra_directions[direction]:
-                        nr = r + extra_direction[0]
-                        nc = c + extra_direction[1]
-                        if self.base_move_criteria(engine, nr, nc):
-                            if (nr, nc) not in squares:
-                                squares.append((nr, nc))
-                                ndepth = depth + 1
-                                squares = self.recurse_move_squares(engine, nr, nc, squares, ndepth, ndirections)
-        return squares
-
-    def recurse_capture_squares(self, engine, row, col, squares, depth, directions):
-        if depth >= self.depth:
-            return squares
-        for direction in directions:
-            for distance in range(1, self.distance):
-                r = row + direction[0] * distance
-                c = col + direction[1] * distance
-                if not self.base_move_criteria(engine, r, c):
-                    break
-                if distance == self.distance - 1:
-                    ndirections = (direction,)
-                    for extra_direction in self.directions_to_extra_directions[direction]:
-                        nr = r + extra_direction[0]
-                        nc = c + extra_direction[1]
-                        if self.base_move_criteria(engine, nr, nc):
-                            if (nr, nc) not in squares:
-                                ndepth = depth + 1
-                                squares = self.recurse_capture_squares(engine, nr, nc, squares, ndepth, ndirections)
-                        elif self.can_capture(nr, nc, engine):
-                            squares.append((nr, nc))
-        return squares
-
-    def move_squares(self, engine):
-        squares = []
-        directions = self.directions
-        squares = self.recurse_move_squares(engine, self.row, self.col, squares, 0, directions)
-        return squares
-
-    def capture_squares(self, engine):
-        squares = []
-        directions = self.directions
-        squares = self.recurse_capture_squares(engine, self.row, self.col, squares, 0, directions)
-        return squares
 
 
 class Lion(Piece):

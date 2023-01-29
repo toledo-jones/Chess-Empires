@@ -21,6 +21,9 @@ SELF_SQUARE_HIGHLIGHT_COLOR = BLUE
 MOVE_SQUARE_HIGHLIGHT_COLOR = pygame.Color((72, 61, 139))
 
 ICON_COLORS = {0: 'w', 1: 'b'}
+window_width = 800
+window_height = 600
+# win = pygame.display.set_mode((window_width, window_height), pygame.RESIZABLE)
 win = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 win.fill(MENU_COLOR)
 LOGO_COLOR = ICON_COLORS[random.randint(0, 1)]
@@ -34,12 +37,34 @@ time.sleep(2)
 VERSION = "a"
 NUMBER = "v0.024"
 MAX_FPS = 120
+
+# TARGET_GRID_SIZE = 10 * 14
+# # NEW
+#
+# SQ_SIZE = 50
+# BOARD_WIDTH_SQ = 14
+# BOARD_HEIGHT_SQ = 10
+#
+# BOARD_HEIGHT_PX = BOARD_HEIGHT_SQ * SQ_SIZE
+#
+# BOARD_WIDTH_PX = BOARD_WIDTH_SQ * SQ_SIZE
+#
+# SIDE_MENU_WIDTH = 100
+# BORDER = 0
+# OLD
+
 BOARD_HEIGHT_PX = pygame.display.Info().current_h
+
 SQ_SIZE = BOARD_HEIGHT_PX // 10
+
 BOARD_HEIGHT_SQ = BOARD_HEIGHT_PX // SQ_SIZE
+
 BOARD_WIDTH_SQ = 14
+
 BOARD_WIDTH_PX = BOARD_WIDTH_SQ * SQ_SIZE
+
 SIDE_MENU_WIDTH = pygame.display.Info().current_w - BOARD_WIDTH_PX
+
 
 DEFAULT_PIECE_SCALE = (SQ_SIZE, SQ_SIZE)
 HIGHLIGHT_ALPHA = 110
@@ -94,10 +119,10 @@ PROTECT_SQUARE_OFFSET = (SQ_SIZE // 2 - PROTECT_SQUARE_SCALE[0] // 2, SQ_SIZE //
 # POP_UPS_ON = False
 
 DEBUG_STARTING_PRAYER = 12
-DEBUG_STARTING_WOOD = 99
-DEBUG_STARTING_GOLD = 99
-DEBUG_STARTING_STONE = 99
-DEBUG_STARTING_PIECES = ['castle', 'king']
+DEBUG_STARTING_WOOD = 0
+DEBUG_STARTING_GOLD = 0
+DEBUG_STARTING_STONE = 10
+DEBUG_STARTING_PIECES = ['castle', 'king', 'trader']
 
 'DEFAULT START'
 DEBUG_START = False
@@ -1054,6 +1079,31 @@ def center_circle_squares():
     return squares
 
 
+def quarter_triangle_sections():
+    bottom_left = []
+    bottom_right = []
+    top_left = []
+    top_right = []
+    x, y = board_max_index()
+
+    for r in range(y-3, y+1):
+        for c in range(0, r-5):
+            bottom_left.append((r, c))
+
+    for r in range(y-3, y+1):
+        for c in range(x, x - (r - 5), -1):
+            bottom_right.append((r, c))
+
+    for r in range(0, 4):
+        for c in range(3 - r, -1, -1):
+            top_left.append((r, c))
+
+    for r in range(0, 4):
+        for c in range(x, x - (4 - r), -1):
+            top_right.append((r, c))
+
+    return bottom_left, bottom_right, top_left, top_right
+
 def left_right_squares():
     left_squares, right_squares = [], []
     x, y = board_max_index()
@@ -1112,6 +1162,12 @@ def starting_squares():
     return w_starting_squares, b_starting_squares
 
 
+def outside_corner_squares():
+    c, r = board_max_index()
+    squares = [(0, 0), (0, c), (r, c), (r, 0)]
+    return squares
+
+
 def board_max_index():
     x = BOARD_WIDTH_SQ - 1
     y = BOARD_HEIGHT_SQ - 1
@@ -1138,3 +1194,4 @@ def convert_pos(pos):
     row = pos[1] // SQ_SIZE
     col = pos[0] // SQ_SIZE
     return row, col
+

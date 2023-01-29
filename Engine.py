@@ -393,6 +393,9 @@ class Engine:
                 piece.persuading = False
                 piece.praying_building = False
 
+    def reset_piece_limit(self, color):
+        self.players[color].piece_limit = Constant.DEFAULT_PIECE_LIMIT
+
     def reset_player_actions_remaining(self, color):
         self.players[color].reset_actions_remaining()
 
@@ -834,6 +837,9 @@ class Engine:
             self.set_winner()
         elif self.enemy_player_king_does_not_exist():
             self.set_winner()
+
+    def get_turn(self):
+        return self.turn
 
     def change_turn(self):
         event = ChangeTurn(self)

@@ -36,6 +36,7 @@ class StartSpawn(GameEvent):
         self.spawn = self.engine.spawning
         self.dest = self.action_tile.get_position()
         self.previously_selected = None
+        self.turn = self.engine.get_turn()
         if acting_tile:
             self.previously_selected = self.acting_tile.get_occupying()
         self.spawn_count = self.engine.spawn_count
@@ -60,9 +61,11 @@ class StartSpawn(GameEvent):
         self.engine.sounds.play('spawn_' + kind)
         self.engine.delete_piece(self.dest[0], self.dest[1])
         self.engine.spawn_count = self.spawn_count
+        self.engine.turn = self.turn
         self.engine.final_spawn = self.final_spawn
         self.engine.spawn_list = self.spawn_list
         self.engine.spawning = self.engine.spawn_list[self.engine.spawn_count]
+        self.engine.reset_unused_piece_highlight()
         if self.previously_selected:
             self.previously_selected.purchasing = True
         self.engine.set_state(self.state)

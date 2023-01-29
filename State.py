@@ -648,14 +648,19 @@ class StartingSpawn(State):
         self.engine.final_spawn = True
 
     def end_start_spawning(self):
+        if Constant.TURN_CHANGE_AFTER_START_SPAWN:
+            self.engine.turn = Constant.TURNS[self.engine.turn]
         self.engine.reset_selected()
         self.engine.reset_piece_actions_remaining()
         self.engine.spawn_success = False
         unused_pieces = self.engine.count_unused_pieces()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
+
         self.engine.reset_player_actions_remaining(self.engine.turn)
+        self.engine.reset_piece_limit(self.engine.turn)
         self.engine.update_additional_actions()
+
         self.engine.update_piece_limit()
         super().revert_to_playing_state()
 

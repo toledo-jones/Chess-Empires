@@ -59,7 +59,7 @@ class Map:
             for col in range(self.engine.cols):
                 self.engine.board[row][col].can_contain_quarry = False
                 rand = random.randint(0, 100)
-                if rand > 60:
+                if rand > 65:
                     self.engine.board[row][col].can_contain_quarry = True
 
     def spawn_gold_randomly(self, squares):

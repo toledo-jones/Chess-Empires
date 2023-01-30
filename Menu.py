@@ -1656,9 +1656,10 @@ class Hud(SideMenu):
         self.bar_end_width = Constant.IMAGES['prayer_bar_end'].get_width()
         self.bar_width = Constant.IMAGES['prayer_bar'].get_width()
         self.bar_height = Constant.IMAGES['prayer_bar'].get_height()
+        self.counter_text_buffer = Constant.SQ_SIZE // 8
         self.prayer_bar_height = self.prayer_icon_display_y + round(
             Constant.MENU_ICONS['prayer'].get_height() // 2) - round(self.bar_height // 2)
-        self.prayer_bar_edge = self.counter_icon_display_x + round(Constant.SQ_SIZE * 1.25)
+        self.prayer_bar_edge = self.counter_icon_display_x + self.counter_text_buffer
         self.prayer_bar_end_edge = self.prayer_bar_edge + self.bar_width
         self.text_vertical_offset = self.font_size // 2 - Constant.MENU_ICONS['log'].get_height() // 2
         self.square = pygame.Surface((Constant.SIDE_MENU_WIDTH, round(Constant.SIDE_MENU_HEIGHT * .25)))
@@ -1680,7 +1681,7 @@ class Hud(SideMenu):
             white_coin_text = self.font.render(" : " + str(self.engine.players[self.engine.turn].gold), True,
                                                Constant.turn_to_color[self.engine.turn])
             self.win.blit(white_coin_text, (
-                (self.counter_icon_display_x + Constant.SQ_SIZE), self.coin_icon_display_y - self.text_vertical_offset))
+                (self.counter_icon_display_x + self.counter_text_buffer), self.coin_icon_display_y - self.text_vertical_offset))
 
         # Wood Counter
         if not self.engine.players[self.engine.turn].wood == 0:
@@ -1688,7 +1689,7 @@ class Hud(SideMenu):
             white_log_text = self.font.render(" : " + str(self.engine.players[self.engine.turn].wood), True,
                                               Constant.turn_to_color[self.engine.turn])
             self.win.blit(white_log_text, (
-                (self.counter_icon_display_x + Constant.SQ_SIZE), self.log_icon_display_y - self.text_vertical_offset))
+                (self.counter_icon_display_x + self.counter_text_buffer), self.log_icon_display_y - self.text_vertical_offset))
 
         # Stone Counter
         if not self.engine.players[self.engine.turn].stone == 0:
@@ -1696,7 +1697,7 @@ class Hud(SideMenu):
             white_log_text = self.font.render(" : " + str(self.engine.players[self.engine.turn].stone), True,
                                               Constant.turn_to_color[self.engine.turn])
             self.win.blit(white_log_text, (
-                (self.counter_icon_display_x + Constant.SQ_SIZE),
+                (self.counter_icon_display_x + self.counter_text_buffer),
                 self.stone_icon_display_y - self.text_vertical_offset))
 
         # Prayer Counter
@@ -1715,7 +1716,7 @@ class Hud(SideMenu):
             True,
             Constant.turn_to_color[self.engine.turn])
         self.win.blit(actions_remaining_text,
-                      ((self.counter_icon_display_x + Constant.SQ_SIZE),
+                      ((self.counter_icon_display_x + self.counter_text_buffer),
                        self.action_icon_display_y - self.text_vertical_offset))
 
         # Unit Limit Counter
@@ -1724,14 +1725,14 @@ class Hud(SideMenu):
             self.engine.players[self.engine.turn].get_piece_limit())
         units_text = self.font.render(" : " + t, True, Constant.turn_to_color[self.engine.turn])
         self.win.blit(units_text, (
-            (self.counter_icon_display_x + Constant.SQ_SIZE), self.units_icon_display_y - self.text_vertical_offset))
+            (self.counter_icon_display_x + self.counter_text_buffer), self.units_icon_display_y - self.text_vertical_offset))
 
         # Turn Counter
         self.win.blit(Constant.IMAGES['hour_glass'], (self.counter_icon_display_x, self.turn_icon_display_y))
         turn_number_text = " : " + str(self.engine.turn_count_display)
         text_surf = self.font.render(turn_number_text, True, Constant.turn_to_color[self.engine.turn])
         self.win.blit(text_surf, (
-            self.counter_icon_display_x + Constant.SQ_SIZE, self.turn_icon_display_y - self.text_vertical_offset))
+            self.counter_icon_display_x + self.counter_text_buffer, self.turn_icon_display_y - self.text_vertical_offset))
 
     def mouse_move(self):
         pos = pygame.mouse.get_pos()

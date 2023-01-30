@@ -91,12 +91,13 @@ PROTECT_SQUARE_OFFSET = (SQ_SIZE // 2 - PROTECT_SQUARE_SCALE[0] // 2, SQ_SIZE //
 # DEBUG_START = True
 # BOARD_STARTS_WITH_RESOURCES = False
 # DEBUG_RITUALS = True
+# POP_UPS_ON = False
 
 DEBUG_STARTING_PRAYER = 12
 DEBUG_STARTING_WOOD = 99
 DEBUG_STARTING_GOLD = 99
 DEBUG_STARTING_STONE = 99
-DEBUG_STARTING_PIECES = ['castle', 'magician', 'monolith', 'king']
+DEBUG_STARTING_PIECES = ['castle', 'king']
 
 'DEFAULT START'
 DEBUG_START = False
@@ -365,22 +366,22 @@ BASE_TOTAL_YIELD = {'wood': 8,
                     'gold': 25,
                     'quarry': 12,
                     'sunken_quarry': 2}
-TOTAL_YIELD_VARIANCE = {'wood': (-4, 4),
-                        'gold': (-5, 5),
+TOTAL_YIELD_VARIANCE = {'wood': (-2, 2),
+                        'gold': (-3, 3),
                         'quarry': (-2, 2),
                         'sunken_quarry': (0, 2)}
 BASE_YIELD_PER_HARVEST = {'pawn':
                               {'wood': 10,
-                               'gold': 9,
+                               'gold': 7,
                                'quarry': 8,
                                'sunken_quarry': 1},
                           'rogue_pawn':
                               {'wood': 7,
-                               'gold': 7,
+                               'gold': 2,
                                'quarry': 5,
                                'sunken_quarry': 1}}
 HARVEST_YIELD_VARIANCE = {'wood': (-2, 2),
-                          'gold': (-3, 3),
+                          'gold': (-2, 2),
                           'quarry': (-3, 3),
                           'sunken_quarry': (0, 2)}
 w_pieces = ['w_king',

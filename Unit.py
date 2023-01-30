@@ -302,8 +302,13 @@ class Building(Unit):
         return 'building'
 
     def right_click(self, engine):
-        if self.actions_remaining > 0 and engine.players[engine.turn].actions_remaining > 0:
-            return True
+        if self.actions_remaining > 0:
+            if engine.players[engine.turn].actions_remaining > 0:
+                return True
+            else:
+                engine.set_popup_reason('turn_action')
+        else:
+            engine.set_popup_reason('piece_action')
 
 
 class Piece(Unit):
@@ -478,6 +483,33 @@ class Duke(Piece):
             if not engine.rituals_banned:
                 return engine.transfer_to_praying_state(self.row, self.col)
 
+
+
+class NFireSpinner(Piece):
+    def __repr__(self):
+        return 'fire_spinner'
+
+    def __init__(self, row, col, color):
+        super().__init__(row, col, color)
+        self.knight_directions = (
+            Constant.TWO_UP_RIGHT, Constant.TWO_RIGHT_UP, Constant.TWO_DOWN_RIGHT, Constant.TWO_RIGHT_DOWN,
+            Constant.TWO_UP_LEFT, Constant.TWO_LEFT_UP, Constant.TWO_DOWN_LEFT, Constant.TWO_LEFT_DOWN)
+        self.depth = 3
+
+    def move_squares(self, engine):
+        squares = []
+        for direction in self.knight_directions:
+            r = self.row + direction[0]
+            c = self.col + direction[1]
+            if self.base_move_criteria(engine, r, c):
+                squares.append((r, c))
+                
+        return squares
+
+    def capture_squares(self, engine):
+        squares = []
+
+        return squares
 
 class FireSpinner(Piece):
     def __repr__(self):

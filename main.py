@@ -15,7 +15,7 @@ def main():
     engine = Engine()
     state = MainMenu(Constant.win, engine)
     engine.set_state(state)
-    pygame.display.set_caption("Chess RTS")
+    pygame.display.set_caption("Chess Empires")
     pygame.display.set_icon(Constant.IMAGES['icon'])
     # MAIN LOOP
     while engine.running:

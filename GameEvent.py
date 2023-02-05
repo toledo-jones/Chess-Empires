@@ -133,12 +133,14 @@ class Mine(GameEvent):
 
         if self.mined.remaining == 0:
             if isinstance(self.mined, Quarry):
-                self.engine.create_resource(self.mined.row, self.mined.col, SunkenQuarry(self.mined.row, self.mined.col))
+                self.engine.create_resource(self.mined.row, self.mined.col,
+                                            SunkenQuarry(self.mined.row, self.mined.col))
                 if self.engine.get_occupying(self.mined.row, self.mined.col):
                     self.piece_removed = self.engine.get_occupying(self.mined.row, self.mined.col)
                     self.engine.delete_piece(self.mined.row, self.mined.col)
             elif isinstance(self.mined, SunkenQuarry):
-                self.engine.create_resource(self.mined.row, self.mined.col, DepletedQuarry(self.mined.row, self.mined.col))
+                self.engine.create_resource(self.mined.row, self.mined.col,
+                                            DepletedQuarry(self.mined.row, self.mined.col))
             else:
                 self.engine.delete_resource(self.mined.row, self.mined.col)
         if Constant.MINING_COSTS_ACTION:
@@ -337,20 +339,27 @@ class ChangeTurn(GameEvent):
 
         else:
             if self.engine.turn_count_actual == len(self.engine.monolith_rituals) - 1:
-                self.engine.monolith_rituals.append(self.engine.generate_available_rituals(Constant.MONOLITH_RITUALS, Constant.MAX_MONOLITH_RITUALS_PER_TURN))
+                self.engine.monolith_rituals.append(self.engine.generate_available_rituals(Constant.MONOLITH_RITUALS,
+                                                                                           Constant.MAX_MONOLITH_RITUALS_PER_TURN))
             if self.engine.turn_count_actual == len(self.engine.prayer_stone_rituals) - 1:
-                self.engine.prayer_stone_rituals.append(self.engine.generate_available_rituals(Constant.PRAYER_STONE_RITUALS, Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN))
+                self.engine.prayer_stone_rituals.append(
+                    self.engine.generate_available_rituals(Constant.PRAYER_STONE_RITUALS,
+                                                           Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN))
             if self.engine.turn_count_actual == len(self.engine.magician_rituals) - 1:
-                self.engine.magician_rituals.append(self.engine.generate_available_rituals(Constant.MAGICIAN_RITUALS, Constant.MAX_MAGICIAN_RITUALS_PER_TURN))
+                self.engine.magician_rituals.append(self.engine.generate_available_rituals(Constant.MAGICIAN_RITUALS,
+                                                                                           Constant.MAX_MAGICIAN_RITUALS_PER_TURN))
 
         if self.engine.turn_count_actual == len(self.engine.trade_conversions) - 1:
             self.engine.trade_conversions.append(self.engine.trade_handler.get_conversions())
         if self.engine.turn_count_actual == len(self.engine.piece_stealing_offsets) - 1:
-            self.engine.piece_stealing_offsets.append(self.engine.generate_stealing_offsets(Constant.STEALING_KEY['piece']))
+            self.engine.piece_stealing_offsets.append(
+                self.engine.generate_stealing_offsets(Constant.STEALING_KEY['piece']))
         if self.engine.turn_count_actual == len(self.engine.building_stealing_offsets) - 1:
-            self.engine.building_stealing_offsets.append(self.engine.generate_stealing_offsets(Constant.STEALING_KEY['building']))
+            self.engine.building_stealing_offsets.append(
+                self.engine.generate_stealing_offsets(Constant.STEALING_KEY['building']))
         if self.engine.turn_count_actual == len(self.engine.trader_stealing_offsets) - 1:
-            self.engine.trader_stealing_offsets.append(self.engine.generate_stealing_offsets(Constant.STEALING_KEY['trader']))
+            self.engine.trader_stealing_offsets.append(
+                self.engine.generate_stealing_offsets(Constant.STEALING_KEY['trader']))
         unused_pieces = self.engine.count_unused_pieces()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
@@ -517,7 +526,8 @@ class SpawnTrap(GameEvent):
 
     def complete(self):
         super().complete()
-        self.engine.set_trap(self.dest[0], self.dest[1], self.engine.PIECES['trap'](self.dest[0], self.dest[1], self.color))
+        self.engine.set_trap(self.dest[0], self.dest[1],
+                             self.engine.PIECES['trap'](self.dest[0], self.dest[1], self.color))
         self.engine.sounds.play('spawn_building')
         self.spawner.actions_remaining -= 1
         self.engine.spawn_success = True
@@ -838,7 +848,6 @@ class TrapCapture(GameEvent):
         self.captured = self.action_tile.get_occupying()
         self.trap = self.action_tile.trap
 
-
     def complete(self):
         super().complete()
         self.moved.actions_remaining -= 1
@@ -1146,7 +1155,6 @@ class Swap(RitualEvent):
         self.first_tile = self.engine.board[self.row][self.col]
         self.second_tile = self.engine.board[self.dest_row][self.dest_col]
 
-
         # TRAP ON FIRST TILE
         if self.action_tile_has_effective_trap(self.first_tile, self.second_tile):
             self.second_trap = self.second_tile.trap
@@ -1203,7 +1211,6 @@ class Swap(RitualEvent):
 
         self.engine.intercept_pieces()
 
-
     def undo(self):
         super().undo()
         if self.first_trap:
@@ -1249,7 +1256,6 @@ class Smite(RitualEvent):
         super().complete()
         self.engine.delete_piece(self.row, self.col)
 
-
     def undo(self):
         super().undo()
         self.engine.create_piece(self.row, self.col, self.deleted_piece)
@@ -1277,8 +1283,16 @@ class Trade(GameEvent):
         super().complete()
         self.piece.actions_remaining -= 1
         amount = getattr(self.player, self.give_resource)
-        setattr(self.player, self.give_resource, amount  - self.give_amount)
+
+        # Debug
+        print(f"Giving {self.give_amount} {self.give_resource} to {self.player}")
+
+        setattr(self.player, self.give_resource, amount - self.give_amount)
         amount = getattr(self.player, self.receive_resource)
+
+        # Debug
+        print(f"Receiving {self.receive_amount} {self.receive_resource} from {self.player}")
+
         setattr(self.player, self.receive_resource, amount + self.receive_amount)
         self.engine.trading = []
         self.engine.piece_trading = None
@@ -1309,7 +1323,6 @@ class DestroyResource(RitualEvent):
         super().complete()
         self.engine.delete_resource(self.row, self.col)
 
-
     def undo(self):
         super().undo()
         self.engine.create_resource(self.row, self.col, self.deleted_resource)
@@ -1336,7 +1349,6 @@ class CreateResource(RitualEvent):
         super().complete()
 
         self.engine.create_resource(self.row, self.col, self.created_resource)
-
 
     def undo(self):
         super().undo()
@@ -1436,7 +1448,6 @@ class Protect(RitualEvent):
         self.engine.board[self.row][self.col].protect(self.turn)
         self.engine.protected_tiles.append(self.engine.board[self.row][self.col])
         self.engine.intercept_pieces()
-
 
     def undo(self):
         super().undo()

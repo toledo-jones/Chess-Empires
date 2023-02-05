@@ -88,7 +88,6 @@ class Wood(Resource):
         self.sprite_id = sprite_id
         super().__init__(row, col, owner)
 
-
     def get_sprite_id(self):
         return self.sprite_id
 

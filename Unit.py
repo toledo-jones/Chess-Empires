@@ -1800,7 +1800,7 @@ class GoldGeneral(Piece):
                 if self.can_capture(r, c, engine):
                     squares.append((r, c))
                     break
-                if not self.general_move_critera(engine, r, c):
+                if not self.general_move_criteria(engine, r, c):
                     break
 
         return squares

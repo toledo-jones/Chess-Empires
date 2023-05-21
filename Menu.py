@@ -532,7 +532,7 @@ class ResourceMenu(Menu):
         self.row = row
         self.col = col
         rand = str(random.randint(1, 4))
-        self.spawn_list = ['gold_tile_1', 'quarry_1', 'tree_tile_' + rand, 'sunken_quarry_1']
+        self.spawn_list = ['gold_tile_1', 'quarry_1', 'tree_tile_' + rand]
         super().__init__(win, engine)
         self.horizontal_buffer = Constant.SQ_SIZE
         self.vertical_buffer_between_pieces = Constant.SQ_SIZE // 4

@@ -342,7 +342,7 @@ PRAYER_COSTS = {'gold_general': {'prayer': 9, 'monk': 2, 'gold': 0},  # monk yie
                 'smite': {'prayer': 12, 'monk': 1, 'gold': 0},  # rituals have a prayer cost & monk cost
                 'destroy_resource': {'prayer': 6, 'monk': 0, 'gold': 0},
                 # & a gold cost, accessed by the magician or rogue monk?
-                'create_resource': {'prayer': 3, 'monk': 0, 'gold': 0},
+                'create_resource': {'prayer': 5, 'monk': 0, 'gold': 0},
                 'teleport': {'prayer': 6, 'monk': 0, 'gold': 10},
                 'swap': {'prayer': 2, 'monk': 0, 'gold': 10},
                 'line_destroy': {'prayer': 9, 'monk': 1, 'gold': 0},
@@ -1103,6 +1103,7 @@ def quarter_triangle_sections():
             top_right.append((r, c))
 
     return bottom_left, bottom_right, top_left, top_right
+
 
 def left_right_squares():
     left_squares, right_squares = [], []

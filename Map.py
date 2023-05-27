@@ -119,12 +119,12 @@ class Default(Map):
             if rand > 45:
                 self.spawn_wood(r, c)
 
-        # Middle Squares fill with Tree patterns
-        for square in Constant.big_center_squares():
-            rand = self.get_random()
-            r, c = square[0], square[1]
-            if rand > 65:
-                self.spawn_wood(r, c)
+        # # Middle Squares fill with Tree patterns
+        # for square in Constant.big_center_squares():
+        #     rand = self.get_random()
+        #     r, c = square[0], square[1]
+        #     if rand > 85:
+        #         self.spawn_wood(r, c)
 
         # 1 tree in each players starting square
         for square_set in self.default_start_squares:
@@ -274,7 +274,7 @@ class GoldTopLeft(Map):
 class TriangleTrees(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.quarter_triangle_sections = Constant.quarter_triangle_sections_d()
+        self.quarter_triangle_sections = Constant.quarter_triangle_sections()
 
     def generate_resources(self):
         super().generate_resources()
@@ -578,7 +578,7 @@ class GoldCornersB(Map):
         self.choices = [self.spawn_wood_nearby_pattern]
 
     def generate_resources(self):
-        for section in Constant.quarter_triangle_sections():
+        for section in Constant.quarter_triangle_sections_e():
             for square in section:
                 (r, c) = square[0], square[1]
                 self.spawn_wood(r, c)
@@ -597,7 +597,7 @@ class GoldCornersA(Map):
         self.choices = [self.spawn_wood, self.spawn_quarry, self.spawn_wood_nearby_pattern]
 
     def generate_resources(self):
-        for section in Constant.quarter_triangle_sections():
+        for section in Constant.quarter_triangle_sections_e():
             for square in section:
                 (r, c) = square[0], square[1]
                 self.spawn_wood(r, c)

@@ -1086,6 +1086,34 @@ def quarter_triangle_sections():
     top_right = []
     x, y = board_max_index()
 
+    # D TYPE:
+    for r in range(5, y + 1):
+        for c in range(0, r - 2):
+            bottom_left.append((r, c))
+
+    for r in range(y-3, y+1):
+        for c in range(x, x - (r - 3), -1):
+            bottom_right.append((r, c))
+
+    for r in range(0, 5):
+        for c in range(5 - r, -1, -1):
+            top_left.append((r, c))
+
+    for r in range(0, 5):
+        for c in range(x, x - (5 - r), -1):
+            top_right.append((r, c))
+
+
+    return bottom_left, bottom_right, top_left, top_right
+
+
+def quarter_triangle_sections_e():
+    bottom_left = []
+    bottom_right = []
+    top_left = []
+    top_right = []
+    x, y = board_max_index()
+
     for r in range(y-3, y+1):
         for c in range(0, r-5):
             bottom_left.append((r, c))

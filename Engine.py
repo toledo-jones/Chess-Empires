@@ -142,9 +142,9 @@ class Engine:
                           'tree_tile_3': Wood, 'tree_tile_4': Wood,
                           'sunken_quarry_1': SunkenQuarry,
                           'depleted_quarry_1': DepletedQuarry}
-        self.MAPS = [Default, Minimal, VTrees, GoldTopRight, GoldTopLeft, TriangleTrees,
+        self.MAPS = [Default, Minimal, VTrees, TriangleTrees,
                      UnbalancedForestA, UnbalancedForestB, UltraBalanced, LeftRight, OnlyStoneAndGold, FourCorners, CenterCircleA, CenterCircleB, SuperMinimal, GoldCornersA, GoldCornersB]
-        # self.MAPS = []
+        # self.MAPS = [TriangleTrees]
         self.MENUS = {'stable': StableMenu,
                       'fortress': FortressMenu,
                       'barracks': BarracksMenu,

@@ -319,7 +319,7 @@ class Piece(Unit):
         return 'piece'
 
     def general_move_criteria(self, engine, r, c):
-        if engine.can_be_legally_occupied_by_gold_general(r, c):
+        if engine.can_be_occupied_by_gold_general(r, c):
             if engine.board[r][c].is_protected_by_opposite_color(self.color):
                 return False
             return True

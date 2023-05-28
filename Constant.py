@@ -151,7 +151,7 @@ PRAYER_STONE_RITUALS = ['protect',
                         'portal',
                         'destroy_resource', ]
 MAGICIAN_RITUALS = ['portal', 'swap', 'teleport']
-DECREE_COST = 30
+DECREE_COST = 25
 DECREE_INCREMENT = 5
 DEFAULT_PIECE_LIMIT = 3
 
@@ -174,7 +174,7 @@ STEALING_KEY = {'building': {
         'wood': {'variance': (-2, 2), 'value': 4},
         'gold': {'variance': (-2, 2), 'value': 4},
         'stone': {'variance': (-2, 2), 'value': 4}}}
-MAX_MONOLITH_RITUALS_PER_TURN = 2
+MAX_MONOLITH_RITUALS_PER_TURN = 1
 MAX_PRAYER_STONE_RITUALS_PER_TURN = 3
 MAX_MAGICIAN_RITUALS_PER_TURN = 2
 MASTER_COST_LIST = ['builder', 'monk', 'stable', 'castle', 'barracks', 'fortress', 'circus']
@@ -338,7 +338,7 @@ PIECE_POPULATION = {'king': 1,
                     'fire_spinner': 1,
                     'acrobat': 1,
                     'magician': 1}
-PRAYER_COSTS = {'gold_general': {'prayer': 9, 'monk': 2, 'gold': 0},  # monk yields 3, other pieces yield 2
+PRAYER_COSTS = {'gold_general': {'prayer': 12, 'monk': 2, 'gold': 0},  # monk yields 3, other pieces yield 2
                 'smite': {'prayer': 12, 'monk': 1, 'gold': 0},  # rituals have a prayer cost & monk cost
                 'destroy_resource': {'prayer': 6, 'monk': 0, 'gold': 0},
                 # & a gold cost, accessed by the magician or rogue monk?
@@ -1102,7 +1102,6 @@ def quarter_triangle_sections():
     for r in range(0, 5):
         for c in range(x, x - (5 - r), -1):
             top_right.append((r, c))
-
 
     return bottom_left, bottom_right, top_left, top_right
 

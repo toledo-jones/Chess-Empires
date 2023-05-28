@@ -1643,7 +1643,7 @@ class Hud(SideMenu):
         self.title_icon_height = Constant.IMAGES['w_game_name'].get_height()
         self.title_icon_display_x = self.menu_width // 2 - self.title_icon_width // 2
         self.title_icon_display_y = self.menu_height // 8 - self.title_icon_height // 2
-        self.font_size = (round(Constant.SQ_SIZE * .8))
+        self.font_size = (round(Constant.SQ_SIZE * .5))
         self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
         self.counter_icon_display_x = Constant.BOARD_WIDTH_PX + 10
         self.coin_icon_display_y = round(self.menu_height * (8 / 10))

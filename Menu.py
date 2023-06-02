@@ -102,7 +102,7 @@ class Notification(Menu):
             self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
             self.menu.blit(self.square, (self.highlight_display_x, self.highlight_display_y))
         self.menu.blit(self.ok_text_surface, (self.ok_display_x, self.ok_display_y))
-        self.win.blit(self.menu, (self.menu_position_x,self.menu_position_y))
+        self.win.blit(self.menu, (self.menu_position_x, self.menu_position_y))
 
     def left_click(self):
         menu_above_ok_button = len(self.message) * round(Constant.SQ_SIZE * .8)
@@ -1432,7 +1432,7 @@ class StartMenu(SideMenu):
     def __init__(self, win, engine):
         super().__init__(win, engine)
         self.color = Constant.INTRO_TEXT_COLOR
-        self.font_size = round(Constant.SQ_SIZE / 1.3)
+        self.font_size = round(Constant.SQ_SIZE / 2.5)
         self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
         self.ver_text = Constant.VERSION + " " + Constant.NUMBER
         self.version_text_surf = self.font.render(self.ver_text, True, self.color)
@@ -1442,7 +1442,7 @@ class StartMenu(SideMenu):
         self.map_image_width = self.reset_map_image.get_width()
         self.reset_map_display_x = self.menu_width // 2 - self.reset_map_image.get_width() // 2
         self.reset_map_display_y = self.menu_height - self.menu_height // 1 / 5
-        self.choose_text = 'choose'
+        self.choose_text = 'select'
         self.choose_text_surf = self.font.render(self.choose_text, True, self.color)
         self.choose_text_display_x = self.menu_width // 2 - self.choose_text_surf.get_width() // 2
         self.choose_text_display_y = self.menu_height // 4
@@ -1453,7 +1453,7 @@ class StartMenu(SideMenu):
         self.faction_text_display_y = self.your_text_display_y + Constant.SQ_SIZE
         self.w_boat = Constant.IMAGES['w_boat']
         self.b_boat = Constant.IMAGES['b_boat']
-        self.b_display_x = self.menu_width - round(self.menu_width ** 1 / 3)
+        self.b_display_x = self.menu_width - self.b_boat.get_width()
         self.w_display_x = 0
         self.boat_display_y = Constant.SQ_SIZE * 6
         a = (self.menu_height * 1 / 5)
@@ -1463,13 +1463,11 @@ class StartMenu(SideMenu):
         self.w_piece_highlight = False
         self.b_piece_highlight = False
         self.randomize_resources_highlight = False
-        self.scale = Constant.BOAT_PIECE_SCALE
+        self.scale = Constant.DEFAULT_PIECE_SCALE
         self.buffer = self.scale[0]
-        self.square = pygame.Surface((round(self.scale[0] * .8), round(self.scale[1] * .8)))
+        self.square = pygame.Surface(self.scale)
         self.square_highlight_buffer = Constant.SQ_SIZE // 5
-        self.w_square_display_x = 0
-        self.b_square_display_x = self.b_display_x
-        self.square_display_y = self.display_y + self.square_highlight_buffer + Constant.SQ_SIZE // 10
+
         self.resources_square = pygame.Surface((self.menu_width, round(a)))
         self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
         self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
@@ -1487,9 +1485,9 @@ class StartMenu(SideMenu):
         self.menu.blit(self.w_boat, (self.w_display_x, self.boat_display_y))
         self.menu.blit(self.b_boat, (self.b_display_x, self.boat_display_y))
         if self.b_piece_highlight:
-            self.menu.blit(self.square, (self.b_square_display_x, self.square_display_y))
+            self.menu.blit(self.square, (self.b_display_x, self.display_y))
         elif self.w_piece_highlight:
-            self.menu.blit(self.square, (self.w_square_display_x, self.square_display_y))
+            self.menu.blit(self.square, (self.w_display_x, self.display_y))
         elif self.randomize_resources_highlight:
             self.menu.blit(self.resources_square, (0, round(Constant.BOARD_HEIGHT_PX * 4 / 5)))
         self.menu.blit(self.reset_map_image,
@@ -1502,11 +1500,11 @@ class StartMenu(SideMenu):
         pos = pygame.mouse.get_pos()
         if pos[0] > Constant.BOARD_WIDTH_PX:
             menu_mouse_x_position = pos[0] - Constant.BOARD_WIDTH_PX
-            if pos[1] in range(self.display_y - self.buffer, self.display_y + self.buffer):
-                if menu_mouse_x_position in range(self.w_display_x - self.buffer, self.w_display_x + self.buffer):
+            if pos[1] in range(self.display_y, self.display_y + self.w_boat.get_height()):
+                if menu_mouse_x_position in range(self.w_display_x, self.w_display_x + self.w_boat.get_width()):
                     self.engine.turn = 'w'
                     starting = True
-                elif menu_mouse_x_position in range(self.b_display_x - self.buffer, self.b_display_x + self.buffer):
+                if menu_mouse_x_position in range(self.b_display_x, self.b_display_x + self.b_boat.get_width()):
                     self.engine.turn = 'b'
                     starting = True
 
@@ -1532,14 +1530,14 @@ class StartMenu(SideMenu):
         pos = pygame.mouse.get_pos()
         if pos[0] > Constant.BOARD_WIDTH_PX:
             menu_mouse_x_position = pos[0] - Constant.BOARD_WIDTH_PX
-            if pos[1] in range(self.display_y - self.buffer, self.display_y + self.buffer):
-                if menu_mouse_x_position in range(self.w_display_x - self.buffer, self.w_display_x + self.buffer):
+            if pos[1] in range(self.display_y, self.display_y + self.w_boat.get_height()):
+                if menu_mouse_x_position in range(self.w_display_x, self.w_display_x + self.w_boat.get_width()):
                     self.w_piece_highlight = True
 
                 else:
                     self.w_piece_highlight = False
 
-                if menu_mouse_x_position in range(self.b_display_x - self.buffer, self.b_display_x + self.buffer):
+                if menu_mouse_x_position in range(self.b_display_x, self.b_display_x + self.b_boat.get_width()):
                     self.b_piece_highlight = True
 
                 else:
@@ -1656,7 +1654,7 @@ class Hud(SideMenu):
         self.bar_end_width = Constant.IMAGES['prayer_bar_end'].get_width()
         self.bar_width = Constant.IMAGES['prayer_bar'].get_width()
         self.bar_height = Constant.IMAGES['prayer_bar'].get_height()
-        self.counter_text_buffer = Constant.SQ_SIZE // 8
+        self.counter_text_buffer = Constant.SQ_SIZE
         self.prayer_bar_height = self.prayer_icon_display_y + round(
             Constant.MENU_ICONS['prayer'].get_height() // 2) - round(self.bar_height // 2)
         self.prayer_bar_edge = self.counter_icon_display_x + self.counter_text_buffer
@@ -1678,23 +1676,25 @@ class Hud(SideMenu):
         # Gold Counter
         if not self.engine.players[self.engine.turn].gold == 0:
             self.win.blit(Constant.IMAGES['gold_coin'], (self.counter_icon_display_x, self.coin_icon_display_y))
-            white_coin_text = self.font.render(" : " + str(self.engine.players[self.engine.turn].gold), True,
+            white_coin_text = self.font.render(str(self.engine.players[self.engine.turn].gold), True,
                                                Constant.turn_to_color[self.engine.turn])
             self.win.blit(white_coin_text, (
-                (self.counter_icon_display_x + self.counter_text_buffer), self.coin_icon_display_y - self.text_vertical_offset))
+                (self.counter_icon_display_x + self.counter_text_buffer),
+                self.coin_icon_display_y - self.text_vertical_offset))
 
         # Wood Counter
         if not self.engine.players[self.engine.turn].wood == 0:
             self.win.blit(Constant.IMAGES['log'], (self.counter_icon_display_x, self.log_icon_display_y))
-            white_log_text = self.font.render(" : " + str(self.engine.players[self.engine.turn].wood), True,
+            white_log_text = self.font.render(str(self.engine.players[self.engine.turn].wood), True,
                                               Constant.turn_to_color[self.engine.turn])
             self.win.blit(white_log_text, (
-                (self.counter_icon_display_x + self.counter_text_buffer), self.log_icon_display_y - self.text_vertical_offset))
+                (self.counter_icon_display_x + self.counter_text_buffer),
+                self.log_icon_display_y - self.text_vertical_offset))
 
         # Stone Counter
         if not self.engine.players[self.engine.turn].stone == 0:
             self.win.blit(Constant.IMAGES['stone'], (self.counter_icon_display_x, self.stone_icon_display_y))
-            white_log_text = self.font.render(" : " + str(self.engine.players[self.engine.turn].stone), True,
+            white_log_text = self.font.render(str(self.engine.players[self.engine.turn].stone), True,
                                               Constant.turn_to_color[self.engine.turn])
             self.win.blit(white_log_text, (
                 (self.counter_icon_display_x + self.counter_text_buffer),
@@ -1711,10 +1711,9 @@ class Hud(SideMenu):
 
         # Actions Remaining Counter
         self.win.blit(Constant.IMAGES['action'], (self.counter_icon_display_x, self.action_icon_display_y))
-        actions_remaining_text = self.font.render(
-            " : " + str(self.engine.players[self.engine.turn].get_actions_remaining()),
-            True,
-            Constant.turn_to_color[self.engine.turn])
+        actions_remaining_text = self.font.render(str(self.engine.players[self.engine.turn].get_actions_remaining()),
+                                                  True,
+                                                  Constant.turn_to_color[self.engine.turn])
         self.win.blit(actions_remaining_text,
                       ((self.counter_icon_display_x + self.counter_text_buffer),
                        self.action_icon_display_y - self.text_vertical_offset))
@@ -1723,16 +1722,18 @@ class Hud(SideMenu):
         self.win.blit(Constant.IMAGES['units'], (self.counter_icon_display_x, self.units_icon_display_y))
         t = str(self.engine.players[self.engine.turn].get_current_population()) + "/" + str(
             self.engine.players[self.engine.turn].get_piece_limit())
-        units_text = self.font.render(" : " + t, True, Constant.turn_to_color[self.engine.turn])
+        units_text = self.font.render(t, True, Constant.turn_to_color[self.engine.turn])
         self.win.blit(units_text, (
-            (self.counter_icon_display_x + self.counter_text_buffer), self.units_icon_display_y - self.text_vertical_offset))
+            (self.counter_icon_display_x + self.counter_text_buffer),
+            self.units_icon_display_y - self.text_vertical_offset))
 
         # Turn Counter
         self.win.blit(Constant.IMAGES['hour_glass'], (self.counter_icon_display_x, self.turn_icon_display_y))
-        turn_number_text = " : " + str(self.engine.turn_count_display)
+        turn_number_text = str(self.engine.turn_count_display)
         text_surf = self.font.render(turn_number_text, True, Constant.turn_to_color[self.engine.turn])
         self.win.blit(text_surf, (
-            self.counter_icon_display_x + self.counter_text_buffer, self.turn_icon_display_y - self.text_vertical_offset))
+            self.counter_icon_display_x + self.counter_text_buffer,
+            self.turn_icon_display_y - self.text_vertical_offset))
 
     def mouse_move(self):
         pos = pygame.mouse.get_pos()

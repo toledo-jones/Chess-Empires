@@ -34,24 +34,9 @@ win.blit(MAIN_MENU_LOGO, LOGO_POSITION)
 pygame.display.update()
 time.sleep(2)
 
-VERSION = "a"
-NUMBER = "v0.024"
+VERSION = ""
+NUMBER = ""
 MAX_FPS = 120
-
-# TARGET_GRID_SIZE = 10 * 14
-# # NEW
-#
-# SQ_SIZE = 50
-# BOARD_WIDTH_SQ = 14
-# BOARD_HEIGHT_SQ = 10
-#
-# BOARD_HEIGHT_PX = BOARD_HEIGHT_SQ * SQ_SIZE
-#
-# BOARD_WIDTH_PX = BOARD_WIDTH_SQ * SQ_SIZE
-#
-# SIDE_MENU_WIDTH = 100
-# BORDER = 0
-# OLD
 
 BOARD_HEIGHT_PX = pygame.display.Info().current_h
 
@@ -103,7 +88,6 @@ FORTRESS_SCALE = (round(SQ_SIZE * 1.15), round(SQ_SIZE * 1.15))
 FORTRESS_OFFSET = (0, -10)
 WALL_OFFSET = (-10, -10)
 PRAYER_RITUAL_SCALE = (round(SQ_SIZE * 1.5), round(SQ_SIZE * 1.5))
-BOAT_PIECE_SCALE = round(SQ_SIZE * 1.5), round(SQ_SIZE * 1.5)
 RESOURCES_BUTTON_SCALE = (SIDE_MENU_WIDTH, 2 * SQ_SIZE)
 YES_BUTTON_SCALE = (round(SQ_SIZE * .8), round(SQ_SIZE * .8))
 NO_BUTTON_SCALE = (round(SQ_SIZE * .8), round(SQ_SIZE * .8))
@@ -125,8 +109,8 @@ DEBUG_STARTING_STONE = 10
 DEBUG_STARTING_PIECES = ['castle', 'king', 'trader']
 
 'DEFAULT START'
-DEBUG_START = False
-BOARD_STARTS_WITH_RESOURCES = True
+DEBUG_START = True
+BOARD_STARTS_WITH_RESOURCES = False
 DEBUG_RITUALS = False
 POP_UPS_ON = True
 
@@ -155,7 +139,7 @@ DECREE_COST = 25
 DECREE_INCREMENT = 5
 DEFAULT_PIECE_LIMIT = 3
 
-TRADING_GIVE_BOUNDS = (3 / 8, 1 / 2)
+TRADING_GIVE_BOUNDS = (5 / 8, 1 / 2)
 TRADING_RECEIVE_BOUNDS = (5 / 8, 15 / 16)
 
 PRAYER_STONE_YIELD = 2
@@ -247,34 +231,32 @@ DESCRIPTIONS = {'king': ['every player gets one', 'capture your opponent\'s to w
                                  'all resource tiles'],
                 'quarry_1': ['can be mined for stone', 'may cave in and begin to yield less stone',
                              'eventually becomes depleted if mined after it caves in'],
-                'pawn': ['can mine resources', 'mine an empty space to create a quarry'],
-                'builder': ['can create buildings'],
+                'pawn': ['moves two spaces orthogonally', 'harvests resources', 'mines certain empty squares to create quarries'],
+                'builder': ['creates buildings used to spawning more powerful pieces'],
                 'monk': ['prays at monoliths to cast powerful rituals'],
-                'pikeman': ['attacks and defends all surrounding squares', 'a useful defender'],
-                'castle': ['creates basic pieces, such as pawns and the builder'],
-                'stable': ['creates leapers, such as the knight'],
-                'barracks': ['creates basic attacking pieces', 'a staple in any good kingdom'],
-                'fortress': ['creates rogue pieces who', 'can move through forest tiles and',
-                             'steal from enemy pieces'],
-                'queen': ['attacks in all directions as far as the eye can see',
-                          'also can ban rituals by royal decree'],
-                'rook': ['attacks orthogonally and has the', 'ability to pray'],
-                'bishop': ['attacks diagonally and has the', 'ability to pray'],
-                'knight': ['a simple leaper who moves up two and over one'],
-                'jester': ['cannot capture but', 'moves like a queen and any piece or', 'building nearby cannot act'],
-                'rogue_rook': ['a rook who can move through the forest', 'and can steal from enemy pieces'],
-                'rogue_bishop': ['a bishop who can move through the forest', 'and can steal from enemy pieces'],
-                'rogue_knight': ['a knight who can move through the forest', 'and can steal from enemy pieces'],
-                'rogue_pawn': ['a pawn who can move through the forest', 'and can steal from nearby pieces'],
+                'pikeman': ['moves one away square in each direction'],
+                'castle': ['creates basic pieces, such as pawns and builders'],
+                'stable': ['creates cavalry such as knights, elephants and rams'],
+                'barracks': ['creates \'simple\' pieces such as rooks and bishops'],
+                'fortress': ['creates rogue versions of the simple chess pieces', 'rogues move through forest tiles and can steal resources'],
+                'queen': ['attacks orthogonally and diagonally',
+                          'right click to ban rituals by royal decree'],
+                'rook': ['attacks orthogonally', 'is able to pray at prayer sites'],
+                'bishop': ['attacks diagonally', 'is able to pray at prayer sites'],
+                'knight': ['moves up two and over one'],
+                'jester': ['does not capture pieces', 'moves like a queen', 'pieces nearby cannot act'],
+                'rogue_rook': ['a rook who moves through the forest', 'and steals from enemy pieces'],
+                'rogue_bishop': ['a bishop who moves through the forest', 'and steals from enemy pieces'],
+                'rogue_knight': ['a knight who moves through the forest', 'and steals from enemy pieces'],
+                'rogue_pawn': ['a pawn who moves through the forest', 'and steals from enemy pieces'],
                 'oxen': ['moves like a knight, then like a rook'],
-                'champion': ['moves diagonally one square', 'then like a rook in that same direction'],
-                'elephant': ['a leaper who moves up three and over one', 'and who also moves like a knight'],
-                'ram': ['a leaper who moves like a knight, then like a bishop'],
-                'unicorn': ['a leaper who moves like a knight ', 'can double jump if nothing obstructs it\'s movement',
-                            ' also moves two forward in every direction'],
-                'monolith': ['a strange, powerful prayer site', 'can be used to cast rituals'],
-                'prayer_stone': ['a strange prayer site'],
-                'duke': ['moves like a queen', 'but has the ability to pray'],
+                'champion': ['moves diagonally one square', 'then like a rook'],
+                'elephant': ['moves like a knight', 'and, if unobstructed, can move forward one more square'],
+                'ram': ['moves like a knight, then like a bishop'],
+                'unicorn': ['moves like a knight ', 'moves two forward in every direction', 'makes an additional knight move if nothing obstructs it\'s movement'],
+                'monolith': ['casts powerful rituals', 'requires praying pieces to use'],
+                'prayer_stone': ['casts useful rituals', 'requiring praying pieces to use'],
+                'duke': ['moves like a queen', 'is able to pray at prayer sites'],
                 'smite': ['select one piece or building to be destroyed'],
                 'destroy_resource': ['select one resource to be destroyed'],
                 'create_resource': ['create a resource'],
@@ -292,7 +274,7 @@ DESCRIPTIONS = {'king': ['every player gets one', 'capture your opponent\'s to w
                 'lion': ['moves like a knight and a rook'],
                 'fire_spinner': ['makes knight moves until it is blocked'],
                 'acrobat': ['moves like a bishop but can jump over a piece'],
-                'trapper': ['creates traps which, once captured ', 'destroy the piece that captured them'],
+                'trapper': ['creates traps which, once moved onto ', 'destroy the piece that moved onto them'],
                 'magician': ['casts certain rituals for a gold cost'],
                 }
 PIECE_POPULATION = {'king': 1,
@@ -343,10 +325,10 @@ PRAYER_COSTS = {'gold_general': {'prayer': 12, 'monk': 2, 'gold': 0},  # monk yi
                 'destroy_resource': {'prayer': 6, 'monk': 0, 'gold': 0},
                 # & a gold cost, accessed by the magician or rogue monk?
                 'create_resource': {'prayer': 5, 'monk': 0, 'gold': 0},
-                'teleport': {'prayer': 6, 'monk': 0, 'gold': 10},
-                'swap': {'prayer': 2, 'monk': 0, 'gold': 10},
+                'teleport': {'prayer': 6, 'monk': 0, 'gold': 2},
+                'swap': {'prayer': 2, 'monk': 0, 'gold': 2},
                 'line_destroy': {'prayer': 9, 'monk': 1, 'gold': 0},
-                'portal': {'prayer': 2, 'monk': 0, 'gold': 10},
+                'portal': {'prayer': 2, 'monk': 0, 'gold': 2},
                 'protect': {'prayer': 2, 'monk': 0, 'gold': 0}}
 ADDITIONAL_PIECE_LIMIT = {'castle': 5, 'barracks': 3, 'fortress': 3, 'stable': 3, 'circus': 3,
                           'king': 0,
@@ -555,10 +537,10 @@ IMAGES_IMAGE_MODIFY = {'icon': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                        'prayer_bar': {'SCALE': PRAYER_BAR_SCALE, 'OFFSET': (0, 0)},
                        'hour_glass': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                        'stone': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
-                       'w_boat': {'SCALE': BOAT_PIECE_SCALE, 'OFFSET': (0, 0)},
+                       'w_boat': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                        'hammer': {'SCALE': PICKAXE_SCALE, 'OFFSET': (0, 0)},
                        'axe': {'SCALE': PICKAXE_SCALE, 'OFFSET': (0, 0)},
-                       'b_boat': {'SCALE': BOAT_PIECE_SCALE, 'OFFSET': (0, 0)},
+                       'b_boat': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                        'resources_button': {'SCALE': RESOURCES_BUTTON_SCALE, 'OFFSET': (0, 0)},
                        'b_no': {'SCALE': NO_BUTTON_SCALE, 'OFFSET': (0, 0)},
                        'b_yes': {'SCALE': YES_BUTTON_SCALE, 'OFFSET': (0, 0)},

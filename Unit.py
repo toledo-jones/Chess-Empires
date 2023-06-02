@@ -1016,6 +1016,7 @@ class RogueKnight(Piece):
                                     Constant.DOWN_LEFT)
         self.distance = 1
         self.is_rogue = True
+        self.is_cavalry = True
 
     def stealing_squares(self, engine):
         squares = []

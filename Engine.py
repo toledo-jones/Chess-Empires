@@ -165,6 +165,14 @@ class Engine:
         self.trade_conversions.append(self.trade_handler.get_conversions())
         self.sounds = Sounds()
 
+    def reset_flags(self):
+        self.spawning = None
+        self.stealing = None
+        self.piece_trading = None
+        self.trading = []
+        self.mining = False
+        self.praying = False
+
     def get_decree_cost(self):
         return Constant.DECREE_COST + (self.decrees * Constant.DECREE_INCREMENT)
 
@@ -1139,6 +1147,13 @@ class Engine:
         action_tile = None
         event = Trade(self, acting_tile, action_tile)
         self.add_event(event)
+        self.state[-1].revert_to_playing_state()
+
+    def transfer_to_trading_state(self, row, col):
+        new_state = Trading(self.state[-1].win, self)
+        self.set_state(new_state)
+        return self.create_trader_menu(row, col)
+
 
     def create_trader_menu(self, row, col, set_new_piece_trading=True):
         player = self.players[self.turn]

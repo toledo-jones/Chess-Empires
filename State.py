@@ -68,7 +68,7 @@ class State:
         #
         #   used by many states to return to the 'playing' state, or default state
         #
-        self.engine.spawning = None
+        self.engine.reset_flags()
         self.engine.reset_selected()
         self.engine.close_menus()
         new_state = Playing(self.win, self.engine)
@@ -121,6 +121,7 @@ class State:
         prev = self.engine.update_previously_selected()
         if prev is not None:
             self.engine.reset_selected()
+            self.revert_to_playing_state()
         try:
             if isinstance(self.engine.events[-1], AITurn):
                 for _ in range(2):
@@ -390,7 +391,16 @@ class SelectStartingPieces(State):
         self.cols = len(Constant.SELECTABLE_STARTING_PIECES)
         self.rows = Constant.NUMBER_OF_STARTING_PIECES
         self.selection_matrix = [[[0 for y in range(3)] for x in range(self.cols)] for _ in range(self.rows)]
+        self.instruction_text = [' \'tab\' to go back', ' \'space bar\' to confirm selection',
+                                 ' \'right click\' to view the map']
+        self.instruction_text_surfaces = []
+        self.instruction_text_font_size = Constant.SQ_SIZE // 2
+        self.instruction_text_font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.instruction_text_font_size)
+        for line in self.instruction_text:
+            l = self.instruction_text_font.render(line, True, Constant.turn_to_color[self.engine.turn])
+            self.instruction_text_surfaces.append(l)
 
+        self.instruction_text_height = self.instruction_text_surfaces[0].get_height()
         for c in range(self.cols):
             for r in range(self.rows):
                 self.selection_matrix[r][c][0] = Constant.SELECTABLE_STARTING_PIECES[c]
@@ -488,6 +498,11 @@ class SelectStartingPieces(State):
                 initial_y += y_buffer * 2
 
             self.win.blit(self.text_surf, (20, 0))
+            y_buffer = self.initial_y
+            for line in self.instruction_text_surfaces:
+                description_text_x = 0
+                self.win.blit(line, (description_text_x, y_buffer))
+                y_buffer += self.instruction_text_height
         else:
             super().draw()
 
@@ -915,6 +930,8 @@ class PrayingBuilding(State):
             self.engine.set_state(new_state)
             return True
 
+    def tab(self):
+        self.revert_to_playing_state()
 
 class MiningStealing(State):
     def __init__(self, win, engine):
@@ -1004,6 +1021,9 @@ class MiningStealing(State):
                 if not menu.mouse_in_menu_bounds():
                     self.revert_to_playing_state()
 
+    def tab(self):
+        self.revert_to_playing_state()
+
 
 class Mining(State):
     def __init__(self, win, engine):
@@ -1076,6 +1096,9 @@ class Mining(State):
         #     new_state = Playing(self.win, self.engine)
         #     self.engine.set_state(new_state)
 
+    def tab(self):
+        self.revert_to_playing_state()
+
 
 class Persuading(State):
     def __init__(self, win, engine):
@@ -1130,6 +1153,9 @@ class Persuading(State):
                         new_state = Winner(self.win, self.engine)
                         self.engine.set_state(new_state)
                         return True
+
+    def tab(self):
+        self.revert_to_playing_state()
 
 
 class Stealing(State):
@@ -1197,6 +1223,9 @@ class Stealing(State):
                 menu.mouse_move()
                 if not menu.mouse_in_menu_bounds():
                     self.revert_to_playing_state()
+
+    def tab(self):
+        self.revert_to_playing_state()
 
 
 class PreBuilding(State):
@@ -1280,6 +1309,42 @@ class PreBuilding(State):
             self.spawning_piece.spawn_squares_list = [(row, col)]
             return True
 
+    def tab(self):
+        self.revert_to_playing_state()
+
+
+class Trading(State):
+    def __init__(self, win, engine):
+        super().__init__(win, engine)
+        self.side_bar = Hud(self.win, self.engine)
+
+    def __repr__(self):
+        return 'praying'
+
+    def draw(self):
+        super().draw()
+        self.side_bar.draw()
+        if self.engine.menus:
+            for menu in self.engine.menus:
+                menu.draw()
+
+    def mouse_move(self):
+        if self.engine.menus:
+            for menu in self.engine.menus:
+                menu.mouse_move()
+
+    def left_click(self):
+        if self.engine.menus:
+            for menu in self.engine.menus:
+                menu.left_click()
+
+    def right_click(self):
+        if self.engine.menus:
+            for menu in self.engine.menus:
+                menu.right_click()
+
+    def tab(self):
+        self.revert_to_playing_state()
 
 class Praying(State):
     def __init__(self, win, engine):
@@ -1344,6 +1409,9 @@ class Praying(State):
         #     new_state = Playing(self.win, self.engine)
         #     self.engine.set_state(new_state)
 
+    def tab(self):
+        self.revert_to_playing_state()
+
 
 class Spawning(State):
     def __init__(self, win, engine):
@@ -1367,7 +1435,6 @@ class Spawning(State):
                 self.win.blit(self.spawnTable[(self.engine.turn + "_" + self.engine.spawning)],
                               (displayPosX, displayPosY))
             return True
-
 
     def left_click(self):
         pos = pygame.mouse.get_pos()
@@ -1395,7 +1462,6 @@ class Spawning(State):
 
     def tab(self):
         self.revert_to_playing_state()
-
 
 class Winner(State):
 

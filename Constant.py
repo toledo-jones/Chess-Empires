@@ -56,7 +56,7 @@ HIGHLIGHT_ALPHA = 110
 SPAWNING_MENU_WIDTH = round(SQ_SIZE * 5.5)
 SPAWNING_MENU_HEIGHT_BUFFER = SQ_SIZE * 1.3
 SIDE_MENU_HEIGHT = BOARD_HEIGHT_PX
-GAME_NAME_SCALE = (round(SQ_SIZE * 2.2), round(SQ_SIZE * 2.2))
+GAME_NAME_SCALE = (round(SQ_SIZE * 2), round(SQ_SIZE * 2))
 PICKAXE_SCALE = (SQ_SIZE * 2, SQ_SIZE * 2)
 CENTER_X = BOARD_WIDTH_SQ * SQ_SIZE // 2 + SQ_SIZE // 2
 CENTER_Y = BOARD_HEIGHT_SQ * SQ_SIZE // 2
@@ -100,13 +100,13 @@ PROTECT_SQUARE_OFFSET = (SQ_SIZE // 2 - PROTECT_SQUARE_SCALE[0] // 2, SQ_SIZE //
 # DEBUG_START = True
 # BOARD_STARTS_WITH_RESOURCES = False
 # DEBUG_RITUALS = True
-# POP_UPS_ON = False
+# POP_UPS_ON = True
 
-DEBUG_STARTING_PRAYER = 12
-DEBUG_STARTING_WOOD = 0
-DEBUG_STARTING_GOLD = 0
-DEBUG_STARTING_STONE = 10
-DEBUG_STARTING_PIECES = ['castle', 'king', 'trader']
+DEBUG_STARTING_PRAYER = 30
+DEBUG_STARTING_WOOD = 999
+DEBUG_STARTING_GOLD = 999
+DEBUG_STARTING_STONE = 99
+DEBUG_STARTING_PIECES = ['castle', 'king', 'pawn']
 
 'DEFAULT START'
 DEBUG_START = False
@@ -205,15 +205,15 @@ PIECE_COSTS = {'king': {'log': 999, 'gold': 999, 'stone': 999},
                'oxen': {'log': 12, 'gold': 0, 'stone': 12},
                'champion': {'log': 0, 'gold': 9, 'stone': 9},
                'wall': {'log': 0, 'gold': 0, 'stone': 3},
-               'persuader': {'log': 0, 'gold': 20, 'stone': 0},
+               'persuader': {'log': 0, 'gold': 14, 'stone': 0},
                'doe': {'log': 14, 'gold': 0, 'stone': 14},
                'trader': {'log': 6, 'gold': 0, 'stone': 0},
                'circus': {'log': 0, 'gold': 10, 'stone': 0},
                'trapper': {'log': 6, 'gold': 0, 'stone': 0},
                'trap': {'log': 0, 'gold': 0, 'stone': 1},
                'lion': {'log': 0, 'gold': 20, 'stone': 0},
-               'fire_spinner': {'log': 0, 'gold': 20, 'stone': 0},
-               'acrobat': {'log': 0, 'gold': 20, 'stone': 0},
+               'fire_spinner': {'log': 0, 'gold': 18, 'stone': 0},
+               'acrobat': {'log': 0, 'gold': 18, 'stone': 0},
                'magician': {'log': 0, 'gold': 10, 'stone': 0},
 
                }
@@ -224,7 +224,8 @@ NOTIFICATIONS = {None: ['cannot select'],
                  'open_spaces': ['not enough open spaces'],
                  'piece_action': ['no piece actions remaining'],
                  'player_action': ['no turn actions remaining'],
-                 'invalid_move': ['cannot move to that square']
+                 'invalid_move': ['cannot move to that square'],
+                 'resources': ['not enough resources to build'],
                  }
 DESCRIPTIONS = {'king': ['every player gets one', 'capture your opponent\'s to win'],
                 'gold_general': ['summons a fierce demon who ', 'moves like a queen through and onto ',

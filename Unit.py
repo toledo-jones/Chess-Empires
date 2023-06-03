@@ -1914,7 +1914,7 @@ class Trader(Piece):
 
     def right_click(self, engine):
         if super().right_click(engine):
-            return engine.create_trader_menu(self.row, self.col)
+            return engine.transfer_to_trading_state(self.row, self.col)
 
 
 class Stable(Building):

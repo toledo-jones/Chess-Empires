@@ -106,7 +106,7 @@ DEBUG_STARTING_PRAYER = 30
 DEBUG_STARTING_WOOD = 999
 DEBUG_STARTING_GOLD = 999
 DEBUG_STARTING_STONE = 99
-DEBUG_STARTING_PIECES = ['castle', 'king', 'pawn']
+DEBUG_STARTING_PIECES = ['castle', 'king', 'monk', 'monk', 'prayer_stone']
 
 'DEFAULT START'
 DEBUG_START = False
@@ -159,8 +159,8 @@ STEALING_KEY = {'building': {
         'gold': {'variance': (-2, 2), 'value': 4},
         'stone': {'variance': (-2, 2), 'value': 4}}}
 MAX_MONOLITH_RITUALS_PER_TURN = 1
-MAX_PRAYER_STONE_RITUALS_PER_TURN = 3
-MAX_MAGICIAN_RITUALS_PER_TURN = 2
+MAX_PRAYER_STONE_RITUALS_PER_TURN = 2
+MAX_MAGICIAN_RITUALS_PER_TURN = 1
 MASTER_COST_LIST = ['builder', 'monk', 'stable', 'castle', 'barracks', 'fortress', 'circus']
 
 STABLE_SPAWN_LIST = ['doe', 'oxen', 'unicorn', 'ram', 'elephant', 'knight']
@@ -187,23 +187,23 @@ PIECE_COSTS = {'king': {'log': 999, 'gold': 999, 'stone': 999},
                'stable': {'log': 10, 'gold': 0, 'stone': 10},
                'barracks': {'log': 4, 'gold': 10, 'stone': 0},
                'fortress': {'log': 0, 'gold': 12, 'stone': 12},
-               'queen': {'log': 0, 'gold': 14, 'stone': 14},
-               'rook': {'log': 0, 'gold': 6, 'stone': 6},
-               'bishop': {'log': 6, 'gold': 6, 'stone': 0},
+               'queen': {'log': 0, 'gold': 12, 'stone': 12},
+               'rook': {'log': 0, 'gold': 5, 'stone': 5},
+               'bishop': {'log': 5, 'gold': 5, 'stone': 0},
                'knight': {'log': 1, 'gold': 0, 'stone': 3},
                'jester': {'log': 0, 'gold': 10, 'stone': 0},
-               'rogue_rook': {'log': 0, 'gold': 14, 'stone': 14},
-               'rogue_bishop': {'log': 9, 'gold': 9, 'stone': 0},
-               'rogue_knight': {'log': 0, 'gold': 6, 'stone': 6},
+               'rogue_rook': {'log': 0, 'gold': 10, 'stone': 10},
+               'rogue_bishop': {'log': 7, 'gold': 7, 'stone': 0},
+               'rogue_knight': {'log': 5, 'gold': 0, 'stone': 5},
                'rogue_pawn': {'log': 6, 'gold': 0, 'stone': 0},
                'elephant': {'log': 8, 'gold': 0, 'stone': 8},
                'ram': {'log': 8, 'gold': 0, 'stone': 8},
                'unicorn': {'log': 12, 'gold': 0, 'stone': 12},
                'monolith': {'log': 0, 'gold': 0, 'stone': 16},
                'prayer_stone': {'log': 0, 'gold': 0, 'stone': 8},
-               'duke': {'log': 6, 'gold': 14, 'stone': 15},
+               'duke': {'log': 6, 'gold': 12, 'stone': 13},
                'oxen': {'log': 12, 'gold': 0, 'stone': 12},
-               'champion': {'log': 0, 'gold': 9, 'stone': 9},
+               'champion': {'log': 0, 'gold': 7, 'stone': 7},
                'wall': {'log': 0, 'gold': 0, 'stone': 3},
                'persuader': {'log': 0, 'gold': 14, 'stone': 0},
                'doe': {'log': 14, 'gold': 0, 'stone': 14},
@@ -279,13 +279,13 @@ DESCRIPTIONS = {'king': ['every player gets one', 'capture your opponent\'s to w
                 'magician': ['casts certain rituals for a gold cost'],
                 }
 PIECE_POPULATION = {'king': 1,
-                    'queen': 2,
+                    'queen': 1,
                     'rook': 1,
                     'bishop': 1,
                     'knight': 1,
                     'pawn': 1,
                     'castle': 0,
-                    'duke': 2,
+                    'duke': 1,
                     'rogue_bishop': 1,
                     'jester': 1,
                     'rogue_rook': 1,
@@ -312,7 +312,7 @@ PIECE_POPULATION = {'king': 1,
                     'oxen': 1,
                     'wall': 0,
                     'doe': 1,
-                    'persuader': 2,
+                    'persuader': 1,
                     'trader': 1,
                     'circus': 0,
                     'trapper': 1,
@@ -326,12 +326,12 @@ PRAYER_COSTS = {'gold_general': {'prayer': 12, 'monk': 2, 'gold': 0},  # monk yi
                 'destroy_resource': {'prayer': 6, 'monk': 0, 'gold': 0},
                 # & a gold cost, accessed by the magician or rogue monk?
                 'create_resource': {'prayer': 5, 'monk': 0, 'gold': 0},
-                'teleport': {'prayer': 6, 'monk': 0, 'gold': 2},
-                'swap': {'prayer': 2, 'monk': 0, 'gold': 2},
+                'teleport': {'prayer': 6, 'monk': 0, 'gold': 4},
+                'swap': {'prayer': 2, 'monk': 0, 'gold': 3},
                 'line_destroy': {'prayer': 9, 'monk': 1, 'gold': 0},
                 'portal': {'prayer': 2, 'monk': 0, 'gold': 2},
                 'protect': {'prayer': 2, 'monk': 0, 'gold': 0}}
-ADDITIONAL_PIECE_LIMIT = {'castle': 5, 'barracks': 3, 'fortress': 3, 'stable': 3, 'circus': 3,
+ADDITIONAL_PIECE_LIMIT = {'castle': 5, 'barracks': 5, 'fortress': 3, 'stable': 3, 'circus': 3,
                           'king': 0,
                           'queen': 0,
                           'rook': 0,

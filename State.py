@@ -1792,7 +1792,8 @@ class PerformTeleport(Ritual):
         list_of_all_pieces = []
         for piece in self.player.pieces:
             if not isinstance(piece, Building):
-                list_of_all_pieces.append((piece.row, piece.col))
+                if not isinstance(piece, King):
+                    list_of_all_pieces.append((piece.row, piece.col))
 
         for piece in self.engine.players[Constant.TURNS[self.turn]].pieces:
             if not isinstance(piece, King):

@@ -74,7 +74,6 @@ class Gold(Resource):
         self.sprite_id = 1
         super().__init__(row, col, owner)
 
-
     def get_sprite_id(self):
         return self.sprite_id
 

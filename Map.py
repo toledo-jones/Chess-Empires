@@ -23,6 +23,13 @@ class Map:
         rand = random.randint(0, 100)
         return rand
 
+    def spawn_gold_nearby(self, row, col):
+        direction = random.choice(self.directions)
+        r = row + direction[0]
+        c = col + direction[1]
+        if Constant.tile_in_bounds(r, c):
+            self.spawn_gold(r, c)
+
     def spawn_wood_nearby(self, row, col):
         direction = random.choice(self.directions)
         r = row + direction[0]
@@ -338,26 +345,11 @@ class UnbalancedForestB(Map):
             if rand > 80:
                 r, c = square[0], square[1]
                 self.spawn_wood(r, c)
+        for quarter in self.quarters:
+            square = random.choice(quarter)
+            (r, c) = square[0], square[1]
+            self.spawn_gold(r, c)
 
-        square = random.choice(self.w_starting_squares)
-        r, c = square[0], square[1]
-        self.spawn_gold(r, c)
-        for row in range(r - 1, r + 1):
-            rand = random.randint(0, 100)
-            if rand > 50:
-                self.spawn_gold(row + 1, c + 1)
-            else:
-                self.spawn_gold(row, c)
-
-        square = random.choice(self.b_starting_squares)
-        r, c = square[0], square[1]
-        self.spawn_quarry(r, c)
-        for row in range(r - 2, r + 2):
-            rand = random.randint(0, 100)
-            if rand > 30:
-                self.spawn_quarry(row - 1, c - 1)
-            else:
-                self.spawn_quarry(row, c)
 
 
 class UltraBalanced(Map):
@@ -463,7 +455,7 @@ class CenterCircleA(Map):
         gold_squares = random.sample(self.center_squares, 3)
         for square in gold_squares:
             r, c = square[0], square[1]
-            self.spawn_gold(r, c)
+            self.spawn_gold_nearby(r, c)
 
 
 class CenterCircleB(Map):
@@ -494,7 +486,7 @@ class CenterCircleB(Map):
         gold_squares = random.sample(self.center_squares, 3)
         for square in gold_squares:
             r, c = square[0], square[1]
-            self.spawn_gold(r, c)
+            self.spawn_gold_nearby(r, c)
 
 
 class FourCorners(Map):

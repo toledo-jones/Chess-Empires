@@ -1332,6 +1332,11 @@ class Trading(State):
         if self.engine.menus:
             for menu in self.engine.menus:
                 menu.mouse_move()
+                if not menu.mouse_in_menu_bounds():
+                    self.engine.reset_selected()
+                    self.engine.menus = []
+                    state = Playing(self.win, self.engine)
+                    self.engine.set_state(state)
 
     def left_click(self):
         if self.engine.menus:
@@ -1345,6 +1350,7 @@ class Trading(State):
 
     def tab(self):
         self.revert_to_playing_state()
+
 
 class Praying(State):
     def __init__(self, win, engine):

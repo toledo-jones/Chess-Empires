@@ -425,7 +425,7 @@ class OnlyStoneAndGold(Map):
     def generate_resources(self):
         for square in self.edge_squares:
             rand = random.randint(0, 100)
-            if rand > 40:
+            if rand > 74:
                 r, c = square[0], square[1]
                 random.choice(self.choices)(r, c)
         for section in Constant.left_right_squares():
@@ -572,24 +572,32 @@ class FourCorners(Map):
                 self.spawn_wood(r, c)
         self.spawn_gold(row, col)
 
+
 class GoldCornersB(Map):
     def __init__(self, engine):
         super().__init__(engine)
         self.choices = [self.spawn_wood_nearby_pattern]
 
     def generate_resources(self):
+        rand = random.randint(0, 1)
         for section in Constant.quarter_triangle_sections_e():
             for square in section:
                 (r, c) = square[0], square[1]
                 self.spawn_wood(r, c)
-        for square in Constant.outside_corner_squares():
-            (r, c) = square[0], square[1]
-            self.spawn_gold(r, c)
+            if rand == 0:
+                square = random.choice(section)
+                (r, c) = square[0], square[1]
+                self.spawn_gold(r, c)
+        if rand == 1:
+            for square in Constant.outside_corner_squares():
+                (r, c) = square[0], square[1]
+                self.spawn_gold(r, c)
 
         center_section = random.sample(Constant.big_center_squares(), 2)
         for square in center_section:
             (r, c) = square[0], square[1]
             random.choice(self.choices)(r, c)
+
 
 class GoldCornersA(Map):
     def __init__(self, engine):
@@ -597,13 +605,19 @@ class GoldCornersA(Map):
         self.choices = [self.spawn_wood, self.spawn_quarry, self.spawn_wood_nearby_pattern]
 
     def generate_resources(self):
+        rand = random.randint(0, 1)
         for section in Constant.quarter_triangle_sections_e():
             for square in section:
                 (r, c) = square[0], square[1]
                 self.spawn_wood(r, c)
-        for square in Constant.outside_corner_squares():
-            (r, c) = square[0], square[1]
-            self.spawn_gold(r, c)
+            if rand == 0:
+                square = random.choice(section)
+                (r, c) = square[0], square[1]
+                self.spawn_gold(r, c)
+        if rand == 1:
+            for square in Constant.outside_corner_squares():
+                (r, c) = square[0], square[1]
+                self.spawn_gold(r, c)
 
         center_section = random.sample(Constant.big_center_squares(), 4)
         for square in center_section:

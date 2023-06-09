@@ -41,6 +41,9 @@ def main():
             elif event.type == pygame.KEYDOWN and (event.key == pygame.K_RETURN or event.key == pygame.K_SPACE):
                 engine.state[-1].enter()
 
+            elif event.type == pygame.KEYDOWN and (event.key == pygame.K_m):
+                engine.state[-1].m()
+
             # SONG END
             elif event.type == MUSIC_END:
                 Constant.load_music()

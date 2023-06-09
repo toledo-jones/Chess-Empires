@@ -22,6 +22,7 @@ class Unit:
         self.mining_stealing = False
         self.persuading = False
         self.praying_building = False
+        self.display_moves = False
 
         self.can_be_persuaded = True
         self.intercepted = False
@@ -208,6 +209,10 @@ class Unit:
             self.highlight_persuader_squares(win)
         if self.actions_remaining == 0:
             self.unused_piece_highlight = False
+        if self.display_moves:
+            self.highlight_self_square(win)
+            self.highlight_move_squares(win)
+            self.highlight_capture_squares(win)
 
     def draw(self, win):
         sprite = self.sprites[self.color + "_" + str(self)]

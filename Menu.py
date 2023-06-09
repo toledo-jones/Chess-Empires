@@ -1667,6 +1667,9 @@ class Hud(SideMenu):
 
     def draw(self):
         self.menu.fill(Constant.MENU_COLOR)
+        if Constant.DISPLAY_STATE_IN_HUD:
+            state_text_surf = self.font.render(str(self.engine.state[-1]), True, Constant.turn_to_color[self.engine.turn])
+            self.menu.blit(state_text_surf, (0, self.title_icon_height))
         if self.title_bar_highlight:
             self.menu.blit(self.square, (0, 0))
         self.menu.blit(Constant.IMAGES[self.engine.turn + '_game_name'],

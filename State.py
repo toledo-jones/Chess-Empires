@@ -134,6 +134,9 @@ class State:
         except IndexError as e:
             print(e)
 
+    def m(self):
+        pass
+
     def mouse_move(self):
         pass
 
@@ -224,6 +227,34 @@ class MainMenu(State):
             self.multiplayer_text_highlight = False
 
 
+class DisplayMoves(State):
+    def __init__(self, win, engine):
+        super().__init__(win, engine)
+
+    def draw(self):
+        super().draw()
+
+    def left_click(self):
+        self.revert_to_playing_state()
+
+    def select(self, row, col):
+        currently_selected = self.engine.get_occupying(row, col)
+        self.engine.update_moves()
+        currently_selected.display_moves = True
+
+    def tab(self):
+        self.revert_to_playing_state()
+
+    def right_click(self):
+        self.revert_to_playing_state()
+
+    def m(self):
+        self.revert_to_playing_state()
+
+    def mouse_move(self):
+        pass
+
+
 class Playing(State):
     def __init__(self, win, engine):
         super().__init__(win, engine)
@@ -241,6 +272,11 @@ class Playing(State):
                             return True
                     else:
                         self.engine.set_popup_reason('invalid_move')
+
+    def can_display_piece_moves(self, currently_selected):
+        if not isinstance(currently_selected, Piece):
+            return False
+        return True
 
     def can_select_piece(self, currently_selected):
         if not isinstance(currently_selected, Piece):
@@ -314,6 +350,15 @@ class Playing(State):
                     self.engine.reset_selected()
             except IndexError as e:
                 print(e)
+
+    def m(self):
+        row, col = Constant.convert_pos(pygame.mouse.get_pos())
+        currently_selected = self.engine.get_occupying(row, col)
+
+        if self.can_display_piece_moves(currently_selected):
+            new_state = DisplayMoves(self.win, self.engine)
+            self.engine.set_state(new_state)
+            self.engine.state[-1].select(row, col)
 
     def right_click(self):  # STATE, PLAYING
         if self.engine.menus:
@@ -1874,7 +1919,6 @@ class PerformSwap(Ritual):
             if self.swap_criteria(piece):
                 valid_pieces.append((piece.row, piece.col))
         return valid_pieces
-
 
     def left_click(self):
         row, col = Constant.convert_pos(pygame.mouse.get_pos())

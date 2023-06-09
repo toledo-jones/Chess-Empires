@@ -400,6 +400,7 @@ class Engine:
                 piece.mining_stealing = False
                 piece.persuading = False
                 piece.praying_building = False
+                piece.display_moves = False
 
     def reset_piece_limit(self, color):
         self.players[color].piece_limit = Constant.DEFAULT_PIECE_LIMIT

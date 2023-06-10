@@ -1,6 +1,7 @@
 import os
 import random
 
+import Constant
 from Unit import *
 
 
@@ -1219,7 +1220,7 @@ class CostMenu:
                         color = self.color
                     else:
                         color = Constant.RED
-                    text_surf = self.small_font.render(": " + str(cost[resource]), True, color)
+                    text_surf = self.small_font.render("  " + str(cost[resource]), True, color)
                     resource_position = (piece_display_x - self.x_buffer_between_costs // 1.5,
                                          Y_COORDS[Constant.RESOURCE_KEY[resource]] + self.RESOURCES[
                                              Constant.RESOURCE_KEY[resource]].get_height() // 3)
@@ -1425,6 +1426,55 @@ class Empty(SideMenu):
 
     def draw(self):
         self.menu.fill(Constant.MENU_COLOR)
+        self.win.blit(self.menu, (Constant.BOARD_WIDTH_SQ * Constant.SQ_SIZE, 0))
+
+
+class PieceInspector(SideMenu):
+    def __init__(self, win, engine):
+        super().__init__(win, engine)
+        self.PIECES = {'w': Constant.W_PIECES,
+                       'b': Constant.B_PIECES}
+        self.font_size = round(Constant.SQ_SIZE / 2)
+        self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
+        self.player = self.engine.players[self.engine.turn]
+        self.RESOURCES = {'wood': Constant.MENU_ICONS['log'], 'gold': Constant.MENU_ICONS['gold_coin'],
+                          'stone': Constant.MENU_ICONS['stone']}
+
+    def draw(self):
+        self.menu.fill(Constant.MENU_COLOR)
+        # display sprite
+        piece = self.engine.state[-1].get_piece_inspected()
+        turn = piece.color
+
+        id = turn + "_" + str(piece)
+        color = Constant.turn_to_color[turn]
+        sprite = self.PIECES[turn][id]
+        self.menu.blit(sprite, (0, 0))
+        # display name
+        name = str(piece)
+        surf = self.font.render(name, True, color)
+        self.menu.blit(surf, (0, sprite.get_height()))
+
+        # piece description
+
+        # cost
+        cost = Constant.PIECE_COSTS[str(piece)]
+        ybuffer = sprite.get_height() + surf.get_height()
+        for resource in cost:
+            if cost[resource] != 0:
+                if getattr(self.player, Constant.RESOURCE_KEY[resource]) >= cost[resource]:
+                    color = color
+                else:
+                    color = Constant.RED
+                text_surf = self.font.render("" + str(cost[resource]), True, color)
+                resource_position = (0, ybuffer)
+
+                self.menu.blit(self.RESOURCES[Constant.RESOURCE_KEY[resource]], resource_position)
+
+                cost_text_position = (self.RESOURCES[Constant.RESOURCE_KEY[resource]].get_width(), ybuffer)
+
+                self.menu.blit(text_surf, cost_text_position)
+            ybuffer += surf.get_height()
         self.win.blit(self.menu, (Constant.BOARD_WIDTH_SQ * Constant.SQ_SIZE, 0))
 
 

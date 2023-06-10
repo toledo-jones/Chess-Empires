@@ -97,11 +97,11 @@ PROTECT_SQUARE_OFFSET = (SQ_SIZE // 2 - PROTECT_SQUARE_SCALE[0] // 2, SQ_SIZE //
 # GAME MECHANIC SETTINGS
 
 'DEBUG START'
-DEBUG_START = True
-DISPLAY_STATE_IN_HUD = True
-BOARD_STARTS_WITH_RESOURCES = False
-DEBUG_RITUALS = True
-POP_UPS_ON = True
+# DEBUG_START = True
+# DISPLAY_STATE_IN_HUD = True
+# BOARD_STARTS_WITH_RESOURCES = False
+# DEBUG_RITUALS = True
+# POP_UPS_ON = True
 
 DEBUG_STARTING_PRAYER = 30
 DEBUG_STARTING_WOOD = 999
@@ -110,11 +110,11 @@ DEBUG_STARTING_STONE = 99
 DEBUG_STARTING_PIECES = ['castle', 'king', 'monk', 'monk', 'prayer_stone']
 
 'DEFAULT START'
-# DEBUG_START = False
-# DISPLAY_STATE_IN_HUD = False
-# BOARD_STARTS_WITH_RESOURCES = True
-# DEBUG_RITUALS = False
-# POP_UPS_ON = True
+DEBUG_START = False
+DISPLAY_STATE_IN_HUD = False
+BOARD_STARTS_WITH_RESOURCES = True
+DEBUG_RITUALS = False
+POP_UPS_ON = True
 
 TURN_CHANGE_AFTER_START_SPAWN = True
 
@@ -178,7 +178,7 @@ SPAWN_LISTS = {'stable': STABLE_SPAWN_LIST, 'fortress': FORTRESS_SPAWN_LIST, 'ca
                'builder': BUILDER_SPAWN_LIST, 'barracks': BARRACKS_SPAWN_LIST, 'circus': CIRCUS_SPAWN_LIST,
                'trapper': TRAPPER_SPAWN_LIST, 'monk': MONK_SPAWN_LIST}
 
-PIECE_COSTS = {'king': {'log': 999, 'gold': 999, 'stone': 999},
+PIECE_COSTS = {'king': {'log': 0, 'gold': 0, 'stone': 0},
                'gold_general': {'log': 0, 'gold': 0, 'stone': 0},
                'quarry_1': {'log': 3, 'gold': 0, 'stone': 0},
                'pawn': {'log': 6, 'gold': 0, 'stone': 0},

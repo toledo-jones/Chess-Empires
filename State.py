@@ -230,17 +230,20 @@ class MainMenu(State):
 class DisplayMoves(State):
     def __init__(self, win, engine):
         super().__init__(win, engine)
+        self.currently_selected = None
+        self.side_bar = PieceInspector(win, engine)
 
     def draw(self):
         super().draw()
+        self.side_bar.draw()
 
     def left_click(self):
         self.revert_to_playing_state()
 
     def select(self, row, col):
-        currently_selected = self.engine.get_occupying(row, col)
+        self.currently_selected = self.engine.get_occupying(row, col)
         self.engine.update_moves()
-        currently_selected.display_moves = True
+        self.currently_selected.display_moves = True
 
     def tab(self):
         self.revert_to_playing_state()
@@ -248,8 +251,24 @@ class DisplayMoves(State):
     def right_click(self):
         self.revert_to_playing_state()
 
+    def get_piece_inspected(self):
+        return self.currently_selected
+
+    def can_display_piece_moves(self, currently_selected):
+        if not isinstance(currently_selected, Piece):
+            return False
+        return True
+
     def m(self):
-        self.revert_to_playing_state()
+        row, col = Constant.convert_pos(pygame.mouse.get_pos())
+        if self.engine.get_occupying(row, col) is not self.currently_selected:
+            if self.can_display_piece_moves(self.engine.get_occupying(row, col)):
+                self.engine.reset_selected()
+                self.select(row, col)
+            else:
+                self.revert_to_playing_state()
+        else:
+            self.revert_to_playing_state()
 
     def mouse_move(self):
         pass

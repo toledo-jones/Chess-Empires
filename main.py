@@ -24,9 +24,12 @@ def main():
             # LEFT CLICK x
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 engine.state[-1].left_click()
+
+            # QUIT
             elif event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
+
             # MOUSE MOVE:
             elif event.type == pygame.MOUSEMOTION:
                 engine.state[-1].mouse_move()
@@ -34,13 +37,14 @@ def main():
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
                 engine.state[-1].right_click()
 
+            # TAB
             elif event.type == pygame.KEYDOWN and (event.key == pygame.K_TAB):
                 engine.state[-1].tab()
 
             # SPACE / ENTER
             elif event.type == pygame.KEYDOWN and (event.key == pygame.K_RETURN or event.key == pygame.K_SPACE):
                 engine.state[-1].enter()
-
+            # M
             elif event.type == pygame.KEYDOWN and (event.key == pygame.K_m):
                 engine.state[-1].m()
 

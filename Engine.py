@@ -380,9 +380,6 @@ class Engine:
             for piece in self.players[player].pieces:
                 piece.actions_remaining = n
 
-    def reset_piece_limit(self, color):
-        self.players[color].reset_piece_limit()
-
     def update_piece_limit(self):
         for piece in self.players[self.turn].pieces:
             self.players[self.turn].add_additional_piece_limit(piece.get_additional_piece_limit())
@@ -1154,7 +1151,6 @@ class Engine:
         new_state = Trading(self.state[-1].win, self)
         self.set_state(new_state)
         return self.create_trader_menu(row, col)
-
 
     def create_trader_menu(self, row, col, set_new_piece_trading=True):
         player = self.players[self.turn]

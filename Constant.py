@@ -1,7 +1,7 @@
 import os
 import random
-import time
 import pygame
+import time
 
 # BASE VALUES
 

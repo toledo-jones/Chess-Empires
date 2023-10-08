@@ -2037,9 +2037,6 @@ class PerformProtect(Ritual):
         return 'protect'
 
     def protectable_ritual_squares(self):
-        # empty
-        #
-        # resource
         ritual_squares = []
         for row in range(self.engine.rows):
             for col in range(self.engine.cols):

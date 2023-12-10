@@ -476,8 +476,8 @@ class StealingMenu(Menu):
     def left_click(self):
         self.engine.stealing = None
         stolen_resource = self.resource_selected()
-        amount = self.amounts[stolen_resource]
         if stolen_resource:
+            amount = self.amounts[stolen_resource]
             self.engine.menus = []
             self.engine.stealing = [self.key[stolen_resource], amount]
         else:

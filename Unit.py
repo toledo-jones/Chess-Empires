@@ -539,7 +539,6 @@ class FireSpinner(Piece):
         return squares
 
 
-
 class Lion(Piece):
     def __repr__(self):
         return 'lion'
@@ -1231,7 +1230,6 @@ class Monk(Piece):
         return squares
 
 
-
 class Ram(Piece):
     def __repr__(self):
         return 'ram'
@@ -1447,7 +1445,6 @@ class Pikeman(Piece):
         self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
                            Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
                            Constant.DOWN_LEFT)
-        self.is_cavalry = True
         self.distance = 1
 
     def capture_squares(self, engine):

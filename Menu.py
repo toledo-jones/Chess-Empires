@@ -1513,7 +1513,7 @@ class StartMenu(SideMenu):
         self.w_piece_highlight = False
         self.b_piece_highlight = False
         self.randomize_resources_highlight = False
-        self.scale = Constant.DEFAULT_PIECE_SCALE
+        self.scale = Constant.IMAGES_IMAGE_MODIFY['w_boat']['SCALE']
         self.buffer = self.scale[0]
         self.square = pygame.Surface(self.scale)
         self.square_highlight_buffer = Constant.SQ_SIZE // 5

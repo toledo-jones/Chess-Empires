@@ -56,7 +56,7 @@ HIGHLIGHT_ALPHA = 110
 SPAWNING_MENU_WIDTH = round(SQ_SIZE * 5.5)
 SPAWNING_MENU_HEIGHT_BUFFER = SQ_SIZE * 1.3
 SIDE_MENU_HEIGHT = BOARD_HEIGHT_PX
-GAME_NAME_SCALE = (round(SQ_SIZE * 2), round(SQ_SIZE * 2))
+GAME_NAME_SCALE = (round(SQ_SIZE * 1.5), round(SQ_SIZE * 1.5))
 PICKAXE_SCALE = (SQ_SIZE * 2, SQ_SIZE * 2)
 CENTER_X = BOARD_WIDTH_SQ * SQ_SIZE // 2 + SQ_SIZE // 2
 CENTER_Y = BOARD_HEIGHT_SQ * SQ_SIZE // 2
@@ -530,20 +530,20 @@ IMAGES_IMAGE_MODIFY = {'icon': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                        'w_game_name': {'SCALE': GAME_NAME_SCALE, 'OFFSET': (0, 0)},
                        'b_game_name': {'SCALE': GAME_NAME_SCALE, 'OFFSET': (0, 0)},
                        'prayer': {'SCALE': PICKAXE_SCALE, 'OFFSET': (0, 0)},
-                       'gold_coin': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
+                       'gold_coin': {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFSET': (0, 0)},
                        'give': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                        'receive': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
-                       'log': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
-                       'action': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
+                       'log': {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFSET': (0, 0)},
+                       'action': {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFSET': (0, 0)},
                        'prayer_bar_end': {'SCALE': PRAYER_BAR_END_SCALE, 'OFFSET': (0, 0)},
-                       'units': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
+                       'units': {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFSET': (0, 0)},
                        'prayer_bar': {'SCALE': PRAYER_BAR_SCALE, 'OFFSET': (0, 0)},
-                       'hour_glass': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
+                       'hour_glass': {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFSET': (0, 0)},
                        'stone': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
-                       'w_boat': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
+                       'w_boat': {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFSET': (0, 0)},
                        'hammer': {'SCALE': PICKAXE_SCALE, 'OFFSET': (0, 0)},
                        'axe': {'SCALE': PICKAXE_SCALE, 'OFFSET': (0, 0)},
-                       'b_boat': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
+                       'b_boat': {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFSET': (0, 0)},
                        'resources_button': {'SCALE': RESOURCES_BUTTON_SCALE, 'OFFSET': (0, 0)},
                        'b_no': {'SCALE': NO_BUTTON_SCALE, 'OFFSET': (0, 0)},
                        'b_yes': {'SCALE': YES_BUTTON_SCALE, 'OFFSET': (0, 0)},

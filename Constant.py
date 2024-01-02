@@ -97,11 +97,11 @@ PROTECT_SQUARE_OFFSET = (SQ_SIZE // 2 - PROTECT_SQUARE_SCALE[0] // 2, SQ_SIZE //
 # GAME MECHANIC SETTINGS
 
 'DEBUG START'
-# DEBUG_START = True
-# DISPLAY_STATE_IN_HUD = True
-# BOARD_STARTS_WITH_RESOURCES = False
-# DEBUG_RITUALS = True
-# POP_UPS_ON = True
+DEBUG_START = True
+DISPLAY_STATE_IN_HUD = True
+BOARD_STARTS_WITH_RESOURCES = False
+DEBUG_RITUALS = True
+POP_UPS_ON = True
 
 DEBUG_STARTING_PRAYER = 30
 DEBUG_STARTING_WOOD = 999
@@ -110,11 +110,11 @@ DEBUG_STARTING_STONE = 99
 DEBUG_STARTING_PIECES = ['castle', 'king', 'monk', 'monk', 'prayer_stone']
 
 'DEFAULT START'
-DEBUG_START = False
-DISPLAY_STATE_IN_HUD = False
-BOARD_STARTS_WITH_RESOURCES = True
-DEBUG_RITUALS = False
-POP_UPS_ON = True
+# DEBUG_START = False
+# DISPLAY_STATE_IN_HUD = False
+# BOARD_STARTS_WITH_RESOURCES = True
+# DEBUG_RITUALS = False
+# POP_UPS_ON = True
 
 TURN_CHANGE_AFTER_START_SPAWN = True
 
@@ -539,7 +539,7 @@ IMAGES_IMAGE_MODIFY = {'icon': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                        'units': {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFSET': (0, 0)},
                        'prayer_bar': {'SCALE': PRAYER_BAR_SCALE, 'OFFSET': (0, 0)},
                        'hour_glass': {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFSET': (0, 0)},
-                       'stone': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
+                       'stone': {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFSET': (0, 0)},
                        'w_boat': {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFSET': (0, 0)},
                        'hammer': {'SCALE': PICKAXE_SCALE, 'OFFSET': (0, 0)},
                        'axe': {'SCALE': PICKAXE_SCALE, 'OFFSET': (0, 0)},
@@ -572,7 +572,7 @@ RESOURCES_IMAGE_MODIFY = {'gold_tile_1': {'SCALE': GOLD_SCALE, 'OFFSET': GOLD_OF
 MENU_ICONS_IMAGE_MODIFY = {'gold_coin': {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFSET': (0, 0)},
                            'log': {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFSET': (0, 0)},
                            'stone': {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFSET': (0, 0)},
-                           'prayer': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)}}
+                           'prayer': {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFSET': (0, 0)}}
 
 SOUND_EFFECT_VOLUME = .5
 

@@ -1704,7 +1704,7 @@ class Hud(SideMenu):
         self.bar_end_width = Constant.IMAGES['prayer_bar_end'].get_width()
         self.bar_width = Constant.IMAGES['prayer_bar'].get_width()
         self.bar_height = Constant.IMAGES['prayer_bar'].get_height()
-        self.counter_text_buffer = Constant.SQ_SIZE
+        self.counter_text_buffer = Constant.SQ_SIZE // 2
         self.prayer_bar_height = self.prayer_icon_display_y + round(
             Constant.MENU_ICONS['prayer'].get_height() // 2) - round(self.bar_height // 2)
         self.prayer_bar_edge = self.counter_icon_display_x + self.counter_text_buffer

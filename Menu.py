@@ -1709,7 +1709,8 @@ class Hud(SideMenu):
             Constant.MENU_ICONS['prayer'].get_height() // 2) - round(self.bar_height // 2)
         self.prayer_bar_edge = self.counter_icon_display_x + self.counter_text_buffer
         self.prayer_bar_end_edge = self.prayer_bar_edge + self.bar_width
-        self.text_vertical_offset = self.font_size // 2 - Constant.MENU_ICONS['log'].get_height() // 2
+        self.empty_text_surface = self.font.render("0", True, Constant.WHITE)
+        self.text_vertical_offset = self.empty_text_surface.get_height() // 2 - Constant.MENU_ICONS['log'].get_height() // 2
         self.square = pygame.Surface((Constant.SIDE_MENU_WIDTH, round(Constant.SIDE_MENU_HEIGHT * .25)))
         self.title_bar_highlight = False
         self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
@@ -1719,7 +1720,7 @@ class Hud(SideMenu):
         self.menu.fill(Constant.MENU_COLOR)
         if Constant.DISPLAY_STATE_IN_HUD:
             state_text_surf = self.font.render(str(self.engine.state[-1]), True, Constant.turn_to_color[self.engine.turn])
-            self.menu.blit(state_text_surf, (0, self.title_icon_height))
+            self.menu.blit(state_text_surf, (0, self.title_icon_height + state_text_surf.get_height()//2))
         if self.title_bar_highlight:
             self.menu.blit(self.square, (0, 0))
         self.menu.blit(Constant.IMAGES[self.engine.turn + '_game_name'],
@@ -1756,7 +1757,7 @@ class Hud(SideMenu):
         # Prayer Counter
         if not self.engine.players[self.engine.turn].prayer == 0:
             self.win.blit(Constant.MENU_ICONS['prayer'],
-                          (self.counter_icon_display_x, self.prayer_icon_display_y - self.text_vertical_offset))
+                          (self.counter_icon_display_x, self.prayer_icon_display_y))
             self.win.blit(Constant.IMAGES['prayer_bar'], (self.prayer_bar_edge, self.prayer_bar_height))
             for x in range(self.engine.players[self.engine.turn].prayer):
                 new_edge = self.prayer_bar_end_edge + self.bar_end_width * (x)

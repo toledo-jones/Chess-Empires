@@ -34,7 +34,7 @@ win.blit(MAIN_MENU_LOGO, LOGO_POSITION)
 pygame.display.update()
 time.sleep(2)
 
-VERSION = ""
+VERSION = "alpha v.24"
 NUMBER = ""
 MAX_FPS = 120
 
@@ -96,24 +96,26 @@ PROTECT_SQUARE_OFFSET = (SQ_SIZE // 2 - PROTECT_SQUARE_SCALE[0] // 2, SQ_SIZE //
 # GAME MECHANIC SETTINGS
 
 'DEBUG START'
-DEBUG_START = True
-DISPLAY_STATE_IN_HUD = True
-BOARD_STARTS_WITH_RESOURCES = False
-DEBUG_RITUALS = True
-POP_UPS_ON = True
+# DEBUG_START = True
+# DISPLAY_STATE_IN_HUD = True
+# BOARD_STARTS_WITH_RESOURCES = False
+# DEBUG_RITUALS = True
+# POP_UPS_ON = True
+'Comment out above for Default Start'
 
 DEBUG_STARTING_PRAYER = 30
 DEBUG_STARTING_WOOD = 999
 DEBUG_STARTING_GOLD = 999
 DEBUG_STARTING_STONE = 99
-DEBUG_STARTING_PIECES = ['castle', 'king', 'trader', 'queen']
+DEBUG_STARTING_PIECES = ['castle', 'king', 'rogue_pawn']
 
 'DEFAULT START'
-# DEBUG_START = False
-# DISPLAY_STATE_IN_HUD = False
-# BOARD_STARTS_WITH_RESOURCES = True
-# DEBUG_RITUALS = False
-# POP_UPS_ON = True
+DEBUG_START = False
+DISPLAY_STATE_IN_HUD = False
+BOARD_STARTS_WITH_RESOURCES = True
+DEBUG_RITUALS = False
+POP_UPS_ON = True
+'Comment out above for Debug Start'
 
 TURN_CHANGE_AFTER_START_SPAWN = True
 
@@ -229,32 +231,31 @@ NOTIFICATIONS = {None: ['cannot select'],
                  'resources': ['not enough resources to build'],
                  }
 DESCRIPTIONS = {'king': ['every player gets one', 'capture your opponent\'s to win'],
-                'gold_general': ['summons a fierce demon who ', 'moves like a queen through and onto ',
-                                 'all resource tiles'],
+                'gold_general': ['???'],
                 'quarry_1': ['can be mined for stone', 'may cave in and begin to yield less stone',
                              'eventually becomes depleted if mined after it caves in'],
                 'pawn': ['moves two spaces orthogonally', 'harvests resources', 'mines certain empty squares to create quarries'],
-                'builder': ['creates buildings used to spawning more powerful pieces'],
+                'builder': ['creates buildings used to purchase more powerful pieces'],
                 'monk': ['prays at monoliths to cast powerful rituals'],
-                'pikeman': ['moves one away square in each direction'],
-                'castle': ['creates basic pieces, such as pawns and builders'],
-                'stable': ['creates cavalry such as knights, elephants and rams'],
-                'barracks': ['creates \'simple\' pieces such as rooks and bishops'],
-                'fortress': ['creates rogue versions of the simple chess pieces', 'rogues move through forest tiles and can steal resources'],
-                'queen': ['attacks orthogonally and diagonally',
-                          'right click to ban rituals by royal decree'],
+                'pikeman': ['moves one square orthogonally', 'a valuable defender'],
+                'castle': ['creates essential pieces such as pawns and builders'],
+                'stable': ['creates cavalry such as knights, elephants and rams', 'these pieces are known as leapers', 'all leapers can capture walls'],
+                'barracks': ['creates standard chess pieces such as rooks and bishops'],
+                'fortress': ['creates rogue versions of the standard chess pieces', 'rogue pieces move through forest tiles and steal resources from pieces of the opposite color'],
+                'queen': ['the most powerful piece in a standard chess set', 'attacks orthogonally and diagonally',
+                          'right clicking her will allow you to ban all rituals for a gold cost'],
                 'rook': ['attacks orthogonally', 'is able to pray at prayer sites'],
                 'bishop': ['attacks diagonally', 'is able to pray at prayer sites'],
                 'knight': ['moves up two and over one'],
-                'jester': ['does not capture pieces', 'moves like a queen', 'pieces nearby cannot act'],
-                'rogue_rook': ['a rook who moves through the forest', 'and steals from enemy pieces'],
-                'rogue_bishop': ['a bishop who moves through the forest', 'and steals from enemy pieces'],
-                'rogue_knight': ['a knight who moves through the forest', 'and steals from enemy pieces'],
-                'rogue_pawn': ['a pawn who moves through the forest', 'and steals from enemy pieces'],
-                'oxen': ['moves like a knight, then like a rook'],
-                'champion': ['moves diagonally one square', 'then like a rook'],
-                'elephant': ['moves like a knight', 'and, if unobstructed, can move forward one more square'],
-                'ram': ['moves like a knight, then like a bishop'],
+                'jester': ['does not capture pieces', 'moves like a queen', 'pieces nearby are distracted by his performance and cannot act'],
+                'rogue_rook': ['moves orthoganlly', 'can steal a resource of your choosing from a piece of the opposite color', 'can move onto forest tiles as if they are not there'],
+                'rogue_bishop': ['moves diagonally', 'can steal a resource of your choosing from a piece of the opposite color', 'can move onto forest tiles as if they are not there'],
+                'rogue_knight': ['moves up two and over one', 'can steal a resource of your choosing from a piece of the opposite color', 'can move onto forest tiles as if they are not there'],
+                'rogue_pawn': ['moves orthogonally up to two spaces', 'attacks diagonally one space', 'able to harvest resources', 'can steal a resource of your choosing from a piece of the opposite color', 'can move through forest tiles as if they are not there'],
+                'oxen': ['moves like a knight, then like a rook from that square'],
+                'champion': ['moves diagonally one square', 'then moves like a rook from that square in the same two directions'],
+                'elephant': ['moves like a knight', 'if it\'s knight move was unobstructed it can move forward one more square'],
+                'ram': ['moves like a knight, then like a bishop in those two directions'],
                 'unicorn': ['moves like a knight ', 'moves two forward in every direction', 'makes an additional knight move if nothing obstructs it\'s movement'],
                 'monolith': ['casts powerful rituals', 'requires praying pieces to use'],
                 'prayer_stone': ['casts useful rituals', 'requiring praying pieces to use'],

@@ -166,12 +166,12 @@ class MainMenu(State):
         self.font_size = round(Constant.SQ_SIZE * 1)
         self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
 
-        single_player_text = "single player"
-        multiplayer_text = 'pass n\' play'
+        single_player_text = " "
+        multiplayer_text = 'start'
         self.single_player_text_surf = self.font.render(single_player_text, True, self.color)
         self.multiplayer_text_surf = self.font.render(multiplayer_text, True, self.color)
 
-        self.button_width = self.single_player_text_surf.get_width()
+        self.button_width = self.multiplayer_text_surf.get_width()
         self.button_height = self.multiplayer_text_surf.get_height()
 
         self.square = pygame.Surface((self.button_width, self.button_height))
@@ -181,10 +181,10 @@ class MainMenu(State):
         self.single_player_text_highlight = False
         self.multiplayer_text_highlight = False
 
-        self.single_player_text_display_x = self.window_width // 3 - self.button_width // 2
+        self.single_player_text_display_x = 0
         self.button_display_y = round(self.window_height * 3/4) - self.button_height // 2
 
-        self.multiplayer_text_display_x = round(self.window_width * 2/3) - self.button_width // 2
+        self.multiplayer_text_display_x = self.window_width // 2 - self.button_width // 2
 
         self.multiplayer_button_range_x = range(self.multiplayer_text_display_x, self.multiplayer_text_display_x + self.button_width)
         self.single_player_button_range_x = range(self.single_player_text_display_x, self.single_player_text_display_x + self.button_width)
@@ -203,10 +203,11 @@ class MainMenu(State):
     def left_click(self):
         pos = pygame.mouse.get_pos()
         if pos[1] in self.button_range_y:
-            if pos[0] in self.single_player_button_range_x:
-                Constant.PLAY_AGAINST_AI = True
-                self.engine.set_state('starting')
-            elif pos[0] in self.multiplayer_button_range_x:
+            # if pos[0] in self.single_player_button_range_x:
+            #     pass
+            #     # Constant.PLAY_AGAINST_AI = True
+            #     # self.engine.set_state('starting')
+            if pos[0] in self.multiplayer_button_range_x:
                 self.engine.create_player('w')
                 self.engine.create_player('b')
                 Constant.PLAY_AGAINST_AI = False
@@ -218,9 +219,10 @@ class MainMenu(State):
     def mouse_move(self):
         pos = pygame.mouse.get_pos()
         if pos[1] in self.button_range_y:
-            if pos[0] in self.single_player_button_range_x:
-                self.single_player_text_highlight = True
-            elif pos[0] in self.multiplayer_button_range_x:
+            # if pos[0] in self.single_player_button_range_x:
+            #     # Disabled
+            #     self.single_player_text_highlight = False
+            if pos[0] in self.multiplayer_button_range_x:
                 self.multiplayer_text_highlight = True
             else:
                 self.single_player_text_highlight = False

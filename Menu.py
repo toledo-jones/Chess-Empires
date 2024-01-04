@@ -1451,7 +1451,7 @@ class PieceInspector(SideMenu):
         super().__init__(win, engine)
         self.PIECES = {'w': Constant.W_PIECES | Constant.W_BUILDINGS,
                        'b': Constant.B_PIECES | Constant.B_BUILDINGS}
-        self.font_size = round(Constant.SQ_SIZE / 2)
+        self.font_size = round(Constant.SQ_SIZE / 3.5)
         self.small_font_size = round(Constant.SQ_SIZE / 4)
         self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
         self.small_font = pygame.font.Font(os.path.join("files/fonts", 'font.ttf'), self.small_font_size)
@@ -1466,13 +1466,17 @@ class PieceInspector(SideMenu):
         self.description_text_surfaces = []
         description_string = ""
         for line in self.description_text:
-            description_string += line + ". "
+            if line[0] != "?":
+                description_string += line + ". "
+            else:
+                description_string = " "
         description_text_list = description_string.split()
         for word in description_text_list:
             text_surface = self.small_font.render(word, True, self.color)
             self.description_text_surfaces.append(text_surface)
-        self.description_text_width = self.description_text_surfaces[0].get_width()
-        self.description_text_height = self.description_text_surfaces[0].get_height()
+        if description_string != " ":
+            self.description_text_width = self.description_text_surfaces[0].get_width()
+            self.description_text_height = self.description_text_surfaces[0].get_height()
 
         self.piece_identifier = self.piece.color + "_" + str(self.piece)
         self.sprite = self.PIECES[self.piece.color][self.piece_identifier]
@@ -1519,16 +1523,17 @@ class PieceInspector(SideMenu):
             y_buffer += name_surface.get_height()
 
         # Piece description
-        original_description_text_x = self.menu_width // 16
-        description_text_x = original_description_text_x
-        for word in self.description_text_surfaces:
-            if description_text_x + word.get_width() + self.space.get_width() >= self.menu_width:
-                y_buffer += self.description_text_height
-                description_text_x = original_description_text_x
-            self.menu.blit(word, (description_text_x, y_buffer))
-            description_text_x += word.get_width()
-            self.menu.blit(self.space, (description_text_x, y_buffer))
-            description_text_x += self.space.get_width()
+        if self.description_text_surfaces is not None:
+            original_description_text_x = self.menu_width // 16
+            description_text_x = original_description_text_x
+            for word in self.description_text_surfaces:
+                if description_text_x + word.get_width() + self.space.get_width() >= self.menu_width:
+                    y_buffer += self.description_text_height
+                    description_text_x = original_description_text_x
+                self.menu.blit(word, (description_text_x, y_buffer))
+                description_text_x += word.get_width()
+                self.menu.blit(self.space, (description_text_x, y_buffer))
+                description_text_x += self.space.get_width()
 
         self.win.blit(self.menu, (Constant.BOARD_WIDTH_SQ * Constant.SQ_SIZE, 0))
 
@@ -1539,28 +1544,21 @@ class StartMenu(SideMenu):
         self.color = Constant.INTRO_TEXT_COLOR
         self.font_size = round(Constant.SQ_SIZE / 2.5)
         self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
+        self.small_font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size // 3)
+
         self.ver_text = Constant.VERSION + " " + Constant.NUMBER
         self.version_text_surf = self.font.render(self.ver_text, True, self.color)
         self.version_text_display_x = self.menu_width // 2 - self.version_text_surf.get_width() // 2
-        self.reset_map_image = Constant.IMAGES['resources_button']
+        self.reset_map_image = Constant.RESOURCES[random.choice(Constant.resources)]
         self.map_image_height = self.reset_map_image.get_height()
         self.map_image_width = self.reset_map_image.get_width()
-        self.reset_map_display_x = self.menu_width // 2 - self.reset_map_image.get_width() // 2
-        self.reset_map_display_y = self.menu_height - self.menu_height // 1 / 5
-        self.choose_text = 'select'
-        self.choose_text_surf = self.font.render(self.choose_text, True, self.color)
-        self.choose_text_display_x = self.menu_width // 2 - self.choose_text_surf.get_width() // 2
-        self.choose_text_display_y = self.menu_height // 4
-        self.your_text = 'your'
-        self.your_text_display_y = self.choose_text_display_y + Constant.SQ_SIZE
-        self.your_text_surf = self.font.render(self.your_text, True, self.color)
 
-        self.faction_text_display_y = self.your_text_display_y + Constant.SQ_SIZE
+
+        self.introduction = [self.ver_text, ' ', 'select', 'your', '_']
+
         self.w_boat = Constant.IMAGES['w_boat']
         self.b_boat = Constant.IMAGES['b_boat']
-        self.b_display_x = self.menu_width - self.b_boat.get_width()
-        self.w_display_x = 0
-        self.boat_display_y = Constant.SQ_SIZE * 6
+        self.boat_display_x = self.menu_width // 2 - self.b_boat.get_width() // 2
         a = (self.menu_height * 1 / 5)
         self.r = round((self.menu_height - a))
         self.display_y = Constant.SQ_SIZE * 6
@@ -1579,24 +1577,36 @@ class StartMenu(SideMenu):
         self.resources_square.set_alpha(Constant.HIGHLIGHT_ALPHA)
         self.resources_square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
 
+        self.resource_highlight_height = round(Constant.BOARD_HEIGHT_PX * 4 / 5)
+        self.reset_map_display_x = self.menu_width // 2 - self.reset_map_image.get_width() // 2
+        self.reset_map_display_y = Constant.BOARD_HEIGHT_PX - self.resources_square.get_height() // 2 - self.map_image_height // 2
+
     def draw(self):
         self.menu.fill(Constant.MENU_COLOR)
-        self.menu.blit(self.version_text_surf, (self.version_text_display_x, Constant.SQ_SIZE))
-        self.menu.blit(self.choose_text_surf, (self.choose_text_display_x, self.choose_text_display_y))
-        self.menu.blit(self.your_text_surf, (self.choose_text_display_x, self.your_text_display_y))
-        self.faction_text = Constant.FACTION
-        self.faction_text_surf = self.font.render(self.faction_text, True, self.color)
-        self.menu.blit(self.faction_text_surf, (self.choose_text_display_x, self.faction_text_display_y))
-        self.menu.blit(self.w_boat, (self.w_display_x, self.boat_display_y))
-        self.menu.blit(self.b_boat, (self.b_display_x, self.boat_display_y))
+        y_buffer = Constant.SQ_SIZE // 2
+        for line in self.introduction:
+            if line == "_":
+                line = Constant.FACTION
+            if line == self.introduction[0]:
+                surface = self.small_font.render(line, True, self.color)
+            else:
+                surface = self.font.render(line, True, self.color)
+            text_x = self.menu_width // 2 - surface.get_width() // 2
+            self.menu.blit(surface, (text_x, y_buffer))
+            y_buffer += surface.get_height()
+
+        self.w_display_y = self.menu_height // 2 - self.b_boat.get_height() // 2
+        self.b_display_y = self.w_display_y + self.buffer + self.b_boat.get_height()
+        self.menu.blit(self.w_boat, (self.boat_display_x, self.w_display_y))
+        self.menu.blit(self.b_boat, (self.boat_display_x, self.b_display_y))
         if self.b_piece_highlight:
-            self.menu.blit(self.square, (self.b_display_x, self.display_y))
+            self.menu.blit(self.square, (self.boat_display_x, self.b_display_y))
         elif self.w_piece_highlight:
-            self.menu.blit(self.square, (self.w_display_x, self.display_y))
+            self.menu.blit(self.square, (self.boat_display_x, self.w_display_y))
         elif self.randomize_resources_highlight:
-            self.menu.blit(self.resources_square, (0, round(Constant.BOARD_HEIGHT_PX * 4 / 5)))
+            self.menu.blit(self.resources_square, (0, self.resource_highlight_height))
         self.menu.blit(self.reset_map_image,
-                       (self.reset_map_display_x, Constant.BOARD_HEIGHT_PX - self.map_image_height))
+                       (self.reset_map_display_x, self.reset_map_display_y))
 
         self.win.blit(self.menu, (Constant.BOARD_WIDTH_PX, 0))
 
@@ -1605,14 +1615,13 @@ class StartMenu(SideMenu):
         pos = pygame.mouse.get_pos()
         if pos[0] > Constant.BOARD_WIDTH_PX:
             menu_mouse_x_position = pos[0] - Constant.BOARD_WIDTH_PX
-            if pos[1] in range(self.display_y, self.display_y + self.w_boat.get_height()):
-                if menu_mouse_x_position in range(self.w_display_x, self.w_display_x + self.w_boat.get_width()):
+            if menu_mouse_x_position in range(self.boat_display_x, self.boat_display_x + self.w_boat.get_width()):
+                if pos[1] in range(self.w_display_y, self.w_display_y + self.w_boat.get_height()):
                     self.engine.turn = 'w'
                     starting = True
-                if menu_mouse_x_position in range(self.b_display_x, self.b_display_x + self.b_boat.get_width()):
+                elif pos[1] in range(self.b_display_y, self.b_display_y + self.w_boat.get_height()):
                     self.engine.turn = 'b'
                     starting = True
-
                 if starting:
                     if not Constant.DEBUG_START:
                         new_state = 'select starting pieces'
@@ -1620,7 +1629,7 @@ class StartMenu(SideMenu):
                     else:
                         new_state = 'debug'
                         self.engine.set_state(new_state)
-            elif pos[1] in range(self.r, self.menu_height):
+            if pos[1] in range(self.r, self.menu_height):
                 self.engine.reset_board()
                 self.engine.starting_resources()
                 rand = random.randint(0, len(Constant.FACTION_NAMES) - 1)
@@ -1635,17 +1644,13 @@ class StartMenu(SideMenu):
         pos = pygame.mouse.get_pos()
         if pos[0] > Constant.BOARD_WIDTH_PX:
             menu_mouse_x_position = pos[0] - Constant.BOARD_WIDTH_PX
-            if pos[1] in range(self.display_y, self.display_y + self.w_boat.get_height()):
-                if menu_mouse_x_position in range(self.w_display_x, self.w_display_x + self.w_boat.get_width()):
+            if menu_mouse_x_position in range(self.boat_display_x, self.boat_display_x + self.w_boat.get_width()):
+                if pos[1] in range(self.w_display_y, self.w_display_y + self.w_boat.get_height()):
                     self.w_piece_highlight = True
-
+                elif pos[1] in range(self.b_display_y, self.b_display_y + self.w_boat.get_height()):
+                    self.b_piece_highlight = True
                 else:
                     self.w_piece_highlight = False
-
-                if menu_mouse_x_position in range(self.b_display_x, self.b_display_x + self.b_boat.get_width()):
-                    self.b_piece_highlight = True
-
-                else:
                     self.b_piece_highlight = False
             else:
                 self.w_piece_highlight = False

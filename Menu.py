@@ -1639,29 +1639,30 @@ class SurrenderMenu(SideMenu):
         self.question_display_y = self.menu_height // 2 - self.surrender_text_surface.get_height() // 2
         self.question_display_x = self.menu_width // 2 - self.surrender_text_surface.get_width() // 2
         self.buffer = Constant.SQ_SIZE // 2
-        self.answer_display_y = self.question_display_y + 4 * self.buffer
+        self.yes_display_y = self.question_display_y + 4 * self.buffer
+        self.no_display_y = self.yes_display_y + self.yes_button_image.get_height() + self.buffer
         self.answer_surface_height = self.yes_button_image.get_height()
         self.answer_surface_width = self.yes_button_image.get_width()
-        self.yes_display_x = self.menu_width // 16
-        self.no_display_x = self.menu_width - self.no_button_image.get_width() - self.yes_display_x
+        self.yes_display_x = self.menu_width // 2 - self.yes_button_image.get_width() // 2
+        self.no_display_x = self.menu_width // 2 - self.no_button_image.get_width() // 2
 
         self.yes_highlight = False
         self.no_highlight = False
         self.square = pygame.Surface(Constant.YES_NO_BUTTON_SCALE)
         self.yes_square_display_x = self.yes_display_x
         self.no_square_display_x = self.no_display_x
-        self.square_display_y = self.answer_display_y
 
     def mouse_move(self):
         pos = pygame.mouse.get_pos()
         if pos[0] > Constant.BOARD_WIDTH_PX:
             menu_x = pos[0] - Constant.BOARD_WIDTH_PX
-            if pos[1] in range(self.answer_display_y, self.answer_display_y + self.answer_surface_height):
+            if pos[1] in range(self.yes_display_y, self.yes_display_y + self.answer_surface_height):
                 if menu_x in range(self.yes_display_x, self.yes_display_x + self.answer_surface_width):
                     self.yes_highlight = True
                 else:
                     self.yes_highlight = False
 
+            elif pos[1] in range(self.no_display_y, self.no_display_y + self.answer_surface_height):
                 if menu_x in range(self.no_display_x, self.no_display_x + self.answer_surface_width):
                     self.no_highlight = True
                 else:
@@ -1677,24 +1678,24 @@ class SurrenderMenu(SideMenu):
         pos = pygame.mouse.get_pos()
         if pos[0] > Constant.BOARD_WIDTH_PX:
             menu_x = pos[0] - Constant.BOARD_WIDTH_PX
-            if pos[1] in range(self.answer_display_y,
-                               self.answer_display_y + self.answer_surface_height):
+            if pos[1] in range(self.yes_display_y, self.yes_display_y + self.answer_surface_height):
                 if menu_x in range(self.yes_display_x,
                                    self.yes_display_x + self.answer_surface_width):
                     self.engine.change_turn()
                     self.engine.surrendering = True
-                elif menu_x in range(self.no_display_x, self.no_display_x + self.answer_surface_width):
+            if pos[1] in range(self.no_display_y, self.no_display_y + self.answer_surface_height):
+                if menu_x in range(self.no_display_x, self.no_display_x + self.answer_surface_width):
                     self.engine.state[-1].revert_to_playing_state()
 
     def draw(self):
         self.menu.fill(Constant.MENU_COLOR)
         self.menu.blit(self.surrender_text_surface, (self.question_display_x, self.question_display_y))
         if self.yes_highlight:
-            self.menu.blit(self.square, (self.yes_square_display_x, self.square_display_y))
+            self.menu.blit(self.square, (self.yes_square_display_x, self.yes_display_y))
         elif self.no_highlight:
-            self.menu.blit(self.square, (self.no_square_display_x, self.square_display_y))
-        self.menu.blit(self.yes_button_image, (self.yes_display_x, self.answer_display_y))
-        self.menu.blit(self.no_button_image, (self.no_display_x, self.answer_display_y))
+            self.menu.blit(self.square, (self.no_square_display_x, self.no_display_y))
+        self.menu.blit(self.yes_button_image, (self.yes_display_x, self.yes_display_y))
+        self.menu.blit(self.no_button_image, (self.no_display_x, self.no_display_y))
         self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
         self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
 

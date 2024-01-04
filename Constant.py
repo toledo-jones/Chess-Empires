@@ -34,7 +34,7 @@ win.blit(MAIN_MENU_LOGO, LOGO_POSITION)
 pygame.display.update()
 time.sleep(2)
 
-VERSION = "alpha v.24"
+VERSION = "v24"
 NUMBER = ""
 MAX_FPS = 120
 

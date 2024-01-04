@@ -26,6 +26,9 @@ class State:
 
         return Move
 
+    def can_inspect_piece(self, currently_selected):
+        return currently_selected is not None
+
     def type_of_capture(self, acting_tile, action_tile):
         piece = acting_tile.get_occupying()
         has_portal = False
@@ -227,11 +230,11 @@ class MainMenu(State):
             self.multiplayer_text_highlight = False
 
 
-class DisplayMoves(State):
-    def __init__(self, win, engine):
+class Inspector(State):
+    def __init__(self, win, engine, currently_selected):
         super().__init__(win, engine)
-        self.currently_selected = None
-        self.side_bar = PieceInspector(win, engine)
+        self.currently_selected = currently_selected
+        self.side_bar = PieceInspector(win, engine, currently_selected)
 
     def draw(self):
         super().draw()
@@ -254,16 +257,12 @@ class DisplayMoves(State):
     def get_piece_inspected(self):
         return self.currently_selected
 
-    def can_display_piece_moves(self, currently_selected):
-        if not isinstance(currently_selected, Piece):
-            return False
-        return True
-
     def m(self):
         row, col = Constant.convert_pos(pygame.mouse.get_pos())
         if self.engine.get_occupying(row, col) is not self.currently_selected:
-            if self.can_display_piece_moves(self.engine.get_occupying(row, col)):
+            if self.can_inspect_piece(self.engine.get_occupying(row, col)):
                 self.engine.reset_selected()
+                self.side_bar = PieceInspector(self.win, self.engine, self.engine.get_occupying(row, col))
                 self.select(row, col)
             else:
                 self.revert_to_playing_state()
@@ -292,10 +291,7 @@ class Playing(State):
                     else:
                         self.engine.set_popup_reason('invalid_move')
 
-    def can_display_piece_moves(self, currently_selected):
-        if not isinstance(currently_selected, Piece):
-            return False
-        return True
+
 
     def can_select_piece(self, currently_selected):
         if not isinstance(currently_selected, Piece):
@@ -371,13 +367,15 @@ class Playing(State):
                 print(e)
 
     def m(self):
+        # Inspect piece
         row, col = Constant.convert_pos(pygame.mouse.get_pos())
         currently_selected = self.engine.get_occupying(row, col)
 
-        if self.can_display_piece_moves(currently_selected):
-            new_state = DisplayMoves(self.win, self.engine)
+        if self.can_inspect_piece(currently_selected):
+            new_state = Inspector(self.win, self.engine, currently_selected)
+            new_state.select(row, col)
             self.engine.set_state(new_state)
-            self.engine.state[-1].select(row, col)
+
 
     def right_click(self):  # STATE, PLAYING
         if self.engine.menus:

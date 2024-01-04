@@ -1447,51 +1447,89 @@ class Empty(SideMenu):
 
 
 class PieceInspector(SideMenu):
-    def __init__(self, win, engine):
+    def __init__(self, win, engine, currently_selected):
         super().__init__(win, engine)
-        self.PIECES = {'w': Constant.W_PIECES,
-                       'b': Constant.B_PIECES}
+        self.PIECES = {'w': Constant.W_PIECES | Constant.W_BUILDINGS,
+                       'b': Constant.B_PIECES | Constant.B_BUILDINGS}
         self.font_size = round(Constant.SQ_SIZE / 2)
+        self.small_font_size = round(Constant.SQ_SIZE / 4)
         self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
+        self.small_font = pygame.font.Font(os.path.join("files/fonts", 'font.ttf'), self.small_font_size)
         self.player = self.engine.players[self.engine.turn]
+        self.buffer = Constant.SQ_SIZE // 2
         self.RESOURCES = {'wood': Constant.MENU_ICONS['log'], 'gold': Constant.MENU_ICONS['gold_coin'],
                           'stone': Constant.MENU_ICONS['stone']}
+        self.space = self.small_font.render(" ", True, Constant.WHITE)
+        self.piece = currently_selected
+        self.color = Constant.turn_to_color[self.piece.color]
+        self.description_text = Constant.DESCRIPTIONS[str(self.piece)]
+        self.description_text_surfaces = []
+        description_string = ""
+        for line in self.description_text:
+            description_string += line + ". "
+        description_text_list = description_string.split()
+        for word in description_text_list:
+            text_surface = self.small_font.render(word, True, self.color)
+            self.description_text_surfaces.append(text_surface)
+        self.description_text_width = self.description_text_surfaces[0].get_width()
+        self.description_text_height = self.description_text_surfaces[0].get_height()
+
+        self.piece_identifier = self.piece.color + "_" + str(self.piece)
+        self.sprite = self.PIECES[self.piece.color][self.piece_identifier]
+
+    def make_name_more_readable(self):
+        name = str(self.piece)
+
+        if name == "prayer_stone":
+            name = "floating stone"
+
+        name = name.replace('_', ' ')
+        return name
 
     def draw(self):
         self.menu.fill(Constant.MENU_COLOR)
         # display sprite
-        piece = self.engine.state[-1].get_piece_inspected()
-        turn = piece.color
 
-        id = turn + "_" + str(piece)
-        color = Constant.turn_to_color[turn]
-        sprite = self.PIECES[turn][id]
-        self.menu.blit(sprite, (0, 0))
+        self.menu.blit(self.sprite, (self.menu_width // 2 - self.sprite.get_width() // 2, self.buffer))
         # display name
-        name = str(piece)
-        surf = self.font.render(name, True, color)
-        self.menu.blit(surf, (0, sprite.get_height()))
 
-        # piece description
+        name = self.make_name_more_readable()
+
+        name_surface = self.font.render(name, True, self.color)
+        self.menu.blit(name_surface, (self.menu_width // 2 - name_surface.get_width() // 2, self.buffer + self.sprite.get_height()))
 
         # cost
-        cost = Constant.PIECE_COSTS[str(piece)]
-        ybuffer = sprite.get_height() + surf.get_height()
+        cost = Constant.PIECE_COSTS[str(self.piece)]
+        y_buffer = self.buffer + name_surface.get_height() + self.sprite.get_height()
         for resource in cost:
             if cost[resource] != 0:
                 if getattr(self.player, Constant.RESOURCE_KEY[resource]) >= cost[resource]:
-                    color = color
+                    color = self.color
                 else:
                     color = Constant.RED
                 text_surf = self.font.render("" + str(cost[resource]), True, color)
-                resource_position = (0, ybuffer)
+                resource = self.RESOURCES[Constant.RESOURCE_KEY[resource]]
+                resource_position_x = self.menu_width // 2 - (text_surf.get_width() // 2 + resource.get_width() // 2)
+                resource_position = (resource_position_x, y_buffer)
+                self.menu.blit(resource, resource_position)
 
-                self.menu.blit(self.RESOURCES[Constant.RESOURCE_KEY[resource]], resource_position)
-
-                cost_text_position = (self.RESOURCES[Constant.RESOURCE_KEY[resource]].get_width(), ybuffer)
+                cost_text_position = (resource_position_x + resource.get_width(), y_buffer - text_surf.get_height() // 8)
 
                 self.menu.blit(text_surf, cost_text_position)
-            ybuffer += surf.get_height()
+            y_buffer += name_surface.get_height()
+
+        # Piece description
+        original_description_text_x = self.menu_width // 16
+        description_text_x = original_description_text_x
+        for word in self.description_text_surfaces:
+            if description_text_x + word.get_width() + self.space.get_width() >= self.menu_width:
+                y_buffer += self.description_text_height
+                description_text_x = original_description_text_x
+            self.menu.blit(word, (description_text_x, y_buffer))
+            description_text_x += word.get_width()
+            self.menu.blit(self.space, (description_text_x, y_buffer))
+            description_text_x += self.space.get_width()
+
         self.win.blit(self.menu, (Constant.BOARD_WIDTH_SQ * Constant.SQ_SIZE, 0))
 
 
@@ -1625,7 +1663,7 @@ class StartMenu(SideMenu):
 class SurrenderMenu(SideMenu):
     def __init__(self, win, engine):
         super().__init__(win, engine)
-        self.fontSize = round(Constant.SQ_SIZE // 2.5)
+        self.fontSize = round(Constant.SQ_SIZE // 3)
         self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.fontSize)
         self.surrender_text = "Surrender?"
         self.yes_text = "yes"

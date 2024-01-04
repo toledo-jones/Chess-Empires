@@ -1633,6 +1633,8 @@ class StartMenu(SideMenu):
                 self.engine.reset_board()
                 self.engine.starting_resources()
                 self.reset_map_image = Constant.RESOURCES[random.choice(Constant.resources)]
+                self.reset_map_display_x = self.menu_width // 2 - self.reset_map_image.get_width() // 2
+                self.reset_map_display_y = Constant.BOARD_HEIGHT_PX - self.resources_square.get_height() // 2 - self.map_image_height // 2
                 rand = random.randint(0, len(Constant.FACTION_NAMES) - 1)
                 Constant.FACTION = Constant.FACTION_NAMES[rand]
                 rand = random.randint(0, 2)

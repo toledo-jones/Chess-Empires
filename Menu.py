@@ -1542,9 +1542,9 @@ class StartMenu(SideMenu):
     def __init__(self, win, engine):
         super().__init__(win, engine)
         self.color = Constant.INTRO_TEXT_COLOR
-        self.font_size = round(Constant.SQ_SIZE / 2.5)
+        self.font_size = round(Constant.SQ_SIZE / 3)
         self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
-        self.small_font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size // 3)
+        self.small_font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size // 2)
 
         self.ver_text = Constant.VERSION + " " + Constant.NUMBER
         self.version_text_surf = self.font.render(self.ver_text, True, self.color)

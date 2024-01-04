@@ -997,6 +997,7 @@ class PrayingBuilding(State):
     def tab(self):
         self.revert_to_playing_state()
 
+
 class MiningStealing(State):
     def __init__(self, win, engine):
         super().__init__(win, engine)
@@ -1383,7 +1384,7 @@ class Trading(State):
         self.side_bar = Hud(self.win, self.engine)
 
     def __repr__(self):
-        return 'praying'
+        return 'trading'
 
     def draw(self):
         super().draw()
@@ -1397,6 +1398,7 @@ class Trading(State):
             for menu in self.engine.menus:
                 menu.mouse_move()
                 if not menu.mouse_in_menu_bounds():
+                    self.engine.trading = []
                     self.engine.reset_selected()
                     self.engine.menus = []
                     state = Playing(self.win, self.engine)

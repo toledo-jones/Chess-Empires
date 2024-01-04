@@ -29,7 +29,7 @@ win.fill(MENU_COLOR)
 LOGO_COLOR = ICON_COLORS[random.randint(0, 1)]
 MAIN_MENU_LOGO = pygame.transform.scale(
     pygame.image.load(os.path.join("files/images", LOGO_COLOR + "_game_name.png")), (400, 400))
-LOGO_POSITION = (pygame.display.Info().current_w // 2 - 200, pygame.display.Info().current_h // 2 - 400)
+LOGO_POSITION = (pygame.display.Info().current_w // 2 - 200, pygame.display.Info().current_h // 2 - 300)
 win.blit(MAIN_MENU_LOGO, LOGO_POSITION)
 pygame.display.update()
 time.sleep(2)
@@ -89,8 +89,7 @@ FORTRESS_OFFSET = (0, -10)
 WALL_OFFSET = (-10, -10)
 PRAYER_RITUAL_SCALE = (round(SQ_SIZE * 1.5), round(SQ_SIZE * 1.5))
 RESOURCES_BUTTON_SCALE = (SIDE_MENU_WIDTH, 2 * SQ_SIZE)
-YES_BUTTON_SCALE = (round(SQ_SIZE * .8), round(SQ_SIZE * .8))
-NO_BUTTON_SCALE = (round(SQ_SIZE * .8), round(SQ_SIZE * .8))
+YES_NO_BUTTON_SCALE = (SQ_SIZE // 3, SQ_SIZE // 3)
 PROTECT_SQUARE_SCALE = (SQ_SIZE, SQ_SIZE)
 PROTECT_SQUARE_OFFSET = (SQ_SIZE // 2 - PROTECT_SQUARE_SCALE[0] // 2, SQ_SIZE // 2 - PROTECT_SQUARE_SCALE[1] // 2)
 
@@ -107,7 +106,7 @@ DEBUG_STARTING_PRAYER = 30
 DEBUG_STARTING_WOOD = 999
 DEBUG_STARTING_GOLD = 999
 DEBUG_STARTING_STONE = 99
-DEBUG_STARTING_PIECES = ['castle', 'king', 'monk', 'monk', 'prayer_stone']
+DEBUG_STARTING_PIECES = ['castle', 'king', 'trader', 'queen']
 
 'DEFAULT START'
 # DEBUG_START = False
@@ -531,8 +530,8 @@ IMAGES_IMAGE_MODIFY = {'icon': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                        'b_game_name': {'SCALE': GAME_NAME_SCALE, 'OFFSET': (0, 0)},
                        'prayer': {'SCALE': PICKAXE_SCALE, 'OFFSET': (0, 0)},
                        'gold_coin': {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFSET': (0, 0)},
-                       'give': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
-                       'receive': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
+                       'give': {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFSET': (0, 0)},
+                       'receive': {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFSET': (0, 0)},
                        'log': {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFSET': (0, 0)},
                        'action': {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFSET': (0, 0)},
                        'prayer_bar_end': {'SCALE': PRAYER_BAR_END_SCALE, 'OFFSET': (0, 0)},
@@ -545,10 +544,10 @@ IMAGES_IMAGE_MODIFY = {'icon': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
                        'axe': {'SCALE': PICKAXE_SCALE, 'OFFSET': (0, 0)},
                        'b_boat': {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFSET': (0, 0)},
                        'resources_button': {'SCALE': RESOURCES_BUTTON_SCALE, 'OFFSET': (0, 0)},
-                       'b_no': {'SCALE': NO_BUTTON_SCALE, 'OFFSET': (0, 0)},
-                       'b_yes': {'SCALE': YES_BUTTON_SCALE, 'OFFSET': (0, 0)},
-                       'w_no': {'SCALE': NO_BUTTON_SCALE, 'OFFSET': (0, 0)},
-                       'w_yes': {'SCALE': YES_BUTTON_SCALE, 'OFFSET': (0, 0)},
+                       'b_no': {'SCALE': YES_NO_BUTTON_SCALE, 'OFFSET': (0, 0)},
+                       'b_yes': {'SCALE': YES_NO_BUTTON_SCALE, 'OFFSET': (0, 0)},
+                       'w_no': {'SCALE': YES_NO_BUTTON_SCALE, 'OFFSET': (0, 0)},
+                       'w_yes': {'SCALE': YES_NO_BUTTON_SCALE, 'OFFSET': (0, 0)},
                        'w_protect': {'SCALE': PROTECT_SQUARE_SCALE, 'OFFSET': PROTECT_SQUARE_OFFSET},
                        'b_protect': {'SCALE': PROTECT_SQUARE_SCALE, 'OFFSET': PROTECT_SQUARE_OFFSET},
                        'w_decree': {'SCALE': DECREE_SCALE, 'OFFSET': (0, 0)},

@@ -280,7 +280,7 @@ class TraderMenu(Menu):
         self.player = self.engine.players[self.engine.turn]
         self.give_image = Constant.IMAGES['give']
         self.selected = None
-        self.horizontal_buffer = Constant.SQ_SIZE
+        self.horizontal_buffer = Constant.SQ_SIZE // 2
         self.vertical_buffer_between_pieces = Constant.SQ_SIZE // 4
         self.font_size = round(Constant.SQ_SIZE / 2)
         self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
@@ -349,10 +349,15 @@ class TraderMenu(Menu):
 
         y_buffer = 0
         for p in self.resource_list:
-            self.menu.blit(Constant.IMAGES[p], (self.horizontal_buffer // 2, y_buffer))
+
+            self.menu.blit(Constant.IMAGES[p], (self.horizontal_buffer // 2, y_buffer + self.menu_height // 16))
+
             amount_text_surface = self.font.render(': ' + str(self.amounts[p]), True, self.font_color)
-            self.menu.blit(self.trade_arrow, (self.resource_width + 2 * self.horizontal_buffer, y_buffer))
+
+            self.menu.blit(self.trade_arrow, (self.menu_width - self.trade_arrow.get_width(), y_buffer + self.menu_height // 16))
+
             self.menu.blit(amount_text_surface, (self.resource_width + self.horizontal_buffer, y_buffer))
+
             y_buffer += self.menu_height // len(self.resource_list)
 
         self.win.blit(self.menu, (self.menu_position_x, self.menu_position_y))
@@ -897,17 +902,23 @@ class KingMenu(Menu):
 
     def mouse_move(self):
         pos = pygame.mouse.get_pos()
-        if pos[0] > self.menu_position_x < self.menu_position_x + self.menu_width:
-            if pos[1] > self.menu_position_y < self.menu_position_y + self.menu_height:
+        if pos[0] in range(self.menu_position_x, self.menu_position_x + self.menu_width):
+            if pos[1] in range(self.menu_position_y, self.menu_position_y + self.menu_height):
                 self.high_light = True
+            else:
+                self.high_light = False
         else:
             self.high_light = False
 
     def left_click(self):
         pos = pygame.mouse.get_pos()
-        if pos[0] > self.menu_position_x < self.menu_position_x + self.menu_width:
-            if pos[1] > self.menu_position_y < self.menu_position_y + self.menu_height:
+        if pos[0] in range(self.menu_position_x, self.menu_position_x + self.menu_width):
+            if pos[1] in range(self.menu_position_y, self.menu_position_y + self.menu_height):
                 self.engine.transfer_to_surrender_state()
+            else:
+                self.engine.state[-1].revert_to_playing_state()
+        else:
+            self.engine.state[-1].revert_to_playing_state()
 
 
 class QueenMenu(Menu):
@@ -959,18 +970,24 @@ class QueenMenu(Menu):
 
     def mouse_move(self):
         pos = pygame.mouse.get_pos()
-        if pos[0] > self.menu_position_x < self.menu_position_x + self.menu_width:
-            if pos[1] > self.menu_position_y < self.menu_position_y + self.menu_height:
+        if pos[0] in range(self.menu_position_x, self.menu_position_x + self.menu_width):
+            if pos[1] in range(self.menu_position_y, self.menu_position_y + self.menu_height):
                 self.high_light = True
+            else:
+                self.high_light = False
         else:
             self.high_light = False
 
     def left_click(self):
         pos = pygame.mouse.get_pos()
-        if pos[0] > self.menu_position_x < self.menu_position_x + self.menu_width:
-            if pos[1] > self.menu_position_y < self.menu_position_y + self.menu_height:
+        if pos[0] in range(self.menu_position_x, self.menu_position_x + self.menu_width):
+            if pos[1] in range(self.menu_position_y, self.menu_position_y + self.menu_height):
                 if self.engine.can_decree(self.row, self.col):
                     self.engine.decree(self.row, self.col)
+            else:
+                self.engine.state[-1].revert_to_playing_state()
+        else:
+            self.engine.state[-1].revert_to_playing_state()
 
 
 class PieceDescription:
@@ -1608,7 +1625,7 @@ class StartMenu(SideMenu):
 class SurrenderMenu(SideMenu):
     def __init__(self, win, engine):
         super().__init__(win, engine)
-        self.fontSize = round(Constant.SQ_SIZE * .5)
+        self.fontSize = Constant.SQ_SIZE // 3
         self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.fontSize)
         self.surrender_text = "Surrender?"
         self.yes_text = "yes"
@@ -1625,12 +1642,12 @@ class SurrenderMenu(SideMenu):
         self.answer_display_y = self.question_display_y + 4 * self.buffer
         self.answer_surface_height = self.yes_button_image.get_height()
         self.answer_surface_width = self.yes_button_image.get_width()
-        self.yes_display_x = 0
-        self.no_display_x = self.menu_width - self.no_button_image.get_width()
+        self.yes_display_x = self.menu_width // 16
+        self.no_display_x = self.menu_width - self.no_button_image.get_width() - self.yes_display_x
 
         self.yes_highlight = False
         self.no_highlight = False
-        self.square = pygame.Surface(Constant.YES_BUTTON_SCALE)
+        self.square = pygame.Surface(Constant.YES_NO_BUTTON_SCALE)
         self.yes_square_display_x = self.yes_display_x
         self.no_square_display_x = self.no_display_x
         self.square_display_y = self.answer_display_y
@@ -1691,16 +1708,19 @@ class Hud(SideMenu):
         self.title_icon_height = Constant.IMAGES['w_game_name'].get_height()
         self.title_icon_display_x = self.menu_width // 2 - self.title_icon_width // 2
         self.title_icon_display_y = self.menu_height // 8 - self.title_icon_height // 2
-        self.font_size = (round(Constant.SQ_SIZE * .5))
+        self.font_size = Constant.SQ_SIZE // 2
+        self.small_font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size // 2)
+
         self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
         self.counter_icon_display_x = Constant.BOARD_WIDTH_PX + 10
         self.coin_icon_display_y = round(self.menu_height * (8 / 10))
-        self.stone_icon_display_y = self.coin_icon_display_y + Constant.SQ_SIZE
-        self.log_icon_display_y = self.coin_icon_display_y - Constant.SQ_SIZE
-        self.prayer_icon_display_y = self.log_icon_display_y - Constant.SQ_SIZE
-        self.action_icon_display_y = self.prayer_icon_display_y - Constant.SQ_SIZE
-        self.units_icon_display_y = self.action_icon_display_y - Constant.SQ_SIZE
-        self.turn_icon_display_y = self.units_icon_display_y - Constant.SQ_SIZE
+        self.icon_y_offset = Constant.SQ_SIZE // 1.2
+        self.stone_icon_display_y = self.coin_icon_display_y + self.icon_y_offset
+        self.log_icon_display_y = self.coin_icon_display_y - self.icon_y_offset
+        self.prayer_icon_display_y = self.log_icon_display_y - self.icon_y_offset
+        self.action_icon_display_y = self.prayer_icon_display_y - self.icon_y_offset
+        self.units_icon_display_y = self.action_icon_display_y - self.icon_y_offset
+        self.turn_icon_display_y = self.units_icon_display_y - self.icon_y_offset
         self.bar_end_width = Constant.IMAGES['prayer_bar_end'].get_width()
         self.bar_width = Constant.IMAGES['prayer_bar'].get_width()
         self.bar_height = Constant.IMAGES['prayer_bar'].get_height()
@@ -1719,8 +1739,8 @@ class Hud(SideMenu):
     def draw(self):
         self.menu.fill(Constant.MENU_COLOR)
         if Constant.DISPLAY_STATE_IN_HUD:
-            state_text_surf = self.font.render(str(self.engine.state[-1]), True, Constant.turn_to_color[self.engine.turn])
-            self.menu.blit(state_text_surf, (0, self.title_icon_height + state_text_surf.get_height()//2))
+            state_text_surf = self.small_font.render(str(self.engine.state[-1]), True, Constant.turn_to_color[self.engine.turn])
+            self.menu.blit(state_text_surf, (self.menu_width // 2 - state_text_surf.get_width()//2, self.square.get_height()))
         if self.title_bar_highlight:
             self.menu.blit(self.square, (0, 0))
         self.menu.blit(Constant.IMAGES[self.engine.turn + '_game_name'],

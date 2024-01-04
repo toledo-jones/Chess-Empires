@@ -1625,7 +1625,7 @@ class StartMenu(SideMenu):
 class SurrenderMenu(SideMenu):
     def __init__(self, win, engine):
         super().__init__(win, engine)
-        self.fontSize = Constant.SQ_SIZE // 3
+        self.fontSize = round(Constant.SQ_SIZE // 2.5)
         self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.fontSize)
         self.surrender_text = "Surrender?"
         self.yes_text = "yes"
@@ -1639,7 +1639,7 @@ class SurrenderMenu(SideMenu):
         self.question_display_y = self.menu_height // 2 - self.surrender_text_surface.get_height() // 2
         self.question_display_x = self.menu_width // 2 - self.surrender_text_surface.get_width() // 2
         self.buffer = Constant.SQ_SIZE // 2
-        self.yes_display_y = self.question_display_y + 4 * self.buffer
+        self.yes_display_y = self.question_display_y + 2 * self.buffer
         self.no_display_y = self.yes_display_y + self.yes_button_image.get_height() + self.buffer
         self.answer_surface_height = self.yes_button_image.get_height()
         self.answer_surface_width = self.yes_button_image.get_width()

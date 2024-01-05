@@ -1,5 +1,5 @@
 import pygame
-"""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 SETTINGS FILE
 
@@ -8,27 +8,30 @@ SETTINGS FILE
 -All values should be configurable
 -Minimal boilerplate
 
-"""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # DEBUG_START = True
 # DISPLAY_STATE_IN_HUD = True
 # BOARD_STARTS_WITH_RESOURCES = False
 # DEBUG_RITUALS = True
 # POP_UPS_ON = True
-""" 
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 DEBUG
 
-"""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 DEBUG_STARTING_PRAYER = 30
 DEBUG_STARTING_WOOD = 999
 DEBUG_STARTING_GOLD = 999
 DEBUG_STARTING_STONE = 99
 DEBUG_STARTING_PIECES = ['castle', 'king', 'rogue_pawn']
-"""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-WINDOW / BOARD / SIDE MENU
+WINDOW / BOARD / SIDE MENU / FPS
 
-"""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+MAX_FPS = 120
+VERSION = "v24"
+NUMBER = ""
 BOARD_HEIGHT_PX = pygame.display.Info().current_h
 SQ_SIZE = BOARD_HEIGHT_PX // 10
 BOARD_HEIGHT_SQ = BOARD_HEIGHT_PX // SQ_SIZE
@@ -36,22 +39,24 @@ BOARD_WIDTH_SQ = 14
 BOARD_WIDTH_PX = BOARD_WIDTH_SQ * SQ_SIZE
 SIDE_MENU_WIDTH = pygame.display.Info().current_w - BOARD_WIDTH_PX
 BOARD_HEIGHT_PX = pygame.display.Info().current_h
-"""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
 
 COLORS
 
-"""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 MENU_COLOR = pygame.Color((72, 61, 139))
 LIGHT_SQUARE_COLOR = pygame.Color((238, 232, 170))
 DARK_SQUARE_COLOR = pygame.Color((222, 184, 135))
 UNUSED_PIECE_HIGHLIGHT_COLOR = pygame.Color((248, 127, 0))
 SELF_SQUARE_HIGHLIGHT_COLOR = pygame.Color('blue')
 MOVE_SQUARE_HIGHLIGHT_COLOR = pygame.Color((72, 61, 139))
-"""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
 
 TOGGLES
 
-"""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 ACTIONS_UPDATE_ON_SPAWN = False
 MINING_COSTS_ACTION = False
 PRAYING_COSTS_ACTION = False
@@ -61,11 +66,12 @@ QUARRY_COSTS_ACTION = False
 QUARRY_COSTS_RESOURCE = False
 TRAP_COSTS_ACTION = False
 TURN_CHANGE_AFTER_START_SPAWN = True
-"""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
 
 LISTS
 
-"""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 SELECTABLE_STARTING_PIECES = ['pawn', 'builder', 'trader', 'trapper', 'rogue_pawn', 'monk', 'pikeman']
 MASTER_COST_LIST = ['builder', 'monk', 'stable', 'castle', 'barracks', 'fortress', 'circus']
 STABLE_SPAWN_LIST = ['doe', 'oxen', 'unicorn', 'ram', 'elephant', 'knight']
@@ -92,11 +98,12 @@ PRAYER_STONE_RITUALS = ['protect',
                         'portal',
                         'destroy_resource', ]
 MAGICIAN_RITUALS = ['portal', 'swap', 'teleport']
-"""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
 
 VALUES
 
-"""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 DECREE_COST = 25
 DECREE_INCREMENT = 5
 DEFAULT_PIECE_LIMIT = 3
@@ -117,11 +124,11 @@ ADDITIONAL_PRAYER_FROM_MONK = 1
 MAX_MONOLITH_RITUALS_PER_TURN = 1
 MAX_PRAYER_STONE_RITUALS_PER_TURN = 2
 MAX_MAGICIAN_RITUALS_PER_TURN = 1
-"""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 DICTIONARIES
 
-"""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 PIECE_COSTS = {'king': {'log': 0, 'gold': 0, 'stone': 0},
                'gold_general': {'log': 0, 'gold': 0, 'stone': 0},
                'quarry_1': {'log': 3, 'gold': 0, 'stone': 0},
@@ -365,23 +372,17 @@ STEALING_KEY = {'building': {
                 'wood': {'variance': (-2, 2), 'value': 4},
                 'gold': {'variance': (-2, 2), 'value': 4},
                 'stone': {'variance': (-2, 2), 'value': 4}}}
-"""  
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 SOUND
 
-"""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 SOUND_EFFECT_VOLUME = .5
-
-
-VERSION = "v24"
-NUMBER = ""
-MAX_FPS = 120
-
-"""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 SPRITE SCALING
 
-"""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 DEFAULT_PIECE_SCALE = (SQ_SIZE, SQ_SIZE)
 HIGHLIGHT_ALPHA = 110
 SPAWNING_MENU_WIDTH = round(SQ_SIZE * 5.5)
@@ -524,6 +525,5 @@ MENU_ICONS_IMAGE_MODIFY = {'gold_coin': {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFS
                            'log': {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFSET': (0, 0)},
                            'stone': {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFSET': (0, 0)},
                            'prayer': {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFSET': (0, 0)}}
-
-
-
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""

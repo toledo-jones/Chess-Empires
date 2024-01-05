@@ -1,6 +1,8 @@
 import os
 import random
 
+import pygame
+
 import Constant
 from Unit import *
 
@@ -990,68 +992,81 @@ class QueenMenu(Menu):
             self.engine.state[-1].revert_to_playing_state()
 
 
-class PieceDescription:
-    def __init__(self, win, engine, selected):
+class Encyclopedia:
+    def __init__(self, win, engine):
         self.win = win
         self.engine = engine
-        self.selected = selected
 
+        # Window Variables
         self.window_width = pygame.display.Info().current_w
         self.window_height = pygame.display.Info().current_h
 
+        # Font Sizes
         self.small_font_size = round(Constant.SQ_SIZE * .5)
         self.large_font_size = round(Constant.SQ_SIZE * 1.6)
 
+        # Initialize Fonts
         self.large_font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.large_font_size)
         self.small_font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.small_font_size)
 
+        # Boiler Plate
         self.color = Constant.turn_to_color[self.engine.turn]
         self.player = self.engine.players[self.engine.turn]
-
         self.resources = {'wood': Constant.MENU_ICONS['log'], 'gold': Constant.MENU_ICONS['gold_coin'],
                           'stone': Constant.MENU_ICONS['stone']}
         self.icons = Constant.W_PIECES | Constant.W_BUILDINGS | Constant.B_PIECES | Constant.B_BUILDINGS | Constant.PRAYER_RITUALS | Constant.RESOURCES
-        self.title_text = self.selected
-        if self.title_text == 'prayer_stone':
-            self.title_text = 'floating stone'
-        elif self.title_text == 'quarry_1':
-            self.title_text = 'quarry'
-        self.title_text = self.title_text.replace('_', ' ')
+        self.title_text_format_key = {'prayer_stone': 'floating stone'}
+        self.menu_logo = self.get_menu_logo(str(self))
+        self.title_text = self.format_title_text(str(self))
         self.text_surf = self.large_font.render(self.title_text, True, self.color)
-
         self.title_text_width = self.text_surf.get_width()
         self.title_text_height = self.text_surf.get_height()
+        self.menu_key = self.engine.COST_MENUS
 
-        self.text_display_x = self.window_width // 2 - self.title_text_width // 2
-        self.text_display_y = round(self.window_height * 1 / 6) - self.title_text_height // 2
+        # Graphics Math
+        self.title_text_display_x = self.window_width // 2 - self.title_text_width // 2
+        self.title_text_display_y = round(self.window_height * 1 / 6) - self.title_text_height // 2
+        self.menu_logo_display_x, self.menu_logo_display_y = self.get_menu_logo_position()
 
-        self.menu_logo_display_y = self.text_display_y + self.title_text_height
-        self.menu_logo = None
+    def get_menu_logo_position(self):
+        if self.menu_logo:
+            x = self.window_width // 2 - self.menu_logo.get_width() // 2
+            y = self.title_text_display_y + self.title_text_height
+            return x, y
+        return 0, 0
 
+    def get_menu_logo(self, piece):
+        menu_logo = None
+        if piece != "Costs":
+            piece = self.engine.turn + "_" + str(self)
+            menu_logo = self.icons[piece]
+        return menu_logo
+
+    def format_title_text(self, piece):
+        if piece in self.title_text_format_key.keys():
+            return self.title_text_format_key[piece]
+        return piece.replace('_', ' ')
+
+
+class PieceDescription(Encyclopedia):
+    def __init__(self, win, engine, selected):
+        self.selected = selected
+        super().__init__(win, engine)
+
+        # Boiler Plate
         self.description_text = Constant.DESCRIPTIONS[str(self)]
         self.description_text_surfs = []
         for line in self.description_text:
             text_surf = self.small_font.render(line, True, self.color)
             self.description_text_surfs.append(text_surf)
-        self.cost_display_y = self.window_height // 2 - self.resources['wood'].get_height() // 2
-        self.x_buffer_between_costs = round(Constant.SQ_SIZE * 1.5)
-
         self.description_text_width = self.description_text_surfs[0].get_width()
         self.description_text_height = self.description_text_surfs[0].get_height()
-        self.description_text_y = round(self.window_height * 2 / 3)
-        if self.selected == 'quarry_1':
-            piece = 'quarry_1'
-        else:
-            piece = self.engine.turn + "_" + str(self)
-        self.menu_logo = self.icons[piece]
-        self.menu_logo_display_x = self.window_width // 2 - self.menu_logo.get_width() // 2
-        self.cost = None
-        self.type = None
         self.prayer_bar_end = Constant.IMAGES['prayer_bar_end']
         self.prayer_bar = Constant.IMAGES['prayer_bar']
-
         self.bar_end_width = self.prayer_bar_end.get_width()
         self.bar_width = self.prayer_bar.get_width()
+        self.cost = None
+        self.type = None
         try:
             self.cost = Constant.PRAYER_COSTS[self.selected]['prayer']
             self.type = 'ritual'
@@ -1059,6 +1074,10 @@ class PieceDescription:
             self.cost = Constant.PIECE_COSTS[self.selected]
             self.type = 'piece'
 
+        # Graphics Math
+        self.cost_display_y = self.window_height // 2 - self.resources['wood'].get_height() // 2
+        self.x_buffer_between_costs = round(Constant.SQ_SIZE * 1.5)
+        self.description_text_y = round(self.window_height * 2 / 3)
         self.cost_display_x = 0
         if self.type == 'piece':
             count = 0
@@ -1076,7 +1095,7 @@ class PieceDescription:
 
     def draw(self):
         self.win.fill(Constant.MENU_COLOR)
-        self.win.blit(self.text_surf, (self.text_display_x, self.text_display_y))
+        self.win.blit(self.text_surf, (self.title_text_display_x, self.title_text_display_y))
         self.win.blit(self.menu_logo, (self.menu_logo_display_x, self.menu_logo_display_y))
         y_buffer = self.description_text_y
 
@@ -1099,7 +1118,7 @@ class PieceDescription:
                     color = self.color
                 else:
                     color = Constant.RED
-                text_surf = self.small_font.render(": " + str(self.cost[resource]), True, color)
+                text_surf = self.small_font.render(" " + str(self.cost[resource]), True, color)
                 resource_position = (cost_x, self.cost_display_y)
 
                 self.win.blit(self.resources[Constant.RESOURCE_KEY[resource]], resource_position)
@@ -1130,76 +1149,64 @@ class PieceDescription:
         pass
 
 
-class CostMenu:
+class CostMenu(Encyclopedia):
     def __init__(self, win, engine, spawn_list):
+        super().__init__(win, engine)
+
         self.spawn_list = spawn_list
         self.win = win
         self.engine = engine
-
-        self.window_width = pygame.display.Info().current_w
-        self.window_height = pygame.display.Info().current_h
-        self.large_font_size = round(Constant.SQ_SIZE * 1.6)
-        self.large_font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.large_font_size)
-        self.small_font_size = round(Constant.SQ_SIZE * .5)
-        self.small_font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.small_font_size)
-        self.color = Constant.turn_to_color[self.engine.turn]
-        self.player = self.engine.players[self.engine.turn]
-        self.pieces = {'w': Constant.W_PIECES | Constant.W_BUILDINGS,
-                       'b': Constant.B_PIECES | Constant.B_BUILDINGS}
-        self.MENUS = self.engine.COST_MENUS
-        self.RESOURCES = {'wood': Constant.MENU_ICONS['log'], 'gold': Constant.MENU_ICONS['gold_coin'],
-                          'stone': Constant.MENU_ICONS['stone']}
-
-        self.text = str(self)
-        if self.text == 'prayer_stone':
-            self.text = 'floating stone'
-        self.text_surf = self.large_font.render(self.text, True, self.color)
-        self.text_width = self.text_surf.get_width()
-        self.text_height = self.text_surf.get_height()
-
-        self.text_display_x = self.window_width // 2 - self.text_width // 2
-        self.text_display_y = round(self.window_height * 1 / 6) - self.text_height // 2
-
-        self.x_buffer = round(Constant.SQ_SIZE * 7 / 8)
-        total_width_of_pieces = (len(self.spawn_list) * self.x_buffer * 2) - self.x_buffer
-        self.piece_display_x = (self.window_width - total_width_of_pieces) // 2
-        self.piece_display_y = round(self.window_height * 1 / 2)
-
-        self.menu_logo_display_x = self.window_width // 2 - Constant.SQ_SIZE // 2
-        self.menu_logo_display_y = self.text_display_y + self.text_height
-        self.menu_logo = None
-        if str(self) != 'Costs':
-            piece = self.engine.turn + "_" + str(self)
-            self.menu_logo = self.pieces[self.engine.turn][piece]
-
-        self.y_buffer_between_costs = Constant.SQ_SIZE
-        self.x_buffer_between_costs = self.x_buffer // 3
-
         self.highlight_list = []
+        self.column_list = []
+
+        '--------------------'
+        'Adjust graphics here'
+
+        # Determine positions
+        self.x_buffer_between_columns = Constant.SQ_SIZE // 3
+
+        self.column_width = round(Constant.SQ_SIZE * 1.5)
+
+        self.y_buffer_between_costs = Constant.SQ_SIZE // 2
+
+        self.x_buffer_between_costs = self.x_buffer_between_columns // 3
+
+        resource_height = self.resources[Constant.RESOURCE_KEY['stone']].get_height()
+
+        self.column_height = (self.y_buffer_between_costs * 3) + (resource_height * 3)
+
+        self.text_display_x = self.window_width // 2 - self.title_text_width // 2
+
+        self.text_display_y = round(self.window_height * 1 / 6) - self.title_text_height // 2
+
+        self.width_of_of_all_columns_and_buffers = (self.column_width + self.x_buffer_between_columns) * len(self.spawn_list)
+
+        self.column_display_y = round(self.window_height * 1 / 2)
+
         for _ in self.spawn_list:
             self.highlight_list.append(False)
-
-        total_height_of_cost_column = self.y_buffer_between_costs * 3 + self.x_buffer
-        self.highlight_width = round(self.x_buffer * 1.5)
-        self.highlight_dimensions = (self.highlight_width, total_height_of_cost_column)
-
-        self.square = pygame.Surface(self.highlight_dimensions)
-        self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
-        self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
+            column = pygame.Surface([self.column_width, self.column_height], pygame.SRCALPHA, 32)
+            column = column.convert_alpha()
+            self.column_list.append(column)
+        self.highlight = pygame.Surface((self.column_width, self.column_height))
+        self.highlight.set_alpha(Constant.HIGHLIGHT_ALPHA)
+        self.highlight.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
+        'End Adjustments'
+        '--------------------'
 
     def mouse_move(self):
         pos = pygame.mouse.get_pos()
-        piece_display_x = self.piece_display_x
-        for i in range(len(self.spawn_list)):
-            if pos[1] in range(self.piece_display_y, self.piece_display_y + self.highlight_dimensions[1]):
-                highlight_edge = piece_display_x - ((self.highlight_width - self.x_buffer) // 2)
-                if pos[0] in range(highlight_edge, highlight_edge + self.highlight_dimensions[0]):
-                    self.highlight_list[i] = True
+        column_display_x = self.window_width // 2 - self.width_of_of_all_columns_and_buffers // 2
+        for column in self.column_list:
+            index = self.column_list.index(column)
+            if pos[1] in range(self.column_display_y, self.column_display_y + self.column_height):
+                if pos[0] in range(column_display_x, column_display_x + self.column_width):
+                    self.highlight_list[index] = True
                 else:
-                    self.highlight_list[i] = False
+                    self.highlight_list[index] = False
             else:
-                self.highlight_list[i] = False
-            piece_display_x += self.x_buffer * 2
+                self.highlight_list[index] = False
+            column_display_x += self.column_width + self.x_buffer_between_columns
 
     def left_click(self):
         selected = self.piece_selected()
@@ -1212,56 +1219,49 @@ class CostMenu:
         self.win.blit(self.text_surf, (self.text_display_x, self.text_display_y))
         if self.menu_logo:
             self.win.blit(self.menu_logo, (self.menu_logo_display_x, self.menu_logo_display_y))
-        piece_display_x = self.piece_display_x
-        for i in range(len(self.spawn_list)):
-            p = self.spawn_list[i]
-            cost = Constant.PIECE_COSTS[p]
-            if p == 'quarry_1':
-                piece = 'quarry_1'
-            else:
-                piece = self.engine.turn + "_" + p
-            if self.highlight_list[i]:
-                self.win.blit(self.square,
-                              (piece_display_x - ((self.highlight_width - self.x_buffer) // 2), self.piece_display_y))
-            if piece == 'quarry_1':
-                self.win.blit(Constant.RESOURCES[piece], (piece_display_x, self.piece_display_y))
-            else:
-                self.win.blit(self.pieces[self.engine.turn][piece], (piece_display_x, self.piece_display_y))
-            log_y = self.piece_display_y + self.y_buffer_between_costs
-            gold_y = log_y + self.y_buffer_between_costs
-            stone_y = gold_y + self.y_buffer_between_costs
-            Y_COORDS = {'wood': log_y, 'gold': gold_y, 'stone': stone_y}
+
+        column_display_x = self.window_width // 2 - self.width_of_of_all_columns_and_buffers // 2
+        for column in self.column_list:
+            index = self.column_list.index(column)
+            if self.highlight_list[index]:
+                self.win.blit(self.highlight, (column_display_x, self.column_display_y))
+
+            # Boiler Plate
+            piece = self.spawn_list[index]
+            cost = Constant.PIECE_COSTS[piece]
+            piece = self.engine.turn + "_" + piece
+
+            # Graphics Math
+            piece_display_x = self.column_width // 2 - self.icons[piece].get_width() // 2
+
+            column.blit(self.icons[piece], (piece_display_x, 0))
+            y_buffer = self.icons[piece].get_height()
             for resource in cost:
+                resource_sprite = self.resources[Constant.RESOURCE_KEY[resource]]
                 if cost[resource] != 0:
                     if getattr(self.player, Constant.RESOURCE_KEY[resource]) >= cost[resource]:
                         color = self.color
                     else:
                         color = Constant.RED
-                    text_surf = self.small_font.render("  " + str(cost[resource]), True, color)
-                    resource_position = (piece_display_x - self.x_buffer_between_costs // 1.5,
-                                         Y_COORDS[Constant.RESOURCE_KEY[resource]] + self.RESOURCES[
-                                             Constant.RESOURCE_KEY[resource]].get_height() // 3)
+                    text_surface = self.small_font.render(str(cost[resource]), True, color)
+                    resource_position = (self.column_width // 4 - resource_sprite.get_width() // 2, y_buffer + resource_sprite.get_height() // 8)
+                    column.blit(resource_sprite, resource_position)
+                    cost_text_position = (self.column_width // (3/2), y_buffer - text_surface.get_height() // 8)
+                    column.blit(text_surface, cost_text_position)
+                    y_buffer += self.y_buffer_between_costs
 
-                    self.win.blit(self.RESOURCES[Constant.RESOURCE_KEY[resource]], resource_position)
-
-                    cost_text_position = (piece_display_x + self.x_buffer_between_costs,
-                                          Y_COORDS[Constant.RESOURCE_KEY[resource]])
-
-                    self.win.blit(text_surf, cost_text_position)
-
-            piece_display_x += self.x_buffer * 2
+            self.win.blit(column, (column_display_x, self.column_display_y))
+            column_display_x += self.column_width + self.x_buffer_between_columns
 
     def piece_selected(self):
         pos = pygame.mouse.get_pos()
-        piece_display_x = self.piece_display_x
-        selected = None
-        for i in range(len(self.spawn_list)):
-            if pos[1] in range(self.piece_display_y, self.piece_display_y + self.highlight_dimensions[1]):
-                highlight_edge = piece_display_x - ((self.highlight_width - self.x_buffer) // 2)
-                if pos[0] in range(highlight_edge, highlight_edge + self.highlight_dimensions[0]):
-                    selected = self.spawn_list[i]
-            piece_display_x += self.x_buffer * 2
-        return selected
+        column_display_x = self.window_width // 2 - self.width_of_of_all_columns_and_buffers // 2
+        for column in self.column_list:
+            index = self.column_list.index(column)
+            if pos[1] in range(self.column_display_y, self.column_display_y + self.column_height):
+                if pos[0] in range(column_display_x, column_display_x + self.column_width):
+                    return self.spawn_list[index]
+            column_display_x += self.column_width + self.x_buffer_between_columns
 
 
 class Master(CostMenu):
@@ -1274,7 +1274,7 @@ class Master(CostMenu):
     def left_click(self):
         piece_selected = self.piece_selected()
         if piece_selected is not None:
-            menu = self.MENUS[piece_selected](self.win, self.engine)
+            menu = self.menu_key[piece_selected](self.win, self.engine)
             self.engine.menus.append(menu)
 
 
@@ -1322,7 +1322,7 @@ class MonkCosts(CostMenu):
     def left_click(self):
         piece_selected = self.piece_selected()
         if piece_selected is not None:
-            menu = self.MENUS[piece_selected](self.win, self.engine)
+            menu = self.menu_key[piece_selected](self.win, self.engine)
             self.engine.menus.append(menu)
 
     def __repr__(self):
@@ -1354,7 +1354,7 @@ class RitualCosts(CostMenu):
         self.ritual_width = self.rituals['w_swap'].get_width()
         self.ritual_height = self.rituals['w_swap'].get_height()
 
-        total_height_of_cost_column = self.y_buffer_between_costs * 3 + self.x_buffer
+        total_height_of_cost_column = self.y_buffer_between_costs * 3 + self.x_buffer_between_columns
         self.highlight_width = self.ritual_width
         self.highlight_dimensions = (self.highlight_width, total_height_of_cost_column)
 
@@ -1398,7 +1398,7 @@ class RitualCosts(CostMenu):
                 new_edge = bar_end_edge + self.bar_end_width * (z)
                 self.win.blit(self.prayer_bar_end, (new_edge, self.bar_display_y))
 
-            piece_display_x += self.x_buffer * 2
+            piece_display_x += self.x_buffer_between_columns * 2
 
 
 class PrayerStoneCosts(RitualCosts):

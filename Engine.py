@@ -276,10 +276,13 @@ class Engine:
             for c in range(self.cols):
                 colors = [Constant.DARK_SQUARE_COLOR, Constant.LIGHT_SQUARE_COLOR]
                 color = colors[((r + c) % 2)]
+                rect_size = (Constant.SQ_SIZE, Constant.SQ_SIZE)
+                if r == self.rows - 1:
+                    rect_size = (Constant.SQ_SIZE, Constant.SQ_SIZE + Constant.board_remainder() * 100)
                 pygame.draw.rect(win, color, pygame.Rect(c * Constant.SQ_SIZE,
                                                          r * Constant.SQ_SIZE,
-                                                         Constant.SQ_SIZE,
-                                                         Constant.SQ_SIZE))
+                                                         rect_size[0],
+                                                         rect_size[1]))
         for r in range(self.rows):
             for c in range(self.cols):
                 self.board[r][c].draw(win)

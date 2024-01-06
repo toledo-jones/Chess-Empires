@@ -1,0 +1,36 @@
+game_project/
+|-- src/
+|   |-- __init__.py
+|   |-- main.py
+|   |-- settings.py
+|   |-- constants/
+|       |-- __init__.py
+|       |-- game_constants.py
+|       |-- network_constants.py
+|       |-- ... (other constants files)
+|   |-- game/
+|       |-- __init__.py
+|       |-- engine.py
+|       |-- entities/
+|           |-- __init__.py
+|           |-- player.py
+|           |-- enemy.py
+|       |-- scenes/
+|           |-- __init__.py
+|           |-- start_scene.py
+|           |-- game_scene.py
+|           |-- end_scene.py
+|       |-- network/
+|           |-- __init__.py
+|           |-- client.py
+|           |-- server.py
+|-- utilities/
+|   |-- __init__.py
+|   |-- input_handler.py
+|   |-- collision_handler.py
+|-- tests/
+|   |-- __init__.py
+|   |-- test_game.py
+|-- .gitignore
+|-- README.md
+|-- requirements.txt

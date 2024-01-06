@@ -1,6 +1,6 @@
 """
 
-Holds multiple games of Chess Empires
+Holds multiple games of Chess-Empires
 
 """
 import socket

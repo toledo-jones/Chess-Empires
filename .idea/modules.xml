@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Chess Empires v24.iml" filepath="$PROJECT_DIR$/.idea/Chess Empires v24.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/Chess Empires.iml" filepath="$PROJECT_DIR$/.idea/Chess Empires.iml" />
     </modules>
   </component>
 </project>

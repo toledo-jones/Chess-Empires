@@ -41,7 +41,7 @@ input_handler = InputHandler(event_system)
 game_scene = scene_manager.set_scene("GameScene", state_manager)
 
 # Initialize the game client
-game_client = GameClient("127.0.0.1", 5555, event_system)
+game_client = GameClient("192.168.1.149", 5555, event_system)
 game_client.connect()
 game_client.start_listening_thread()
 

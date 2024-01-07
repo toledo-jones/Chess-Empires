@@ -1,0 +1,6 @@
+"""
+Example of Data
+
+data = '{"type": "mouse move", "player_id": 1, "x": 100, "y": 200}'
+
+"""

@@ -1,10 +1,12 @@
+import sys
+
 import pygame
 from network.client import GameClient
-from utilities.input_handler import get_player_input
 from game.engine import GameEngine
-from game.scenes.game_scene import GameScene
+from game.scene_manager import SceneManager
 from game.state_manager import StateManager
 from utilities.input_handler import InputHandler
+from utilities.event_system import EventSystem
 
 
 # Initialize Pygame
@@ -17,35 +19,41 @@ FPS = 60
 
 # Set up the game window
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Your Game Title")
+pygame.display.set_caption("Chess Empires")
 clock = pygame.time.Clock()
 
-# Create the game engine
+# Initialize the game engine
 game_engine = GameEngine(SCREEN_WIDTH, SCREEN_HEIGHT)
 
+# Initialize the event system
+event_system = EventSystem()
+
+# Initialize the scene manager
+scene_manager = SceneManager(event_system)
+
 # Initialize the state manager
-state_manager = StateManager()
+state_manager = StateManager(event_system)
 
 # Initialize the input handler with the state manager
-input_handler = InputHandler(state_manager)
+input_handler = InputHandler(event_system)
 
 # Initialize the game scene with the state manager
-game_scene = GameScene(state_manager)
+game_scene = scene_manager.set_scene("GameScene", state_manager)
 
-# Create the game client
-game_client = GameClient("localhost", 5000)
+# Initialize the game client
+game_client = GameClient("127.0.0.1", 5555, event_system)
 game_client.connect()
+game_client.start_listening_thread()
 
 # Main game loop
 running = True
 while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+    for pygame_event in pygame.event.get():
+        if pygame_event.type == pygame.QUIT:
             running = False
-
-    # Handle player input
-    player_input = get_player_input()
-    game_client.send_string(player_input)
+        # Handle input
+        input_handler.handle_input(pygame_event)
+        # game_client.send_string(player_input)
 
     # Update game logic
     game_engine.update()
@@ -67,3 +75,6 @@ game_client.close()
 
 # Quit Pygame
 pygame.quit()
+
+# Exit
+sys.exit()

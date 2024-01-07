@@ -1,13 +1,31 @@
-from ...game.states import StateFactory
+from assets.src.game.states import StateFactory
+from assets.src.game.scenes import BaseScene
 
 
-class GameScene:
-    def __init__(self, state_manager):
-        self.state_manager = state_manager
-        example_state = StateFactory.create("MiningState")
+class GameScene(BaseScene):
+    def __init__(self, event_system, state_manager):
+        super().__init__(event_system, state_manager)
 
-    def update(self, keys_pressed):
-        self.states[current_state].handle_input(keys_pressed)
+        # Subscribe to input events
+        self.event_system.subscribe("Jump", self.handle_jump_event)
+        self.event_system.subscribe("Attack", self.handle_attack_event)
+
+    def enter(self):
+        print("Implemented enter method")
+
+    def update(self):
+        print("Implemented update method")
 
     def render(self):
-        self.states[current_state].draw()
+        print("Implemented render method")
+
+    def handle_input(self, data):
+        print("Implemented handle_input method")
+
+    def handle_jump_event(self, data):
+        # Handle jump event logic
+        print("Player jumped!")
+
+    def handle_attack_event(self, data):
+        # Handle attack event logic
+        print("Player attacked!")

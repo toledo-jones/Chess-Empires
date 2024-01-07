@@ -1,12 +1,12 @@
+import pygame
+
+
 class InputHandler:
-    def __init__(self, state_manager):
-        self.state_manager = state_manager
+    def __init__(self, event_system):
+        self.event_system = event_system
 
-    def handle_input(self, keys_pressed):
-        current_state = self.state_manager.get_current_state
-
-        if current_state:
-            current_state.handle_input(keys_pressed)
-
-    def get_input(self):
-        pass
+    def handle_input(self, pygame_event):
+        # this for handling events
+        if pygame_event.type == pygame.MOUSEMOTION:
+            data = {"type": 'mouse move', "x": pygame_event.pos[0], "y": pygame_event.pos[1]}
+            self.event_system.emit("mouse move", data)

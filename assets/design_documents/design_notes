@@ -1,0 +1,22 @@
+Server authentication of player events:
+
+Assuming you have a scenario where a client moves its character, consider the following example approach:
+
+    Client Request:
+        The client sends a "move" event to the server with information about the intended movement.
+
+    Server Validation:
+        The server validates the move, ensuring it is legal and doesn't violate game rules.
+
+    Server Update:
+        If the move is valid, the server updates the game state and broadcasts the updated state to all clients,
+         including the client that initiated the move.
+
+    Client Update:
+        All clients, including the one that initiated the move, receive the server's update and apply it locally.
+
+This way, the server acts as the authoritative source, ensuring fair play and consistency among all connected clients.
+
+In summary, while there might be scenarios where the server echoes events back to the originating client, it's typically
+ more common for the server to process and validate client actions and then broadcast authoritative updates to all
+  connected clients. The specific approach depends on the requirements and mechanics of your game.

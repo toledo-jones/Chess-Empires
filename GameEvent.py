@@ -309,6 +309,7 @@ class ChangeTurn(GameEvent):
         self.protected_tiles = self.engine.protected_tiles[:]
 
     def complete(self):
+
         super().complete()
         self.engine.sounds.play('change_turn')
         self.engine.reset_selected()
@@ -363,7 +364,6 @@ class ChangeTurn(GameEvent):
         unused_pieces = self.engine.count_unused_pieces()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
-
     def undo(self):
         self.engine.sounds.play('change_turn')
         self.engine.turn = Constant.TURNS[self.engine.turn]

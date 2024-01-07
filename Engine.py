@@ -135,7 +135,8 @@ class Engine:
                        'protect': PerformProtect,
                        'main menu': MainMenu,
                        'debug': DebugStart,
-                       'ai start spawn': AIStartingSpawn}
+                       'ai start spawn': AIStartingSpawn,
+                       'inspector': Inspector}
         self.RESOURCES = {'tree_tile_1': Wood, 'gold_tile_1': Gold,
                           'quarry_1': Quarry,
                           'tree_tile_2': Wood,
@@ -216,6 +217,7 @@ class Engine:
         #
         #   Accepts State Object and adds it to State List
         #
+
         if isinstance(state, State):
             self.state.append(state)
 

@@ -8,6 +8,9 @@ class State:
         self.engine = engine
         self.side_bar = None
 
+    def __repr__(self):
+        raise NotImplementedError("Subclasses must implement __repr__ ")
+
     def type_of_move(self, acting_tile, action_tile):
         piece = acting_tile.get_occupying()
         has_portal = False
@@ -109,10 +112,13 @@ class State:
         #
         #   By default enter will change turn if the player has performed an action that turn.
         #
+        self.revert_to_playing_state()
         player = self.engine.players[self.engine.turn]
+
         number_of_actions_if_player_has_done_nothing = player.total_additional_actions_this_turn + Constant.DEFAULT_ACTIONS_REMAINING
         if number_of_actions_if_player_has_done_nothing > player.actions_remaining:
             self.engine.change_turn()
+
 
     def right_click(self):
         #
@@ -190,6 +196,9 @@ class MainMenu(State):
         self.single_player_button_range_x = range(self.single_player_text_display_x, self.single_player_text_display_x + self.button_width)
         self.button_range_y = range(self.button_display_y, self.button_display_y + self.button_height)
 
+    def __repr__(self):
+        return 'main menu'
+
     def draw(self):
         self.win.fill(Constant.MENU_COLOR)
         self.win.blit(self.main_menu_logo, self.logo_position)
@@ -237,6 +246,9 @@ class Inspector(State):
         super().__init__(win, engine)
         self.currently_selected = currently_selected
         self.side_bar = PieceInspector(win, engine, currently_selected)
+
+    def __repr__(self):
+        return 'inspector'
 
     def draw(self):
         super().draw()
@@ -292,7 +304,6 @@ class Playing(State):
                             return True
                     else:
                         self.engine.set_popup_reason('invalid_move')
-
 
 
     def can_select_piece(self, currently_selected):
@@ -377,7 +388,6 @@ class Playing(State):
             new_state = Inspector(self.win, self.engine, currently_selected)
             new_state.select(row, col)
             self.engine.set_state(new_state)
-
 
     def right_click(self):  # STATE, PLAYING
         if self.engine.menus:

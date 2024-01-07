@@ -7,7 +7,7 @@ from game.scene_manager import SceneManager
 from game.state_manager import StateManager
 from utilities.input_handler import InputHandler
 from utilities.event_system import EventSystem
-
+from utilities.sprite_factory import SpriteFactory
 
 # Initialize Pygame
 pygame.init()
@@ -44,6 +44,17 @@ game_scene = scene_manager.set_scene("GameScene", state_manager)
 game_client = GameClient("192.168.1.149", 5555, event_system)
 game_client.connect()
 game_client.start_listening_thread()
+
+# Example sprite access
+sprites = SpriteFactory.loaded_images
+
+# Access images using keys
+image_key = "pieces/black/builder.png"
+if image_key in sprites:
+    image = sprites[image_key]
+    # Now 'image' contains the pygame surface for the specified image
+else:
+    print(f"Image not found: {image_key}")
 
 # Main game loop
 running = True

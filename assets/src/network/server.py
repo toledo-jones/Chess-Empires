@@ -12,6 +12,7 @@ from assets.src.game.state_manager import StateManager
 from assets.src.utilities.event_system import EventSystem
 from assets.src.game.scenes import SceneFactory
 
+
 class GameServer:
     def __init__(self, host, port):
         self.host = host
@@ -36,7 +37,6 @@ class GameServer:
         event_data = {'type': 'mouse move', 'player_id': player_id, 'x': x, 'y': y}
         self.event_system.emit(event_data['type'], event_data)
         print(f"Received mouse movement from Player {player_id}: x={x}, y={y}")
-        print("Sending to clients...")
         self.broadcast_event_to_clients('mouse_move', event_data)
         # Update the game scene with the mouse movement data
         # self.game_scene.update_mouse_position(player_id, x, y)

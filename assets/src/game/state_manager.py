@@ -1,6 +1,7 @@
 class StateManager:
-    def __init__(self):
+    def __init__(self, event_system):
         self.current_state = None
+        self.event_system = event_system
 
     def set_state(self, new_state):
         self.current_state = new_state

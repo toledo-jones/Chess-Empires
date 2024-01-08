@@ -32,6 +32,7 @@ win.blit(MAIN_MENU_LOGO, LOGO_POSITION)
 pygame.display.update()
 time.sleep(2)
 from Settings import *
+
 STARTING_PRAYER = 0
 STARTING_WOOD = 0
 STARTING_GOLD = 0
@@ -550,6 +551,53 @@ def edge_squares():
             squares.append(square)
     return squares
 
+def board_max_index():
+    x = BOARD_WIDTH_SQ - 1
+    y = BOARD_HEIGHT_SQ - 1
+    return x, y
+
+def top_pyramid_squares():
+    squares = []
+    x, y = board_max_index()
+    height_of_island = min(x, y) // 2 - 1
+
+    # Loop through rows
+    for r in range(0, height_of_island):
+        # Loop through columns
+        for c in range(0, x + 1):
+            # Check if the square is within the pyramid shape
+            if c >= r and c < x - r + 1:
+                squares.append((r, c))
+            elif c >= x - r and c < r - 1:
+                squares.append((r, c))
+
+    return squares
+
+def bottom_pyramid_squares():
+    squares = []
+    x, y = board_max_index()
+    height_of_pyramid = y // 2 + 1
+
+    # Loop through rows in reverse order
+    for r in range(y, height_of_pyramid, -1):
+        for c in range(0, x + 1):
+            # Check conditions to determine whether to append the square
+            if r == y or (r == y - 1 and 0 < c <= x - 1) or (r == y - 2 and 1 < c <= x - 2):
+                squares.append((r, c))
+
+    return squares
+
+
+# Example usage
+top_result = top_pyramid_squares()
+bottom_result = bottom_pyramid_squares()
+
+print("Top Pyramid Squares:")
+print(top_result)
+
+print("\nBottom Pyramid Squares:")
+print(bottom_result)
+
 
 def center_circle_squares():
     squares = []
@@ -584,7 +632,7 @@ def quarter_triangle_sections():
         for c in range(0, r - 2):
             bottom_left.append((r, c))
 
-    for r in range(y-3, y+1):
+    for r in range(y - 3, y + 1):
         for c in range(x, x - (r - 3), -1):
             bottom_right.append((r, c))
 
@@ -606,11 +654,11 @@ def quarter_triangle_sections_e():
     top_right = []
     x, y = board_max_index()
 
-    for r in range(y-3, y+1):
-        for c in range(0, r-5):
+    for r in range(y - 3, y + 1):
+        for c in range(0, r - 5):
             bottom_left.append((r, c))
 
-    for r in range(y-3, y+1):
+    for r in range(y - 3, y + 1):
         for c in range(x, x - (r - 5), -1):
             bottom_right.append((r, c))
 
@@ -689,10 +737,6 @@ def outside_corner_squares():
     return squares
 
 
-def board_max_index():
-    x = BOARD_WIDTH_SQ - 1
-    y = BOARD_HEIGHT_SQ - 1
-    return x, y
 
 
 def pos_in_bounds(pos):
@@ -715,6 +759,7 @@ def convert_pos(pos):
     row = pos[1] // SQ_SIZE
     col = pos[0] // SQ_SIZE
     return row, col
+
 
 def board_remainder():
     return BOARD_HEIGHT_SQ / SQ_SIZE

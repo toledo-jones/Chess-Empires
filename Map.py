@@ -147,6 +147,32 @@ class Default(Map):
             r, c = square[0], square[1]
             self.spawn_gold(r, c)
 
+class Islands(Map):
+    def __init__(self, engine):
+        super().__init__(engine)
+        self.top_pyramid_squares = Constant.top_pyramid_squares()
+        self.bottom_pyramid_squares = Constant.bottom_pyramid_squares()
+
+
+    def generate_resources(self):
+        for square in self.top_pyramid_squares:
+            rand = random.randint(0, 6)
+            if rand > 1:
+                self.spawn_wood(square[0], square[1])
+                if rand > 2:
+                    self.spawn_wood_nearby(square[0], square[1])
+
+        for square in self.bottom_pyramid_squares:
+            rand = random.randint(0, 6)
+            if rand > 1:
+                self.spawn_wood(square[0], square[1])
+                if rand > 2:
+                    self.spawn_wood_nearby(square[0], square[1])
+
+        for section in self.quarters:
+            self.spawn_gold_randomly(section)
+
+
 
 class Minimal(Map):
     def __init__(self, engine):

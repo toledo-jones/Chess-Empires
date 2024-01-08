@@ -144,8 +144,8 @@ class Engine:
                           'sunken_quarry_1': SunkenQuarry,
                           'depleted_quarry_1': DepletedQuarry}
         self.MAPS = [Default, Minimal, VTrees, TriangleTrees,
-                     UnbalancedForestA, UnbalancedForestB, UltraBalanced, LeftRight, OnlyStoneAndGold, FourCorners, CenterCircleA, CenterCircleB, SuperMinimal, GoldCornersA, GoldCornersB]
-        # self.MAPS = [UnbalancedForestA, UnbalancedForestB]
+                     UltraBalanced, LeftRight, OnlyStoneAndGold, FourCorners, CenterCircleA, CenterCircleB, SuperMinimal, GoldCornersA, GoldCornersB, Islands]
+        # self.MAPS = []
         self.MENUS = {'stable': StableMenu,
                       'fortress': FortressMenu,
                       'barracks': BarracksMenu,

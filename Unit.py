@@ -1446,6 +1446,7 @@ class Pikeman(Piece):
                            Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
                            Constant.DOWN_LEFT)
         self.distance = 1
+        self.is_cavalry = True
 
     def capture_squares(self, engine):
         squares = []

@@ -13,7 +13,7 @@ class GameClient:
         self.player_id = None
         self.should_stop_listening = False
         self.last_mouse_event_time = 0
-        self.mouse_event_threshold = .1
+        self.mouse_event_threshold = 0.05
         self.listening_thread = None
         # Subscribe to different events
         self.event_system.subscribe("mouse move", self.handle_mouse_motion)

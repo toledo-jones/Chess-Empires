@@ -3,29 +3,20 @@ from assets.src.game.scenes import BaseScene
 
 
 class GameScene(BaseScene):
-    def __init__(self, event_system, state_manager):
-        super().__init__(event_system, state_manager)
+    def __init__(self, event_system, scene_manager, state_manager):
+        super().__init__(event_system, scene_manager, state_manager)
 
         # Subscribe to input events
-        self.event_system.subscribe("Jump", self.handle_jump_event)
-        self.event_system.subscribe("Attack", self.handle_attack_event)
+        self.event_system.subscribe("mouse move", self.handle_mouse_move)
 
     def enter(self):
-        print("Implemented enter method")
+        pass
 
     def update(self):
-        print("Implemented update method")
+        pass
 
     def render(self):
-        print("Implemented render method")
+        pass
 
-    def handle_input(self, data):
-        print("Implemented handle_input method")
-
-    def handle_jump_event(self, data):
-        # Handle jump event logic
-        print("Player jumped!")
-
-    def handle_attack_event(self, data):
-        # Handle attack event logic
-        print("Player attacked!")
+    def handle_mouse_move(self, data):
+        pass

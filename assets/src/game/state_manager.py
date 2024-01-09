@@ -1,4 +1,7 @@
-class StateManager:
+from assets.src.utilities.singleton import Singleton
+
+
+class StateManager(Singleton):
     def __init__(self, event_system):
         self.current_state = None
         self.event_system = event_system

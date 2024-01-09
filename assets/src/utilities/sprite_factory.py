@@ -21,9 +21,7 @@ class SpriteFactory:
         for path in base_path.rglob("*"):
             if path.is_file() and path.suffix == ".png":
                 sprite_paths.append(path.relative_to(base_path))
-                print(f"Found Sprite Path: {path.relative_to(base_path)}")
-            else:
-                print(f"{path} is not .png")
+
 
         return sprite_paths
 
@@ -40,7 +38,7 @@ class SpriteFactory:
 
 
 # Remember the script thinks the /src is the "home" directory
-base_path = "../../assets/old/sprites"  # Adjust the relative path as needed
+base_path = "assets/sprites"  # Adjust the relative path as needed
 all_sprite_paths = SpriteFactory.discover_sprite_paths(base_path)
 
 if not all_sprite_paths:

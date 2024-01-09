@@ -33,8 +33,8 @@ STARTING_STONE = 0
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 GOLD = pygame.Color('gold')
 DARK_ORANGE = pygame.Color('dark orange')
-WHITE = pygame.Color('white')
-BLACK = pygame.Color('black')
+WHITE = pygame.Color('black')
+BLACK = pygame.Color('white')
 BLUE = pygame.Color('blue')
 RED = pygame.Color('red')
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""

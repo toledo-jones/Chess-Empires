@@ -1,0 +1,43 @@
+    GameController:
+        Dependencies:
+            GameEngine (for managing lower-level aspects of the game)
+            SceneManager (for handling different game scenes) x
+            StateManager (for managing game states) x
+            EventSystem (for handling events) x
+            InputHandler (for managing user input) x
+            GameClient (for managing client-side networking) x
+
+    GameEngine:
+        Dependencies:
+            SceneManager (for handling different game scenes)
+            EventSystem (for handling events)
+            InputHandler (for managing user input)
+            StateManger (for managing game states)
+
+    SceneManager:
+        Dependencies:
+            EventSystem (for handling events)
+            StateManager (for managing game states)
+
+    StateManager:
+        Dependencies:
+            EventSystem (for handling events)
+
+    EventSystem:
+        Dependencies: None
+
+    InputHandler:
+        Dependencies:
+            EventSystem (for handling events)
+
+    SceneFactory:
+        Dependencies: None
+
+    SpriteFactory:
+        Dependencies: None
+
+    Singleton:
+        Dependencies: None
+
+    ClassDiscovery:
+        Dependencies: None

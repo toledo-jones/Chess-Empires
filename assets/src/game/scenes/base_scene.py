@@ -1,13 +1,12 @@
 from abc import ABC, abstractmethod
+import pygame
 
 class BaseScene(ABC):
-    def __init__(self, event_system, state_manager):
+    def __init__(self, event_system, scene_manager, state_manager):
         self.state_manager = state_manager
         self.event_system = event_system
+        self.scene_manager = scene_manager
 
-    @abstractmethod
-    def handle_input(self, keys_pressed):
-        raise NotImplementedError("Subclasses must implement handle_input method.")
 
     @abstractmethod
     def render(self):

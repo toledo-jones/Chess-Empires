@@ -17,11 +17,10 @@ class GameServer:
     def __init__(self, host, port):
         self.host = host
         self.port = port
+        self.clients_lock = threading.Lock()
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.clients = {}
         self.event_system = EventSystem()
-        self.state_manager = StateManager(self.event_system)
-        self.current_scene = SceneFactory.create("GameScene", self.event_system, self.state_manager)
         self.data_handlers = {
             'mouse move': self.handle_mouse_movement,
             # Add more data types and corresponding handlers as needed
@@ -35,22 +34,22 @@ class GameServer:
         y = data.get('y')
 
         event_data = {'type': 'mouse move', 'player_id': player_id, 'x': x, 'y': y}
-        self.event_system.emit(event_data['type'], event_data)
         print(f"Received mouse movement from Player {player_id}: x={x}, y={y}")
-        self.broadcast_event_to_clients('mouse_move', event_data)
+        self.broadcast_event_to_clients('mouse move', event_data)
         # Update the game scene with the mouse movement data
         # self.game_scene.update_mouse_position(player_id, x, y)
 
     def broadcast_event_to_clients(self, event_type, event_data):
         # Iterate over connected clients and send the event data to each client
-        for client_socket in self.clients.keys():
+        for client_socket in list(self.clients.keys()):
             try:
-                # Serialize the event data and send it to the client
-                serialized_data = pickle.dumps({'type': event_type, 'data': event_data})
-                client_socket.sendall(serialized_data)
+                # Check if the socket is still valid
+                if client_socket.fileno() != -1:
+                    # Serialize the event data and send it to the client
+                    serialized_data = pickle.dumps({'type': event_type, 'data': event_data})
+                    client_socket.sendall(serialized_data)
             except Exception as e:
                 print(f"Error broadcasting event to client: {e}")
-
     def process_data(self, data):
         try:
             if isinstance(data, str):
@@ -79,12 +78,13 @@ class GameServer:
         except Exception as e:
             print(f"Error processing data: {e}")
 
-    def handle_client(self, client_socket, _server):
+    def handle_client(self, client_socket, client_address):
         try:
             player_id = self.current_player_id
             self.current_player_id += 1
 
-            self.clients[client_socket] = player_id
+            with self.clients_lock:
+                self.clients[client_socket] = player_id
 
             # Send the player ID to the client
             client_socket.sendall(str(player_id).encode('utf-8'))
@@ -99,11 +99,13 @@ class GameServer:
 
         except Exception as e:
             print(f"Error handling client: {e}")
-
         finally:
             # Remove the client from the dictionary when it disconnects
-            del self.clients[client_socket]
-            client_socket.close()
+            with self.clients_lock:
+                if client_socket in self.clients:
+                    del self.clients[client_socket]
+                    client_socket.close()
+                    print(f"Closed connection for {client_address}")
 
     def start(self):
         self.server_socket.bind((self.host, self.port))
@@ -114,7 +116,7 @@ class GameServer:
             client_socket, client_address = self.server_socket.accept()
             print(f"Accepted connection from {client_address}")
 
-            client_thread = threading.Thread(target=self.handle_client, args=(client_socket, self))
+            client_thread = threading.Thread(target=self.handle_client, args=(client_socket, client_address))
             client_thread.start()
             self.clients[client_socket] = client_thread
 

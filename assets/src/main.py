@@ -1,6 +1,8 @@
 import sys
 
 import pygame
+
+from assets.src.game.game_manager import GameManager
 from network.client import GameClient
 from game.engine import GameEngine
 from game.scene_manager import SceneManager
@@ -22,36 +24,44 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Chess Empires")
 clock = pygame.time.Clock()
 
-# Initialize the game engine
-game_engine = GameEngine(SCREEN_WIDTH, SCREEN_HEIGHT)
-
 # Initialize the event system
 event_system = EventSystem()
 
-# Initialize the scene manager
-scene_manager = SceneManager(event_system)
+# Initialize the game client
+client = GameClient("192.168.1.149", 5555, event_system)
+client.connect()
+client.start_listening_thread()
+
+# Get the player_id
+player_id = client.get_player_id()
+
+# Initialize the input handler with the state manager
+input_handler = InputHandler(event_system, player_id)
 
 # Initialize the state manager
 state_manager = StateManager(event_system)
 
-# Initialize the input handler with the state manager
-input_handler = InputHandler(event_system)
+# Initialize the scene manager
+scene_manager = SceneManager(event_system, state_manager)
 
 # Initialize the game scene with the state manager
-game_scene = scene_manager.set_scene("GameScene", state_manager)
+scene_manager.set_scene("GameScene")
 
-# Initialize the game client
-game_client = GameClient("192.168.1.149", 5555, event_system)
-game_client.connect()
-game_client.start_listening_thread()
+engine = GameEngine(input_handler, event_system, scene_manager, state_manager)
+
+game_manager = GameManager(input_handler, event_system, scene_manager, state_manager, client, engine)
 
 # Example sprite access
 sprites = SpriteFactory.loaded_images
 
 # Access images using keys
-image_key = "pieces/black/builder.png"
+full_path = "assets/sprites/entities/units/white/builder.png"
+
+# remember "assets/sprites" is implicit for all images, so we just use:
+image_key = "entities/unused/white/boat.png"
 if image_key in sprites:
     image = sprites[image_key]
+    print(f"Image found: {image_key}")
     # Now 'image' contains the pygame surface for the specified image
 else:
     print(f"Image not found: {image_key}")
@@ -67,13 +77,13 @@ while running:
         # game_client.send_string(player_input)
 
     # Update game logic
-    game_engine.update()
+    game_manager.update()
 
     # Clear the screen
     screen.fill((0, 0, 0))
 
     # Render game elements
-    game_engine.render(screen)
+    game_manager.render()
 
     # Update the display
     pygame.display.flip()
@@ -81,8 +91,9 @@ while running:
     # Cap the frame rate
     clock.tick(FPS)
 
+
 # Close the game client
-game_client.close()
+client.close()
 
 # Quit Pygame
 pygame.quit()

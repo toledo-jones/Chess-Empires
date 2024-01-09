@@ -1,4 +1,4 @@
-from assets.src.utilities.singleton import Singleton
+from src.utilities.singleton import Singleton
 
 
 class GameEngine(Singleton):

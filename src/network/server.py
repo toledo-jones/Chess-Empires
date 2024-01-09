@@ -8,9 +8,7 @@ import pickle
 import socket
 import threading
 
-from assets.src.game.state_manager import StateManager
-from assets.src.utilities.event_system import EventSystem
-from assets.src.game.scenes import SceneFactory
+from src.utilities.event_system import EventSystem
 
 
 class GameServer:

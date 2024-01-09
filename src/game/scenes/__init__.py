@@ -1,5 +1,5 @@
-from assets.src.game.scenes.base_scene import BaseScene
-from assets.src.utilities.class_discovery import discover_classes
+from src.game.scenes.base_scene import BaseScene
+from src.utilities.class_discovery import discover_classes
 
 
 class SceneFactory:
@@ -20,6 +20,6 @@ class DefaultScene:
 
 
 # Automatically discover and register scene classes
-scene_classes = discover_classes("assets.src.game.scenes", BaseScene)
+scene_classes = discover_classes("game.scenes", BaseScene)
 for scene_class in scene_classes:
     SceneFactory.register(scene_class)

@@ -1,5 +1,4 @@
-from assets.src.game.states import StateFactory
-from assets.src.game.scenes import BaseScene
+from src.game.scenes import BaseScene
 
 
 class GameScene(BaseScene):

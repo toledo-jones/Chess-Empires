@@ -1,0 +1,51 @@
+game_project/
+|-- assets/
+|   |-- textures/
+|   |-- models/
+|   |-- sounds/
+|   |-- other_assets/
+|-- config/
+|   |-- settings.json
+|   |-- networking_config.json
+|-- docs/
+|   |-- design_documents/
+|   |-- API_documentation/
+|-- game/
+|   |-- __init__.py
+|   |-- main.py
+|   |-- entities/
+|   |   |-- __init__.py
+|   |   |-- player.py
+|   |   |-- enemy.py
+|   |   |-- item.py
+|   |-- components/
+|   |   |-- __init__.py
+|   |   |-- physics.py
+|   |   |-- rendering.py
+|   |   |-- networking.py
+|   |-- systems/
+|   |   |-- __init__.py
+|   |   |-- input_system.py
+|   |   |-- physics_system.py
+|   |   |-- rendering_system.py
+|   |   |-- networking_system.py
+|   |-- managers/
+|   |   |-- __init__.py
+|   |   |-- entity_manager.py
+|   |   |-- system_manager.py
+|   |   |-- network_manager.py
+|-- network/
+|   |-- __init__.py
+|   |-- server.py
+|   |-- client.py
+|-- tests/
+|   |-- __init__.py
+|   |-- test_physics.py
+|   |-- test_rendering.py
+|   |-- test_networking.py
+|-- utils/
+|   |-- __init__.py
+|   |-- helper_functions.py
+|-- .gitignore
+|-- README.md
+|-- requirements.txt

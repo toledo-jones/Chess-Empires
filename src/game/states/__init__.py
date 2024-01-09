@@ -1,5 +1,5 @@
-from assets.src.game.states.base_state import BaseState
-from assets.src.utilities.class_discovery import discover_classes
+from src.game.states.base_state import BaseState
+from src.utilities.class_discovery import discover_classes
 
 
 class StateFactory:

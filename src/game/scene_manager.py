@@ -1,6 +1,6 @@
-from assets.src.game.scenes import SceneFactory
-from assets.src.game.scenes import BaseScene
-from assets.src.utilities.singleton import Singleton
+from src.game.scenes import SceneFactory
+from src.game.scenes import BaseScene
+from src.utilities.singleton import Singleton
 
 
 class SceneManager(Singleton):

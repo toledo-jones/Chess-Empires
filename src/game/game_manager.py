@@ -1,7 +1,7 @@
 import pygame.display
 
-from assets.src.utilities.singleton import Singleton
-from assets.src.utilities.sprite_factory import SpriteFactory
+from src.utilities.singleton import Singleton
+from src.utilities.sprite_factory import SpriteFactory
 
 
 class GameManager(Singleton):
@@ -31,9 +31,9 @@ class GameManager(Singleton):
 
     def render(self):
         if self.mouse_position:
-            self.window.blit(self.sprites["entities/unused/black/boat.png"], (self.mouse_position[0], self.mouse_position[1]))
+            self.window.blit(self.sprites["entities/unused/black/boat.png"].convert(), (self.mouse_position[0], self.mouse_position[1]))
         if self.enemy_mouse_position:
-            self.window.blit(self.sprites["entities/unused/white/boat.png"], (self.enemy_mouse_position[0], self.enemy_mouse_position[1]))
+            self.window.blit(self.sprites["entities/unused/white/boat.png"].convert(), (self.enemy_mouse_position[0], self.enemy_mouse_position[1]))
 
     def start_game(self):
         pass

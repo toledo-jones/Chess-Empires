@@ -2,7 +2,7 @@ import sys
 
 import pygame
 
-from assets.src.game.game_manager import GameManager
+from src.game.game_manager import GameManager
 from network.client import GameClient
 from game.engine import GameEngine
 from game.scene_manager import SceneManager

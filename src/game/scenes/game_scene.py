@@ -1,4 +1,4 @@
-from src.game.scenes import BaseScene
+from src.game.scenes.base_scene import BaseScene
 
 
 class GameScene(BaseScene):

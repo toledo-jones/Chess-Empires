@@ -27,13 +27,7 @@ class GameServer:
         self.current_player_id = 1
 
     def handle_mouse_movement(self, data):
-        player_id = data.get('player_id')
-        x = data.get('x')
-        y = data.get('y')
-
-        event_data = {'type': 'mouse move', 'player_id': player_id, 'x': x, 'y': y}
-        print(f"Received mouse movement from Player {player_id}: x={x}, y={y}")
-        self.broadcast_event_to_clients('mouse move', event_data)
+        self.broadcast_event_to_clients('mouse move', data)
         # Update the game scene with the mouse movement data
         # self.game_scene.update_mouse_position(player_id, x, y)
 
@@ -48,6 +42,7 @@ class GameServer:
                     client_socket.sendall(serialized_data)
             except Exception as e:
                 print(f"Error broadcasting event to client: {e}")
+
     def process_data(self, data):
         try:
             if isinstance(data, str):

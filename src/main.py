@@ -11,6 +11,7 @@ from utilities.input_handler import InputHandler
 from utilities.event_system import EventSystem
 from utilities.sprite_factory import SpriteFactory
 
+
 # Initialize Pygame
 pygame.init()
 
@@ -44,10 +45,13 @@ state_manager = StateManager(event_system)
 # Initialize the scene manager
 scene_manager = SceneManager(event_system, state_manager)
 
-# Initialize the game scene with the state manager
+# TODO: Move this to a more logical location like "Start Game"
+# Initialize the game scene with the scene manager
 scene_manager.set_scene("GameScene")
+state_manager.set_state("TestState")
 
-engine = GameEngine(input_handler, event_system, scene_manager, state_manager)
+# Initialize Engine
+engine = GameEngine(screen, input_handler, event_system, scene_manager, state_manager)
 
 game_manager = GameManager(input_handler, event_system, scene_manager, state_manager, client, engine)
 

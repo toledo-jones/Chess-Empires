@@ -30,10 +30,7 @@ class GameManager(Singleton):
         return self.client.get_player_id() == data['player_id']
 
     def render(self):
-        if self.mouse_position:
-            self.window.blit(self.sprites["entities/unused/black/boat.png"].convert(), (self.mouse_position[0], self.mouse_position[1]))
-        if self.enemy_mouse_position:
-            self.window.blit(self.sprites["entities/unused/white/boat.png"].convert(), (self.enemy_mouse_position[0], self.enemy_mouse_position[1]))
+        self.engine.render()
 
     def start_game(self):
         pass

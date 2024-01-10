@@ -84,6 +84,13 @@ class GameClient:
         # Stop the listening thread
         self.stop_listening_thread()
 
+    def investigate_player_id(self, event_data):
+        print(f"Received an event from {event_data.get('player_id')}")
+        print(f"data: {event_data}")
+        print(f"player is me? {event_data.get('me')}")
+        # if event_data.get('')
+
+
     def listen_for_server_events(self):
         while not self.should_stop_listening:
             try:
@@ -97,10 +104,10 @@ class GameClient:
                 event_type = decoded_data.get('type')
                 event_data = decoded_data.get('data')
                 player_id = event_data.get('player_id')
-                x = event_data.get('x')
-                y = event_data.get('y')
-                # Handle the received event
-                print(f"Client emitting {event_type}, {event_data}")
+                if player_id != self.player_id:
+                    event_data['me'] = False
+                self.investigate_player_id(event_data)
+                print(f"Client emitting player {player_id} | {event_type}, {event_data}")
                 self.event_system.emit(event_type, event_data)
             except OSError as e:
                 if "Bad file descriptor" in str(e):

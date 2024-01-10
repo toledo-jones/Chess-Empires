@@ -7,7 +7,6 @@ class BaseScene(ABC):
         self.event_system = event_system
         self.scene_manager = scene_manager
 
-
     @abstractmethod
     def render(self):
         raise NotImplementedError("Subclasses must implement render method.")

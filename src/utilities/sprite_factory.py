@@ -34,8 +34,7 @@ class SpriteFactory:
         cls.loaded_images = loaded_images
         return loaded_images
 
-# Remember the script thinks the /src is the "home" directory
-base_path = "assets/sprites"  # Adjust the relative path as needed
+base_path = "assets/sprites"
 all_sprite_paths = SpriteFactory.discover_sprite_paths(base_path)
 
 if not all_sprite_paths:

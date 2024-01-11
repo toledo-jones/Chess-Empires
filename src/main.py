@@ -16,12 +16,12 @@ from utilities.sprite_factory import SpriteFactory
 pygame.init()
 
 # Set up window size and other configurations
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH = 1600
+SCREEN_HEIGHT = 900
 FPS = 60
 
 # Set up the game window
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
 pygame.display.set_caption("Chess Empires")
 clock = pygame.time.Clock()
 
@@ -73,18 +73,23 @@ else:
 # Main game loop
 running = True
 while running:
+    print("==============Start Frame==================")
+
+
     for pygame_event in pygame.event.get():
         if pygame_event.type == pygame.QUIT:
             running = False
+        elif pygame_event.type == pygame.VIDEORESIZE:
+            engine.handle_window_resize(new_size=pygame_event.size)
         # Handle input
+        print(f"Handling Input {pygame_event}")
         input_handler.handle_input(pygame_event)
-        # game_client.send_string(player_input)
+
+    # clear the screens
+    engine.clear_screens()
 
     # Update game logic
     game_manager.update()
-
-    # Clear the screen
-    screen.fill((0, 0, 0))
 
     # Render game elements
     game_manager.render()
@@ -94,7 +99,6 @@ while running:
 
     # Cap the frame rate
     clock.tick(FPS)
-
 
 # Close the game client
 client.close()

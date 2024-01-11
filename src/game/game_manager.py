@@ -12,7 +12,6 @@ class GameManager(Singleton):
         self.state_manager = state_manager
         self.engine = engine
         self.client = client
-        self.window = pygame.display.get_surface()
         self.mouse_position = None
         self.enemy_mouse_position = None
         self.sprites = SpriteFactory.loaded_images
@@ -39,4 +38,6 @@ class GameManager(Singleton):
         pass
 
     def update(self):
-        pass
+        self.engine.update()
+        self.scene_manager.update()
+        self.state_manager.update()

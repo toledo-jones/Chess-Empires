@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-import pygame
+
 
 class BaseState(ABC):
     def __init__(self, event_system, state_manager):
@@ -17,4 +17,3 @@ class BaseState(ABC):
     @abstractmethod
     def enter(self):
         raise NotImplementedError("Subclasses must implement enter method.")
-

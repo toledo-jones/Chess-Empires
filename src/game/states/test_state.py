@@ -5,12 +5,14 @@ from src.game.states.base_state import BaseState
 class TestState(BaseState):
     def __init__(self, event_system, state_manager):
         super().__init__(event_system, state_manager)
-        self.event_system.subscribe("mouse move", self.handle_mouse_move)
+        self.event_system.subscribe("mouse move", self.handle_local_mouse_move)
+        self.event_system.subscribe("server mouse move", self.handle_server_mouse_move)
         self.mouse_position = None
         self.enemy_mouse_position = None
 
     def update(self):
         pass
+
     def enter(self):
         pass
 
@@ -22,17 +24,15 @@ class TestState(BaseState):
         if self.mouse_position:
             sprite = "entities/unused/white/boat.png"
             x, y = self.mouse_position[0], self.mouse_position[1]
+            print("Draw Boat Call:")
             self.draw_sprite(sprite, x, y)
         if self.enemy_mouse_position:
             sprite = "entities/unused/black/boat.png"
             x, y = self.enemy_mouse_position[0], self.enemy_mouse_position[1]
             self.draw_sprite(sprite, x, y)
 
-    def handle_mouse_move(self, data):
-        # save new position
-        if data.get('me'):
-            print("Mouse Movement from Me")
-            self.mouse_position = data["x"], data["y"]
-        else:
-            print("Mouse Movement from Opponent")
-            self.enemy_mouse_position = data["x"], data["y"]
+    def handle_local_mouse_move(self, data):
+        self.mouse_position = data.get("x"), data.get("y")
+
+    def handle_server_mouse_move(self, data):
+        self.enemy_mouse_position = data.get("x"), data.get("y")

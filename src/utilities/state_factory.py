@@ -8,11 +8,9 @@ class StateFactory:
     @classmethod
     def register(cls, _state_class):
         cls._registry[_state_class.__name__.lower()] = _state_class
-        print(f"registering {_state_class.__name__}")
 
     @classmethod
     def create(cls, state_name, *args, **kwargs):
-        print(f"attempting to create {state_name}")
         state_class = cls._registry.get(state_name.lower(), DefaultState)
         return state_class(*args, **kwargs)
 

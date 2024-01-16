@@ -8,11 +8,9 @@ class SceneFactory:
     @classmethod
     def register(cls, _scene_class):
         cls._registry[_scene_class.__name__.lower()] = _scene_class
-        print(f"registering {_scene_class.__name__}")
 
     @classmethod
     def create(cls, scene_name, *args, **kwargs):
-        print(f"attempting to create {scene_name}")
         _scene_class = cls._registry.get(scene_name.lower(), DefaultScene)
         return _scene_class(*args, **kwargs)
 

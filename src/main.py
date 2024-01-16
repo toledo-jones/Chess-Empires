@@ -16,8 +16,8 @@ from utilities.sprite_factory import SpriteFactory
 pygame.init()
 
 # Set up window size and other configurations
-SCREEN_WIDTH = 1600
-SCREEN_HEIGHT = 900
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 450
 FPS = 60
 
 # Set up the game window
@@ -58,47 +58,39 @@ game_manager = GameManager(input_handler, event_system, scene_manager, state_man
 # Example sprite access
 sprites = SpriteFactory.loaded_images
 
-# Access images using keys
-full_path = "assets/sprites/entities/units/white/builder.png"
-
-# remember "assets/sprites" is implicit for all images, so we just use:
-image_key = "entities/unused/white/boat.png"
-if image_key in sprites:
-    image = sprites[image_key]
-    print(f"Image found: {image_key}")
-    # Now 'image' contains the pygame surface for the specified image
-else:
-    print(f"Image not found: {image_key}")
+# pygame.mouse.set_visible(False)
 
 # Main game loop
 running = True
 while running:
-    print("==============Start Frame==================")
-
-
+    print("======================== FRAME ========================")
     for pygame_event in pygame.event.get():
         if pygame_event.type == pygame.QUIT:
             running = False
         elif pygame_event.type == pygame.VIDEORESIZE:
             engine.handle_window_resize(new_size=pygame_event.size)
         # Handle input
-        print(f"Handling Input {pygame_event}")
         input_handler.handle_input(pygame_event)
 
-    # clear the screens
+    print("===== CLEAR =====")
+    # Clear the screens
     engine.clear_screens()
 
+    print("===== UPDATE =====")
     # Update game logic
     game_manager.update()
 
+    print("===== RENDER =====")
     # Render game elements
     game_manager.render()
 
+    print("===== UPDATE DISPLAY =====")
     # Update the display
     pygame.display.flip()
 
     # Cap the frame rate
     clock.tick(FPS)
+
 
 # Close the game client
 client.close()

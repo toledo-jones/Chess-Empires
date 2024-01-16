@@ -2,6 +2,7 @@ from pathlib import Path
 import pygame
 import os
 
+
 class SpriteFactory:
     loaded_images = {}
 
@@ -15,8 +16,6 @@ class SpriteFactory:
         # Combine the current directory with the specified relative base path using os.path
         base_path = os.path.normpath(os.path.join(str(current_directory), base_path))
 
-        print("Base Path:", base_path)
-
         for path in Path(base_path).rglob("*"):
             if path.is_file() and path.suffix == ".png":
                 sprite_paths.append(path.relative_to(base_path))
@@ -29,10 +28,12 @@ class SpriteFactory:
         for sprite_path in sprite_paths:
             image_path = Path(base_path) / sprite_path
             image = pygame.image.load(image_path)
+
             loaded_images[str(sprite_path)] = image
 
         cls.loaded_images = loaded_images
         return loaded_images
+
 
 base_path = "assets/sprites"
 all_sprite_paths = SpriteFactory.discover_sprite_paths(base_path)

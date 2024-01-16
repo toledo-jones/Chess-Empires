@@ -9,5 +9,5 @@ class InputHandler:
     def handle_input(self, pygame_event):
         # this for handling events
         if pygame_event.type == pygame.MOUSEMOTION:
-            data = {"type": 'mouse move', 'player_id': self.player_id, "x": pygame_event.pos[0], "y": pygame_event.pos[1], 'me': True}
+            data = {"type": 'mouse move', 'player_id': self.player_id, "x": pygame_event.pos[0], "y": pygame_event.pos[1], 'me': True, 'origin': str(self)}
             self.event_system.emit("mouse move", data)

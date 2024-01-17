@@ -16,8 +16,8 @@ from utilities.sprite_factory import SpriteFactory
 pygame.init()
 
 # Set up window size and other configurations
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 450
+SCREEN_WIDTH = 1536
+SCREEN_HEIGHT = 864
 FPS = 60
 
 # Set up the game window
@@ -53,10 +53,8 @@ state_manager.set_state("TestState")
 # Initialize Engine
 engine = GameEngine(screen, input_handler, event_system, scene_manager, state_manager)
 
+# Initialize Game Manager
 game_manager = GameManager(input_handler, event_system, scene_manager, state_manager, client, engine)
-
-# Example sprite access
-sprites = SpriteFactory.loaded_images
 
 # pygame.mouse.set_visible(False)
 

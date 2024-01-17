@@ -1,5 +1,20 @@
 from src.utilities.singleton import Singleton
 import threading
+from jsonschema import validate
+
+# TODO: Enforce event schemas
+# event_schema = {
+#     "type": "object",
+#     "properties": {
+#         "event_type": {"type": "string"},
+#         "data": {"type": "object"}
+#     },
+#     "required": ["event_type", "data"]
+# }
+#
+# event_data = {"event_type": "player_move", "data": {"x": 10, "y": 20}}
+#
+# validate(instance=event_data, schema=event_schema)
 
 
 class EventSystem(Singleton):

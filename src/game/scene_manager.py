@@ -9,6 +9,7 @@ class SceneManager(Singleton):
         self.event_system = event_system
         self.state_manager = state_manager
 
+
     def set_scene(self, scene_name, *args, **kwargs):
         # Use the SceneFactory to dynamically create the scene
         new_scene = SceneFactory.create(scene_name, self.event_system, self, self.state_manager, *args, **kwargs)

@@ -3,7 +3,8 @@ import random
 from src.utilities.singleton import Singleton
 from src.utilities.sprite_factory import SpriteFactory
 import pygame
-from src.utilities.helpers import convert_from_world_position, convert_sprite_alphas
+from src.utilities.helpers import convert_from_world_position, convert_sprite_alphas, convert_to_world_position
+
 
 class GameEngine(Singleton):
     def __init__(self, window, input_handler, event_system, scene_manager, state_manager):
@@ -107,12 +108,9 @@ class GameEngine(Singleton):
         sprite_path = data.get('sprite')
         sprite = self.sprites[sprite_path]
         dimensions = sprite.get_size()
-
-        # # Change raw data to scaled/converted data
-        offset_x, offset_y = self.get_game_window_offset()
-
         screen_position = convert_from_world_position((x, y), self.scale_factor, self.get_game_window_offset())
         scaled_dimensions = (50, 50)
+
         scaled_sprite = pygame.transform.scale(sprite, (int(scaled_dimensions[0]), int(scaled_dimensions[1])))
         centered_position = screen_position[0] - scaled_dimensions[0] // 2, screen_position[1] - scaled_dimensions[1] // 2
 
@@ -120,21 +118,21 @@ class GameEngine(Singleton):
         self.game_window.blit(scaled_sprite, centered_position)
 
         # DEBUG:
-        print(f"Actual Window       =   {self.window.get_size()}")
-        print(f"Logical Window      =   {self.logical_screen_dimensions}")
-        print(f"Game Window         =   {self.game_window.get_size()}")
-        print(f"Sprite Image        =   {sprite_path}")
-        print(f"Function Called     =   {data.get('origin')}")
-        print(f"Position Received   =   {screen_position}")
-        print(f"Position Scaled     =   {screen_position}")
-        print(f"Sprite Size         =   {dimensions[0]} x {dimensions[1]}")
-        print(f"Sprite Scaled       =   {scaled_dimensions}")
-        print(f"Scale Factor        =   {self.scale_factor[0]} x {self.scale_factor[1]}")
-        print(f"Screen Offsets      =   {offset_x} x {offset_y}")
+        # print(f"Actual Window       =   {self.window.get_size()}")
+        # print(f"Logical Window      =   {self.logical_screen_dimensions}")
+        # print(f"Game Window         =   {self.game_window.get_size()}")
+        # print(f"Sprite Image        =   {sprite_path}")
+        # print(f"Function Called     =   {data.get('origin')}")
+        # print(f"Position Received   =   {x} {y}")
+        # print(f"Position Scaled     =   {screen_position}")
+        # print(f"Sprite Size         =   {dimensions[0]} x {dimensions[1]}")
+        # print(f"Sprite Scaled       =   {scaled_dimensions}")
+        # print(f"Scale Factor        =   {self.scale_factor[0]} x {self.scale_factor[1]}")
+        # print(f"Screen Offsets      =   {offset_x} x {offset_y}")
 
     def draw_test_building(self):
         sprite_path = self.debug_sprite_path
-        position = self.center_of_window()
+        position = self.center_of_game_window()
         data = {"sprite": sprite_path, 'type': 'test', "x": position[0], "y": position[1], 'origin': str(self)}
         self.event_system.emit('test', data)
 
@@ -142,17 +140,15 @@ class GameEngine(Singleton):
         return self.window.get_width() // 2, self.window.get_height() // 2
 
     def center_of_game_window(self):
-        return self.game_window.get_width() // 2, self.game_window.get_height() // 2
+        return self.logical_screen_dimensions[0] // 2, self.logical_screen_dimensions[1] // 2
 
     def clear_screens(self):
-        print("Clearing Screens")
         self.window.fill((0, 0, 0))
         self.game_window.fill((72, 61, 139))
 
     def render(self):
         self.draw_test_building()
         self.draw_test_grid()
-        print(f"Drawing {self.game_window} to {self.window}")
 
     def draw_test_grid(self):
         SCREEN_WIDTH = self.game_window.get_width()

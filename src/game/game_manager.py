@@ -1,5 +1,5 @@
 from src.utilities.singleton import Singleton
-from src.utilities.sprite_factory import SpriteFactory
+from src.game.entities.board import Board
 
 
 class GameManager(Singleton):
@@ -10,10 +10,9 @@ class GameManager(Singleton):
         self.state_manager = state_manager
         self.engine = engine
         self.client = client
-        self.mouse_position = None
-        self.enemy_mouse_position = None
-        self.sprites = SpriteFactory.loaded_images
-        self.event_system.subscribe("mouse move", self.handle_mouse_move)
+        self.board = Board(self.event_system)
+
+        self.engine.set_board(self.board)
 
     def render(self):
         self.engine.render()
@@ -22,13 +21,6 @@ class GameManager(Singleton):
 
         # After all other images are rendered output the logical screen to the main screen
         self.engine.render_game_window()
-
-    def handle_mouse_move(self, data):
-        # save new position
-        if self.is_player_data(data):
-            self.mouse_position = data["x"], data["y"]
-        else:
-            self.enemy_mouse_position = data["x"], data["y"]
 
     def is_player_data(self, data):
         return self.client.get_player_id() == data['player_id']

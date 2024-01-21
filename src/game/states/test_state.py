@@ -7,7 +7,6 @@ class TestState(BaseState):
         super().__init__(event_system, state_manager)
         self.event_system.subscribe("mouse move", self.handle_local_mouse_move)
         self.event_system.subscribe("server mouse move", self.handle_server_mouse_move)
-        self.event_system.subscribe("window resize", self.handle_window_resize)
         self.mouse_position = None
         self.enemy_mouse_position = None
         self.offset = None
@@ -18,14 +17,8 @@ class TestState(BaseState):
     def enter(self):
         pass
 
-    def handle_window_resize(self, data):
-        self.offset = data.get('offset')
-
     def draw_sprite(self, sprite, x, y):
-        print(f"{str(self)} offset is {self.offset}")
-        data = {}
-        if self.offset:
-            data = {"sprite": sprite, "type": 'draw sprite', "x": x, "y": y, 'origin': str(self)}
+        data = {"sprite": sprite, "type": 'draw sprite', "x": x, "y": y, 'origin': str(self)}
         self.event_system.emit('draw sprite', data)
 
     def render(self):

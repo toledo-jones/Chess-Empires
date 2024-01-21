@@ -1,5 +1,5 @@
 from src.game.scenes.base_scene import BaseScene
-from src.utilities.scene_factory import SceneFactory
+from utilities.factories.scene_factory import SceneFactory
 from src.utilities.singleton import Singleton
 
 
@@ -8,7 +8,6 @@ class SceneManager(Singleton):
         self._current_scene = None
         self.event_system = event_system
         self.state_manager = state_manager
-
 
     def set_scene(self, scene_name, *args, **kwargs):
         # Use the SceneFactory to dynamically create the scene

@@ -37,3 +37,4 @@ def convert_sprite_alphas(loaded_images):
     for key in loaded_images.keys():
         loaded_images[key] = loaded_images[key].convert_alpha()
     return loaded_images
+

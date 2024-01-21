@@ -12,4 +12,4 @@ class GameScene(BaseScene):
         pass
 
     def render(self):
-        pass
+        self.event_system.emit("draw board", data={})

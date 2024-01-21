@@ -9,8 +9,6 @@ from game.scene_manager import SceneManager
 from game.state_manager import StateManager
 from utilities.input_handler import InputHandler
 from utilities.event_system import EventSystem
-from utilities.sprite_factory import SpriteFactory
-
 
 # Initialize Pygame
 pygame.init()

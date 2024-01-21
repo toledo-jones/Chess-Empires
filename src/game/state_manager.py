@@ -1,6 +1,6 @@
 from src.game.states.base_state import BaseState
 from src.utilities.singleton import Singleton
-from src.utilities.state_factory import StateFactory
+from utilities.factories.state_factory import StateFactory
 
 
 class StateManager(Singleton):

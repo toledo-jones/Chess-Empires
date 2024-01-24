@@ -5,20 +5,20 @@ import time
 
 
 class GameClient:
-    def __init__(self, server_host, server_port, event_system):
+    def __init__(self, server_host, server_port, event_manager):
         self.server_host = server_host
         self.server_port = server_port
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.event_system = event_system
+        self.event_manager = event_manager
         self.player_id = None
         self.should_stop_listening = False
         self.last_mouse_event_time = 0
         self.mouse_event_threshold = 0.05
         self.listening_thread = None
         # Subscribe to different events
-        self.event_system.subscribe("mouse move", self.handle_mouse_motion)
-        self.event_system.subscribe("click", self.handle_click)
-        self.event_system.subscribe("key press", self.handle_key_press)
+        self.event_manager.subscribe("mouse move", self.handle_mouse_motion)
+        self.event_manager.subscribe("click", self.handle_click)
+        self.event_manager.subscribe("key press", self.handle_key_press)
 
         # Handle clicks, mouse motion, space, enter,
 
@@ -101,7 +101,7 @@ class GameClient:
                     event_data['me'] = False
                     event_type = "server " + event_data.get("type")
                 print(f"Client emitting player {player_id} | {event_type}, {event_data}")
-                self.event_system.emit(event_type, event_data)
+                self.event_manager.emit(event_type, event_data)
             except OSError as e:
                 if "Bad file descriptor" in str(e):
                     # Socket has been closed, break out of the loop

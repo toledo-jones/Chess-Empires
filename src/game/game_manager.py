@@ -3,14 +3,13 @@ from src.game.entities.board import Board
 
 
 class GameManager(Singleton):
-    def __init__(self, input_handler, event_system, scene_manager, state_manager, client, engine):
-        self.input_handler = input_handler
-        self.event_system = event_system
+    def __init__(self, event_manager, scene_manager, state_manager, client, engine):
+        self.event_manager = event_manager
         self.scene_manager = scene_manager
         self.state_manager = state_manager
         self.engine = engine
         self.client = client
-        self.board = Board(self.event_system)
+        self.board = Board(self.event_manager)
 
         self.engine.set_board(self.board)
 

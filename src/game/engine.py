@@ -4,14 +4,51 @@ import pygame
 import settings
 from src.utilities.singleton import Singleton
 from utilities.factories.sprite_factory import SpriteFactory
-from src.utilities.helpers import convert_from_world_position, convert_sprite_alphas
+
+
+def convert_sprite_alphas(loaded_images):
+    for key in loaded_images.keys():
+        loaded_images[key] = loaded_images[key].convert_alpha()
+    return loaded_images
+
+
+def convert_to_world_position(screen_position, scale_factor, game_window_offset):
+    """ Take Screen Position -> return World Position """
+
+    # Unpack Screen Position
+    x, y = screen_position[0], screen_position[1]
+
+    # Adjust for game window offset
+    # Depending on future usage this may need to be moved to a different function
+    adjusted_x = x - game_window_offset[0]
+    adjusted_y = y - game_window_offset[1]
+
+    # To convert the Game Window to the Logical Screen DIVIDE. Game_Window / Scale Factor
+    world_x = adjusted_x / scale_factor[0]
+    world_y = adjusted_y / scale_factor[1]
+
+    return world_x, world_y
+
+
+def convert_from_world_position(world_position, scale_factor):
+    """ Take World Position -> return Screen Position """
+
+    # Unpack World Position
+    x, y = world_position[0], world_position[1]
+
+    # To convert the Logical Screen to the Game Window MULTIPLY: Logical Screen * Scale Factor
+    screen_x = x * scale_factor[0]
+    screen_y = y * scale_factor[1]
+
+    # Return converted values
+    return screen_x, screen_y
 
 
 class GameEngine(Singleton):
-    def __init__(self, window, input_handler, event_system, scene_manager, state_manager):
+    def __init__(self, window, player_id, event_manager, scene_manager, state_manager):
         # Initialize all relevant attributes
-        self.input_handler = input_handler
-        self.event_system = event_system
+        self.player_id = player_id
+        self.event_manager = event_manager
         self.scene_manager = scene_manager
         self.state_manager = state_manager
 
@@ -35,15 +72,24 @@ class GameEngine(Singleton):
 
         # Here the engine will subscribe to relevant events.
         # TODO: event system event restructuring. Should I use objects?`
-        self.event_system.subscribe("draw sprite", self.render_sprite)
-        self.event_system.subscribe("draw board", self.render_board)
-        self.event_system.subscribe("test", self.render_sprite)
+        self.event_manager.subscribe("draw sprite", self.render_sprite)
+        self.event_manager.subscribe("draw board", self.render_board)
+        self.event_manager.subscribe("test", self.render_sprite)
 
         # Board attribute is set by the set_board method and passed in from the game_manager as an argument
         self.board = None
 
         # Debug
         self.debug_sprite_path = random.choice(list(ungrouped_sprites.keys()))
+
+    def handle_input(self, pygame_event):
+        # Handle events in our custom event system
+        if pygame_event.type == pygame.MOUSEMOTION:
+            # Mouse data is converted to world position using the attributes
+            screen_position = pygame_event.pos
+            x, y = convert_to_world_position(screen_position, self.scale_factor, self.get_game_window_offset())
+            data = {"type": 'mouse move', 'player_id': self.player_id, "x": x, "y": y, 'me': True, 'origin': str(self)}
+            self.event_manager.emit("mouse move", data)
 
     def get_sprite_from_path(self, path):
         keys = path.split("/")
@@ -140,15 +186,16 @@ class GameEngine(Singleton):
 
         # Emit the window offsets, window size, game window size, and scale factor
         data = {'scale factor': self.scale_factor, 'game window': self.game_window.get_size(), 'offset': self.get_game_window_offset(), 'window': self.window.get_size()}
-        self.event_system.emit('window resize', data)
+        self.event_manager.emit('window resize', data)
 
     def render_surface(self, surface, position, **kwargs):
         x, y = position
 
         scaled_dimensions = self.scale_by_scale_factor(surface.get_size())
 
-        screen_position = convert_from_world_position((x, y), self.scale_factor, self.get_game_window_offset())
+        screen_position = convert_from_world_position((x, y), self.scale_factor)
 
+        # TODO: Do not scale sprites every tick. This is destroying performance
         scaled_sprite = pygame.transform.scale(surface, (int(scaled_dimensions[0]), int(scaled_dimensions[1])))
 
         centered_position = screen_position[0] - scaled_dimensions[0] // 2, screen_position[1] - scaled_dimensions[1] // 2
@@ -170,7 +217,7 @@ class GameEngine(Singleton):
         sprite_path = self.debug_sprite_path
         position = self.center_of_game_window()
         data = {"sprite": sprite_path, 'type': 'test', "x": position[0], "y": position[1], 'origin': str(self)}
-        self.event_system.emit('test', data)
+        self.event_manager.emit('test', data)
 
     def center_of_window(self):
         return self.window.get_width() // 2, self.window.get_height() // 2
@@ -185,9 +232,9 @@ class GameEngine(Singleton):
         self.render_sprite(data, special_flags=pygame.BLEND_RGBA_MULT)
 
     def clear_screens(self):
-        royal_purple = (72, 61, 139)
+        background_color = (39.6, 51.7, 28.1)
         self.window.fill((0, 0, 0))
-        self.game_window.fill(royal_purple)
+        self.game_window.fill(background_color)
         self.render_menu_texture()
 
     def render(self):
@@ -220,11 +267,11 @@ class GameEngine(Singleton):
         # Initial color fill
         print(f"rendering board at {x} {y}")
         print(f"board is {self.board.width} by {self.board.height}")
-        light_color = pygame.Color((238, 232, 170, 255))
-        dark_color = pygame.Color((222, 184, 135, 255))
+        light_color = pygame.Color((255, 255, 255, 255))
+        dark_color = pygame.Color((66.3, 33.6, 21.4, 255))
         self.board.render_tiles(light_color, dark_color, self)
         self.render_surface(self.board.surface, (x, y))
 
     def set_board(self, board):
         self.board = board
-        self.board.set_tile_pattern(tree_tile_sprites=self.sprites['board'])
+        self.board.set_tile_pattern(tree_tile_sprites=(self.sprites['board']['light'], self.sprites['board']['dark']))

@@ -1,5 +1,5 @@
 from src.utilities.factories.base_factory import BaseFactory, auto_register, DefaultClass
-from src.game.states.base_state import BaseState
+from src.game.states.state import State
 
 
 class StateFactory(BaseFactory):
@@ -7,4 +7,4 @@ class StateFactory(BaseFactory):
 
 
 # Automatically discover and register scene classes
-auto_register(StateFactory, "game.states", BaseState)
+auto_register(StateFactory, "game.states", State)

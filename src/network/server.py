@@ -8,7 +8,7 @@ import pickle
 import socket
 import threading
 
-from src.utilities.event_system import EventSystem
+from game.event_manager import EventManager
 
 
 class GameServer:
@@ -18,7 +18,7 @@ class GameServer:
         self.clients_lock = threading.Lock()
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.clients = {}
-        self.event_system = EventSystem()
+        self.event_manager = EventManager()
         self.data_handlers = {
             'mouse move': self.handle_mouse_movement,
             # Add more data types and corresponding handlers as needed

@@ -1,12 +1,11 @@
-from utilities.enums import EventType
-from src.game.states.base_state import BaseState
+from src.game.states.state import State
 
 
-class TestState(BaseState):
-    def __init__(self, event_system, state_manager):
-        super().__init__(event_system, state_manager)
-        self.event_system.subscribe("mouse move", self.handle_local_mouse_move)
-        self.event_system.subscribe("server mouse move", self.handle_server_mouse_move)
+class TestState(State):
+    def __init__(self, event_manager, state_manager):
+        super().__init__(event_manager, state_manager)
+        self.event_manager.subscribe("mouse move", self.handle_local_mouse_move)
+        self.event_manager.subscribe("server mouse move", self.handle_server_mouse_move)
         self.mouse_position = None
         self.enemy_mouse_position = None
         self.offset = None
@@ -19,7 +18,7 @@ class TestState(BaseState):
 
     def draw_sprite(self, sprite, x, y):
         data = {"sprite": sprite, "type": 'draw sprite', "x": x, "y": y, 'origin': str(self)}
-        self.event_system.emit('draw sprite', data)
+        self.event_manager.emit('draw sprite', data)
 
     def render(self):
         if self.mouse_position:

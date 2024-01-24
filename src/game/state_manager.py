@@ -1,20 +1,19 @@
-from src.game.states.base_state import BaseState
+from src.game.states.state import State
 from src.utilities.singleton import Singleton
 from utilities.factories.state_factory import StateFactory
 
 
 class StateManager(Singleton):
-    def __init__(self, event_system):
+    def __init__(self, event_manager):
         self._current_state = None
-        self.event_system = event_system
-
+        self.event_manager = event_manager
 
     def set_state(self, state_name, *args, **kwargs):
         # Use the SceneFactory to dynamically create the scene
-        new_state = StateFactory.create(state_name, self.event_system, self, *args, **kwargs)
+        new_state = StateFactory.create(state_name, self.event_manager, self, *args, **kwargs)
 
-        print(f"New Scene is instance of BaseScene:{isinstance(new_state, BaseState)}")
-        if isinstance(new_state, BaseState):  # Ensure it's an instance of BaseState
+        print(f"New Scene is instance of BaseScene:{isinstance(new_state, State)}")
+        if isinstance(new_state, State):  # Ensure it's an instance of BaseState
             if self._current_state:
                 self._current_state.exit()  # Optional: Call exit method of the current scene
 

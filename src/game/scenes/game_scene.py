@@ -1,9 +1,9 @@
-from src.game.scenes.base_scene import BaseScene
+from src.game.scenes.scene import Scene
 
 
-class GameScene(BaseScene):
-    def __init__(self, event_system, scene_manager, state_manager):
-        super().__init__(event_system, scene_manager, state_manager)
+class GameScene(Scene):
+    def __init__(self, event_manager, scene_manager, state_manager):
+        super().__init__(event_manager, scene_manager, state_manager)
 
     def enter(self):
         pass
@@ -12,4 +12,4 @@ class GameScene(BaseScene):
         pass
 
     def render(self):
-        self.event_system.emit("draw board", data={})
+        self.event_manager.emit("draw board", data={})

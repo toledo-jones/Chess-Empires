@@ -111,6 +111,9 @@ class GameEngine(Singleton):
         # Alternatively you can call get_sprite_from_path('entities/units/white/acrobat.png')
         self.sprites = self.delineate_sprite_dictionary(ungrouped_sprites)
 
+        self.default_sizes = {}
+        self.populate_default_sizes()
+
         # After calculation the game window is scaled to an appropriate size for whatever window it is contained within
         self.aspect_ratio = (16 / 9)
         self.logical_screen_dimensions = settings.LOGICAL_GAME_WINDOW
@@ -119,6 +122,13 @@ class GameEngine(Singleton):
         # The ratio between the scaled logical window and the internal logical window
         self.scale_factor = (1.0, 1.0)
 
+        # Default scaling of sprites
+        self.default_scale_factors = {
+            'entities': (1.0, 1.0),
+            'board': (1.0, 1.0),  # Adjust the default scale factor for the 'board' category
+            # Add more categories as needed
+        }
+
         # Scale game window to match initial starting window size.
         self.handle_window_resize(self.window.get_size())
 
@@ -126,6 +136,8 @@ class GameEngine(Singleton):
         self.event_manager.subscribe("draw sprite", self.render_sprite)
         self.event_manager.subscribe("draw board", self.render_board)
         self.event_manager.subscribe("test", self.render_sprite)
+
+
 
         # Debug
         self.debug_sprite_path = random.choice(self.all_sprite_keys)
@@ -299,6 +311,32 @@ class GameEngine(Singleton):
 
         return offset_x, offset_y
 
+    def populate_default_sizes_recursive(self, sprites, path_prefix=''):
+        """
+        Recursively populate the default_sizes dictionary with the true default sizes of sprites.
+        :param sprites: Nested dictionary containing sprites
+        :param path_prefix: Prefix representing the current path in the nested structure
+        :return: None
+        """
+        for key, value in sprites.items():
+            path = f"{path_prefix}/{key}" if path_prefix else key
+
+            if isinstance(value, dict):
+                # If the value is a dictionary, recursively call the function for the next depth
+                self.populate_default_sizes_recursive(value, path)
+            else:
+                # Get the true default size of the sprite
+                true_default_size = value.get_size()
+
+                # Store the true default size in the dictionary
+                self.default_sizes[path] = true_default_size
+
+    def populate_default_sizes(self):
+        """
+        Populate the default_sizes dictionary with the true default sizes of sprites.
+        This should be called once during initialization.
+        """
+        self.populate_default_sizes_recursive(self.sprites)
 
     def handle_input(self, pygame_event: pygame.event) -> None:
         """
@@ -313,26 +351,73 @@ class GameEngine(Singleton):
             data = {"type": 'mouse move', 'player_id': self.player_id, "x": x, "y": y, 'me': True, 'origin': str(self)}
             self.event_manager.emit("mouse move", data)
 
+    def calculate_default_scaled_size(self, original_size, category=None):
+        """
+        Calculate the default scaled size for a sprite based on its category.
+        :param original_size: Tuple (width, height) of the original size
+        :param category: Category of the sprite (optional)
+        :return: Tuple (width, height) of the default scaled size
+        """
+        # Your logic to determine the default scale factor for each category
+        # For example, you might have a predefined dictionary of default scale factors for different categories
+
+        default_factor = self.default_scale_factors.get(category, (1.0, 1.0))
+
+        return (
+            int(original_size[0] * default_factor[0]),
+            int(original_size[1] * default_factor[1])
+        )
+
+    def scale_sprites_recursive(self, sprites, category=None, depth=0):
+        """
+        Recursively scale sprites in a nested dictionary structure.
+        :param sprites: Nested dictionary of sprites
+        :param category: Category of the sprites (optional)
+        :param depth: Current depth in the nested structure
+        :return: None
+        """
+        if isinstance(sprites, dict):
+            for key, value in sprites.items():
+                if isinstance(value, dict):
+                    # Recursive call for nested dictionaries
+                    self.scale_sprites_recursive(value, category, depth + 1)
+                elif isinstance(value, pygame.Surface):
+                    # Scale the sprite surface
+                    true_default_size = self.calculate_true_default_size(value, category)
+                    default_scaled_size = self.calculate_default_scaled_size(true_default_size, category)
+                    scaled_surface = pygame.transform.scale(value, default_scaled_size)
+                    game_scale_surface = pygame.transform.scale(
+                        scaled_surface,
+                        self.scale_by_scale_factor(scaled_surface.get_size()))
+                    sprites[key] = game_scale_surface
+
+    def calculate_true_default_size(self, surface, category=None):
+        """
+        Calculate the true default size of a sprite based on its category.
+        :param surface: Pygame Surface
+        :param category: Category of the sprite (optional)
+        :return: Tuple (width, height) of the true default size
+        """
+        # Your logic to determine the true default size for each category
+        # For example, you might have a predefined dictionary of true default sizes for different categories
+
+        true_default_size = self.default_sizes.get(category, surface.get_size())
+        print(f"{true_default_size} is default size for {category}")
+
+        return true_default_size
+
     def scale_sprites(self):
         """
-        Scale all sprites in the self.all_sprite_keys using the specified scale factor.
+        Scale all sprites in the self.sprites dictionary using the default scale factors.
 
-        For each sprite key, retrieves the sprite, scales it, and updates the sprite in the dictionary.
+        For each sprite category, retrieves the sprites, scales them based on the default scale factor,
+        and updates the sprites in the dictionary.
 
         :return: None
         """
-        for key in self.all_sprite_keys:
-            # Retrieve the original sprite surface
-            original_surface = self.get_sprite_from_path(key)
+        for category, sprites in self.sprites.items():
+            self.scale_sprites_recursive(sprites, category)
 
-            # Get the current size of the original surface
-            original_surface_size = original_surface.get_size()
-
-            # Scale the sprite using the specified scale factor
-            new_surface = pygame.transform.scale(original_surface, self.scale_by_scale_factor(original_surface_size))
-
-            # Update the sprite in the dictionary with the scaled surface
-            self.set_sprite_from_path(key, new_surface)
     def handle_window_resize(self, new_size: tuple[int, int]) -> None:
         """
         Updates the pygame.display and scales the game window after a window resize event

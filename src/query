@@ -1,0 +1,122 @@
+I am trying to change the scaling in the engine from occurring every frame in to only scale the board surface when the window is resized. Here are the relevant sections of code. Can you spot the mistake?
+# engine.py
+    def handle_window_resize(self, new_size: tuple[int, int]) -> None:
+        """
+        Updates the pygame.display and scales the game window after a window resize event
+        :param new_size: (x, y): new size of the application window
+        :return: None
+        """
+        # Handle window resize
+        self.window = pygame.display.set_mode(new_size, pygame.RESIZABLE)
+
+        # Scale down logical screen if needed
+        self.scale_game_window(new_size)
+
+        # Scale sprites to fit within the new game window
+        # self.scale_sprites()
+        if self.board:
+            print(f"board sq size is {self.board.sq_size}")
+
+        # # Scale Board to fit within the new game window
+        self.scale_board()
+
+    def scale_board(self):
+        if self.board:
+            current_dimensions = self.board.surface.get_size()
+            self.board.surface = pygame.transform.scale(self.board.surface, self.scale_by_scale_factor(current_dimensions))
+            print(f"board was {current_dimensions}. Scaling to {self.board.surface.get_size()}")
+            print(f"scale factor is {self.scale_factor}")
+            print(f"board square size is {self.board.sq_size}")
+
+
+    def render_surface(self, surface, position, **kwargs):
+        x, y = position
+
+        # scaled_dimensions = self.scale_by_scale_factor(surface.get_size())
+
+        screen_position = convert_from_world_position((x, y), self.scale_factor)
+
+        # TODO: Do not scale sprites every tick. This is destroying performance
+        # surface = pygame.transform.scale(surface, (int(scaled_dimensions[0]), int(scaled_dimensions[1])))
+
+        centered_position = center_position(screen_position, surface.get_size())
+        # Draw the scaled sprite to the screen
+        self.game_window.blit(surface, centered_position, **kwargs)
+
+    def scale_by_scale_factor(self, size):
+        return int(size[0] * self.scale_factor[0]), int(size[1] * self.scale_factor[1])
+
+    def render_sprite(self, data, **kwargs):
+        # Convert data to surface and position
+        position = data.get('x'), data.get('y')
+        sprite_path = data.get('sprite')
+        surface = self.get_sprite_from_path(sprite_path)
+        self.render_surface(surface, position, **kwargs)
+
+    def render_board(self, data):
+        x, y = self.center_of_game_window()
+        # Initial color fill
+        # print(f"rendering board at {x} {y}")
+        # print(f"board is {self.board.width} by {self.board.height}")
+        light_color = pygame.Color((255, 255, 255, 255))
+        dark_color = pygame.Color((66.3, 33.6, 21.4, 255))
+        self.board.render_tiles(light_color, dark_color, self)
+        self.render_surface(self.board.surface, (x, y))
+
+# board.py
+class Board:
+    def __init__(self, event_manager):
+        self.event_manager = event_manager
+
+        # Set rows and cols for board
+        self.cols = 14
+        self.rows = 10
+
+        # Set buffer for the board to be set in from the top of the screen
+        window_width, window_height = settings.LOGICAL_GAME_WINDOW
+        self.window_buffer = window_height // 10
+
+        # Determine the square size based on how large the board will be after it is set in from the top of the window
+        self.sq_size = (window_height - self.window_buffer) / self.rows
+
+        # Create the board surface
+        self.width = self.sq_size * self.cols
+        self.height = self.sq_size * self.rows
+        self.surface = pygame.Surface((self.width, self.height)).convert_alpha()
+
+        self.tiles = [[Tile(x, y) for y in range(self.rows)] for x in range(self.cols)]
+        self.tile_pattern = [[None] * self.rows for _ in range(self.cols)]
+
+
+
+    def set_tile_pattern(self, tree_tile_sprites):
+        light_tile_sprites = tree_tile_sprites[0]
+        dark_tile_sprites = tree_tile_sprites[1]
+        for col in range(self.cols):
+            for row in range(self.rows):
+                # Alternate colors based on row and column indices
+                if (row + col) % 2 == 0:
+                    tile_sprites = light_tile_sprites
+                else:
+                    tile_sprites = dark_tile_sprites
+                texture_path = random.choice(list(tile_sprites.keys()))
+                tree_texture_surface = pygame.transform.scale(tile_sprites[texture_path], (self.sq_size+2, self.sq_size+2))
+                self.tile_pattern[col][row] = tree_texture_surface.convert_alpha()
+
+    def render_tiles(self, light_color, dark_color, engine):
+        for col in range(self.cols):
+            for row in range(self.rows):
+                x = col * self.sq_size
+                y = row * self.sq_size
+
+                # Alternate colors based on row and column indices
+                if (row + col) % 2 == 0:
+                    color = light_color
+                else:
+                    color = dark_color
+
+                pygame.draw.rect(self.surface, color, (x-1, y-1, self.sq_size+2, self.sq_size+2), 0)
+                self.surface.blit(self.tile_pattern[col][row], (x-1, y-1), special_flags=pygame.BLEND_RGBA_MULT)
+                # to_be_rendered = self.tiles[col][row].render(self)
+                # for item in to_be_rendered:
+                #     self.event_manager.emit('draw sprite', item)

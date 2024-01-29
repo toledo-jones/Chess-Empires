@@ -27,6 +27,13 @@ class Board:
         self.tiles = [[Tile(x, y) for y in range(self.rows)] for x in range(self.cols)]
         self.tile_pattern = [[None] * self.rows for _ in range(self.cols)]
 
+    def handle_resize_event(self, new_size):
+        self.window_buffer = new_size[1] // 10
+        self.sq_size = (new_size[1] - self.window_buffer) / self.rows
+        self.width = self.sq_size * self.cols
+        self.height = self.sq_size * self.rows
+        self.surface = pygame.transform.scale(self.surface, (self.width, self.height))
+
     def set_tile_pattern(self, tree_tile_sprites):
         light_tile_sprites = tree_tile_sprites[0]
         dark_tile_sprites = tree_tile_sprites[1]
@@ -55,7 +62,7 @@ class Board:
 
                 pygame.draw.rect(self.surface, color, (x-1, y-1, self.sq_size+2, self.sq_size+2), 0)
                 self.surface.blit(self.tile_pattern[col][row], (x-1, y-1), special_flags=pygame.BLEND_RGBA_MULT)
-                to_be_rendered = self.tiles[col][row].render(self)
-                for item in to_be_rendered:
-                    self.event_manager.emit('draw sprite', item)
+                # to_be_rendered = self.tiles[col][row].render(self)
+                # for item in to_be_rendered:
+                #     self.event_manager.emit('draw sprite', item)
 

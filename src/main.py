@@ -1,94 +1,88 @@
 import sys
-
 import pygame
-
 from src.game.game_manager import GameManager
-from network.client import GameClient
-from game.engine import GameEngine
-from game.scene_manager import SceneManager
-from game.state_manager import StateManager
-from game.event_manager import EventManager
+from src.network.client import GameClient
+from src.game.engine import GameEngine
+from src.game.scene_manager import SceneManager
+from src.game.state_manager import StateManager
+from src.game.event_manager import EventManager
 
 # Initialize Pygame
 pygame.init()
 
-# Set up window size and other configurations
-SCREEN_WIDTH = 1536
-SCREEN_HEIGHT = 864
-FPS = 60
 
-# Set up the game window
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
-pygame.display.set_caption("Chess Empires")
-clock = pygame.time.Clock()
+def main():
+    # Set up window size and other configurations
+    SCREEN_WIDTH = 1536
+    SCREEN_HEIGHT = 864
+    FPS = 60
 
-# Initialize the event system
-event_manager = EventManager()
+    # Set up the game window
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
+    pygame.display.set_caption("Chess Empires")
+    clock = pygame.time.Clock()
 
-# Initialize the game client
-client = GameClient("192.168.1.149", 5555, event_manager)
-client.connect()
-client.start_listening_thread()
+    # Initialize the event system
+    event_manager = EventManager()
 
-# Get the player_id
-player_id = client.get_player_id()
+    # Initialize the game client
+    client = GameClient("192.168.1.149", 5555, event_manager)
+    client.connect()
+    client.start_listening_thread()
 
-# Initialize the state manager
-state_manager = StateManager(event_manager)
+    # Get the player_id
+    player_id = client.get_player_id()
 
-# Initialize the scene manager
-scene_manager = SceneManager(event_manager, state_manager)
+    # Initialize the state manager
+    state_manager = StateManager(event_manager)
 
-# TODO: Move this to a more logical location like "Start Game"
-# Initialize the game scene with the scene manager
-scene_manager.set_scene("GameScene")
-state_manager.set_state("TestState")
+    # Initialize the scene manager
+    scene_manager = SceneManager(event_manager, state_manager)
 
-# Initialize Engine
-engine = GameEngine(screen, player_id, event_manager, scene_manager, state_manager)
+    # Initialize Engine
+    engine = GameEngine(screen, player_id, event_manager, scene_manager, state_manager)
 
-# Initialize Game Manager
-game_manager = GameManager(event_manager, scene_manager, state_manager, client, engine)
+    # Initialize Game Manager
+    game_manager = GameManager(event_manager, scene_manager, state_manager, client, engine)
 
-# pygame.mouse.set_visible(False)
+    # pygame.mouse.set_visible(False)
 
-# Main game loop
-running = True
-while running:
-    print("======================== FRAME ========================")
-    for pygame_event in pygame.event.get():
-        if pygame_event.type == pygame.QUIT:
-            running = False
-        elif pygame_event.type == pygame.VIDEORESIZE:
-            engine.handle_window_resize(new_size=pygame_event.size)
-        # Handle input
-        engine.handle_input(pygame_event)
+    game_manager.start_game()
 
-    print("===== CLEAR =====")
-    # Clear the screens
-    engine.clear_screens()
+    running = True
+    while running:
+        for pygame_event in pygame.event.get():
+            if pygame_event.type == pygame.QUIT:
+                running = False
+            elif pygame_event.type == pygame.VIDEORESIZE:
+                engine.handle_window_resize(new_size=pygame_event.size)
+            # Handle input
+            engine.handle_input(pygame_event)
 
-    print("===== UPDATE =====")
-    # Update game logic
-    game_manager.update()
+        # Clear the screens
+        engine.clear_screens()
 
-    print("===== RENDER =====")
-    # Render game elements
-    game_manager.render()
+        # Update game logic
+        game_manager.update()
 
-    print("===== UPDATE DISPLAY =====")
-    # Update the display
-    pygame.display.flip()
+        # Render game elements
+        game_manager.render()
 
-    # Cap the frame rate
-    clock.tick(FPS)
+        # Update the display
+        pygame.display.flip()
+
+        # Cap the frame rate
+        clock.tick(FPS)
+
+    # Close the game client
+    client.close()
+
+    # Quit Pygame
+    pygame.quit()
+
+    # Exit
+    sys.exit()
 
 
-# Close the game client
-client.close()
-
-# Quit Pygame
-pygame.quit()
-
-# Exit
-sys.exit()
+if __name__ == '__main__':
+    main()

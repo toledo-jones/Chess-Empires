@@ -25,7 +25,8 @@ class GameManager(Singleton):
         return self.client.get_player_id() == data['player_id']
 
     def start_game(self):
-        pass
+        self.scene_manager.set_scene('GameScene')
+        self.state_manager.set_state('TestState')
 
     def initialize_player(self):
         pass

@@ -71,6 +71,8 @@ def main():
         # Update the display
         pygame.display.flip()
 
+        print(clock.get_fps())
+
         # Cap the frame rate
         clock.tick(FPS)
 

@@ -1,26 +1,61 @@
-class Tile:
-    def __init__(self, col, row):
-        self.col = col
+import random
+import pygame
+
+from src.game.entities.sprite import Sprite
+
+LIGHT_COLOR = pygame.Color((255, 255, 255, 255))
+DARK_COLOR = (pygame.Color((66.3, 33.6, 21.4, 255)))
+
+
+class Tile(Sprite):
+    def __init__(self, column, row):
+        self.column = column
         self.row = row
+        self.texture_id = random.randint(0, 47)
+        super().__init__(self.path)
         self.occupying = None
         self.resource = None
 
-    def render(self, board):
-        to_be_rendered = []
-        if self.get_resource():
-            to_be_rendered.append(self.resource.render(board))
-        if self.get_occupying():
-            to_be_rendered.append(self.occupying.render(board))
-        return to_be_rendered
+    @property
+    def pattern_id(self):
+        # Alternate colors based on row and column indices
+        if (self.row + self.column) % 2 == 0:
+            return True
+        return False
 
-    def set_occupying(self, unit):
-        self.occupying = unit
+    @property
+    def texture(self):
+        if self.pattern_id:
+            return 'light'
+        return 'dark'
 
-    def get_occupying(self):
-        return self.occupying
+    @property
+    def color(self):
+        if self.pattern_id:
+            return LIGHT_COLOR
+        return DARK_COLOR
 
-    def set_resource(self, resource):
-        self.resource = resource
+    @property
+    def row(self):
+        return self._row
 
-    def get_resource(self):
-        return self.resource
+    @row.setter
+    def row(self, row):
+        self._row = row
+
+    @property
+    def column(self):
+        return self._column
+
+    @column.setter
+    def column(self, column):
+        self._column = column
+
+    @property
+    def path(self):
+        # TODO: this should be calculated dynamically based on the number of images in the path
+        return f'assets/sprites/board/{self.texture}/{self.texture_id}.png'
+
+    @path.setter
+    def path(self, path):
+        self._path = path

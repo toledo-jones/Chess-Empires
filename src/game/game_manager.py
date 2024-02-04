@@ -11,7 +11,7 @@ class GameManager(Singleton):
         self.client = client
         self.board = Board(self.event_manager)
 
-        self.engine.set_board(self.board)
+        self.engine.board = self.board
 
     def render(self):
         self.engine.render()

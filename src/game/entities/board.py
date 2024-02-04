@@ -1,11 +1,20 @@
+from __future__ import annotations
+import typing
 import settings
 from src.game.entities.tile import Tile
 import pygame
 import random
+if typing.TYPE_CHECKING:
+    from src.game.event_manager import EventManager
+
 
 
 class Board:
-    def __init__(self, event_manager):
+    def __init__(self, event_manager: EventManager):
+        """
+        Board object contains tile objects which represent each of the individual cells of the game board
+        :param event_manager:
+        """
         self.event_manager = event_manager
 
         # Set rows and cols for board
@@ -25,7 +34,6 @@ class Board:
         self.surface = pygame.Surface((self.width, self.height)).convert_alpha()
 
         self.tiles = [[Tile(x, y) for y in range(self.rows)] for x in range(self.cols)]
-        self.tile_pattern = [[None] * self.rows for _ in range(self.cols)]
 
     def handle_resize_event(self, new_size):
         self.window_buffer = new_size[1] // 10
@@ -34,34 +42,13 @@ class Board:
         self.height = self.sq_size * self.rows
         self.surface = pygame.transform.scale(self.surface, (self.width, self.height))
 
-    def set_tile_pattern(self, tree_tile_sprites):
-        light_tile_sprites = tree_tile_sprites[0]
-        dark_tile_sprites = tree_tile_sprites[1]
-        for col in range(self.cols):
-            for row in range(self.rows):
-                # Alternate colors based on row and column indices
-                if (row + col) % 2 == 0:
-                    tile_sprites = light_tile_sprites
-                else:
-                    tile_sprites = dark_tile_sprites
-                texture_path = random.choice(list(tile_sprites.keys()))
-                tree_texture_surface = pygame.transform.scale(tile_sprites[texture_path], (self.sq_size+2, self.sq_size+2))
-                self.tile_pattern[col][row] = tree_texture_surface.convert_alpha()
-
-    def render_tiles(self, light_color, dark_color, engine):
-        for col in range(self.cols):
-            for row in range(self.rows):
-                x = col * self.sq_size
-                y = row * self.sq_size
-
-                # Alternate colors based on row and column indices
-                if (row + col) % 2 == 0:
-                    color = light_color
-                else:
-                    color = dark_color
-
-                pygame.draw.rect(self.surface, color, (x-1, y-1, self.sq_size+2, self.sq_size+2), 0)
-                self.surface.blit(self.tile_pattern[col][row], (x-1, y-1), special_flags=pygame.BLEND_RGBA_MULT)
+    def render_tiles(self):
+        for row in self.tiles:
+            for tile in row:
+                x = tile.column * self.sq_size
+                y = tile.row * self.sq_size
+                pygame.draw.rect(self.surface, tile.color, (x-1, y-1, self.sq_size+2, self.sq_size+2), 0)
+                self.surface.blit(tile.image, (x-1, y-1), special_flags=pygame.BLEND_RGBA_MULT)
                 # to_be_rendered = self.tiles[col][row].render(self)
                 # for item in to_be_rendered:
                 #     self.event_manager.emit('draw sprite', item)

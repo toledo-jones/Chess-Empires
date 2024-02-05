@@ -63,7 +63,7 @@ class Map:
 
     def generate_stone(self):
         for row in range(self.engine.rows):
-            for col in range(self.engine.cols):
+            for col in range(self.engine.columns):
                 self.engine.board[row][col].can_contain_quarry = False
                 rand = random.randint(0, 100)
                 if rand > 69:
@@ -89,7 +89,7 @@ class Map:
         rows_to_delete = random.sample(boundary_sequence, iterations)
 
         for row in rows_to_delete:
-            for c in range(self.engine.cols):
+            for c in range(self.engine.columns):
                 self.engine.delete_resource(row, c)
 
     def spawn_gold(self, r, c):
@@ -539,7 +539,7 @@ class FourCorners(Map):
         for section in self.triangle_sections:
             self.generate_wood(section)
         for r in range(self.engine.rows):
-            for c in range(self.engine.cols):
+            for c in range(self.engine.columns):
                 if self.engine.has_no_resource(r, c):
                     rand = random.randint(0, 100)
                     if rand > 95:

@@ -1762,7 +1762,7 @@ class PerformDestroyResource(Ritual):
     def delete_resource_ritual_squares(self):
         list_of_all_resources = []
         for row in range(self.engine.rows):
-            for col in range(self.engine.cols):
+            for col in range(self.engine.columns):
                 if self.engine.has_resource(row, col):
                     list_of_all_resources.append((row, col))
         return list_of_all_resources
@@ -1811,7 +1811,7 @@ class PerformCreateResource(Ritual):
     def create_resource_ritual_squares(self):
         list_of_all_empty_squares = []
         for row in range(self.engine.rows):
-            for col in range(self.engine.cols):
+            for col in range(self.engine.columns):
                 if self.engine.is_empty(row, col):
                     list_of_all_empty_squares.append((row, col))
 
@@ -1876,7 +1876,7 @@ class PerformTeleport(Ritual):
     def valid_teleport_squares(self):
         valid_squares = []
         for row in range(self.engine.rows):
-            for col in range(self.engine.cols):
+            for col in range(self.engine.columns):
                 if self.engine.is_empty(row, col):
                     valid_squares.append((row, col))
                 elif self.selected.is_rogue:
@@ -2041,7 +2041,7 @@ class PerformProtect(Ritual):
     def protectable_ritual_squares(self):
         ritual_squares = []
         for row in range(self.engine.rows):
-            for col in range(self.engine.cols):
+            for col in range(self.engine.columns):
                 if self.engine.is_empty(row, col):
                     ritual_squares.append((row, col))
                 elif self.engine.get_occupying(row, col):
@@ -2084,7 +2084,7 @@ class PerformPortal(Ritual):
     def valid_portal_squares(self):
         ritual_squares = []
         for row in range(self.engine.rows):
-            for col in range(self.engine.cols):
+            for col in range(self.engine.columns):
                 if self.engine.is_empty(row, col):
                     ritual_squares.append((row, col))
                 elif self.engine.get_occupying(row, col):

@@ -1,7 +1,13 @@
+from __future__ import annotations
 import random
 import pygame
+import typing
 
+if typing.TYPE_CHECKING:
+    from chess_empires.game.entities.piece import Piece
 from chess_empires.game.entities.sprite import Sprite
+
+
 
 LIGHT_COLOR = pygame.Color((255, 255, 255, 255))
 DARK_COLOR = (pygame.Color((66.3, 33.6, 21.4, 255)))
@@ -15,6 +21,28 @@ class Tile(Sprite):
         super().__init__(self.path)
         self.occupying = None
         self.resource = None
+
+    def render(self) -> list[Piece]:
+        """
+        render all the items on this tile
+        :return: list of game objects to be rendered
+        """
+        render_queue = []
+
+        tile_contents = [self.occupying, self.resource]
+
+        for item in tile_contents:
+            if item:
+                render_queue.append(item)
+        return render_queue
+
+    @property
+    def occupying(self):
+        return self._occupying
+
+    @occupying.setter
+    def occupying(self, piece):
+        self._occupying = piece
 
     @property
     def pattern_id(self):

@@ -1,6 +1,6 @@
 from __future__ import annotations
 import typing
-import settings
+from chess_empires import config
 from chess_empires.game.entities.tile import Tile
 import pygame
 import random
@@ -22,7 +22,7 @@ class Board:
         self.rows = 10
 
         # Set buffer for the board to be set in from the top of the screen
-        window_width, window_height = settings.LOGICAL_GAME_WINDOW
+        window_width, window_height = config.LOGICAL_GAME_WINDOW
         self.window_buffer = window_height // 10
 
         # Determine the square size based on how large the board will be after it is set in from the top of the window
@@ -79,6 +79,11 @@ class Board:
                 y = tile.row * self.sq_size
                 pygame.draw.rect(self.surface, tile.color, (x - 1, y - 1, self.sq_size + 2, self.sq_size + 2), 0)
                 self.surface.blit(tile.image, (x - 1, y - 1), special_flags=pygame.BLEND_RGBA_MULT)
-                # to_be_rendered = self.tiles[col][row].render(self)
-                # for item in to_be_rendered:
-                #     self.event_manager.emit('draw sprite', item)
+                render_queue = tile.render()
+                for item in render_queue:
+                    x = item.column * self.sq_size
+                    y = item.row * self.sq_size
+                    self.surface.blit(item.image, (x, y))
+
+    def add_piece(self, piece, column, row):
+        self.tiles[column][row].occupying = piece

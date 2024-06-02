@@ -8,7 +8,7 @@ import pickle
 import socket
 import threading
 
-from chess_empires.game.event_manager import EventManager
+# from chess_empires.game.event_manager import EventManager
 
 
 class GameServer:
@@ -18,12 +18,11 @@ class GameServer:
         self.clients_lock = threading.Lock()
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.clients = {}
-        self.event_manager = EventManager()
+        # self.event_manager = EventManager()
         self.data_handlers = {
             'mouse move': self.handle_mouse_movement,
             # Add more data types and corresponding handlers as needed
         }
-        self.clients = {}
         self.current_player_id = 1
 
     def handle_mouse_movement(self, data):

@@ -1,19 +1,62 @@
+from __future__ import annotations
+
+import typing
+
 from chess_empires.utilities.singleton import Singleton
 from chess_empires.game.entities.board import Board
 from chess_empires.utilities.factories.piece_factory import PieceFactory
 from chess_empires.game.entities.piece import Piece
+from chess_empires.utilities.factories.event_factory import EventFactory
+from game.db import EventTypes
+
+if typing.TYPE_CHECKING:
+    from chess_empires.game.game_event import GameEvent
+    from chess_empires.game.scene_manager import SceneManager
+    from chess_empires.game.state_manager import StateManager
+    from chess_empires.game.engine import GameEngine
+    from chess_empires.network.client import GameClient
+    from chess_empires.game.event_manager import EventManager
+    from chess_empires.game.entities.player import Player
 
 
 class GameManager(Singleton):
-    def __init__(self, event_manager, scene_manager, state_manager, client, engine):
+    def __init__(self,
+                 event_manager: EventManager,
+                 scene_manager: SceneManager,
+                 state_manager: StateManager,
+                 client: GameClient,
+                 engine: GameEngine):
+        """
+        Initialize the GameManager.
+
+        This will control the board, players, execute events and handle all the game logic.
+
+        :param event_manager: An instance of EventManager for subscribing and emitting game events.
+        :param scene_manager: An instance of SceneManager for managing game scenes.
+        :param state_manager: An instance of StateManager for managing game states.
+        :param client: An instance of GameClient for interacting with the game server.
+        :param engine: An instance of GameEngine for rendering the game.
+
+        """
+
+        # Class attributes
         self.event_manager = event_manager
         self.scene_manager = scene_manager
         self.state_manager = state_manager
         self.engine = engine
         self.client = client
-        self.board = Board(self.event_manager)
-        self.create_piece('acrobat', 0, 0, 'white')
 
+        # Create the board
+        self.board = Board(self.event_manager)
+
+        # Players objects are stored here
+        self.players = []
+
+        # Game Events completed this turn are stored here.
+        # The objects can be accessed and undone while they are in this list
+        self.turn_events = []
+
+        # Set the board in the engine
         self.engine.board = self.board
 
     def render(self):
@@ -26,6 +69,22 @@ class GameManager(Singleton):
 
     def is_player_data(self, data):
         return self.client.get_player_id() == data['player_id']
+
+    def add_piece(self,
+                  piece: Piece,
+                  player: Player) -> bool:
+        """
+        Adds a piece to a player's units list
+
+        :param player: Player object to add piece to
+        :param piece: Piece object to be added
+        :return: True if the piece is successfully added, False if it cannot be added
+        """
+        self.engine.units.add(piece)
+        return player.add_piece(piece)
+
+    def create_player(self, color: str):
+        pass
 
     def create_piece(self,
                      piece_name: str,
@@ -56,13 +115,31 @@ class GameManager(Singleton):
             print(f"Error: Unable to create piece '{piece_name}'.")
             return False
 
-        # Add piece to player
-        # Add piece to game board
         # Send information to server and to other connected clients
+        event = EventFactory.create("spawn", self, piece, column, row, color)
+
+        self.event_manager.emit(EventTypes.GAME_EVENT, event)
+
+    def execute_game_event(self, event: GameEvent) -> bool:
+        """
+        Execute a game event
+        :param event: Game Event to be executed
+        :return: returns True if the event was successfully completed
+        """
+        # attempt to complete the event
+        if event.complete():
+            # append the completed event object to the turn events list
+            self.turn_events.append(event)
+
+            # Event completed successfully
+            return True
+
+        # Event could not be completed
+        print(f"{event} failed to complete")
+        return False
 
     def start_game(self):
-        self.scene_manager.set_scene('GameScene')
-        self.state_manager.set_state('TestState')
+        self.scene_manager.set_scene('Title')
 
     def initialize_player(self):
         pass

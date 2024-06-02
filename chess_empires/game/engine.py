@@ -3,89 +3,17 @@ from __future__ import annotations
 from chess_empires.game.entities.sprite import Sprite
 import typing
 import pygame
-import settings
 from chess_empires.utilities.singleton import Singleton
+from chess_empires import config
 from utilities.sprite_paths import SpriteFactory
 from pathlib import Path
+from game.db import Render, Input
 
 if typing.TYPE_CHECKING:
     from chess_empires.game.event_manager import EventManager
     from chess_empires.game.scene_manager import SceneManager
     from chess_empires.game.state_manager import StateManager
-
-
-def convert_sprite_alphas(loaded_images: dict[str, pygame.Surface]) -> dict[str, pygame.Surface]:
-    """
-    Converts all loaded pygame surfaces with convert_alpha() to increase performance
-    :param loaded_images : dictionary of surfaces, keys look like: 'entities/units/black/acrobat.png'
-    :return: converted dictionary of surfaces
-    """
-    for key in loaded_images.keys():
-        loaded_images[key] = loaded_images[key].convert_alpha()
-    return loaded_images
-
-
-def convert_to_world_position(
-        screen_position: tuple[int, int],
-        scale_factor: tuple[float, float],
-        game_window_offset: tuple[int, int]) -> tuple[float, float]:
-    """
-    Converts a screen position into a world position
-    :param screen_position: typically given with pygame.mouse.Pos()
-    :param scale_factor: the ratio between the logical screen and the actual game window
-    :param game_window_offset: how far in the game_window is from the edge of the window
-    :return: world_position: the position inside the internal logical window
-    """
-
-    # Unpack Screen Position
-    x, y = screen_position[0], screen_position[1]
-
-    # Adjust for game window offset
-    adjusted_x = x - game_window_offset[0]
-    adjusted_y = y - game_window_offset[1]
-
-    # To convert the Game Window to the Logical Screen DIVIDE. Game_Window / Scale Factor
-    world_x = adjusted_x / scale_factor[0]
-    world_y = adjusted_y / scale_factor[1]
-
-    return world_x, world_y
-
-
-def convert_from_world_position(
-        world_position: tuple[float, float],
-        scale_factor: tuple[float, float]) -> tuple[float, float]:
-    """
-    Converts a logical world position into a game window position
-    :param world_position: a world position given by convert_to_world_position()
-    :param scale_factor: the ratio between the logical screen and the actual game window
-    :return: game window position scaled to fit properly within the actual screen
-    """
-
-    # Unpack World Position
-    x, y = world_position[0], world_position[1]
-
-    # To convert the Logical Screen to the Game Window MULTIPLY: Logical Screen * Scale Factor
-    game_window_x = x * scale_factor[0]
-    game_window_y = y * scale_factor[1]
-
-    return game_window_x, game_window_y
-
-
-def center_position(
-        position: tuple[float, float],
-        dimensions: tuple[int, int]) -> tuple[int, int]:
-    """
-    Calculate the top-left coordinates of a bounding box to center it at the given position.
-
-    This function takes the position (center) and dimensions (width and height) of a bounding box
-    and calculates the top-left coordinates needed to center the box at the specified position.
-
-    :param position: A tuple representing the center coordinates (x, y) of the bounding box.
-    :param dimensions: A tuple representing the dimensions (width, height) of the bounding box.
-
-    :return: A tuple containing the top-left coordinates (x, y) of the bounding box to center it.
-    """
-    return int(position[0] - round(dimensions[0] / 2)), int(position[1] - round(dimensions[1] / 2))
+    from chess_empires.game.entities.board import Board
 
 
 class GameEngine(Singleton):
@@ -107,6 +35,7 @@ class GameEngine(Singleton):
 
         :param state_manager: holds the different state objects such as spawning, praying, etc
         """
+
         # All attributes use the @property decorator paradigm
         self.player_id = player_id
         self.event_manager = event_manager
@@ -133,24 +62,27 @@ class GameEngine(Singleton):
 
         # After calculation the game window is scaled to an appropriate size for whatever window it is contained within
         self.aspect_ratio = (16 / 9)
-        self.logical_screen_dimensions = settings.LOGICAL_GAME_WINDOW
+        self.logical_screen_dimensions = config.LOGICAL_GAME_WINDOW
         self.game_window = pygame.Surface(self.logical_screen_dimensions)
         self.scale_factor = (1.0, 1.0)
 
         # Menu texture
         self.menu_texture = Sprite(self.sprite_paths['icons']['menu']['paper.png'])
 
+        # Sprite groups:
+        self.units = pygame.sprite.Group()
+        self.resources = pygame.sprite.Group()
+
         # Scale game window to match initial starting window size.
         self.handle_window_resize(self.window.get_size())
 
         # TODO: event system event restructuring. Should I use objects?`
-        self.event_manager.subscribe("draw sprite", self.render_sprite)
-        self.event_manager.subscribe("draw board", self.render_board)
-        self.event_manager.subscribe("test", self.render_sprite)
+        self.event_manager.subscribe(Render.SPRITE, self.render_sprite)
+        self.event_manager.subscribe(Render.BOARD, self.render_board)
 
     def handle_window_resize(self, new_size: tuple[int, int]) -> None:
         """
-        Updates the pygame.display and scales the game window after a window resize event
+        Updates the pygame display and scales the game window after a window resize event
         :param new_size: (x, y): new size of the application window
         :return: None
         """
@@ -167,17 +99,91 @@ class GameEngine(Singleton):
         if self.board:
             self.board.handle_resize_event(self.game_window.get_size())
 
+    @staticmethod
+    def convert_sprite_alphas(loaded_images: dict[str, pygame.Surface]) -> dict[str, pygame.Surface]:
+        """
+        Converts all loaded pygame surfaces with convert_alpha() to increase performance
+        :param loaded_images : dictionary of surfaces, keys look like: 'entities/units/black/acrobat.png'
+        :return: converted dictionary of surfaces
+        """
+        for key in loaded_images.keys():
+            loaded_images[key] = loaded_images[key].convert_alpha()
+        return loaded_images
+
+    @staticmethod
+    def convert_to_world_position(
+            screen_position: tuple[int, int],
+            scale_factor: tuple[float, float],
+            game_window_offset: tuple[int, int]) -> tuple[float, float]:
+        """
+        Converts a screen position into a world position
+        :param screen_position: typically given with pygame.mouse.Pos()
+        :param scale_factor: the ratio between the logical screen and the actual game window
+        :param game_window_offset: how far in the game_window is from the edge of the window
+        :return: world_position: the position inside the internal logical window
+        """
+
+        # Unpack Screen Position
+        x, y = screen_position[0], screen_position[1]
+
+        # Adjust for game window offset
+        adjusted_x = x - game_window_offset[0]
+        adjusted_y = y - game_window_offset[1]
+
+        # To convert the Game Window to the Logical Screen DIVIDE. Game_Window / Scale Factor
+        world_x = adjusted_x / scale_factor[0]
+        world_y = adjusted_y / scale_factor[1]
+
+        return world_x, world_y
+
+    @staticmethod
+    def convert_from_world_position(
+            world_position: tuple[float, float],
+            scale_factor: tuple[float, float]) -> tuple[float, float]:
+        """
+        Converts a logical world position into a game window position
+        :param world_position: a world position given by convert_to_world_position()
+        :param scale_factor: the ratio between the logical screen and the actual game window
+        :return: game window position scaled to fit properly within the actual screen
+        """
+
+        # Unpack World Position
+        x, y = world_position[0], world_position[1]
+
+        # To convert the Logical Screen to the Game Window MULTIPLY: Logical Screen * Scale Factor
+        game_window_x = x * scale_factor[0]
+        game_window_y = y * scale_factor[1]
+
+        return game_window_x, game_window_y
+
+    @staticmethod
+    def center_position(
+            position: tuple[float, float],
+            dimensions: tuple[int, int]) -> tuple[int, int]:
+        """
+        Calculate the top-left coordinates of a bounding box to center it at the given position.
+
+        This function takes the position (center) and dimensions (width and height) of a bounding box
+        and calculates the top-left coordinates needed to center the box at the specified position.
+
+        :param position: A tuple representing the center coordinates (x, y) of the bounding box.
+        :param dimensions: A tuple representing the dimensions (width, height) of the bounding box.
+
+        :return: A tuple containing the top-left coordinates (x, y) of the bounding box to center it.
+        """
+        return int(position[0] - round(dimensions[0] / 2)), int(position[1] - round(dimensions[1] / 2))
+
     def render_surface(self, surface, position, **kwargs) -> None:
         x, y = position
 
         # scaled_dimensions = self.scale_by_scale_factor(surface.get_size())
 
-        screen_position = convert_from_world_position((x, y), self.scale_factor)
+        screen_position = self.convert_from_world_position((x, y), self.scale_factor)
 
         # TODO: Do not scale sprites every tick. This is destroying performance
         # surface = pygame.transform.scale(surface, (int(scaled_dimensions[0]), int(scaled_dimensions[1])))
 
-        centered_position = center_position(screen_position, surface.get_size())
+        centered_position = self.center_position(screen_position, surface.get_size())
         # Draw the scaled sprite to the screen
         self.game_window.blit(surface, centered_position, **kwargs)
 
@@ -186,13 +192,39 @@ class GameEngine(Singleton):
         Routes pygame events to the custom EventManager
         :param pygame_event: event from pygame event queue
         """
+        print("handle input")
         if pygame_event.type == pygame.MOUSEMOTION:
+            print("mouse motion")
+            # screen_position = pygame_event.position
+            #
+            # # Mouse data is converted to world position using the attributes
+            # x, y = self.convert_to_world_position(screen_position, self.scale_factor, self.get_game_window_offset())
+            # data = {
+            # "type": 'mouse move',
+            # 'player_id': self.player_id,
+            # "x": x, "y": y,
+            # 'me': True,
+            # 'origin': str(self)}
+            # self.event_manager.emit("mouse move", data)
+
+        if pygame_event.type == pygame.MOUSEBUTTONDOWN:
+            print("Mouse button down")
+
             screen_position = pygame_event.pos
 
-            # Mouse data is converted to world position using the attributes
-            x, y = convert_to_world_position(screen_position, self.scale_factor, self.get_game_window_offset())
-            data = {"type": 'mouse move', 'player_id': self.player_id, "x": x, "y": y, 'me': True, 'origin': str(self)}
-            self.event_manager.emit("mouse move", data)
+            x, y = self.convert_to_world_position(
+                    screen_position,
+                    self.scale_factor,
+                    self.get_game_window_offset()
+            )
+
+            data = {
+                'event type': Input.LEFT_CLICK,
+                'event': pygame_event, 'x': x, 'y': y,
+                'me': True, 'origin': str(self)
+            }
+
+            self.event_manager.emit(Input.LEFT_CLICK, data)
 
     def calculate_scale_factor(self) -> tuple[float, float]:
         """
@@ -314,6 +346,9 @@ class GameEngine(Singleton):
         # Determine position of board
         x, y = self.center_of_game_window
 
+        # Use Data
+        print(data)
+
         # Render board surface
         self.board.render_tiles()
         self.render_surface(self.board.surface, (x, y))
@@ -355,7 +390,7 @@ class GameEngine(Singleton):
 
         :return: None
         """
-        background_color = (39.6, 51.7, 28.1)
+        background_color = (40, 52, 28)
         self.window.fill((0, 0, 0))
         self.game_window.fill(background_color)
         self.render_menu_texture()
@@ -383,7 +418,7 @@ class GameEngine(Singleton):
         """
         Renders the game window on the main window.
 
-        The game window is blitted onto the main window with an offset.
+        The game window is blit onto the main window with an offset.
         """
         offset = self.get_game_window_offset()
         self.window.blit(self.game_window, offset)
@@ -406,79 +441,188 @@ class GameEngine(Singleton):
         self.scene_manager.update()
 
     @property
-    def board(self):
+    def board(self) -> Board:
+        """
+        Get the game board.
+        :return: The game board.
+        """
         return self._board
 
     @board.setter
-    def board(self, board):
+    def board(self, board: Board) -> None:
+        """
+        Set the game board.
+        :param board: The game board to set.
+        :return: None
+        """
         self._board = board
 
     @property
-    def player_id(self):
+    def player_id(self) -> int:
+        """
+        Get the player ID.
+        :return: The player ID.
+        """
         return self._player_id
 
     @player_id.setter
-    def player_id(self, player_id):
+    def player_id(self, player_id: int) -> None:
+        """
+        Set the player ID.
+        :param player_id: The player ID to set.
+        :return: None
+        """
         self._player_id = player_id
 
     @property
-    def game_window(self):
+    def game_window(self) -> pygame.Surface:
+        """
+        Get the game window.
+        :return: The game window.
+        """
         return self._game_window
 
     @game_window.setter
-    def game_window(self, game_window):
+    def game_window(self, game_window: pygame.Surface) -> None:
+        """
+        Set the game window.
+        :param game_window: The game window to set.
+        :return: None
+        """
         self._game_window = game_window
 
     @property
-    def window(self):
+    def window(self) -> pygame.Surface:
+        """
+        Get the window surface.
+        :return: The window surface.
+        """
         return self._window
 
     @window.setter
-    def window(self, window: pygame.Surface):
+    def window(self, window: pygame.Surface) -> None:
+        """
+        Set the window surface.
+        :param window: The window surface to set.
+        :return: None
+        """
         self._window = window
 
     @property
-    def event_manager(self):
+    def event_manager(self) -> EventManager:
+        """
+        Get the event manager.
+        :return: The event manager.
+        """
         return self._event_manager
 
     @event_manager.setter
-    def event_manager(self, event_manager):
+    def event_manager(self, event_manager: EventManager) -> None:
+        """
+        Set the event manager.
+        :param event_manager: The event manager to set.
+        :return: None
+        """
         self._event_manager = event_manager
 
     @property
-    def scene_manager(self):
+    def scene_manager(self) -> SceneManager:
+        """
+        Get the scene manager.
+        :return: The scene manager.
+        """
         return self._scene_manager
 
     @scene_manager.setter
-    def scene_manager(self, scene_manager):
+    def scene_manager(self, scene_manager: SceneManager) -> None:
+        """
+        Set the scene manager.
+        :param scene_manager: The scene manager to set.
+        :return: None
+        """
         self._scene_manager = scene_manager
 
     @property
-    def state_manager(self):
+    def state_manager(self) -> StateManager:
+        """
+        Get the state manager.
+        :return: The state manager.
+        """
         return self._state_manager
+
+    @state_manager.setter
+    def state_manager(self, state_manager: StateManager) -> None:
+        """
+        Set the state manager.
+        :param state_manager: The state manager instance to set.
+        :return: None
+        """
+        self._state_manager = state_manager
 
     @property
     def sprite_paths(self) -> dict[str: dict]:
+        """
+        Get the sprite paths.
+        :return: The sprite paths.
+        """
         return self._sprite_paths
 
     @sprite_paths.setter
     def sprite_paths(self, sprite_paths: dict[str: dict]) -> None:
         """
-        Set sprites attribute
-        :param sprite_paths: nested dictionary structure of sprite paths
+        Set the sprite paths attribute.
+        :param sprite_paths: The nested dictionary structure of sprite paths to set.
         :return: None
         """
         self._sprite_paths = sprite_paths
 
-    @state_manager.setter
-    def state_manager(self, state_manager: StateManager):
-
-        self._state_manager = state_manager
-
     @property
-    def menu_texture(self):
+    def menu_texture(self) -> Sprite:
+        """
+        Get the menu texture sprite.
+        :return: The menu texture sprite.
+        """
         return self._menu_texture
 
     @menu_texture.setter
-    def menu_texture(self, menu_texture: Sprite):
+    def menu_texture(self, menu_texture: Sprite) -> None:
+        """
+        Set the menu texture sprite.
+        :param menu_texture: The menu texture sprite to set.
+        :return: None
+        """
         self._menu_texture = menu_texture
+
+    @property
+    def units(self) -> pygame.sprite.Group:
+        """
+        Get the units sprite group.
+        :return: The units sprite group.
+        """
+        return self._units
+
+    @units.setter
+    def units(self, units: pygame.sprite.Group) -> None:
+        """
+        Set the units sprite group.
+        :param units: The units sprite group to set.
+        :return: None
+        """
+        self._units = units
+
+    @property
+    def resources(self) -> pygame.sprite.Group:
+        """
+        Get the resources sprite group.
+        :return: The resources sprite group.
+        """
+        return self._resources
+
+    @resources.setter
+    def resources(self, resources: pygame.sprite.Group):
+        """
+        Set the resources sprite group.
+        :param resources: The resources sprite group to set.
+        :return: None
+        """
+        self._resources = resources

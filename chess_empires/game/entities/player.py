@@ -14,8 +14,16 @@ class Player:
         self.color = color
         self.pieces = []
 
-    def add_piece(self, piece):
-        self.pieces.append(piece)
+    def add_piece(self, piece: Piece) -> bool:
+        """
+        Adds piece to player
+        :param piece:
+        :return:
+        """
+        if piece:
+            self.pieces.append(piece)
+            return True
+        return False
 
     @property
     def color(self) -> str:

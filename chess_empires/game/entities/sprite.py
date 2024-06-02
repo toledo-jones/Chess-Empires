@@ -106,4 +106,3 @@ class Sprite(pygame.sprite.Sprite):
         path = Path(path)
         self._path = path
         self._surface = load_surface(path)  # Reload image when the path is changed
-

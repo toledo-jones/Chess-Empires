@@ -1,4 +1,4 @@
-from chess_empires.game.scenes.scene import Scene
+from game.scene import Scene
 from utilities.factories.scene_factory import SceneFactory
 from chess_empires.utilities.singleton import Singleton
 
@@ -10,6 +10,9 @@ class SceneManager(Singleton):
         self.state_manager = state_manager
 
     def set_scene(self, scene_name, *args, **kwargs):
+        # force the event manager to release any locks
+        self.event_manager.release_lock()
+
         # Use the SceneFactory to dynamically create the scene
         new_scene = SceneFactory.create(scene_name, self.event_manager, self, self.state_manager, *args, **kwargs)
         print(f"New Scene is instance of BaseScene:{isinstance(new_scene, Scene)}")
@@ -18,6 +21,10 @@ class SceneManager(Singleton):
                 self._current_scene.exit()  # Optional: Call exit method of the current scene
 
             self._current_scene = new_scene
+
+            # Acquire the lock again after changing scenes
+            self.event_manager.acquire_lock()
+
             self._current_scene.enter()
             print(f"Created New Scene: {new_scene}")
         else:
@@ -38,6 +45,6 @@ class SceneManager(Singleton):
             self.state_manager.enter()
 
     def render(self):
-        if self.current_scene is not None:
-            self._current_scene.render()
+        if self.current_scene:
+            self.current_scene.render()
             self.state_manager.render()

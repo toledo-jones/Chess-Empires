@@ -1,5 +1,5 @@
-from chess_empires.utilities.factories.base_factory import BaseFactory, auto_register, DefaultClass
-from chess_empires.game.scenes.scene import Scene
+from chess_empires.utilities.factories.factory import BaseFactory, auto_register, DefaultClass
+from game.scene import Scene
 
 
 class SceneFactory(BaseFactory):

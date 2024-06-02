@@ -2,6 +2,7 @@ import socket
 import pickle
 import threading
 import time
+from game.db import EventTypes
 
 
 class GameClient:
@@ -15,10 +16,9 @@ class GameClient:
         self.last_mouse_event_time = 0
         self.mouse_event_threshold = 0.05
         self.listening_thread = None
+        self.game_manager = None
         # Subscribe to different events
-        self.event_manager.subscribe("mouse move", self.handle_mouse_motion)
-        self.event_manager.subscribe("click", self.handle_click)
-        self.event_manager.subscribe("key press", self.handle_key_press)
+        self.event_manager.subscribe(EventTypes.GAME_EVENT, self.send_object)
 
         # Handle clicks, mouse motion, space, enter,
 
@@ -28,14 +28,6 @@ class GameClient:
             # Handle mouse move event logic
             self.send_object(data)
             self.last_mouse_event_time = current_time
-
-    def handle_click(self, data):
-        # Handle click event logic
-        self.send_object(data)
-
-    def handle_key_press(self, data):
-        # Handle key press event logic
-        self.send_object(data)
 
     def connect(self):
         try:
@@ -57,6 +49,7 @@ class GameClient:
             print(f"Error sending object to server: {e}")
 
     def send_string(self, message):
+        # This may be broken. I think the player ID is already included in the events now
         try:
             # Append player_id to the data before sending
             data = {'player_id': self.player_id, 'message': message}
@@ -92,16 +85,11 @@ class GameClient:
                     # If data is empty, the socket has been closed
                     print("Server disconnected. Exiting event listener.")
                     break
+                # Unpickle data
                 decoded_data = pickle.loads(data)
-                # Extract event type and data
-                event_type = decoded_data.get('type')
-                event_data = decoded_data.get('data')
-                player_id = event_data.get('player_id')
-                if player_id != self.player_id:
-                    event_data['me'] = False
-                    event_type = "server " + event_data.get("type")
-                print(f"Client emitting player {player_id} | {event_type}, {event_data}")
-                self.event_manager.emit(event_type, event_data)
+
+                # Execute event
+                self.game_manager.execute_game_event(decoded_data)
             except OSError as e:
                 if "Bad file descriptor" in str(e):
                     # Socket has been closed, break out of the loop
@@ -131,3 +119,11 @@ class GameClient:
 
     def get_player_id(self):
         return self.player_id
+
+    @property
+    def game_manager(self):
+        return self._game_manager
+
+    @game_manager.setter
+    def game_manager(self, game_manager):
+        self._game_manager = game_manager

@@ -46,17 +46,26 @@ def main():
 
     # pygame.mouse.set_visible(False)
 
+    client.game_manager = game_manager
+
     game_manager.start_game()
 
     running = True
     while running:
         for pygame_event in pygame.event.get():
+
+            # Handle quit event
             if pygame_event.type == pygame.QUIT:
                 running = False
+
+            # Handle video resize
             elif pygame_event.type == pygame.VIDEORESIZE:
                 engine.handle_window_resize(new_size=pygame_event.size)
-            # Handle input
-            engine.handle_input(pygame_event)
+
+            # Handle all other input
+            else:
+                # Handle input
+                engine.handle_input(pygame_event)
 
         # Clear the screens
         engine.clear_screens()

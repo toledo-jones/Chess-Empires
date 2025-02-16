@@ -21,6 +21,38 @@ class GameEvent:
             if not is_protected:
                 return trap
 
+    def determine_check(self):
+        self.engine.update_moves()
+        player = self.engine.players[self.engine.get_turn()]
+        enemy = self.engine.players[Constant.TURNS[self.engine.get_turn()]]
+        try:
+            print(player.king)  # This will be none sometimes
+            print(player.king.move_squares_list)
+            for piece in enemy.pieces:
+                print(piece)
+                for square in piece.capture_squares_list:
+                    if square == player.king.get_position():
+                        player.king.check = True
+                        return True
+
+            player.king.check = False
+
+        except Exception as e:
+            print(e)
+
+    def constrain_check(self):
+        """
+            Sloppy early implementation of check
+            Undo when a move puts our king in check
+        """
+        if self.determine_check():
+            player = self.engine.players[self.engine.get_turn()]
+            self.engine.events[-1].undo()
+            player.king.check = False
+            del self.engine.events[-1]
+            self.engine.set_popup_reason("check")
+            self.engine.create_popup_menu(self.action_tile.row, self.action_tile.col, self.engine.popup_reason)
+
     def complete(self):
         self.engine.reset_selected()
 
@@ -34,6 +66,7 @@ class StartSpawn(GameEvent):
         super().__init__(engine, acting_tile, action_tile)
         self.color = self.engine.turn
         self.spawn = self.engine.spawning
+
         self.dest = self.action_tile.get_position()
         self.previously_selected = None
         self.turn = self.engine.get_turn()
@@ -50,6 +83,8 @@ class StartSpawn(GameEvent):
     def complete(self):
         super().complete()
         self.engine.spawn(self.dest[0], self.dest[1], self.spawn)
+        if self.spawn == 'king':
+            self.engine.players[self.turn].king = self.engine.get_occupying(self.dest[0], self.dest[1])
         kind = self.engine.get_occupying(self.dest[0], self.dest[1]).get_unit_kind()
         self.engine.sounds.play('spawn_' + kind)
         self.engine.spawnSuccess = True
@@ -293,6 +328,9 @@ class Decree(GameEvent):
 
 
 class ChangeTurn(GameEvent):
+    def __repr__(self):
+        return 'change turn'
+
     def __init__(self, engine):
         super().__init__(engine)
         self.engine = self.engine
@@ -344,8 +382,8 @@ class ChangeTurn(GameEvent):
                                                                                            Constant.MAX_MONOLITH_RITUALS_PER_TURN))
             if self.engine.turn_count_actual == len(self.engine.prayer_stone_rituals) - 1:
                 self.engine.prayer_stone_rituals.append(
-                    self.engine.generate_available_rituals(Constant.PRAYER_STONE_RITUALS,
-                                                           Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN))
+                        self.engine.generate_available_rituals(Constant.PRAYER_STONE_RITUALS,
+                                                               Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN))
             if self.engine.turn_count_actual == len(self.engine.magician_rituals) - 1:
                 self.engine.magician_rituals.append(self.engine.generate_available_rituals(Constant.MAGICIAN_RITUALS,
                                                                                            Constant.MAX_MAGICIAN_RITUALS_PER_TURN))
@@ -354,16 +392,18 @@ class ChangeTurn(GameEvent):
             self.engine.trade_conversions.append(self.engine.trade_handler.get_conversions())
         if self.engine.turn_count_actual == len(self.engine.piece_stealing_offsets) - 1:
             self.engine.piece_stealing_offsets.append(
-                self.engine.generate_stealing_offsets(Constant.STEALING_KEY['piece']))
+                    self.engine.generate_stealing_offsets(Constant.STEALING_KEY['piece']))
         if self.engine.turn_count_actual == len(self.engine.building_stealing_offsets) - 1:
             self.engine.building_stealing_offsets.append(
-                self.engine.generate_stealing_offsets(Constant.STEALING_KEY['building']))
+                    self.engine.generate_stealing_offsets(Constant.STEALING_KEY['building']))
         if self.engine.turn_count_actual == len(self.engine.trader_stealing_offsets) - 1:
             self.engine.trader_stealing_offsets.append(
-                self.engine.generate_stealing_offsets(Constant.STEALING_KEY['trader']))
+                    self.engine.generate_stealing_offsets(Constant.STEALING_KEY['trader']))
         unused_pieces = self.engine.count_unused_pieces()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
+        self.determine_check()
+
     def undo(self):
         self.engine.sounds.play('change_turn')
         self.engine.turn = Constant.TURNS[self.engine.turn]

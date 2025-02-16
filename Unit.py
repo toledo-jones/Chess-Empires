@@ -7,6 +7,7 @@ class Unit:
         self.row = row
         self.col = col
         self.color = color
+        self.check = None
         self.offset = self.get_sprite_offset()
 
         self.sprites = Constant.W_PIECES | Constant.W_BUILDINGS | Constant.B_PIECES | Constant.B_BUILDINGS
@@ -50,6 +51,7 @@ class Unit:
         self.self_selected_square_color = Constant.SELF_SQUARE_HIGHLIGHT_COLOR
         self.unused_square_color = Constant.UNUSED_PIECE_HIGHLIGHT_COLOR
         self.move_square_color = Constant.MOVE_SQUARE_HIGHLIGHT_COLOR
+        self.check_color = Constant.CHECK_SQUARE_HIGHLIGHT_COLOR
         self.is_effected_by_jester = True
 
     def update_praying_squares(self, engine):
@@ -213,12 +215,18 @@ class Unit:
             self.highlight_self_square(win)
             self.highlight_move_squares(win)
             self.highlight_capture_squares(win)
+        if self.check:
+            self.highlight_self_square_check(win)
+
 
     def draw(self, win):
         sprite = self.sprites[self.color + "_" + str(self)]
         x = (self.col * Constant.SQ_SIZE) + self.offset[0]
         y = (self.row * Constant.SQ_SIZE) + self.offset[1]
         win.blit(sprite, (x, y))
+
+    def highlight_self_square_check(self, win):
+        self.draw_self_highlight(win, self.check_color)
 
     def square_fill(self, color):
         self.square.fill(color)
@@ -354,6 +362,7 @@ class King(Piece):
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
+        self.check = False
         self.move_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
                                 Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
                                 Constant.DOWN_LEFT)

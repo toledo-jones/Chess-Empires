@@ -50,6 +50,7 @@ class Engine:
         self.magician_rituals = []
         self.line_destroy_selected_range = None
         self.decrees = 0
+
         self.rituals_banned = False
         if Constant.DEBUG_RITUALS:
             self.monolith_rituals.append(Constant.MONOLITH_RITUALS)
@@ -59,9 +60,10 @@ class Engine:
             self.monolith_rituals.append(self.generate_available_rituals(Constant.MONOLITH_RITUALS,
                                                                          Constant.MAX_MONOLITH_RITUALS_PER_TURN))
             self.prayer_stone_rituals.append(
-                self.generate_available_rituals(Constant.PRAYER_STONE_RITUALS,
-                                                Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN))
-            self.magician_rituals.append(self.generate_available_rituals(Constant.MAGICIAN_RITUALS, Constant.MAX_MAGICIAN_RITUALS_PER_TURN))
+                    self.generate_available_rituals(Constant.PRAYER_STONE_RITUALS,
+                                                    Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN))
+            self.magician_rituals.append(
+                    self.generate_available_rituals(Constant.MAGICIAN_RITUALS, Constant.MAX_MAGICIAN_RITUALS_PER_TURN))
 
         self.piece_stealing_offsets = []
         self.piece_stealing_offsets.append(self.generate_stealing_offsets(Constant.STEALING_KEY['piece']))
@@ -74,93 +76,105 @@ class Engine:
 
         self.events = []
         self.players = {}
-        self.PIECES = {'king': King,
-                       'queen': Queen,
-                       'rook': Rook,
-                       'bishop': Bishop,
-                       'knight': Knight,
-                       'pawn': Pawn,
-                       'castle': Castle,
-                       'monk': Monk,
-                       'fortress': Fortress,
-                       'ram': Ram,
-                       'elephant': Elephant,
-                       'barracks': Barracks,
-                       'jester': Jester,
-                       'champion': Champion,
-                       'prayer_stone': PrayerStone,
-                       'monolith': Monolith,
-                       'pikeman': Pikeman,
-                       'rogue_rook': RogueRook,
-                       'rogue_bishop': RogueBishop,
-                       'rogue_knight': RogueKnight,
-                       'rogue_pawn': RoguePawn,
-                       'builder': Builder,
-                       'unicorn': Unicorn,
-                       'stable': Stable,
-                       'gold_general': GoldGeneral,
-                       'duke': Duke,
-                       'oxen': Oxen,
-                       'wall': Wall,
-                       'doe': Doe,
-                       'persuader': Persuader,
-                       'trader': Trader,
-                       'circus': Circus,
-                       'trapper': Trapper,
-                       'trap': Trap,
-                       'lion': Lion,
-                       'fire_spinner': FireSpinner,
-                       'acrobat': Acrobat,
-                       'magician': Magician,
-                       }
-        self.STATES = {'playing': Playing,
-                       'ai playing': AIPlaying,
-                       'mining': Mining,
-                       'spawning': Spawning,
-                       'starting': Starting,
-                       'start spawn': StartingSpawn,
-                       'piece cost screen': PieceCost,
-                       'building': PreBuilding,
-                       'winner': Winner,
-                       'surrender': Surrender,
-                       'gold_general': SummonGoldGeneral,
-                       'smite': PerformSmite,
-                       'select starting pieces': SelectStartingPieces,
-                       'destroy_resource': PerformDestroyResource,
-                       'create_resource': PerformCreateResource,
-                       'portal': PerformPortal,
-                       'teleport': PerformTeleport,
-                       'swap': PerformSwap,
-                       'line_destroy': PerformLineDestroy,
-                       'protect': PerformProtect,
-                       'main menu': MainMenu,
-                       'debug': DebugStart,
-                       'ai start spawn': AIStartingSpawn,
-                       'inspector': Inspector}
-        self.RESOURCES = {'tree_tile_1': Wood, 'gold_tile_1': Gold,
-                          'quarry_1': Quarry,
-                          'tree_tile_2': Wood,
-                          'tree_tile_3': Wood, 'tree_tile_4': Wood,
-                          'sunken_quarry_1': SunkenQuarry,
-                          'depleted_quarry_1': DepletedQuarry}
+        self.PIECES = {
+            'king'        : King,
+            'queen'       : Queen,
+            'rook'        : Rook,
+            'bishop'      : Bishop,
+            'knight'      : Knight,
+            'pawn'        : Pawn,
+            'castle'      : Castle,
+            'monk'        : Monk,
+            'fortress'    : Fortress,
+            'ram'         : Ram,
+            'elephant'    : Elephant,
+            'barracks'    : Barracks,
+            'jester'      : Jester,
+            'champion'    : Champion,
+            'prayer_stone': PrayerStone,
+            'monolith'    : Monolith,
+            'pikeman'     : Pikeman,
+            'rogue_rook'  : RogueRook,
+            'rogue_bishop': RogueBishop,
+            'rogue_knight': RogueKnight,
+            'rogue_pawn'  : RoguePawn,
+            'builder'     : Builder,
+            'unicorn'     : Unicorn,
+            'stable'      : Stable,
+            'gold_general': GoldGeneral,
+            'duke'        : Duke,
+            'oxen'        : Oxen,
+            'wall'        : Wall,
+            'doe'         : Doe,
+            'persuader'   : Persuader,
+            'trader'      : Trader,
+            'circus'      : Circus,
+            'trapper'     : Trapper,
+            'trap'        : Trap,
+            'lion'        : Lion,
+            'fire_spinner': FireSpinner,
+            'acrobat'     : Acrobat,
+            'magician'    : Magician,
+        }
+        self.STATES = {
+            'playing'               : Playing,
+            'ai playing'            : AIPlaying,
+            'mining'                : Mining,
+            'spawning'              : Spawning,
+            'starting'              : Starting,
+            'start spawn'           : StartingSpawn,
+            'piece cost screen'     : PieceCost,
+            'building'              : PreBuilding,
+            'winner'                : Winner,
+            'surrender'             : Surrender,
+            'gold_general'          : SummonGoldGeneral,
+            'smite'                 : PerformSmite,
+            'select starting pieces': SelectStartingPieces,
+            'destroy_resource'      : PerformDestroyResource,
+            'create_resource'       : PerformCreateResource,
+            'portal'                : PerformPortal,
+            'teleport'              : PerformTeleport,
+            'swap'                  : PerformSwap,
+            'line_destroy'          : PerformLineDestroy,
+            'protect'               : PerformProtect,
+            'main menu'             : MainMenu,
+            'debug'                 : DebugStart,
+            'ai start spawn'        : AIStartingSpawn,
+            'inspector'             : Inspector
+        }
+        self.RESOURCES = {
+            'tree_tile_1'      : Wood, 'gold_tile_1': Gold,
+            'quarry_1'         : Quarry,
+            'tree_tile_2'      : Wood,
+            'tree_tile_3'      : Wood, 'tree_tile_4': Wood,
+            'sunken_quarry_1'  : SunkenQuarry,
+            'depleted_quarry_1': DepletedQuarry
+        }
         self.MAPS = [Default, Minimal, VTrees, TriangleTrees,
-                     UltraBalanced, LeftRight, OnlyStoneAndGold, FourCorners, CenterCircleA, CenterCircleB, SuperMinimal, GoldCornersA, GoldCornersB, Islands]
+                     UltraBalanced, LeftRight, OnlyStoneAndGold, FourCorners, CenterCircleA, CenterCircleB,
+                     SuperMinimal, GoldCornersA, GoldCornersB, Islands]
         # self.MAPS = []
-        self.MENUS = {'stable': StableMenu,
-                      'fortress': FortressMenu,
-                      'barracks': BarracksMenu,
-                      'builder': BuilderMenu,
-                      'castle': CastleMenu,
-                      'circus': CircusMenu,
-                      'trapper': TrapperMenu,
-                      'monk': MonkMenu
-                      }
-        self.COST_MENUS = {'builder': BuilderCosts, 'castle': CastleCosts, 'stable': StableCosts, 'fortress': FortressCosts,
-                      'prayer_stone': PrayerStoneCosts, 'monolith': MonolithCosts, 'barracks': BarracksCosts, 'circus': CircusCosts, 'monk': MonkCosts}
+        self.MENUS = {
+            'stable'  : StableMenu,
+            'fortress': FortressMenu,
+            'barracks': BarracksMenu,
+            'builder' : BuilderMenu,
+            'castle'  : CastleMenu,
+            'circus'  : CircusMenu,
+            'trapper' : TrapperMenu,
+            'monk'    : MonkMenu
+        }
+        self.COST_MENUS = {
+            'builder'     : BuilderCosts, 'castle': CastleCosts, 'stable': StableCosts, 'fortress': FortressCosts,
+            'prayer_stone': PrayerStoneCosts, 'monolith': MonolithCosts, 'barracks': BarracksCosts,
+            'circus'      : CircusCosts, 'monk': MonkCosts
+        }
         self.EVENTS = {'pray': Pray, 'steal': Steal, 'mine': Mine, 'spawn': Spawn, 'move': Move, 'capture': Capture}
         self.STEALING_VALUES = {'wood': 0, 'gold': 1, 'stone': 2}
-        self.KIND_TO_STEALING_LIST = {'piece': self.piece_stealing_offsets, 'building': self.building_stealing_offsets,
-                                      'trader': self.trader_stealing_offsets}
+        self.KIND_TO_STEALING_LIST = {
+            'piece' : self.piece_stealing_offsets, 'building': self.building_stealing_offsets,
+            'trader': self.trader_stealing_offsets
+        }
         self.trade_handler = Trades(self)
         self.trade_conversions = []
         self.trade_conversions.append(self.trade_handler.get_conversions())
@@ -843,6 +857,12 @@ class Engine:
     def add_event(self, event):
         event.complete()
         self.events.append(event)
+        print(event)
+        # These game events will be allowed to occur without checking if a player is in check
+        if str(event) != 'change turn':
+            event.constrain_check()
+
+        # Determine if the game is over. This is when the king is captured.
         if self.player_king_does_not_exist():
             self.turn = Constant.TURNS[self.turn]
             self.set_winner()

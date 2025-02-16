@@ -13,7 +13,7 @@ class Player:
         self.actions_remaining = Constant.DEFAULT_ACTIONS_REMAINING
 
         self.king_position = None
-
+        self.king = None
         self.pieces = []
 
         self.captured_pieces = []

@@ -2072,7 +2072,6 @@ class Contextual(Menu):
                 'mine'    : self.piece.mining_squares_list,
                 'persuade': self.piece.persuader_squares_list,
                 'steal'   : self.piece.stealing_squares_list,
-                'build'   : self.piece.spawn_squares_list,
             }
             if not squares[item]:
                 print(f"Squares list empty for {item}")
@@ -2108,6 +2107,7 @@ class Contextual(Menu):
                 print(f"Clicked on menu item {index}: {self.menu_list[index]}")
                 # Perform action for the selected menu item
                 if not self.handle_menu_selection(index, self.menu_list[index]):
+                    print("resetting menus")
                     self.engine.reset_selected()
                     self.engine.close_menus()
                     self.engine.state[-1].reset_dragging_piece()

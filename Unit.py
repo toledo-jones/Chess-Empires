@@ -893,8 +893,7 @@ class Pawn(Piece):
         return squares
 
     def right_click(self, engine):
-        if super().right_click(engine):
-            return True
+        return True
 
 
 class RogueRook(Piece):
@@ -1922,8 +1921,7 @@ class Trapper(Piece):
         return squares
 
     def right_click(self, engine):
-        if super().right_click(engine):
-            return True
+        return True
 
 
 class Trader(Piece):

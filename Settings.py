@@ -22,10 +22,10 @@ import pygame
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 POP_UPS_ON = False
 DEBUG_STARTING_PRAYER = 0
-DEBUG_STARTING_WOOD = 100
-DEBUG_STARTING_GOLD = 100
-DEBUG_STARTING_STONE = 100
-DEBUG_STARTING_PIECES = ['castle', 'king', 'trapper', 'queen']
+DEBUG_STARTING_WOOD = 0
+DEBUG_STARTING_GOLD = 0
+DEBUG_STARTING_STONE = 0
+DEBUG_STARTING_PIECES = ['castle', 'king', 'trapper', 'builder', 'monk']
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
                                         WINDOW / BOARD / SIDE MENU / FPS

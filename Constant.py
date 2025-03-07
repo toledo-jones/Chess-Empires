@@ -22,6 +22,8 @@ BLUE = pygame.Color('blue')
 RED = pygame.Color('red')
 ICON_COLORS = {0: 'w', 1: 'b'}
 win = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+pygame.display.toggle_fullscreen()
+pygame.display.toggle_fullscreen()
 MENU_COLOR = pygame.Color((72, 61, 139))
 win.fill(MENU_COLOR)
 LOGO_COLOR = ICON_COLORS[random.randint(0, 1)]

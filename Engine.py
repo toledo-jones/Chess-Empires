@@ -987,18 +987,28 @@ class Engine:
 
     def is_legal_spawn(self, spawning, spawner):
         piece_cost = Constant.PIECE_COSTS[spawning]
-        if self.valid_purchase(piece_cost):
-            if self.players[self.turn].can_add_piece(spawning):
-                if self.players[self.turn].can_act():
-                    if spawner.can_act():
-                        return True
-                    else:
-                        self.popup_reason = 'player_action'
-                else:
-                    self.popup_reason = 'player_action'
-            if self.player_has_gold_general(self.turn):
-                if spawning == 'monk':
-                    return True
+
+        # Check if the piece can be purchased
+        if not self.valid_purchase(piece_cost):
+            return False
+
+        # Check if the player can add the piece
+        if not self.players[self.turn].can_add_piece(spawning):
+            return False
+
+        # Check if the player and spawner can act
+        if not self.players[self.turn].can_act() or not spawner.can_act():
+            return False
+
+        # Special check for 'trapper' piece, handle its action requirements explicitly if needed
+        if str(spawner) == 'trapper' and not spawner.can_act():
+            return False  # Trapper cannot act if it fails can_act() check
+
+        # Check if the player has a gold general for monk spawn
+        if self.player_has_gold_general(self.turn) and spawning == 'monk':
+            return True
+
+        return True
 
     def has_mineable_resource(self, r, c):
         if Constant.tile_in_bounds(r, c):

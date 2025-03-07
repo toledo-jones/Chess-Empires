@@ -1874,6 +1874,15 @@ class Trapper(Piece):
                 squares.append((r, c))
         return squares
 
+    def can_spawn(self, engine):
+        spawn_list = Constant.SPAWN_LISTS[str(self)]
+        legal_spawns = []
+        for spawn in spawn_list:
+            if engine.is_legal_spawn(spawn, spawner=self):
+                legal_spawns.append(spawn)
+        if legal_spawns:
+            return True
+
     def stealing_squares(self, engine):
         squares = []
 

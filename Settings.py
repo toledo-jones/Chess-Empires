@@ -10,11 +10,11 @@ import pygame
                                         -Minimal boilerplate
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-# DEBUG_START = True
-# DISPLAY_STATE_IN_HUD = True
-# BOARD_STARTS_WITH_RESOURCES = False
-# DEBUG_RITUALS = True
-# POP_UPS_ON = False
+DEBUG_START = True
+DISPLAY_STATE_IN_HUD = True
+BOARD_STARTS_WITH_RESOURCES = False
+DEBUG_RITUALS = True
+POP_UPS_ON = False
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
                                         DEBUG
@@ -25,7 +25,7 @@ DEBUG_STARTING_PRAYER = 0
 DEBUG_STARTING_WOOD = 0
 DEBUG_STARTING_GOLD = 0
 DEBUG_STARTING_STONE = 0
-DEBUG_STARTING_PIECES = ['castle', 'king', 'trapper', 'builder', 'monk']
+DEBUG_STARTING_PIECES = ['castle', 'king', 'queen', 'monolith', 'monk', 'monk']
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
                                         WINDOW / BOARD / SIDE MENU / FPS

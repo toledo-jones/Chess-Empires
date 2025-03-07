@@ -587,16 +587,23 @@ def top_and_bottom_squares():
 
 def edge_squares():
     squares = []
-    # x, y equal max val col, row
+    # Get the maximum column and row indices (board size)
     x, y = board_max_index()
+
+    # Top 2 rows
     for c in range(0, x + 1):
-        for r in range(0, 3):
+        for r in range(0, 2):  # Only the first 2 rows (0, 1)
             square = (r, c)
             squares.append(square)
-        for r in range(y - 2, y + 1):
+
+    # Bottom 2 rows
+    for c in range(0, x + 1):
+        for r in range(y - 1, y + 1):  # Last 2 rows (y-2, y-1)
             square = (r, c)
             squares.append(square)
+
     return squares
+
 
 
 def board_max_index():

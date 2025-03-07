@@ -1328,7 +1328,6 @@ class Stealing(State):
             for menu in self.engine.menus:
                 results.append(menu.left_click())
 
-
         # If no menus, check if stealing is in progress
         if self.engine.stealing:
             self.engine.close_menus()

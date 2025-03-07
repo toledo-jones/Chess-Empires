@@ -152,10 +152,10 @@ class Engine:
     def initialize_maps(self):
         """Returns a list of available maps."""
         # DEBUG:
-        # return [IslandsModified]
+        return [Full]
         return [Default, Minimal, VTrees, TriangleTrees, UltraBalanced, LeftRight, OnlyStoneAndGold,
                 FourCorners, CenterCircleA, CenterCircleB, SuperMinimal, GoldCornersA, GoldCornersB, Islands,
-                WoodlandQuarries, SparseMap, LeftRightModified, TopBottomModified, IslandsModified]
+                WoodlandQuarries, SparseMap, LeftRightModified, TopBottomModified, IslandsModified, Full]
 
     def initialize_menus(self):
         """Returns a dictionary of building menus."""
@@ -854,8 +854,10 @@ class Engine:
                 return True
 
     def create_resource(self, row, col, resource):
-        self.board[row][col].set_resource(resource)
-
+        try:
+            self.board[row][col].set_resource(resource)
+        except IndexError as e:
+            print(f"{e}. Tried to spawn resource at (row:{row}, col:{col})")
     def delete_piece(self, row, col):
         piece = self.board[row][col].get_occupying()
         pieces = self.players[piece.get_color()].pieces

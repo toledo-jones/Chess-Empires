@@ -26,7 +26,6 @@ class Map:
         # Randomly select a resource from the provided resource_count
         resource = random.choice(list(resource_count.keys()))
 
-
         # Calculate a value 'x' by dividing the resource count by 10 and rounding it
         x = round(resource_count[resource] / 10)
 
@@ -287,6 +286,7 @@ class Map:
     def generate_resources(self):
         pass
 
+
 class Debug(Map):
     def __init__(self, engine):
         super().__init__(engine)
@@ -304,30 +304,24 @@ class Default(Map):
         for square in self.edge_squares:
             rand = self.get_random()
             r, c = square[0], square[1]
-            if rand > 65:
+            if rand > 35:
                 self.spawn_wood(r, c)
 
-        # # Middle Squares fill with Tree patterns
-        # for square in Constant.big_center_squares():
-        #     rand = self.get_random()
-        #     r, c = square[0], square[1]
-        #     if rand > 85:
-        #         self.spawn_wood(r, c)
+        for square_set in Constant.top_and_bottom_squares():
+            selected_squares = random.sample(square_set, 3)
+            for square in selected_squares:
+                r, c = square[0], square[1]
+                self.spawn_wood_clover(r, c)
 
-        # 1 tree in each players starting square
-        for square_set in self.default_start_squares:
-            square = random.choice(square_set)
-            r, c = square[0], square[1]
-            self.spawn_wood(r, c)
+        for square_set in Constant.top_and_bottom_squares():
+            # Randomly select 2 unique squares from the square_set
+            selected_squares = random.sample(square_set, 1)
 
-        self.delete_resources_in_random_row([4, 3], 2)
-
-        # 4 gold on map, 1 in each corner
-        for square_set in Constant.quarter_squares():
-            square = random.choice(square_set)
-            r, c = square[0], square[1]
-            self.spawn_gold(r, c)
-
+            # Loop over the selected squares and spawn gold
+            for square in selected_squares:
+                r, c = square[0], square[1]
+                self.spawn_gold(r, c)
+                self.spawn_gold_nearby(r ,c)
 
 class IslandsModified(Map):
     def __init__(self, engine):
@@ -373,7 +367,6 @@ class IslandsModified(Map):
             r, c = random.choice(section)
             self.spawn_gold(r, c)
 
-
     def spawn_stone_or_quarry(self, r, c):
         """Method to randomly spawn stone or quarry in place of wood."""
         resource_type = random.choice([self.spawn_quarry, self.spawn_depleted_quarry])
@@ -394,6 +387,52 @@ class IslandsModified(Map):
         r, c = choice[0], choice[1]
         if random.random() > 0.3:  # 30% chance to spawn sunken quarry
             self.spawn_depleted_quarry(r, c)
+
+
+class Full(Map):
+    def __init__(self, engine):
+        super().__init__(engine)
+
+    def generate_resources(self):
+        super().generate_resources()
+
+        x, y = Constant.board_max_index()
+        clearing_threshold = 15
+        wood_threshold = 80
+        quarry_threshold = 10
+
+        for r in range(0, y+1):
+
+            for c in range(0, x+1):
+                rng = random.randint(0, 100)
+                if rng > wood_threshold:
+                    self.spawn_wood_clover(r, c, 2)
+                elif rng < quarry_threshold:
+                    self.spawn_depleted_quarry(r, c)
+
+        for square in self.w_starting_squares:
+            if random.randint(0, 100) > clearing_threshold:
+                self.engine.delete_resource(square[0], square[1])
+
+        for square in self.b_starting_squares:
+            if random.randint(0, 100) > clearing_threshold:
+                self.engine.delete_resource(square[0], square[1])
+
+        # Randomly sample squares from the white and black starting squares
+        w_random_squares = random.sample(self.w_starting_squares, 2)
+        b_random_squares = random.sample(self.b_starting_squares, 2)
+
+        # Spawn gold on randomly selected white squares
+        for square in w_random_squares:
+            r, c = square[0], square[1]
+            self.spawn_gold(r, c)
+
+        # Spawn gold on randomly selected black squares
+        for square in b_random_squares:
+            r, c = square[0], square[1]
+            self.spawn_gold(r, c)
+
+
 
 
 class Islands(Map):
@@ -775,7 +814,7 @@ class TopBottomModified(Map):
                 r += direction[0]
                 c += direction[1]
                 if Constant.tile_in_bounds(r, c):
-                    if isinstance(self.engine.get_resource(r, c), Wood) or not self.engine.get_resource(r,c):
+                    if isinstance(self.engine.get_resource(r, c), Wood) or not self.engine.get_resource(r, c):
                         self.spawn_gold(r, c)
                         break
 
@@ -793,8 +832,6 @@ class TopBottomModified(Map):
             self.spawn_wood_nearby(r, c)
             self.spawn_wood_nearby(r, c)
             self.spawn_gold(r, c)
-
-
 
 
 class LeftRightModified(Map):

@@ -152,7 +152,7 @@ class Engine:
     def initialize_maps(self):
         """Returns a list of available maps."""
         # DEBUG:
-        return [Full]
+        # return [Full]
         return [Default, Minimal, VTrees, TriangleTrees, UltraBalanced, LeftRight, OnlyStoneAndGold,
                 FourCorners, CenterCircleA, CenterCircleB, SuperMinimal, GoldCornersA, GoldCornersB, Islands,
                 WoodlandQuarries, SparseMap, LeftRightModified, TopBottomModified, IslandsModified, Full]

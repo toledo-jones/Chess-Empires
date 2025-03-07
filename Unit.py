@@ -360,10 +360,7 @@ class Piece(Unit):
             return True
 
     def right_click(self, engine):
-        if self.actions_remaining > 0:
-            return True
-        else:
-            engine.set_popup_reason('piece_action')
+        return True
 
 
 class King(Piece):
@@ -1855,13 +1852,18 @@ class Trapper(Piece):
         self.trapping_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
                                     Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
                                     Constant.DOWN_LEFT)
-        self.move_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN)
+        self.move_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
+                                    Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
+                                    Constant.DOWN_LEFT)
         self.capture_directions = (Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
                                    Constant.DOWN_LEFT)
         self.move_distance = 3
         self.capture_distance = 1
         self.is_rogue = True
         self.contextual_options = ['build', 'steal']
+        self.stealing_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
+                                    Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
+                                    Constant.DOWN_LEFT)
 
     def capture_squares(self, engine):
         squares = []
@@ -1871,6 +1873,18 @@ class Trapper(Piece):
             c = self.col + direction[1]
             if self.can_capture(r, c, engine):
                 squares.append((r, c))
+        return squares
+
+    def stealing_squares(self, engine):
+        squares = []
+
+        for direction in range(len(self.stealing_directions)):
+            d = self.stealing_directions[direction]
+            r = self.row - d[0]
+            c = self.col - d[1]
+            if self.can_capture(r, c, engine):
+                squares.append((r, c))
+
         return squares
 
     def base_spawn_criteria(self, engine, row, col):
@@ -2088,7 +2102,7 @@ class Fortress(Building):
         return spawn_squares
 
     def right_click(self, engine):
-        pass
+        return True
 
 
 class PrayerStone(Building):
@@ -2107,7 +2121,6 @@ class PrayerStone(Building):
 
     def right_click(self, engine):
         return True
-
 
 
 class Monolith(Building):

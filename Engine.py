@@ -1100,40 +1100,7 @@ class Engine:
         self.set_state(new_state)
         new_state.add_menu_to_menu_queue(str(self.get_occupying(row, col)))
         new_state.spawning_piece = self.get_occupying(row, col)
-
         return True
-
-    def transfer_to_praying_building_state(self, row, col):
-        self.update_praying_squares()
-        self.update_spawn_squares()
-        selectable_squares = self.board[row][col].get_occupying().spawn_squares_list + self.board[row][
-            col].get_occupying().praying_squares_list
-        allow_state = False
-        if selectable_squares:
-            allow_state = True
-        if allow_state:
-            self.set_praying_building(row, col, True)
-            new_state = PrayingBuilding(self.state[-1].win, self)
-            self.menus = []
-            new_state.add_menu_to_menu_queue(str(self.get_occupying(row, col)))
-            new_state.spawning_piece = self.get_occupying(row, col)
-            self.set_state(new_state)
-            return True
-
-    def transfer_to_stealing_mining_state(self, row, col):
-        self.update_mining_squares()
-        self.update_stealing_squares()
-        selectable_squares = self.board[row][col].get_occupying().mining_squares_list + self.board[row][
-            col].get_occupying().stealing_squares_list
-        allow_state = False
-        if selectable_squares:
-            allow_state = True
-        if allow_state:
-            self.set_mining_stealing(row, col, True)
-            new_state = MiningStealing(self.state[-1].win, self)
-            self.menus = []
-            self.set_state(new_state)
-            return True
 
     def transfer_to_piece_cost_screen(self):
         current_state = self.state[-1]

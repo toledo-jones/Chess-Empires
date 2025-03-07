@@ -26,10 +26,7 @@ class GameEvent:
         player = self.engine.players[self.engine.get_turn()]
         enemy = self.engine.players[Constant.TURNS[self.engine.get_turn()]]
         try:
-            print(player.king)  # This will be none sometimes
-            print(player.king.move_squares_list)
             for piece in enemy.pieces:
-                print(piece)
                 for square in piece.capture_squares_list:
                     if square == player.king.get_position():
                         player.king.check = True
@@ -46,9 +43,8 @@ class GameEvent:
             Undo when a move puts our king in check
         """
         if self.determine_check():
-            player = self.engine.players[self.engine.get_turn()]
             self.engine.events[-1].undo()
-            player.king.check = False
+            self.determine_check()
             del self.engine.events[-1]
             self.engine.set_popup_reason("check")
             self.engine.create_popup_menu(self.action_tile.row, self.action_tile.col, self.engine.popup_reason)
@@ -289,12 +285,14 @@ class Decree(GameEvent):
         self.piece = self.acting_tile.get_occupying()
         self.player = self.engine.players[self.engine.turn]
         self.cost = self.engine.get_decree_cost()
+        self.resource = list(Constant.DECREE_COST.keys())[-1]
         self.disabled_monoliths = None
 
     def complete(self):
         super().complete()
         self.piece.actions_remaining -= 1
-        self.player.gold -= self.cost
+        current_resource = getattr(self.player, self.resource)
+        setattr(self.player, self.resource, current_resource - self.cost)
         self.engine.decrees += 1
         self.engine.rituals_banned = not self.engine.rituals_banned
         self.engine.close_menus()
@@ -312,7 +310,8 @@ class Decree(GameEvent):
     def undo(self):
         super().undo()
         self.piece.actions_remaining += 1
-        self.player.gold += self.cost
+        current_resource = getattr(self.player, self.resource)
+        setattr(self.player, self.resource, current_resource + self.cost)
         self.engine.decrees -= 1
         self.engine.rituals_banned = not self.engine.rituals_banned
         self.engine.reset_selected()

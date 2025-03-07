@@ -5,180 +5,176 @@ from Map import *
 from Trades import *
 from Sounds import *
 
+import os
+import pygame
+
 
 class Engine:
-    def reset(self):
-        self.running = False
-
     def __init__(self):
+        """Initializes the game engine and sets up game attributes."""
         self.running = True
+
+        # Board Setup
         self.cols = Constant.BOARD_WIDTH_SQ
         self.rows = Constant.BOARD_HEIGHT_SQ
         self.board = [[Tile(x, y) for y in range(self.cols)] for x in range(self.rows)]
         self.map = None
+
+        # Game State
         self.winner = None
         self.popup_reason = None
-        self.spawn_list = []
         self.turn = None
         self.first = True
         self.first_turn = True
-        self.turn_count_display = .5
+        self.turn_count_display = 0.5
         self.turn_count_actual = -1
+        self.state = []
+        self.players = {}
+
+        # Gameplay Mechanics
+        self.spawn_list = []
         self.spawn_count = 0
         self.spawn_success = False
         self.spawning = None
+        self.final_spawn = False
+
         self.ritual = None
+        self.rituals_banned = False
         self.mining = False
         self.praying = False
         self.check = False
-        self.final_spawn = False
-        self.side_bar = None
         self.surrendering = False
         self.stealing = None
         self.piece_trading = None
         self.trading = []
+
+        # UI Elements
         self.menus = []
-        self.state = []
+        self.side_bar = None
+        self.piece_cost_screen = False
+
+        # Game Modifiers
         self.protected_tiles = []
         self.pins = []
-        self.piece_cost_screen = False
         self.pieces_checking = []
         self.used_and_intercepted_pieces = []
+
+        # Rituals & Stealing
         self.ritual_summon_resource = None
-        self.monolith_rituals = []
-        self.prayer_stone_rituals = []
-        self.magician_rituals = []
-        self.line_destroy_selected_range = None
+        self.monolith_rituals, self.prayer_stone_rituals, self.magician_rituals = self.initialize_rituals()
+        self.piece_stealing_offsets, self.building_stealing_offsets, self.trader_stealing_offsets = (
+            self.initialize_stealing_offsets())
+
+        # Events
+        self.events = []
         self.decrees = 0
 
-        self.rituals_banned = False
+        # Constants & Mapping
+        self.COLORS = {0: 'dark', 1: 'light'}
+        self.PIECES = self.initialize_pieces()
+        self.STATES = self.initialize_states()
+        self.RESOURCES = self.initialize_resources()
+        self.MAPS = self.initialize_maps()
+        self.MENUS = self.initialize_menus()
+        self.COST_MENUS = self.initialize_cost_menus()
+        self.EVENTS = self.initialize_events()
+        self.STEALING_VALUES = {'wood': 0, 'gold': 1, 'stone': 2}
+        self.KIND_TO_STEALING_LIST = {
+            'piece'   : self.piece_stealing_offsets,
+            'building': self.building_stealing_offsets,
+            'trader'  : self.trader_stealing_offsets
+        }
+
+        # Trade & Sounds
+        self.trade_handler = Trades(self)
+        self.trade_conversions = [self.trade_handler.get_conversions()]
+        self.sounds = Sounds()
+
+    def reset(self):
+        """Resets the engine's running state."""
+        self.running = False
+
+    def initialize_rituals(self):
+        """Initializes rituals based on debug mode."""
         if Constant.DEBUG_RITUALS:
-            self.monolith_rituals.append(Constant.MONOLITH_RITUALS)
-            self.prayer_stone_rituals.append(Constant.PRAYER_STONE_RITUALS)
-            self.magician_rituals.append(Constant.MAGICIAN_RITUALS)
-        else:
-            self.monolith_rituals.append(self.generate_available_rituals(Constant.MONOLITH_RITUALS,
-                                                                         Constant.MAX_MONOLITH_RITUALS_PER_TURN))
-            self.prayer_stone_rituals.append(
-                    self.generate_available_rituals(Constant.PRAYER_STONE_RITUALS,
-                                                    Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN))
-            self.magician_rituals.append(
-                    self.generate_available_rituals(Constant.MAGICIAN_RITUALS, Constant.MAX_MAGICIAN_RITUALS_PER_TURN))
+            return [Constant.MONOLITH_RITUALS], [Constant.PRAYER_STONE_RITUALS], [Constant.MAGICIAN_RITUALS]
 
-        self.piece_stealing_offsets = []
-        self.piece_stealing_offsets.append(self.generate_stealing_offsets(Constant.STEALING_KEY['piece']))
+        return [
+            self.generate_available_rituals(Constant.MONOLITH_RITUALS, Constant.MAX_MONOLITH_RITUALS_PER_TURN),
+            self.generate_available_rituals(Constant.PRAYER_STONE_RITUALS, Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN),
+            self.generate_available_rituals(Constant.MAGICIAN_RITUALS, Constant.MAX_MAGICIAN_RITUALS_PER_TURN)
+        ]
 
-        self.building_stealing_offsets = []
-        self.building_stealing_offsets.append(self.generate_stealing_offsets(Constant.STEALING_KEY['building']))
+    def initialize_stealing_offsets(self):
+        """Initializes stealing offsets for pieces, buildings, and traders."""
+        return [
+            [self.generate_stealing_offsets(Constant.STEALING_KEY['piece'])],
+            [self.generate_stealing_offsets(Constant.STEALING_KEY['building'])],
+            [self.generate_stealing_offsets(Constant.STEALING_KEY['trader'])]
+        ]
 
-        self.trader_stealing_offsets = []
-        self.trader_stealing_offsets.append(self.generate_stealing_offsets(Constant.STEALING_KEY['trader']))
+    def initialize_pieces(self):
+        """Returns a dictionary of game pieces."""
+        return {
+            'king'      : King, 'queen': Queen, 'rook': Rook, 'bishop': Bishop, 'knight': Knight, 'pawn': Pawn,
+            'castle'    : Castle, 'monk': Monk, 'fortress': Fortress, 'ram': Ram, 'elephant': Elephant,
+            'barracks'  : Barracks,
+            'jester'    : Jester, 'champion': Champion, 'prayer_stone': PrayerStone, 'monolith': Monolith,
+            'pikeman'   : Pikeman,
+            'rogue_rook': RogueRook, 'rogue_bishop': RogueBishop, 'rogue_knight': RogueKnight, 'rogue_pawn': RoguePawn,
+            'builder'   : Builder, 'unicorn': Unicorn, 'stable': Stable, 'gold_general': GoldGeneral, 'duke': Duke,
+            'oxen'      : Oxen, 'wall': Wall, 'doe': Doe, 'persuader': Persuader, 'trader': Trader, 'circus': Circus,
+            'trapper'   : Trapper, 'trap': Trap, 'lion': Lion, 'fire_spinner': FireSpinner, 'acrobat': Acrobat,
+            'magician'  : Magician
+        }
 
-        self.events = []
-        self.players = {}
-        self.PIECES = {
-            'king'        : King,
-            'queen'       : Queen,
-            'rook'        : Rook,
-            'bishop'      : Bishop,
-            'knight'      : Knight,
-            'pawn'        : Pawn,
-            'castle'      : Castle,
-            'monk'        : Monk,
-            'fortress'    : Fortress,
-            'ram'         : Ram,
-            'elephant'    : Elephant,
-            'barracks'    : Barracks,
-            'jester'      : Jester,
-            'champion'    : Champion,
-            'prayer_stone': PrayerStone,
-            'monolith'    : Monolith,
-            'pikeman'     : Pikeman,
-            'rogue_rook'  : RogueRook,
-            'rogue_bishop': RogueBishop,
-            'rogue_knight': RogueKnight,
-            'rogue_pawn'  : RoguePawn,
-            'builder'     : Builder,
-            'unicorn'     : Unicorn,
-            'stable'      : Stable,
-            'gold_general': GoldGeneral,
-            'duke'        : Duke,
-            'oxen'        : Oxen,
-            'wall'        : Wall,
-            'doe'         : Doe,
-            'persuader'   : Persuader,
-            'trader'      : Trader,
-            'circus'      : Circus,
-            'trapper'     : Trapper,
-            'trap'        : Trap,
-            'lion'        : Lion,
-            'fire_spinner': FireSpinner,
-            'acrobat'     : Acrobat,
-            'magician'    : Magician,
+    def initialize_states(self):
+        """Returns a dictionary of game states."""
+        return {
+            'playing'         : Playing, 'ai playing': AIPlaying, 'mining': Mining, 'spawning': Spawning,
+            'starting'        : Starting, 'start spawn': StartingSpawn, 'piece cost screen': PieceCost,
+            'building'        : PreBuilding, 'winner': Winner, 'surrender': Surrender,
+            'gold_general'    : SummonGoldGeneral,
+            'smite'           : PerformSmite, 'select starting pieces': SelectStartingPieces,
+            'destroy_resource': PerformDestroyResource,
+            'create_resource' : PerformCreateResource, 'portal': PerformPortal, 'teleport': PerformTeleport,
+            'swap'            : PerformSwap, 'line_destroy': PerformLineDestroy, 'protect': PerformProtect,
+            'main menu'       : MainMenu, 'debug': DebugStart, 'ai start spawn': AIStartingSpawn, 'inspector': Inspector
         }
-        self.STATES = {
-            'playing'               : Playing,
-            'ai playing'            : AIPlaying,
-            'mining'                : Mining,
-            'spawning'              : Spawning,
-            'starting'              : Starting,
-            'start spawn'           : StartingSpawn,
-            'piece cost screen'     : PieceCost,
-            'building'              : PreBuilding,
-            'winner'                : Winner,
-            'surrender'             : Surrender,
-            'gold_general'          : SummonGoldGeneral,
-            'smite'                 : PerformSmite,
-            'select starting pieces': SelectStartingPieces,
-            'destroy_resource'      : PerformDestroyResource,
-            'create_resource'       : PerformCreateResource,
-            'portal'                : PerformPortal,
-            'teleport'              : PerformTeleport,
-            'swap'                  : PerformSwap,
-            'line_destroy'          : PerformLineDestroy,
-            'protect'               : PerformProtect,
-            'main menu'             : MainMenu,
-            'debug'                 : DebugStart,
-            'ai start spawn'        : AIStartingSpawn,
-            'inspector'             : Inspector
+
+    def initialize_resources(self):
+        """Returns a dictionary of resource types."""
+        return {
+            'tree_tile_1': Wood, 'gold_tile_1': Gold, 'quarry_1': Quarry, 'tree_tile_2': Wood, 'tree_tile_3': Wood,
+            'tree_tile_4': Wood, 'sunken_quarry_1': SunkenQuarry, 'depleted_quarry_1': DepletedQuarry
         }
-        self.RESOURCES = {
-            'tree_tile_1'      : Wood, 'gold_tile_1': Gold,
-            'quarry_1'         : Quarry,
-            'tree_tile_2'      : Wood,
-            'tree_tile_3'      : Wood, 'tree_tile_4': Wood,
-            'sunken_quarry_1'  : SunkenQuarry,
-            'depleted_quarry_1': DepletedQuarry
+
+    def initialize_maps(self):
+        """Returns a list of available maps."""
+        # DEBUG:
+        # return [IslandsModified]
+        return [Default, Minimal, VTrees, TriangleTrees, UltraBalanced, LeftRight, OnlyStoneAndGold,
+                FourCorners, CenterCircleA, CenterCircleB, SuperMinimal, GoldCornersA, GoldCornersB, Islands,
+                WoodlandQuarries, SparseMap, LeftRightModified, TopBottomModified, IslandsModified]
+
+    def initialize_menus(self):
+        """Returns a dictionary of building menus."""
+        return {
+            'stable' : StableMenu, 'fortress': FortressMenu, 'barracks': BarracksMenu,
+            'builder': BuilderMenu, 'castle': CastleMenu, 'circus': CircusMenu, 'trapper': TrapperMenu, 'monk': MonkMenu
         }
-        self.MAPS = [Default, Minimal, VTrees, TriangleTrees,
-                     UltraBalanced, LeftRight, OnlyStoneAndGold, FourCorners, CenterCircleA, CenterCircleB,
-                     SuperMinimal, GoldCornersA, GoldCornersB, Islands]
-        # self.MAPS = []
-        self.MENUS = {
-            'stable'  : StableMenu,
-            'fortress': FortressMenu,
-            'barracks': BarracksMenu,
-            'builder' : BuilderMenu,
-            'castle'  : CastleMenu,
-            'circus'  : CircusMenu,
-            'trapper' : TrapperMenu,
-            'monk'    : MonkMenu
-        }
-        self.COST_MENUS = {
+
+    def initialize_cost_menus(self):
+        """Returns a dictionary of cost menus."""
+        return {
             'builder'     : BuilderCosts, 'castle': CastleCosts, 'stable': StableCosts, 'fortress': FortressCosts,
             'prayer_stone': PrayerStoneCosts, 'monolith': MonolithCosts, 'barracks': BarracksCosts,
             'circus'      : CircusCosts, 'monk': MonkCosts
         }
-        self.EVENTS = {'pray': Pray, 'steal': Steal, 'mine': Mine, 'spawn': Spawn, 'move': Move, 'capture': Capture}
-        self.STEALING_VALUES = {'wood': 0, 'gold': 1, 'stone': 2}
-        self.KIND_TO_STEALING_LIST = {
-            'piece' : self.piece_stealing_offsets, 'building': self.building_stealing_offsets,
-            'trader': self.trader_stealing_offsets
-        }
-        self.trade_handler = Trades(self)
-        self.trade_conversions = []
-        self.trade_conversions.append(self.trade_handler.get_conversions())
-        self.sounds = Sounds()
+
+    def initialize_events(self):
+        """Returns a dictionary of game events."""
+        return {'pray': Pray, 'steal': Steal, 'mine': Mine, 'spawn': Spawn, 'move': Move, 'capture': Capture}
 
     def reset_flags(self):
         self.spawning = None
@@ -189,7 +185,9 @@ class Engine:
         self.praying = False
 
     def get_decree_cost(self):
-        return Constant.DECREE_COST + (self.decrees * Constant.DECREE_INCREMENT)
+        decree_cost = Constant.DECREE_COST
+        keys = list(decree_cost.keys())
+        return Constant.DECREE_COST[keys[-1]] + (self.decrees * Constant.DECREE_INCREMENT)
 
     def stealing_values(self, resource, kind):
         offset_list = self.KIND_TO_STEALING_LIST[kind]
@@ -213,6 +211,31 @@ class Engine:
         self.map = random.choice(self.MAPS)(self)
         self.map.generate_stone()
         self.map.generate_resources()
+        self.sounds.play('create_resource')
+
+        self.set_piece_values()
+
+    def set_piece_values(self):
+        resource_count = self.count_resources()
+        self.map.set_piece_values(resource_count)
+
+    def count_resources(self):
+        # Resource counts are Gold, Wood, Stone
+        weights = Constant.BASE_TOTAL_YIELD
+        resource_count = {'gold': 0, 'wood': 0, 'quarry': 0}
+        for r in range(self.rows):
+            for c in range(self.cols):
+                if self.has_gold(r, c):
+                    resource_count['gold'] += 1
+                elif self.has_wood(r, c):
+                    resource_count['wood'] += 1
+                elif self.board[r][c].can_contain_quarry:
+                    resource_count['quarry'] += 1
+
+        for resource in resource_count:
+            resource_count[resource] *= weights[resource]
+
+        return resource_count
 
     def create_ai(self, color):
         player = AI(color)
@@ -288,20 +311,48 @@ class Engine:
                 piece.update_stealing_squares(self)
 
     def draw(self, win):
+        # Define the alternating colors for the squares
+        colors = [Constant.DARK_SQUARE_COLOR, Constant.LIGHT_SQUARE_COLOR]
+
+        # Draw the board squares and tiles
         for r in range(self.rows):
             for c in range(self.cols):
-                colors = [Constant.DARK_SQUARE_COLOR, Constant.LIGHT_SQUARE_COLOR]
-                color = colors[((r + c) % 2)]
+                # Calculate the color for the current square
+                color = colors[(r + c) % 2]
+
+                # Determine the rectangle size for the current square
                 rect_size = (Constant.SQ_SIZE, Constant.SQ_SIZE)
-                if r == self.rows - 1:
+                if r == self.rows - 1:  # Last row adjustment
                     rect_size = (Constant.SQ_SIZE, Constant.SQ_SIZE + Constant.board_remainder() * 100)
-                pygame.draw.rect(win, color, pygame.Rect(c * Constant.SQ_SIZE,
-                                                         r * Constant.SQ_SIZE,
-                                                         rect_size[0],
-                                                         rect_size[1]))
+
+                # Calculate position for the square
+                x = c * Constant.SQ_SIZE
+                y = r * Constant.SQ_SIZE
+
+                # Draw the square
+                pygame.draw.rect(
+                        win,
+                        color,
+                        pygame.Rect(x, y, rect_size[0], rect_size[1])
+                )
+
+                # Draw the tile using blend mode (avoid re-evaluating color calculation)
+                tile_color = self.COLORS[(r + c) % 2]
+                win.blit(
+                        Constant.BOARD_TILES[tile_color][self.board[r][c].index],
+                        (x, y),
+                        special_flags=pygame.BLEND_RGBA_MULT
+                )
+
+        # Draw the board pieces
         for r in range(self.rows):
             for c in range(self.cols):
                 self.board[r][c].draw(win)
+
+    def get_player_king(self):
+        for piece in self.players[self.turn].pieces:
+            if isinstance(piece, King):
+                return piece
 
     def player_king_does_not_exist(self):
         does_king_exist = False
@@ -857,7 +908,6 @@ class Engine:
     def add_event(self, event):
         event.complete()
         self.events.append(event)
-        print(event)
         # These game events will be allowed to occur without checking if a player is in check
         if str(event) != 'change turn':
             event.constrain_check()
@@ -905,7 +955,7 @@ class Engine:
         self.popup_reason = reason
 
     def player_can_do_action(self, color):
-        if self.players[color].can_do_action():
+        if self.players[color].can_act():
             return True
         else:
             self.set_popup_reason('player_action')
@@ -935,13 +985,19 @@ class Engine:
             if isinstance(piece, GoldGeneral):
                 return True
 
-    def is_legal_spawn(self, spawn):
-        piece_cost = Constant.PIECE_COSTS[spawn]
+    def is_legal_spawn(self, spawning, spawner):
+        piece_cost = Constant.PIECE_COSTS[spawning]
         if self.valid_purchase(piece_cost):
-            if self.players[self.turn].can_add_piece(spawn):
-                return True
+            if self.players[self.turn].can_add_piece(spawning):
+                if self.players[self.turn].can_act():
+                    if spawner.can_act():
+                        return True
+                    else:
+                        self.popup_reason = 'player_action'
+                else:
+                    self.popup_reason = 'player_action'
             if self.player_has_gold_general(self.turn):
-                if spawn == 'monk':
+                if spawning == 'monk':
                     return True
 
     def has_mineable_resource(self, r, c):
@@ -1038,17 +1094,14 @@ class Engine:
     def transfer_to_building_state(self, row, col):
         self.update_spawn_squares()
         spawn_squares = self.board[row][col].get_occupying().spawn_squares_list
-        allow_spawn = False
-        if spawn_squares:
-            allow_spawn = True
-        if allow_spawn:
-            self.set_pre_selected(row, col, True)
-            new_state = PreBuilding(self.state[-1].win, self)
-            self.menus = []
-            new_state.add_menu_to_menu_queue(str(self.get_occupying(row, col)))
-            new_state.spawning_piece = self.get_occupying(row, col)
-            self.set_state(new_state)
-            return True
+        self.set_pre_selected(row, col, True)
+        new_state = PreBuilding(self.state[-1].win, self)
+        self.menus = []
+        self.set_state(new_state)
+        new_state.add_menu_to_menu_queue(str(self.get_occupying(row, col)))
+        new_state.spawning_piece = self.get_occupying(row, col)
+
+        return True
 
     def transfer_to_praying_building_state(self, row, col):
         self.update_praying_squares()
@@ -1083,8 +1136,10 @@ class Engine:
             return True
 
     def transfer_to_piece_cost_screen(self):
-        new_state = PieceCost(self.state[-1].win, self)
+        current_state = self.state[-1]
+        new_state = PieceCost(self.state[-1].win, self, current_state)
         self.set_state(new_state)
+        return True
 
     def transfer_to_praying_state(self, row, col):
         self.update_praying_squares()
@@ -1111,6 +1166,7 @@ class Engine:
             return True
 
     def transfer_to_mining_state(self, row, col):
+        print("Transferring to mining state")
         self.update_mining_squares()
         mining_squares = self.board[row][col].get_occupying().mining_squares_list
         allow_mine = False
@@ -1124,15 +1180,17 @@ class Engine:
             self.menus = []
             return True
 
-    def transfer_to_surrender_state(self):
+    def transfer_to_surrender_state(self, row, col):
         new_state = Surrender(self.state[-1].win, self)
         self.set_state(new_state)
         self.menus = []
+        return True
 
     def transfer_to_spawning_state(self, spawning):
         new_state = Spawning(self.state[-1].win, self)
         self.spawning = spawning
         self.set_state(new_state)
+        return True
 
     def transfer_to_ritual_state(self, ritual, cost_type):
         new_state = self.STATES[ritual](self.state[-1].win, self)
@@ -1146,19 +1204,37 @@ class Engine:
         self.spawn_list = spawn_list
         self.spawning = self.spawn_list[0]
         self.set_state(state)
+        return True
 
     def transfer_to_piece_selection(self):
         state = SelectStartingPieces(self.state[-1].win, self)
         self.set_state(state)
+        return True
+
+    def transfer_to_pre_ritual_state(self, row, col):
+        ritual_key = {
+            'magician': ('gold', self.magician_rituals[self.turn_count_actual]),
+            'prayer_stone' : ('prayer', self.prayer_stone_rituals[self.turn_count_actual]),
+            'monolith' : ('prayer', self.monolith_rituals[self.turn_count_actual])
+        }
+        cost_type, ritual_list = ritual_key[str(self.get_occupying(row, col))]
+        return self.create_ritual_menu(row, col, ritual_list, cost_type)
 
     def create_ritual_menu(self, row, col, ritual_list, cost_type='prayer'):
+        self.get_occupying(row, col).casting = True
         ritual_menu = RitualMenu(row, col, self.state[-1].win, self, ritual_list, cost_type)
         self.menus.append(ritual_menu)
+        print("creating ritual menu")
         return True
 
     def can_decree(self, row, col):
-        color = self.get_occupying(row, col).color
-        return self.players[color].gold >= self.get_decree_cost()
+        # Check if the current player has enough gold to perform the decree action.
+        # If the player has enough resources, return True, otherwise return False.
+        decree_cost = Constant.DECREE_COST
+        keys = list(decree_cost.keys())
+        print(f"Checking if player has attribute: {keys[-1]}")
+        current_resource = getattr(self.players[self.turn], keys[-1])
+        return current_resource >= self.get_decree_cost()
 
     def decree(self, row, col):
         acting_tile = self.board[row][col]
@@ -1173,11 +1249,13 @@ class Engine:
         self.state[-1].revert_to_playing_state()
 
     def transfer_to_trading_state(self, row, col):
+        print("Transferring to trader state")
         new_state = Trading(self.state[-1].win, self)
         self.set_state(new_state)
         return self.create_trader_menu(row, col)
 
     def create_trader_menu(self, row, col, set_new_piece_trading=True):
+        print("Creating trader menu")
         player = self.players[self.turn]
         resources = ['wood', 'gold', 'stone']
         key = {'wood': 'log', 'gold': 'gold_coin', 'stone': 'stone'}
@@ -1187,15 +1265,22 @@ class Engine:
                 resource_list.append(key[resource])
         if resource_list:
             if set_new_piece_trading:
+                print("Setting new piece trading")
                 self.piece_trading = self.get_occupying(row, col)
 
             trader_menu = GiveMenu(row, col, self.state[-1].win, self, resource_list)
             self.menus.append(trader_menu)
             return True
+        return False
 
     def create_queen_menu(self, row, col):
         queen_menu = QueenMenu(row, col, self.state[-1].win, self)
         self.menus.append(queen_menu)
+        return True
+
+    def create_contextual_menu(self, row, col, win, menu_list):
+        menu = Contextual(row, col, win, self, menu_list)
+        self.menus.append(menu)
         return True
 
     def create_king_menu(self, row, col):
@@ -1206,6 +1291,8 @@ class Engine:
 
     def create_popup_menu(self, row, col, messages=None):
         if Constant.POP_UPS_ON:
+            if messages is None:
+                messages = self.popup_reason
             self.menus.append(Notification(row, col, self.state[-1].win, self, messages))
             self.popup_reason = None
 

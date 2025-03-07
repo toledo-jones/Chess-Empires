@@ -44,14 +44,41 @@ class Resource:
         total += variation
         return total
 
+    import random
+
     def get_resource_offset(self):
-        if random.randint(1, 2) > 1:
-            offset = Constant.RESOURCES_IMAGE_MODIFY[str(self)]['OFFSET']
-            r = offset[0] + random.randint(Constant.SQ_SIZE // -10, Constant.SQ_SIZE // 10)
-            z = offset[1] + random.randint(Constant.SQ_SIZE // -10, Constant.SQ_SIZE // 10)
-            return r, z
-        else:
-            return Constant.RESOURCES_IMAGE_MODIFY[str(self)]['OFFSET']
+        # Retrieve the size of the resource image as a tuple (width, height)
+        image_size = Constant.RESOURCES_IMAGE_MODIFY[str(self)]['SCALE']
+
+        # Get the size of the square where the image will be placed
+        square_size = Constant.SQ_SIZE
+
+        # Calculate the horizontal offset to center the image within the square
+        offset_x = (square_size - image_size[0]) // 2
+
+        # Calculate the vertical offset to center the image within the square
+        offset_y = (square_size - image_size[1]) // 2
+
+        # Generate a small random offset within approximately ±1/10th of the square size
+        random_offset_x = random.randint(-square_size // 10, square_size // 10)
+        random_offset_y = random.randint(-square_size // 10, square_size // 10)
+
+        # Apply the random offset to the calculated position
+        offset_x += random_offset_x
+        offset_y += random_offset_y
+
+        # Return the final computed offsets as a tuple (x, y)
+        return offset_x, offset_y
+
+        # if random.randint(1, 2) > 1:
+        #     offset = Constant.RESOURCES_IMAGE_MODIFY[str(self)]['OFFSET']
+        #     r = offset[0] + random.randint(Constant.SQ_SIZE // -10, Constant.SQ_SIZE // 10)
+        #     z = offset[1] + random.randint(Constant.SQ_SIZE // -10, Constant.SQ_SIZE // 10)
+        #     r = offset[0]
+        #     z = offset[1]
+        #     return r, z
+        # else:
+        #     return Constant.RESOURCES_IMAGE_MODIFY[str(self)]['OFFSET']
 
     def get_position(self):
         return self.row, self.col
@@ -83,7 +110,7 @@ class Wood(Resource):
         return 'tree_tile' + "_" + str(self.get_sprite_id())
 
     def __init__(self, row, col, owner=None):
-        sprite_id = random.randint(1, 4)
+        sprite_id = random.randint(1, 8)
         self.sprite_id = sprite_id
         super().__init__(row, col, owner)
 

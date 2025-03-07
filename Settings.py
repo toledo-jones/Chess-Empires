@@ -14,24 +14,25 @@ DEBUG_START = True
 DISPLAY_STATE_IN_HUD = True
 BOARD_STARTS_WITH_RESOURCES = False
 DEBUG_RITUALS = True
-POP_UPS_ON = True
+POP_UPS_ON = False
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
                                         DEBUG
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-DEBUG_STARTING_PRAYER = 30
-DEBUG_STARTING_WOOD = 999
-DEBUG_STARTING_GOLD = 999
-DEBUG_STARTING_STONE = 99
-DEBUG_STARTING_PIECES = ['castle', 'king', 'gold_general']
+POP_UPS_ON = False
+DEBUG_STARTING_PRAYER = 0
+DEBUG_STARTING_WOOD = 100
+DEBUG_STARTING_GOLD = 100
+DEBUG_STARTING_STONE = 100
+DEBUG_STARTING_PIECES = ['castle', 'king', 'trapper', 'queen']
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
                                         WINDOW / BOARD / SIDE MENU / FPS
         
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 MAX_FPS = 120
-VERSION = "v24"
+VERSION = "v24.1"
 NUMBER = ""
 BOARD_HEIGHT_PX = pygame.display.Info().current_h
 SQ_SIZE = BOARD_HEIGHT_PX // 10
@@ -47,11 +48,12 @@ BOARD_HEIGHT_PX = pygame.display.Info().current_h
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 MENU_COLOR = pygame.Color((72, 61, 139))
-LIGHT_SQUARE_COLOR = pygame.Color((238, 232, 170))
-DARK_SQUARE_COLOR = pygame.Color((222, 184, 135))
-UNUSED_PIECE_HIGHLIGHT_COLOR = pygame.Color((248, 127, 0))
+LIGHT_SQUARE_COLOR = pygame.Color((255, 255, 255, 255))
+DARK_SQUARE_COLOR = (pygame.Color((66.3, 33.6, 21.4, 255)))
+TINT_COLORS = pygame.Color((225.2, 212.4, 172.6))
+UNUSED_PIECE_HIGHLIGHT_COLOR = pygame.Color((237, 225, 199))
 SELF_SQUARE_HIGHLIGHT_COLOR = pygame.Color('blue')
-MOVE_SQUARE_HIGHLIGHT_COLOR = pygame.Color((72, 61, 139))
+MOVE_SQUARE_HIGHLIGHT_COLOR = pygame.Color((199, 202, 237))
 CHECK_SQUARE_HIGHLIGHT_COLOR = pygame.Color('red')
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -75,10 +77,11 @@ TURN_CHANGE_AFTER_START_SPAWN = True
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 SELECTABLE_STARTING_PIECES = ['pawn', 'builder', 'trader', 'trapper', 'rogue_pawn', 'monk', 'pikeman']
+
 MASTER_COST_LIST = ['builder', 'monk', 'stable', 'castle', 'barracks', 'fortress', 'circus']
 STABLE_SPAWN_LIST = ['doe', 'oxen', 'unicorn', 'ram', 'elephant', 'knight']
-FORTRESS_SPAWN_LIST = ['rogue_rook', 'rogue_bishop', 'rogue_knight', 'rogue_pawn']
-CASTLE_SPAWN_LIST = ['pawn', 'builder', 'pikeman', 'monk', 'trader', 'trapper']
+FORTRESS_SPAWN_LIST = ['rogue_rook', 'rogue_bishop', 'rogue_knight', 'rogue_pawn', 'trapper']
+CASTLE_SPAWN_LIST = ['pawn', 'builder', 'pikeman', 'monk', 'trader']
 BUILDER_SPAWN_LIST = ['wall', 'stable', 'castle', 'barracks', 'fortress', 'circus']
 BARRACKS_SPAWN_LIST = ['duke', 'queen', 'champion', 'rook', 'bishop']
 CIRCUS_SPAWN_LIST = ['jester', 'persuader', 'lion', 'fire_spinner', 'acrobat', 'magician']
@@ -106,7 +109,7 @@ MAGICIAN_RITUALS = ['portal', 'swap', 'teleport']
                                         VALUES
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-DECREE_COST = 25
+DECREE_COST = {'gold': 35}
 DECREE_INCREMENT = 5
 DEFAULT_PIECE_LIMIT = 3
 TRADING_GIVE_BOUNDS = (5 / 8, 1 / 2)
@@ -131,6 +134,67 @@ MAX_MAGICIAN_RITUALS_PER_TURN = 1
                                         DICTIONARIES
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+_piece_costs = {}
+
+
+@property
+def PIECE_COSTS():
+    return _piece_costs
+
+
+# To allow item assignment
+@PIECE_COSTS.setter
+def PIECE_COSTS(new_costs):
+    global _piece_costs
+    _piece_costs = new_costs
+
+
+@PIECE_COSTS.getter
+def PIECE_COSTS():
+    return _piece_costs
+
+
+PIECE_POINT_VALUES = {
+    "king"        : 0,
+    "gold_general": 0,
+    "quarry_1"    : 6,
+    "pawn"        : 12,
+    "builder"     : 12,
+    "monk"        : 15,
+    "pikeman"     : 20,
+    "castle"      : 20,
+    "stable"      : 50,
+    "barracks"    : 78,
+    "fortress"    : 50,
+    "queen"       : 90,
+    "rook"        : 50,
+    "bishop"      : 45,
+    "knight"      : 11,
+    "jester"      : 70,
+    "rogue_rook"  : 100,
+    "rogue_bishop": 63,
+    "rogue_knight": 25,
+    "rogue_pawn"  : 12,
+    "elephant"    : 40,
+    "ram"         : 40,
+    "unicorn"     : 60,
+    "monolith"    : 48,
+    "prayer_stone": 24,
+    "duke"        : 135,
+    "oxen"        : 60,
+    "champion"    : 70,
+    "wall"        : 9,
+    "persuader"   : 98,
+    "doe"         : 70,
+    "trader"      : 12,
+    "circus"      : 70,
+    "trapper"     : 12,
+    "trap"        : 3,
+    "lion"        : 140,
+    "fire_spinner": 126,
+    "acrobat"     : 126,
+    "magician"    : 70,
+}
 PIECE_COSTS = {
     'king'        : {'log': 0, 'gold': 0, 'stone': 0},
     'gold_general': {'log': 0, 'gold': 0, 'stone': 0},
@@ -353,7 +417,7 @@ ADDITIONAL_PIECE_LIMIT = {
 BASE_TOTAL_YIELD = {
     'wood'         : 8,
     'gold'         : 25,
-    'quarry'       : 12,
+    'quarry'       : 10,
     'sunken_quarry': 2
 }
 TOTAL_YIELD_VARIANCE = {
@@ -423,7 +487,7 @@ CENTER_X = BOARD_WIDTH_SQ * SQ_SIZE // 2 + SQ_SIZE // 2
 CENTER_Y = BOARD_HEIGHT_SQ * SQ_SIZE // 2
 KING_MENU_HEIGHT = (SQ_SIZE // 6) * 2 + SQ_SIZE
 KING_MENU_WIDTH = KING_MENU_HEIGHT
-DECREE_SCALE = (KING_MENU_WIDTH, KING_MENU_HEIGHT)
+DECREE_SCALE = round(SQ_SIZE * 9/10), round(SQ_SIZE * 9/10)
 START_MENU_WIDTH = round(SQ_SIZE * 6.5)
 START_MENU_HEIGHT = round(SQ_SIZE * 3.5)
 PRAYER_BAR_WIDTH = round(SQ_SIZE // 64)
@@ -431,14 +495,11 @@ PRAYER_BAR_END_WIDTH = round(SQ_SIZE // 6)
 PRAYER_BAR_HEIGHT = round(SQ_SIZE // 2.8)
 PRAYER_BAR_SCALE = (PRAYER_BAR_WIDTH, PRAYER_BAR_HEIGHT)
 PRAYER_BAR_END_SCALE = (PRAYER_BAR_END_WIDTH, PRAYER_BAR_HEIGHT)
-TREE_SCALE_1 = (round(SQ_SIZE * 1.3), round(SQ_SIZE * 1.3))
-TREE_SCALE_2 = (round(SQ_SIZE * 1.38), round(SQ_SIZE * 1.38))
-TREE_SCALE_3 = (round(SQ_SIZE * 1.35), round(SQ_SIZE * 1.35))
-TREE_SCALE_4 = (round(SQ_SIZE * 1.38), round(SQ_SIZE * 1.38))
-GOLD_SCALE = (round(SQ_SIZE * 1.1), round(SQ_SIZE * 1.1))
+TREE_SCALE = (round(SQ_SIZE * 1.4), round(SQ_SIZE * 1.4))
+GOLD_SCALE = (round(SQ_SIZE * 1.3), round(SQ_SIZE * 1.3))
 QUARRY_SCALE = (round(SQ_SIZE * 1.1), round(SQ_SIZE * 1.1))
-TREE_OFFSET = (round(SQ_SIZE // -5.5), round(SQ_SIZE // -3.5))
-GOLD_OFFSET = (round(SQ_SIZE // -10), round(SQ_SIZE // -10))
+TREE_OFFSET = 0, 0
+GOLD_OFFSET = 0, 0
 CASTLE_SCALE = round(SQ_SIZE * 1.1), round(SQ_SIZE * 1.1)
 CASTLE_OFFSET = (0, -10)
 MENU_ICON_DEFAULT_SCALE = (SQ_SIZE // 2, SQ_SIZE // 2)
@@ -451,6 +512,7 @@ WALL_OFFSET = (-10, -10)
 PRAYER_RITUAL_SCALE = (round(SQ_SIZE * 1.5), round(SQ_SIZE * 1.5))
 RESOURCES_BUTTON_SCALE = (SIDE_MENU_WIDTH, 2 * SQ_SIZE)
 YES_NO_BUTTON_SCALE = (SQ_SIZE // 3, SQ_SIZE // 3)
+CONTEXTUAL_MENU_ICON_DEFAULT_SCALE = (SQ_SIZE // 2, SQ_SIZE // 2)
 PROTECT_SQUARE_SCALE = (SQ_SIZE, SQ_SIZE)
 PROTECT_SQUARE_OFFSET = (SQ_SIZE // 2 - PROTECT_SQUARE_SCALE[0] // 2, SQ_SIZE // 2 - PROTECT_SQUARE_SCALE[1] // 2)
 RITUAL_IMAGE_MODIFY = {
@@ -545,14 +607,20 @@ IMAGES_IMAGE_MODIFY = {
     'b_block'         : {'SCALE': PROTECT_SQUARE_SCALE, 'OFFSET': PROTECT_SQUARE_OFFSET},
     'w_portal'        : {'SCALE': PROTECT_SQUARE_SCALE, 'OFFSET': PROTECT_SQUARE_OFFSET},
     'b_portal'        : {'SCALE': PROTECT_SQUARE_SCALE, 'OFFSET': PROTECT_SQUARE_OFFSET},
-    'steal'           : {'SCALE': PICKAXE_SCALE, 'OFFSET': (0, 0)}
+    'steal'           : {'SCALE': PICKAXE_SCALE, 'OFFSET': (0, 0)},
+    'sparkle'         : {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET:': (0, 0)}
 }
 RESOURCES_IMAGE_MODIFY = {
     'gold_tile_1'      : {'SCALE': GOLD_SCALE, 'OFFSET': GOLD_OFFSET},
-    'tree_tile_1'      : {'SCALE': TREE_SCALE_1, 'OFFSET': TREE_OFFSET},
-    'tree_tile_2'      : {'SCALE': TREE_SCALE_2, 'OFFSET': TREE_OFFSET},
-    'tree_tile_3'      : {'SCALE': TREE_SCALE_3, 'OFFSET': TREE_OFFSET},
-    'tree_tile_4'      : {'SCALE': TREE_SCALE_4, 'OFFSET': TREE_OFFSET},
+    'tree_tile_1'      : {'SCALE': TREE_SCALE, 'OFFSET': TREE_OFFSET},
+    'tree_tile_2'      : {'SCALE': TREE_SCALE, 'OFFSET': TREE_OFFSET},
+    'tree_tile_3'      : {'SCALE': TREE_SCALE, 'OFFSET': TREE_OFFSET},
+    'tree_tile_4'      : {'SCALE': TREE_SCALE, 'OFFSET': TREE_OFFSET},
+    'tree_tile_5'      : {'SCALE': TREE_SCALE, 'OFFSET': TREE_OFFSET},
+    'tree_tile_6'      : {'SCALE': TREE_SCALE, 'OFFSET': TREE_OFFSET},
+    'tree_tile_7'      : {'SCALE': TREE_SCALE, 'OFFSET': TREE_OFFSET},
+    'tree_tile_8'      : {'SCALE': TREE_SCALE, 'OFFSET': TREE_OFFSET},
+
     'quarry_1'         : {'SCALE': QUARRY_SCALE, 'OFFSET': (0, 0)},
     'sunken_quarry_1'  : {'SCALE': QUARRY_SCALE, 'OFFSET': (0, 0)},
     'depleted_quarry_1': {'SCALE': QUARRY_SCALE, 'OFFSET': (0, 0)}
@@ -562,6 +630,23 @@ MENU_ICONS_IMAGE_MODIFY = {
     'log'      : {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFSET': (0, 0)},
     'stone'    : {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFSET': (0, 0)},
     'prayer'   : {'SCALE': MENU_ICON_DEFAULT_SCALE, 'OFFSET': (0, 0)}
+}
+CONTEXTUAL_MENU_ICONS_IMAGE_MODIFY = {
+    'steal'     : {'SCALE': DECREE_SCALE, 'OFFSET': (0, 0)},
+    'trade'     : {'SCALE': DECREE_SCALE, 'OFFSET': (0, 0)},
+    'persuade'  : {'SCALE': DECREE_SCALE, 'OFFSET': (0, 0)},
+    'build'     : {'SCALE': DECREE_SCALE, 'OFFSET': (0, 0)},
+    'mine'      : {'SCALE': DECREE_SCALE, 'OFFSET': (0, 0)},
+    'pray'      : {'SCALE': DECREE_SCALE, 'OFFSET': (0, 0)},
+    'w_flag'    : {'SCALE': DECREE_SCALE, 'OFFSET': (0, 0)},
+    'b_flag'    : {'SCALE': DECREE_SCALE, 'OFFSET': (0, 0)},
+    'w_decree_u': {'SCALE': DECREE_SCALE, 'OFFSET': (0, 0)},
+    'w_decree'  : {'SCALE': DECREE_SCALE, 'OFFSET': (0, 0)},
+    'b_decree_u': {'SCALE': DECREE_SCALE, 'OFFSET': (0, 0)},
+    'b_decree'  : {'SCALE': DECREE_SCALE, 'OFFSET': (0, 0)},
+    'w_ritual': {'SCALE': DECREE_SCALE, 'OFFSET': (0,0)},
+    'b_ritual': {'SCALE': DECREE_SCALE, 'OFFSET': (0, 0)}
+
 }
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""

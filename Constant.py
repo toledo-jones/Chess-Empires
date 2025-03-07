@@ -96,6 +96,7 @@ w_buildings = ['w_castle',
 b_buildings = ['b_castle', 'b_fortress', 'b_barracks',
                'b_wall', 'b_monolith', 'b_prayer_stone',
                'b_flag', 'b_barracks', 'b_war_tower', 'b_stable', 'b_circus', 'b_trap']
+board_tiles = ['light', 'dark']
 w_prayer_rituals = ['w_gold_general', 'w_smite', 'w_destroy_resource', 'w_create_resource', 'w_teleport',
                     'w_swap', 'w_line_destroy', 'w_protect', 'w_portal']
 b_prayer_rituals = ['b_gold_general', 'b_smite', 'b_destroy_resource', 'b_create_resource', 'b_teleport', 'b_swap',
@@ -104,13 +105,17 @@ images = ['icon', 'pickaxe', 'w_game_name', 'b_game_name', 'prayer', 'gold_coin'
           'units', 'prayer', 'prayer_bar', 'stone', 'w_boat', 'b_boat', 'hour_glass', 'hammer', 'axe',
           'resources_button',
           'b_no', 'b_yes', 'w_no', 'w_yes', 'b_protect', 'w_protect', 'steal', 'persuade', 'w_block', 'b_block',
-          'w_portal', 'b_portal', 'w_decree', 'b_decree', 'w_decree_u', 'b_decree_u', 'give', 'receive']
+          'w_portal', 'b_portal', 'w_decree', 'b_decree', 'w_decree_u', 'b_decree_u', 'give', 'receive', 'sparkle']
 music = ['music']
 resources = ['gold_tile_1',
              'tree_tile_1',
              'tree_tile_2',
              'tree_tile_3',
              'tree_tile_4',
+             'tree_tile_5',
+             'tree_tile_6',
+             'tree_tile_7',
+             'tree_tile_8',
              'quarry_1',
              'sunken_quarry_1',
              'depleted_quarry_1']
@@ -118,6 +123,11 @@ menu_icons = ['gold_coin',
               'log',
               'stone',
               'prayer']
+contextual_menu_icons = [
+    'build', 'pray', 'mine', 'steal', 'persuade',
+    'trade', 'w_flag', 'b_flag', 'w_decree_u', 'w_decree',
+    'b_decree_u', 'b_decree', 'w_ritual', 'b_ritual'
+]
 sounds = []
 RESOURCE_YIELD_KEY = {
     'gold_tile_1'      : 'gold',
@@ -127,14 +137,28 @@ RESOURCE_YIELD_KEY = {
     'tree_tile_4'      : 'wood',
     'tree_tile_2'      : 'wood',
     'tree_tile_3'      : 'wood',
+    'tree_tile_5':'wood',
+     'tree_tile_6':'wood',
+     'tree_tile_7':'wood',
+     'tree_tile_8':'wood',
     'depleted_quarry_1': None
 }
 RESOURCE_KEY = {
-    'gold_tile_1'    : 'gold', 'quarry_1': 'stone',
-    'sunken_quarry_1': 'stone', 'tree_tile_1': 'wood',
-    'tree_tile_2'    : 'wood', 'tree_tile_3': 'wood',
+    'gold_tile_1'    : 'gold',
+    'quarry_1': 'stone',
+    'sunken_quarry_1': 'stone',
+    'tree_tile_1': 'wood',
+    'tree_tile_2'    : 'wood',
+    'tree_tile_3': 'wood',
+    'tree_tile_4': 'wood',
+    'tree_tile_5': 'wood',
+    'tree_tile_6':'wood',
+    'tree_tile_7':'wood',
+    'tree_tile_8':'wood',
     'gold'           : 'gold',
-    'tree_tile_4'    : 'wood', 'log': 'wood', 'gold_coin': 'gold', 'stone': 'stone'
+    'log': 'wood',
+    'gold_coin': 'gold',
+    'stone': 'stone'
 }
 rand = random.randint(0, len(FACTION_NAMES) - 1)
 FACTION = FACTION_NAMES[rand]
@@ -185,9 +209,10 @@ W_PIECES = {}
 W_BUILDINGS = {}
 B_PIECES = {}
 B_BUILDINGS = {}
+CONTEXTUAL_MENU_ICONS = {}
 MUSIC = {}
 ambience = []
-for i in range(6):
+for i in range(7):
     ambience.append(i)
 building_spawning = []
 for i in range(6):
@@ -237,6 +262,7 @@ GENERATE_RESOURCES_SOUNDS = {}
 PRAY_SOUNDS = {}
 CHANGE_TURN_SOUNDS = {}
 START_GAME_SOUNDS = {}
+BOARD_TILES = {'dark': {}, 'light': {}}
 
 
 def load_sounds():
@@ -322,6 +348,11 @@ def load_images():
         MENU_ICONS[menu_icon] = pygame.transform.scale(
                 pygame.image.load(os.path.join("files/menu_icons", menu_icon + ".png")),
                 (scale[0], scale[1])).convert_alpha()
+    for menu_icon in contextual_menu_icons:
+        scale = CONTEXTUAL_MENU_ICONS_IMAGE_MODIFY[menu_icon]['SCALE']
+        CONTEXTUAL_MENU_ICONS[menu_icon] = pygame.transform.scale(
+                pygame.image.load(os.path.join("files/contextual_menu_icons", menu_icon + ".png")),
+                (scale[0], scale[1])).convert_alpha()
 
     for piece in w_pieces:
         scale = PIECE_IMAGE_MODIFY[piece_color_to_type(piece)]['SCALE']
@@ -351,6 +382,14 @@ def load_images():
         PRAYER_RITUALS[ritual] = pygame.transform.scale(
                 pygame.image.load(os.path.join("files/prayer_rituals", ritual + ".png")),
                 (scale[0], scale[1])).convert_alpha()
+
+    for board_tile in board_tiles:
+        for index in range(47):
+            BOARD_TILES[board_tile][index] = pygame.transform.scale(
+                    pygame.image.load(
+                            os.path.join(
+                                    f"files/board/{board_tile}/{index}.png")),
+                    (SQ_SIZE, SQ_SIZE)).convert_alpha()
 
 
 def piece_color_to_type(color_piece):

@@ -1,10 +1,12 @@
 import Constant
+import random
 
 
 class Tile:
     def __init__(self, row, col):
         self.row = row
         self.col = col
+        self.index = random.randint(0, 46)
         self.can_contain_quarry = False
         self.occupying = None
         self.resource = None

@@ -9,6 +9,7 @@ class Unit:
         self.color = color
         self.check = None
         self.offset = self.get_sprite_offset()
+        self.dragging = False
 
         self.sprites = Constant.W_PIECES | Constant.W_BUILDINGS | Constant.B_PIECES | Constant.B_BUILDINGS
 
@@ -81,11 +82,16 @@ class Unit:
     def update_ritual_squares(self, engine):
         self.ritual_squares_list = self.ritual_squares(engine)
 
+    def can_act(self):
+        return self.actions_remaining > 0
+
     def possible_moves(self):
-        return {'spawn': self.spawn_squares_list, 'move': self.move_squares_list, 'mine': self.mining_squares_list,
-                'steal': self.stealing_squares_list, 'pray': self.praying_squares_list,
-                'capture': self.capture_squares_list, 'ritual': self.ritual_squares_list,
-                'persuade': self.persuader_squares_list}
+        return {
+            'spawn'   : self.spawn_squares_list, 'move': self.move_squares_list, 'mine': self.mining_squares_list,
+            'steal'   : self.stealing_squares_list, 'pray': self.praying_squares_list,
+            'capture' : self.capture_squares_list, 'ritual': self.ritual_squares_list,
+            'persuade': self.persuader_squares_list
+        }
 
     def can_capture(self, r, c, engine):
         capture_tile = None
@@ -184,7 +190,7 @@ class Unit:
             self.highlight_capture_squares(win)
         if self.pre_selected:
             self.highlight_self_square(win)
-            self.highlight_spawn_squares(win)
+            # self.highlight_spawn_squares(win)
         if self.unused_piece_highlight:
             self.highlight_self_square_unused(win)
         if self.mining:
@@ -218,12 +224,20 @@ class Unit:
         if self.check:
             self.highlight_self_square_check(win)
 
-
     def draw(self, win):
-        sprite = self.sprites[self.color + "_" + str(self)]
-        x = (self.col * Constant.SQ_SIZE) + self.offset[0]
-        y = (self.row * Constant.SQ_SIZE) + self.offset[1]
-        win.blit(sprite, (x, y))
+        # Check if the piece is not currently being dragged
+        if not self.dragging:
+            # Get the appropriate sprite based on the piece's color and type
+            sprite = self.sprites[self.color + "_" + str(self)]
+
+            # Calculate the x position based on the column and offset
+            x = (self.col * Constant.SQ_SIZE) + self.offset[0]
+
+            # Calculate the y position based on the row and offset
+            y = (self.row * Constant.SQ_SIZE) + self.offset[1]
+
+            # Draw the piece sprite at the calculated position on the window
+            win.blit(sprite, (x, y))
 
     def highlight_self_square_check(self, win):
         self.draw_self_highlight(win, self.check_color)
@@ -242,7 +256,8 @@ class Unit:
         win.blit(self.square, (self.col * Constant.SQ_SIZE, self.row * Constant.SQ_SIZE))
 
     def highlight_self_square_unused(self, win):
-        self.draw_self_highlight(win, self.unused_square_color)
+        win.blit(Constant.IMAGES['sparkle'], (self.col * Constant.SQ_SIZE, self.row * Constant.SQ_SIZE))
+        # self.draw_self_highlight(win, self.unused_square_color)
 
     def highlight_self_square(self, win):
         self.draw_self_highlight(win, self.self_selected_square_color)
@@ -295,7 +310,7 @@ class Unit:
         spawn_list = Constant.SPAWN_LISTS[str(self)]
         legal_spawns = []
         for spawn in spawn_list:
-            if engine.is_legal_spawn(spawn):
+            if engine.is_legal_spawn(spawn, spawner=self):
                 legal_spawns.append(spawn)
         if legal_spawns:
             return True
@@ -306,6 +321,7 @@ class Building(Unit):
         super().__init__(row, col, color)
         self.can_be_persuaded = False
         self.is_effected_by_jester = False
+        self.contextual_options = ['build']
 
     def base_spawn_criteria(self, engine, row, col):
         if Constant.tile_in_bounds(row, col):
@@ -315,13 +331,7 @@ class Building(Unit):
         return 'building'
 
     def right_click(self, engine):
-        if self.actions_remaining > 0:
-            if engine.players[engine.turn].actions_remaining > 0:
-                return True
-            else:
-                engine.set_popup_reason('player_action')
-        else:
-            engine.set_popup_reason('piece_action')
+        return True
 
 
 class Piece(Unit):
@@ -366,6 +376,7 @@ class King(Piece):
         self.move_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
                                 Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
                                 Constant.DOWN_LEFT)
+        self.contextual_options = ['king']
 
     def capture_squares(self, engine):
         squares = []
@@ -386,7 +397,7 @@ class King(Piece):
         return squares
 
     def right_click(self, engine):
-        return engine.create_king_menu(self.row, self.col)
+        return True
 
 
 class Queen(Piece):
@@ -399,6 +410,7 @@ class Queen(Piece):
                            Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
                            Constant.DOWN_LEFT)
         self.distance = Constant.BOARD_WIDTH_SQ
+        self.contextual_options = ['queen']
 
     def capture_squares(self, engine):
         squares = []
@@ -433,8 +445,7 @@ class Queen(Piece):
         return squares
 
     def right_click(self, engine):
-        if super().right_click(engine) and engine.players[self.color].actions_remaining > 0:
-            return engine.create_queen_menu(self.row, self.col)
+        return True
 
 
 class Duke(Piece):
@@ -447,6 +458,7 @@ class Duke(Piece):
                            Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
                            Constant.DOWN_LEFT)
         self.distance = Constant.BOARD_WIDTH_SQ
+        self.contextual_options = ['pray']
 
     def praying_squares(self, engine):
         moves = []
@@ -493,9 +505,7 @@ class Duke(Piece):
         return squares
 
     def right_click(self, engine):
-        if super().right_click(engine):
-            if not engine.rituals_banned:
-                return engine.transfer_to_praying_state(self.row, self.col)
+        return True
 
 
 class FireSpinner(Piece):
@@ -616,6 +626,7 @@ class Rook(Piece):
                                    Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
                                    Constant.DOWN_LEFT)
         self.distance = Constant.BOARD_WIDTH_SQ
+        self.contextual_options = ['pray']
 
     def praying_squares(self, engine):
         moves = []
@@ -663,9 +674,7 @@ class Rook(Piece):
         return squares
 
     def right_click(self, engine):
-        if super().right_click(engine):
-            if not engine.rituals_banned:
-                return engine.transfer_to_praying_state(self.row, self.col)
+        return True
 
 
 class Acrobat(Piece):
@@ -741,6 +750,7 @@ class Bishop(Piece):
                                    Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
                                    Constant.DOWN_LEFT)
         self.distance = Constant.BOARD_WIDTH_SQ
+        self.contextual_options = ['pray']
 
     def praying_squares(self, engine):
         moves = []
@@ -788,9 +798,7 @@ class Bishop(Piece):
         return squares
 
     def right_click(self, engine):
-        if super().right_click(engine):
-            if not engine.rituals_banned:
-                return engine.transfer_to_praying_state(self.row, self.col)
+        return True
 
 
 class Knight(Piece):
@@ -842,6 +850,7 @@ class Pawn(Piece):
                                    Constant.DOWN_LEFT)
         self.move_distance = 3
         self.capture_distance = 1
+        self.contextual_options = ['mine']
 
     def mining_squares(self, engine):
         mining_squares = []
@@ -888,7 +897,7 @@ class Pawn(Piece):
 
     def right_click(self, engine):
         if super().right_click(engine):
-            return engine.transfer_to_mining_state(self.row, self.col)
+            return True
 
 
 class RogueRook(Piece):
@@ -903,6 +912,7 @@ class RogueRook(Piece):
                                     Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
                                     Constant.DOWN_LEFT)
         self.is_rogue = True
+        self.contextual_options = ['steal']
 
     def capture_squares(self, engine):
         squares = []
@@ -948,8 +958,7 @@ class RogueRook(Piece):
         return squares
 
     def right_click(self, engine):
-        if super().right_click(engine):
-            return engine.transfer_to_stealing_state(self.row, self.col)
+        return True
 
 
 class RogueBishop(Piece):
@@ -965,6 +974,7 @@ class RogueBishop(Piece):
 
         self.distance = Constant.BOARD_WIDTH_SQ
         self.is_rogue = True
+        self.contextual_options = ['steal']
 
     def capture_squares(self, engine):
         squares = []
@@ -1011,8 +1021,7 @@ class RogueBishop(Piece):
         return squares
 
     def right_click(self, engine):
-        if super().right_click(engine):
-            return engine.transfer_to_stealing_state(self.row, self.col)
+        return True
 
 
 class RogueKnight(Piece):
@@ -1030,6 +1039,7 @@ class RogueKnight(Piece):
         self.distance = 1
         self.is_rogue = True
         self.is_cavalry = True
+        self.contextual_options = ['steal']
 
     def stealing_squares(self, engine):
         squares = []
@@ -1065,8 +1075,7 @@ class RogueKnight(Piece):
         return squares
 
     def right_click(self, engine):
-        if super().right_click(engine):
-            return engine.transfer_to_stealing_state(self.row, self.col)
+        return True
 
 
 class RoguePawn(Piece):
@@ -1086,7 +1095,7 @@ class RoguePawn(Piece):
                                     Constant.DOWN_LEFT)
         self.move_distance = 3
         self.capture_distance = 1
-
+        self.contextual_options = ['mine', 'steal']
         self.is_rogue = True
 
     def mining_squares(self, engine):
@@ -1146,8 +1155,7 @@ class RoguePawn(Piece):
         return squares
 
     def right_click(self, engine):
-        if super().right_click(engine):
-            return engine.transfer_to_stealing_mining_state(self.row, self.col)
+        return True
 
 
 class Magician(Piece):
@@ -1162,10 +1170,7 @@ class Magician(Piece):
         self.distance = 1
 
     def right_click(self, engine):
-        if self.actions_remaining > 0 and engine.players[engine.turn].actions_remaining > 0:
-            if not engine.rituals_banned:
-                self.casting = True
-                return engine.create_ritual_menu(self.row, self.col, engine.magician_rituals[engine.turn_count_actual], 'gold')
+        return True
 
     def move_squares(self, engine):
         squares = []
@@ -1189,13 +1194,10 @@ class Monk(Piece):
                            Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
                            Constant.DOWN_LEFT)
         self.distance = 1
+        self.contextual_options = ['build', 'pray']
 
     def right_click(self, engine):
-        if self.actions_remaining > 0:
-            if not engine.rituals_banned:
-                if not engine.players[engine.turn].actions_remaining > 0:
-                    return engine.transfer_to_praying_state(self.row, self.col)
-                return engine.transfer_to_praying_building_state(self.row, self.col)
+        return True
 
     def move_squares(self, engine):
         squares = []
@@ -1249,14 +1251,16 @@ class Ram(Piece):
                            Constant.TWO_RIGHT_DOWN, Constant.TWO_LEFT_UP, Constant.TWO_LEFT_DOWN,
                            Constant.TWO_DOWN_LEFT, Constant.TWO_DOWN_RIGHT)
         self.is_cavalry = True
-        self.extra_move_directions = {Constant.TWO_UP_RIGHT: Constant.UP_RIGHT,
-                                      Constant.TWO_UP_LEFT: Constant.UP_LEFT,
-                                      Constant.TWO_RIGHT_UP: Constant.UP_RIGHT,
-                                      Constant.TWO_RIGHT_DOWN: Constant.DOWN_RIGHT,
-                                      Constant.TWO_LEFT_UP: Constant.UP_LEFT,
-                                      Constant.TWO_LEFT_DOWN: Constant.DOWN_LEFT,
-                                      Constant.TWO_DOWN_LEFT: Constant.DOWN_LEFT,
-                                      Constant.TWO_DOWN_RIGHT: Constant.DOWN_RIGHT, }
+        self.extra_move_directions = {
+            Constant.TWO_UP_RIGHT  : Constant.UP_RIGHT,
+            Constant.TWO_UP_LEFT   : Constant.UP_LEFT,
+            Constant.TWO_RIGHT_UP  : Constant.UP_RIGHT,
+            Constant.TWO_RIGHT_DOWN: Constant.DOWN_RIGHT,
+            Constant.TWO_LEFT_UP   : Constant.UP_LEFT,
+            Constant.TWO_LEFT_DOWN : Constant.DOWN_LEFT,
+            Constant.TWO_DOWN_LEFT : Constant.DOWN_LEFT,
+            Constant.TWO_DOWN_RIGHT: Constant.DOWN_RIGHT,
+        }
 
         self.distance = Constant.BOARD_WIDTH_SQ
 
@@ -1304,14 +1308,16 @@ class Elephant(Piece):
             Constant.TWO_UP_RIGHT, Constant.TWO_RIGHT_UP, Constant.TWO_DOWN_RIGHT, Constant.TWO_RIGHT_DOWN,
             Constant.TWO_UP_LEFT, Constant.TWO_LEFT_UP, Constant.TWO_DOWN_LEFT, Constant.TWO_LEFT_DOWN)
 
-        self.directions_to_extra_moves = {Constant.TWO_UP_RIGHT: Constant.UP,
-                                          Constant.TWO_RIGHT_UP: Constant.RIGHT,
-                                          Constant.TWO_DOWN_RIGHT: Constant.DOWN,
-                                          Constant.TWO_RIGHT_DOWN: Constant.RIGHT,
-                                          Constant.TWO_UP_LEFT: Constant.UP,
-                                          Constant.TWO_LEFT_UP: Constant.LEFT,
-                                          Constant.TWO_DOWN_LEFT: Constant.DOWN,
-                                          Constant.TWO_LEFT_DOWN: Constant.LEFT}
+        self.directions_to_extra_moves = {
+            Constant.TWO_UP_RIGHT  : Constant.UP,
+            Constant.TWO_RIGHT_UP  : Constant.RIGHT,
+            Constant.TWO_DOWN_RIGHT: Constant.DOWN,
+            Constant.TWO_RIGHT_DOWN: Constant.RIGHT,
+            Constant.TWO_UP_LEFT   : Constant.UP,
+            Constant.TWO_LEFT_UP   : Constant.LEFT,
+            Constant.TWO_DOWN_LEFT : Constant.DOWN,
+            Constant.TWO_LEFT_DOWN : Constant.LEFT
+        }
         self.distance = 1
         self.is_cavalry = True
 
@@ -1492,6 +1498,7 @@ class Builder(Piece):
                            Constant.DOWN_LEFT)
 
         self.distance = 1
+        self.contextual_options = ['build']
 
     def move_squares(self, engine):
         moves = []
@@ -1522,9 +1529,7 @@ class Builder(Piece):
         return spawn_squares
 
     def right_click(self, engine):
-        if super().right_click(engine):
-            if engine.players[engine.turn].actions_remaining > 0:
-                return engine.transfer_to_building_state(self.row, self.col)
+        return True
 
 
 class Unicorn(Piece):
@@ -1539,14 +1544,16 @@ class Unicorn(Piece):
             Constant.TWO_UP_LEFT, Constant.TWO_LEFT_UP, Constant.TWO_DOWN_LEFT, Constant.TWO_LEFT_DOWN)
 
         self.cardinal_directions = (Constant.THREE_RIGHT, Constant.THREE_DOWN, Constant.THREE_UP, Constant.THREE_LEFT)
-        self.knight_directions_to_extra_moves = {Constant.TWO_UP_RIGHT: Constant.TWO_RIGHT_UP,
-                                                 Constant.TWO_RIGHT_UP: Constant.TWO_UP_RIGHT,
-                                                 Constant.TWO_DOWN_RIGHT: Constant.TWO_RIGHT_DOWN,
-                                                 Constant.TWO_RIGHT_DOWN: Constant.TWO_DOWN_RIGHT,
-                                                 Constant.TWO_UP_LEFT: Constant.TWO_LEFT_UP,
-                                                 Constant.TWO_LEFT_UP: Constant.TWO_UP_LEFT,
-                                                 Constant.TWO_DOWN_LEFT: Constant.TWO_LEFT_DOWN,
-                                                 Constant.TWO_LEFT_DOWN: Constant.TWO_DOWN_LEFT}
+        self.knight_directions_to_extra_moves = {
+            Constant.TWO_UP_RIGHT  : Constant.TWO_RIGHT_UP,
+            Constant.TWO_RIGHT_UP  : Constant.TWO_UP_RIGHT,
+            Constant.TWO_DOWN_RIGHT: Constant.TWO_RIGHT_DOWN,
+            Constant.TWO_RIGHT_DOWN: Constant.TWO_DOWN_RIGHT,
+            Constant.TWO_UP_LEFT   : Constant.TWO_LEFT_UP,
+            Constant.TWO_LEFT_UP   : Constant.TWO_UP_LEFT,
+            Constant.TWO_DOWN_LEFT : Constant.TWO_LEFT_DOWN,
+            Constant.TWO_LEFT_DOWN : Constant.TWO_DOWN_LEFT
+        }
         self.distance = 1
 
     def capture_squares(self, engine):
@@ -1608,10 +1615,13 @@ class Champion(Piece):
         self.praying_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
                                    Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
                                    Constant.DOWN_LEFT)
-        self.extra_move_directions = {Constant.UP_RIGHT: (Constant.UP, Constant.RIGHT),
-                                      Constant.UP_LEFT: (Constant.UP, Constant.LEFT),
-                                      Constant.DOWN_RIGHT: (Constant.DOWN, Constant.RIGHT),
-                                      Constant.DOWN_LEFT: (Constant.DOWN, Constant.LEFT), }
+        self.extra_move_directions = {
+            Constant.UP_RIGHT  : (Constant.UP, Constant.RIGHT),
+            Constant.UP_LEFT   : (Constant.UP, Constant.LEFT),
+            Constant.DOWN_RIGHT: (Constant.DOWN, Constant.RIGHT),
+            Constant.DOWN_LEFT : (Constant.DOWN, Constant.LEFT),
+        }
+        self.contextual_options = ['pray']
 
         self.distance = Constant.BOARD_WIDTH_SQ
 
@@ -1666,9 +1676,7 @@ class Champion(Piece):
         return squares
 
     def right_click(self, engine):
-        if super().right_click(engine):
-            if not engine.rituals_banned:
-                return engine.transfer_to_praying_state(self.row, self.col)
+        return True
 
 
 class Oxen(Piece):
@@ -1682,14 +1690,16 @@ class Oxen(Piece):
             Constant.TWO_UP_LEFT, Constant.TWO_LEFT_UP, Constant.TWO_DOWN_LEFT, Constant.TWO_LEFT_DOWN)
         self.is_cavalry = True
 
-        self.extra_move_directions = {Constant.TWO_UP_RIGHT: Constant.UP,
-                                      Constant.TWO_RIGHT_UP: Constant.RIGHT,
-                                      Constant.TWO_DOWN_RIGHT: Constant.DOWN,
-                                      Constant.TWO_RIGHT_DOWN: Constant.RIGHT,
-                                      Constant.TWO_UP_LEFT: Constant.UP,
-                                      Constant.TWO_LEFT_UP: Constant.LEFT,
-                                      Constant.TWO_DOWN_LEFT: Constant.DOWN,
-                                      Constant.TWO_LEFT_DOWN: Constant.LEFT}
+        self.extra_move_directions = {
+            Constant.TWO_UP_RIGHT  : Constant.UP,
+            Constant.TWO_RIGHT_UP  : Constant.RIGHT,
+            Constant.TWO_DOWN_RIGHT: Constant.DOWN,
+            Constant.TWO_RIGHT_DOWN: Constant.RIGHT,
+            Constant.TWO_UP_LEFT   : Constant.UP,
+            Constant.TWO_LEFT_UP   : Constant.LEFT,
+            Constant.TWO_DOWN_LEFT : Constant.DOWN,
+            Constant.TWO_LEFT_DOWN : Constant.LEFT
+        }
 
         self.distance = Constant.BOARD_WIDTH_SQ
 
@@ -1741,6 +1751,7 @@ class Persuader(Piece):
                            Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
                            Constant.DOWN_LEFT)
         self.distance = Constant.BOARD_WIDTH_SQ
+        self.contextual_options = ['persuade']
 
     def persuader_squares(self, engine):
         squares = []
@@ -1770,9 +1781,7 @@ class Persuader(Piece):
         return squares
 
     def right_click(self, engine):
-        if super().right_click(engine):
-            if engine.players[engine.turn].actions_remaining > 0:
-                return engine.transfer_to_persuading_state(self.row, self.col)
+        return True
 
 
 class GoldGeneral(Piece):
@@ -1834,9 +1843,7 @@ class GoldGeneral(Piece):
         return squares
 
     def right_click(self, engine):
-        if super().right_click(engine):
-            if not engine.rituals_banned:
-                return engine.transfer_to_building_state(self.row, self.col)
+        return True
 
 
 class Trapper(Piece):
@@ -1853,6 +1860,8 @@ class Trapper(Piece):
                                    Constant.DOWN_LEFT)
         self.move_distance = 3
         self.capture_distance = 1
+        self.is_rogue = True
+        self.contextual_options = ['build', 'steal']
 
     def capture_squares(self, engine):
         squares = []
@@ -1867,7 +1876,7 @@ class Trapper(Piece):
     def base_spawn_criteria(self, engine, row, col):
         if Constant.tile_in_bounds(row, col):
             return not engine.has_trap(row, col) and not engine.board[row][col].is_protected_by_opposite_color(
-                self.color)
+                    self.color)
 
     def spawn_squares(self, engine):
         squares = []
@@ -1878,7 +1887,7 @@ class Trapper(Piece):
             r = self.row - direction[0]
             c = self.col - direction[1]
             if self.base_spawn_criteria(engine, r, c):
-                if engine.can_be_occupied_by_gold_general(r, c):
+                if engine.can_be_occupied_by_rogue(r, c):
                     squares.append((r, c))
 
         return squares
@@ -1892,7 +1901,7 @@ class Trapper(Piece):
                 c = self.col + direction[1] * distance
                 if not Constant.tile_in_bounds(r, c):
                     break
-                if not self.base_move_criteria(engine, r, c):
+                if not self.rogue_move_criteria(engine, r, c):
                     break
                 else:
                     squares.append((r, c))
@@ -1900,7 +1909,7 @@ class Trapper(Piece):
 
     def right_click(self, engine):
         if super().right_click(engine):
-            return engine.transfer_to_building_state(self.row, self.col)
+            return True
 
 
 class Trader(Piece):
@@ -1912,6 +1921,7 @@ class Trader(Piece):
         self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
                            Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
                            Constant.DOWN_LEFT)
+        self.contextual_options = ['trade']
 
     def move_squares(self, engine):
         squares = []
@@ -1925,8 +1935,7 @@ class Trader(Piece):
         return squares
 
     def right_click(self, engine):
-        if super().right_click(engine):
-            return engine.transfer_to_trading_state(self.row, self.col)
+        return True
 
 
 class Stable(Building):
@@ -1955,9 +1964,7 @@ class Stable(Building):
         return spawn_squares
 
     def right_click(self, engine):
-        if super().right_click(engine):
-            if engine.transfer_to_building_state(self.row, self.col):
-                return True
+        return True
 
 
 class Barracks(Building):
@@ -1987,9 +1994,7 @@ class Barracks(Building):
         return spawn_squares
 
     def right_click(self, engine):
-        if super().right_click(engine):
-            if engine.transfer_to_building_state(self.row, self.col):
-                return True
+        return True
 
 
 class Castle(Building):
@@ -2023,9 +2028,7 @@ class Castle(Building):
         return spawn_squares
 
     def right_click(self, engine):
-        if super().right_click(engine):
-            if engine.transfer_to_building_state(self.row, self.col):
-                return True
+        return True
 
 
 class Circus(Building):
@@ -2055,8 +2058,7 @@ class Circus(Building):
         return spawn_squares
 
     def right_click(self, engine):
-        if super().right_click(engine):
-            return engine.transfer_to_building_state(self.row, self.col)
+        return True
 
 
 class Fortress(Building):
@@ -2086,8 +2088,7 @@ class Fortress(Building):
         return spawn_squares
 
     def right_click(self, engine):
-        if super().right_click(engine):
-            return engine.transfer_to_building_state(self.row, self.col)
+        pass
 
 
 class PrayerStone(Building):
@@ -2102,13 +2103,11 @@ class PrayerStone(Building):
         self.yield_when_prayed = Constant.PRAYER_STONE_YIELD
         self.is_effected_by_jester = False
         self.additional_actions = Constant.PRAYER_STONE_ADDITIONAL_ACTIONS
+        self.contextual_options = ['ritual']
 
     def right_click(self, engine):
-        if super().right_click(engine):
-            if not engine.rituals_banned:
-                self.casting = True
-                return engine.create_ritual_menu(self.row, self.col,
-                                                 engine.prayer_stone_rituals[engine.turn_count_actual])
+        return True
+
 
 
 class Monolith(Building):
@@ -2124,6 +2123,7 @@ class Monolith(Building):
         self.yield_when_prayed = Constant.MONOLITH_YIELD
         self.is_effected_by_jester = False
         self.additional_actions = Constant.MONOLITH_ADDITIONAL_ACTIONS
+        self.contextual_options = ['ritual']
 
     def gold_general_ritual_squares(self, engine):
         ritual_squares = []
@@ -2138,10 +2138,7 @@ class Monolith(Building):
         return ritual_squares
 
     def right_click(self, engine):
-        if super().right_click(engine):
-            if not engine.rituals_banned:
-                self.casting = True
-                return engine.create_ritual_menu(self.row, self.col, engine.monolith_rituals[engine.turn_count_actual])
+        return True
 
 
 class Trap(Building):

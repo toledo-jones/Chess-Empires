@@ -138,7 +138,7 @@ class Player:
     def reset_piece_limit(self):
         self.piece_limit = Constant.DEFAULT_PIECE_LIMIT
 
-    def can_do_action(self):
+    def can_act(self):
         if self.actions_remaining != 0:
             return True
 

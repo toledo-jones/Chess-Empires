@@ -15,8 +15,10 @@ class Map:
         self.center_squares_list = Constant.center_squares()
         self.edge_squares = Constant.edge_squares()
 
-        self.left_triangle, self.right_triangle = Constant.left_and_right_triangle_sections()
-        self.triangle_sections = [self.left_triangle, self.right_triangle]
+        self.left_triangle_bottom, self.right_triangle_bottom = Constant.left_and_right_triangle_sections_bot()
+        self.left_triangle_top, self.right_triangle_top = Constant.left_and_right_triangle_sections_top()
+
+        self.triangle_sections = [self.left_triangle_bottom, self.right_triangle_bottom]
         self.directions = (
             Constant.UP, Constant.RIGHT, Constant.LEFT, Constant.DOWN, Constant.UP_RIGHT, Constant.DOWN_RIGHT,
             Constant.UP_LEFT, Constant.DOWN_LEFT)
@@ -321,7 +323,8 @@ class Default(Map):
             for square in selected_squares:
                 r, c = square[0], square[1]
                 self.spawn_gold(r, c)
-                self.spawn_gold_nearby(r ,c)
+                self.spawn_gold_nearby(r, c)
+
 
 class IslandsModified(Map):
     def __init__(self, engine):
@@ -401,9 +404,9 @@ class Full(Map):
         wood_threshold = 80
         quarry_threshold = 10
 
-        for r in range(0, y+1):
+        for r in range(0, y + 1):
 
-            for c in range(0, x+1):
+            for c in range(0, x + 1):
                 rng = random.randint(0, 100)
                 if rng > wood_threshold:
                     self.spawn_wood_clover(r, c, 2)
@@ -431,8 +434,6 @@ class Full(Map):
         for square in b_random_squares:
             r, c = square[0], square[1]
             self.spawn_gold(r, c)
-
-
 
 
 class Islands(Map):
@@ -595,6 +596,30 @@ class WoodlandQuarries(Map):
             self.spawn_gold(r, c)
 
 
+class ATrees(Map):
+    def __init__(self, engine):
+        super().__init__(engine)
+        self.gold_in_quarters = 1
+        self.triangle_sections = [self.left_triangle_top, self.right_triangle_top]
+
+    def generate_resources(self):
+        super().generate_resources()
+
+        for section in self.triangle_sections:
+            for square in section:
+                row, col = square[0], square[1]
+                self.spawn_wood(row, col)
+
+        for square in self.center_squares_list:
+            if random.randint(0, 100) > 50:
+                self.spawn_wood_clover(square[0], square[1], 2)
+
+        for section in self.quarters:
+            for _ in range(self.gold_in_quarters):
+                square = random.choice(section)
+                self.spawn_gold(square[0], square[1])
+
+
 class VTrees(Map):
     def __init__(self, engine):
         super().__init__(engine)
@@ -607,6 +632,10 @@ class VTrees(Map):
             for square in section:
                 row, col = square[0], square[1]
                 self.spawn_wood(row, col)
+
+        for square in self.center_squares_list:
+            if random.randint(0, 100) > 55:
+                self.spawn_wood_clover(square[0], square[1], 2)
 
         for section in self.quarters:
             for _ in range(self.gold_in_quarters):

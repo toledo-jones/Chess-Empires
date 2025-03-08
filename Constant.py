@@ -139,28 +139,28 @@ RESOURCE_YIELD_KEY = {
     'tree_tile_4'      : 'wood',
     'tree_tile_2'      : 'wood',
     'tree_tile_3'      : 'wood',
-    'tree_tile_5':'wood',
-     'tree_tile_6':'wood',
-     'tree_tile_7':'wood',
-     'tree_tile_8':'wood',
+    'tree_tile_5'      : 'wood',
+    'tree_tile_6'      : 'wood',
+    'tree_tile_7'      : 'wood',
+    'tree_tile_8'      : 'wood',
     'depleted_quarry_1': None
 }
 RESOURCE_KEY = {
     'gold_tile_1'    : 'gold',
-    'quarry_1': 'stone',
+    'quarry_1'       : 'stone',
     'sunken_quarry_1': 'stone',
-    'tree_tile_1': 'wood',
+    'tree_tile_1'    : 'wood',
     'tree_tile_2'    : 'wood',
-    'tree_tile_3': 'wood',
-    'tree_tile_4': 'wood',
-    'tree_tile_5': 'wood',
-    'tree_tile_6':'wood',
-    'tree_tile_7':'wood',
-    'tree_tile_8':'wood',
+    'tree_tile_3'    : 'wood',
+    'tree_tile_4'    : 'wood',
+    'tree_tile_5'    : 'wood',
+    'tree_tile_6'    : 'wood',
+    'tree_tile_7'    : 'wood',
+    'tree_tile_8'    : 'wood',
     'gold'           : 'gold',
-    'log': 'wood',
-    'gold_coin': 'gold',
-    'stone': 'stone'
+    'log'            : 'wood',
+    'gold_coin'      : 'gold',
+    'stone'          : 'stone'
 }
 rand = random.randint(0, len(FACTION_NAMES) - 1)
 FACTION = FACTION_NAMES[rand]
@@ -552,7 +552,34 @@ def quarter_triangle_sections_d():
     return bottom_left, bottom_right, top_left, top_right
 
 
-def left_and_right_triangle_sections():
+def left_and_right_triangle_sections_top():
+    left_triangle = []
+    right_triangle = []
+    # x, y equal max val col, row
+    y, x = board_max_index()
+
+    print(x)
+    print(y)
+
+    # Top-left triangle (unchanged)
+    for r in range(0, 7):  # Iterate over the rows starting from 0 to 6 (top)
+        for c in range(0, 7 - r):  # Left triangle: columns from 0 to (7 - r) for each row
+            left_triangle.append((r, c))
+
+    # Top-right triangle (cleaner and more efficient version)
+    for r in range(0, 7):  # Iterate over the rows starting from 0 to 6 (top)
+        # Define the maximum column to skip for each row (row r)
+        skip_columns = set(range(7, 7 + r))  # Skip columns from 7 to 7+r-1 for each row
+
+        # I don't understand why this needs to be done this way but I'm too lazy to figure it out
+        for c in range(13, 6, -1):  # Iterate from column 13 to 7
+            if c not in skip_columns:
+                right_triangle.append((r, c))
+
+    return left_triangle, right_triangle
+
+
+def left_and_right_triangle_sections_bot():
     left_triangle = []
     right_triangle = []
     # x, y equal max val col, row
@@ -603,7 +630,6 @@ def edge_squares():
             squares.append(square)
 
     return squares
-
 
 
 def board_max_index():

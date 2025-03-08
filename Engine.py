@@ -152,10 +152,10 @@ class Engine:
     def initialize_maps(self):
         """Returns a list of available maps."""
         # DEBUG:
-        # return [Full]
+        return [ATrees]
         return [Default, Minimal, VTrees, TriangleTrees, UltraBalanced, LeftRight, OnlyStoneAndGold,
                 FourCorners, CenterCircleA, CenterCircleB, SuperMinimal, GoldCornersA, GoldCornersB, Islands,
-                WoodlandQuarries, SparseMap, LeftRightModified, TopBottomModified, IslandsModified, Full]
+                WoodlandQuarries, SparseMap, LeftRightModified, TopBottomModified, IslandsModified, Full, ATrees]
 
     def initialize_menus(self):
         """Returns a dictionary of building menus."""
@@ -322,8 +322,6 @@ class Engine:
 
                 # Determine the rectangle size for the current square
                 rect_size = (Constant.SQ_SIZE, Constant.SQ_SIZE)
-                if r == self.rows - 1:  # Last row adjustment
-                    rect_size = (Constant.SQ_SIZE, Constant.SQ_SIZE + Constant.board_remainder() * 100)
 
                 # Calculate position for the square
                 x = c * Constant.SQ_SIZE

@@ -152,11 +152,10 @@ class Engine:
     def initialize_maps(self):
         """Returns a list of available maps."""
         # DEBUG:
-        return [EnclosedForest]
-        return [Minimal, GoldForest, EnclosedForest]
         return [Default, Minimal, VTrees, TriangleTrees, UltraBalanced, LeftRight, OnlyStoneAndGold,
                 FourCorners, CenterCircleA, CenterCircleB, EnclosedForest, GoldCornersA, GoldCornersB, Islands,
-                WoodlandQuarries, GoldForest, LeftRightModified, TopBottomModified, IslandsModified, Full, ATrees, AngleTrees]
+                WoodlandQuarries, GoldForest, LeftRightModified, TopBottomModified, IslandsModified, Full, ATrees,
+                AngleTrees]
 
     def initialize_menus(self):
         """Returns a dictionary of building menus."""

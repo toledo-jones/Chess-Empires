@@ -619,6 +619,29 @@ class ATrees(Map):
                 square = random.choice(section)
                 self.spawn_gold(square[0], square[1])
 
+class AngleTrees(Map):
+    def __init__(self, engine):
+        super().__init__(engine)
+        self.gold_in_quarters = 1
+        choice_a = self.left_triangle_top, self.right_triangle_bottom
+        choice_b = self.right_triangle_top, self.left_triangle_bottom
+        self.triangle_sections = random.choice([choice_a, choice_b])
+    def generate_resources(self):
+        super().generate_resources()
+
+        for section in self.triangle_sections:
+            for square in section:
+                row, col = square[0], square[1]
+                self.spawn_wood(row, col)
+
+        for square in self.center_squares_list:
+            if random.randint(0, 100) > 55:
+                self.spawn_wood_clover(square[0], square[1], 2)
+
+        for section in self.quarters:
+            for _ in range(self.gold_in_quarters):
+                square = random.choice(section)
+                self.spawn_gold(square[0], square[1])
 
 class VTrees(Map):
     def __init__(self, engine):

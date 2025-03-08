@@ -14,11 +14,15 @@ class Map:
         self.quarters = [self.top_left, self.top_right, self.bottom_left, self.bottom_right]
         self.center_squares_list = Constant.center_squares()
         self.edge_squares = Constant.edge_squares()
-
         self.left_triangle_bottom, self.right_triangle_bottom = Constant.left_and_right_triangle_sections_bot()
         self.left_triangle_top, self.right_triangle_top = Constant.left_and_right_triangle_sections_top()
-
         self.triangle_sections = [self.left_triangle_bottom, self.right_triangle_bottom]
+        self.all_triangle_sections = [
+            self.left_triangle_top,
+            self.left_triangle_bottom,
+            self.right_triangle_top,
+            self.right_triangle_bottom
+        ]
         self.directions = (
             Constant.UP, Constant.RIGHT, Constant.LEFT, Constant.DOWN, Constant.UP_RIGHT, Constant.DOWN_RIGHT,
             Constant.UP_LEFT, Constant.DOWN_LEFT)
@@ -505,7 +509,7 @@ class Minimal(Map):
 import random
 
 
-class SparseMap(Map):
+class GoldForest(Map):
     def __init__(self, engine):
         super().__init__(engine)
         # Set map dimensions based on constants
@@ -521,35 +525,20 @@ class SparseMap(Map):
     def generate_resources(self):
         super().generate_resources()
 
-        # Generate 2 random tree groups
-        for _ in range(2):
-            tree_group = []
-            group_size = random.randint(15, 20)  # Larger groups, between 4 and 8 trees
-            start_row = random.randint(0, self.map_height - 1)
-            start_col = random.randint(0, self.map_width - 1)
-            for _ in range(group_size):
-                row_offset = random.randint(-2, 2)
-                col_offset = random.randint(-2, 2)
-                tree_group.append((start_row + row_offset, start_col + col_offset))
-            self.tree_groups.append(tree_group)
-
-            # Spawn the trees in the tree group
-            for tree in tree_group:
-                if 0 <= tree[0] < self.map_height and 0 <= tree[1] < self.map_width:
-                    self.spawn_wood(tree[0], tree[1])
-
-        # Spawn gold at random but always in different sections (top-right and bottom-left)
-        gold_1_row = random.randint(0, self.map_height // 2 - 1)  # Top-left section
-        gold_1_col = random.randint(0, self.map_width // 2 - 1)
-        self.gold_locations.append((gold_1_row, gold_1_col))
-
-        gold_2_row = random.randint(self.map_height // 2, self.map_height - 1)  # Bottom-right section
-        gold_2_col = random.randint(self.map_width // 2, self.map_width - 1)
-        self.gold_locations.append((gold_2_row, gold_2_col))
+        for section in [self.w_starting_squares, self.b_starting_squares]:
+            for square in section:
+                rng = random.randint(0, 100)
+                if rng > 65:
+                    r, c = square[0], square[1]
+                    self.spawn_wood_clover(r, c)
 
         # Spawn gold in the random locations
-        for gold in self.gold_locations:
-            self.spawn_gold(gold[0], gold[1])
+        for section in self.quarters:
+            square = random.choice(section)
+            r, c = square[0], square[1]
+            self.spawn_wood_nearby(r, c)
+            self.spawn_wood_clover(r, c, 3)
+            self.spawn_gold(r, c)
 
     # Helper functions to define map sections like `center_squares` and `top_right_squares`
     def center_squares(self):
@@ -619,6 +608,7 @@ class ATrees(Map):
                 square = random.choice(section)
                 self.spawn_gold(square[0], square[1])
 
+
 class AngleTrees(Map):
     def __init__(self, engine):
         super().__init__(engine)
@@ -626,6 +616,7 @@ class AngleTrees(Map):
         choice_a = self.left_triangle_top, self.right_triangle_bottom
         choice_b = self.right_triangle_top, self.left_triangle_bottom
         self.triangle_sections = random.choice([choice_a, choice_b])
+
     def generate_resources(self):
         super().generate_resources()
 
@@ -642,6 +633,7 @@ class AngleTrees(Map):
             for _ in range(self.gold_in_quarters):
                 square = random.choice(section)
                 self.spawn_gold(square[0], square[1])
+
 
 class VTrees(Map):
     def __init__(self, engine):
@@ -1173,14 +1165,22 @@ class GoldCornersA(Map):
             random.choice(self.choices)(r, c)
 
 
-class SuperMinimal(Map):
+class EnclosedForest(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.choices = [self.spawn_quarry, self.spawn_wood, self.spawn_gold, self.spawn_wood]
+        self.choices = [self.default_start_squares, ]
 
     def generate_resources(self):
-        for section in self.default_start_squares:
-            sample_set = random.sample(section, 4)
-            for i in enumerate(sample_set):
-                ind, (r, c) = i[0], i[1]
-                self.choices[ind](r, c)
+        super().generate_resources()
+        for section in self.all_triangle_sections:
+            for square in section:
+                rng = random.uniform(0, 1)
+                if rng > .4:
+                    r, c = square[0], square[1]
+                    self.spawn_wood(r, c)
+
+
+        for section in self.all_triangle_sections:
+            square = random.choice(section)
+            r, c = square[0], square[1]
+            self.spawn_gold(r, c)

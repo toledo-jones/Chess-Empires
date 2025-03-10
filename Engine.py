@@ -1278,7 +1278,7 @@ class Engine:
         rogue_spaces = 0
         rogues = 0
         for piece in self.spawn_list:
-            if piece == 'rogue_pawn':
+            if piece == 'rogue_pawn' or piece == 'trapper':
                 rogues += 1
 
         open_spaces_needed = 7 - rogues

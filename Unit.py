@@ -1851,9 +1851,7 @@ class Trapper(Piece):
         self.trapping_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
                                     Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
                                     Constant.DOWN_LEFT)
-        self.move_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                                    Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                                    Constant.DOWN_LEFT)
+        self.move_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN)
         self.capture_directions = (Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
                                    Constant.DOWN_LEFT)
         self.move_distance = 3
@@ -2040,7 +2038,7 @@ class Castle(Building):
         for direction in self.directions:
             r = self.row - direction[0]
             c = self.col - direction[1]
-            if engine.spawning == 'rogue_pawn':
+            if engine.spawning == 'rogue_pawn' or engine.spawning == 'trapper':
                 if engine.can_be_occupied_by_rogue(r, c):
                     spawn_squares.append((r, c))
             elif self.base_spawn_criteria(engine, r, c):

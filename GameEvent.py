@@ -716,6 +716,7 @@ class PortalMove(GameEvent):
         super().__init__(engine, acting_tile, action_tile)
         self.color = self.engine.turn
         self.moved = self.acting_tile.get_occupying()
+        self.first_move = self.moved.first_move
         self.start = self.moved.row, self.moved.col
         self.end = self.action_tile.row, self.action_tile.col
         self.portal_end = self.action_tile.connected_portal.get_position()
@@ -735,6 +736,7 @@ class PortalMove(GameEvent):
     def complete(self):
         super().complete()
         self.moved.actions_remaining -= 1
+        self.moved.first_move = False
         self.engine.move(self.start[0], self.start[1], self.end[0], self.end[1])
         self.engine.swap(self.end[0], self.end[1], self.portal_end[0], self.portal_end[1])
 
@@ -756,7 +758,7 @@ class PortalMove(GameEvent):
     def undo(self):
         super().undo()
         self.moved.actions_remaining += 1
-
+        self.moved.first_move = self.first_move
         if self.deleted_piece:
             self.engine.create_piece(self.portal_end[0], self.portal_end[1], self.deleted_piece)
             self.engine.set_trap(self.portal_end[0], self.portal_end[1], self.trap)
@@ -834,6 +836,7 @@ class TrapMove(GameEvent):
     def __init__(self, engine, acting_tile, action_tile):
         super().__init__(engine, acting_tile, action_tile)
         self.moved = self.acting_tile.get_occupying()
+        self.first_move = self.moved.first_move
         self.color = self.moved.color
         self.start = self.moved.row, self.moved.col
         self.end = self.action_tile.get_position()
@@ -849,6 +852,7 @@ class TrapMove(GameEvent):
     def complete(self):
         super().complete()
         self.moved.actions_remaining -= 1
+        self.moved.first_move = False
         self.engine.move(self.start[0], self.start[1], self.end[0], self.end[1])
         self.engine.untrap(self.end[0], self.end[1])
         self.engine.delete_piece(self.end[0], self.end[1])
@@ -865,6 +869,7 @@ class TrapMove(GameEvent):
     def undo(self):
         super().undo()
         self.moved.actions_remaining += 1
+        self.moved.first_move = self.first_move
         self.engine.create_piece(self.end[0], self.end[1], self.moved)
         self.engine.set_trap(self.end[0], self.end[1], self.trap)
         self.engine.move(self.end[0], self.end[1], self.start[0], self.start[1])
@@ -882,6 +887,7 @@ class TrapCapture(GameEvent):
     def __init__(self, engine, acting_tile, action_tile):
         super().__init__(engine, acting_tile, action_tile)
         self.moved = self.acting_tile.get_occupying()
+        self.first_move = self.moved.first_move
         self.start = self.moved.row, self.moved.col
         self.end = self.action_tile.get_position()
         self.captured = self.action_tile.get_occupying()
@@ -890,6 +896,7 @@ class TrapCapture(GameEvent):
     def complete(self):
         super().complete()
         self.moved.actions_remaining -= 1
+        self.moved.first_move = False
         self.engine.sounds.play('capture')
         self.engine.capture(self.start[0], self.start[1], self.end[0], self.end[1])
         self.engine.delete_piece(self.end[0], self.end[1])
@@ -905,6 +912,7 @@ class TrapCapture(GameEvent):
     def undo(self):
         super().undo()
         self.moved.actions_remaining += 1
+        self.moved.first_move = self.first_move
         self.engine.sounds.play('capture')
         self.engine.create_piece(self.end[0], self.end[1], self.moved)
         self.engine.reset_selected()
@@ -923,6 +931,7 @@ class Capture(GameEvent):
     def __init__(self, engine, acting_tile, action_tile):
         super().__init__(engine, acting_tile, action_tile)
         self.moved = self.acting_tile.get_occupying()
+        self.first_move = self.moved.first_move
         self.start = self.moved.row, self.moved.col
         self.end = self.action_tile.get_position()
         self.captured = self.action_tile.get_occupying()
@@ -930,6 +939,7 @@ class Capture(GameEvent):
     def complete(self):
         super().complete()
         self.moved.actions_remaining -= 1
+        self.moved.first_move = False
         self.engine.sounds.play('capture')
         self.engine.capture(self.start[0], self.start[1], self.end[0], self.end[1])
         self.engine.players[self.engine.turn].do_action()
@@ -943,6 +953,7 @@ class Capture(GameEvent):
     def undo(self):
         super().undo()
         self.moved.actions_remaining += 1
+        self.moved.first_move = self.first_move
         self.engine.sounds.play('capture')
         self.engine.move(self.end[0], self.end[1], self.start[0], self.start[1])
         self.engine.create_piece(self.end[0], self.end[1], self.captured)
@@ -958,6 +969,7 @@ class Move(GameEvent):
     def __init__(self, engine, acting_tile, action_tile):
         super().__init__(engine, acting_tile, action_tile)
         self.moved = self.acting_tile.get_occupying()
+        self.first_move = self.moved.first_move
         self.start = self.moved.row, self.moved.col
         self.end = self.action_tile.get_position()
 
@@ -967,6 +979,7 @@ class Move(GameEvent):
     def complete(self):
         super().complete()
         self.moved.actions_remaining -= 1
+        self.moved.first_move = False
         self.engine.move(self.start[0], self.start[1], self.end[0], self.end[1])
         self.engine.sounds.play('move')
         self.engine.reset_selected()
@@ -981,6 +994,7 @@ class Move(GameEvent):
     def undo(self):
         super().undo()
         self.moved.actions_remaining += 1
+        self.moved.first_move = self.first_move
         self.engine.move(self.end[0], self.end[1], self.start[0], self.start[1])
         self.engine.sounds.play('move')
         self.engine.reset_selected()

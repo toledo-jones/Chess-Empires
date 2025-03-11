@@ -10,6 +10,7 @@ class Unit:
         self.check = None
         self.offset = self.get_sprite_offset()
         self.dragging = False
+        self.first_move = True
 
         self.sprites = Constant.W_PIECES | Constant.W_BUILDINGS | Constant.B_PIECES | Constant.B_BUILDINGS
 
@@ -879,6 +880,8 @@ class Pawn(Piece):
 
     def move_squares(self, engine):
         squares = []
+        if not self.first_move:
+            self.move_distance = 2
 
         for direction in self.move_directions:
             for distance in range(1, self.move_distance):
@@ -1125,6 +1128,8 @@ class RoguePawn(Piece):
 
     def move_squares(self, engine):
         squares = []
+        if not self.first_move:
+            self.move_distance = 2
 
         for direction in self.move_directions:
             for distance in range(1, self.move_distance):
@@ -1914,6 +1919,8 @@ class Trapper(Piece):
 
     def move_squares(self, engine):
         squares = []
+        if not self.first_move:
+            self.move_distance = 2
 
         for direction in self.move_directions:
             for distance in range(1, self.move_distance):

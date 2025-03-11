@@ -25,7 +25,7 @@ DEBUG_STARTING_PRAYER = 0
 DEBUG_STARTING_WOOD = 0
 DEBUG_STARTING_GOLD = 0
 DEBUG_STARTING_STONE = 0
-DEBUG_STARTING_PIECES = ['castle', 'king', 'queen', 'monolith', 'monk', 'monk']
+DEBUG_STARTING_PIECES = ['castle', 'king', 'rook', 'rogue_rook']
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
                                         WINDOW / BOARD / SIDE MENU / FPS

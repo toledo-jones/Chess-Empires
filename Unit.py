@@ -2165,6 +2165,98 @@ class Monolith(Building):
         return True
 
 
+class Cavalry(Piece):
+    def __repr__(self):
+        return 'cavalry'
+
+    def __init__(self, row, col, color):
+        super().__init__(row, col, color)
+        self.directions = (
+            Constant.TWO_UP_RIGHT, Constant.TWO_RIGHT_UP, Constant.TWO_DOWN_RIGHT, Constant.TWO_RIGHT_DOWN,
+            Constant.TWO_UP_LEFT, Constant.TWO_LEFT_UP, Constant.TWO_DOWN_LEFT, Constant.TWO_LEFT_DOWN)
+        self.mining_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
+                                  Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
+                                  Constant.DOWN_LEFT)
+        self.move_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN)
+        self.capture_directions = (Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_LEFT, Constant.DOWN_RIGHT)
+        self.contextual_options = ['mine']
+        self.move_distance = 2
+        self.distance = 1
+
+    def capture_squares(self, engine):
+        squares = []
+        # Pawn Capture
+        if not self.first_move:
+            for direction in self.capture_directions:
+                r = self.row + direction[0]
+                c = self.col + direction[1]
+                if self.can_capture(r, c, engine):
+                    squares.append((r, c))
+            return squares
+
+        # Knight Capture
+        for direction in self.directions:
+            r = self.row + direction[0]
+            c = self.col + direction[1]
+            if self.can_capture(r, c, engine):
+                squares.append((r, c))
+
+        return squares
+
+    def right_click(self, engine):
+        if not self.first_move:
+            return False
+
+        return True
+
+    def mining_squares(self, engine):
+        mining_squares = []
+        if not self.first_move:
+            return []
+
+        for direction in self.mining_directions:
+            r = self.row - direction[0]
+            c = self.col - direction[1]
+            if engine.has_mineable_resource(r, c):
+                if engine.get_occupying(r, c):
+                    if engine.get_occupying_color(r, c) is not self.color:
+                        pass
+                    elif engine.get_occupying_color(r, c) is self.color:
+                        mining_squares.append((r, c))
+                elif engine.has_none_occupying(r, c):
+                    mining_squares.append((r, c))
+            elif engine.can_contain_quarry(r, c) and engine.is_empty(r, c):
+                mining_squares.append((r, c))
+
+        return mining_squares
+
+    def move_squares(self, engine):
+        squares = []
+
+        # Pawn Moves
+        if not self.first_move:
+            for direction in self.move_directions:
+                for distance in range(1, self.move_distance):
+                    r = self.row + direction[0] * distance
+                    c = self.col + direction[1] * distance
+                    if not Constant.tile_in_bounds(r, c):
+                        break
+                    if not self.base_move_criteria(engine, r, c):
+                        break
+                    else:
+                        squares.append((r, c))
+            return squares
+
+        # Knight Moves
+        for direction in self.directions:
+            r = self.row - direction[0]
+            c = self.col - direction[1]
+            if self.base_move_criteria(engine, r, c):
+                squares.append((r, c))
+
+        return squares
+
+
 class Trap(Building):
     def __repr__(self):
         return 'trap'

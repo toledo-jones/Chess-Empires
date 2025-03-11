@@ -75,6 +75,7 @@ w_pieces = ['w_king',
             'w_fire_spinner',
             'w_acrobat',
             'w_magician',
+            'w_cavalry'
             ]
 b_pieces = ['b_king', 'b_queen', 'b_rook', 'b_bishop',
             'b_knight', 'b_pawn', 'b_monk', 'b_duke',
@@ -83,7 +84,7 @@ b_pieces = ['b_king', 'b_queen', 'b_rook', 'b_bishop',
             'b_rogue_rook', 'b_elephant', 'b_elephant_cart',
             'b_champion', 'b_rogue_pawn', 'b_rogue_knight',
             'b_builder', 'b_unicorn', 'b_ram', 'b_oxen',
-            'b_persuader', 'b_doe', 'b_trader', 'b_trapper', 'b_lion', 'b_fire_spinner', 'b_acrobat', 'b_magician']
+            'b_persuader', 'b_doe', 'b_trader', 'b_trapper', 'b_lion', 'b_fire_spinner', 'b_acrobat', 'b_magician', 'b_cavalry']
 w_buildings = ['w_castle',
                'w_fortress',
                'w_barracks',

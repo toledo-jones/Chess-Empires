@@ -76,7 +76,7 @@ TURN_CHANGE_AFTER_START_SPAWN = True
                                         LISTS
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-SELECTABLE_STARTING_PIECES = ['pawn', 'builder', 'trader', 'trapper', 'rogue_pawn', 'monk', 'pikeman']
+SELECTABLE_STARTING_PIECES = ['pawn', 'builder', 'trader', 'trapper', 'rogue_pawn', 'monk', 'pikeman', 'cavalry']
 
 MASTER_COST_LIST = ['builder', 'monk', 'stable', 'castle', 'barracks', 'fortress', 'circus']
 STABLE_SPAWN_LIST = ['doe', 'oxen', 'unicorn', 'ram', 'elephant', 'knight']
@@ -194,6 +194,7 @@ PIECE_POINT_VALUES = {
     "fire_spinner": 126,
     "acrobat"     : 126,
     "magician"    : 70,
+    'cavalry'     : 30
 }
 PIECE_COSTS = {
     'king'        : {'log': 0, 'gold': 0, 'stone': 0},
@@ -235,6 +236,7 @@ PIECE_COSTS = {
     'fire_spinner': {'log': 0, 'gold': 18, 'stone': 0},
     'acrobat'     : {'log': 0, 'gold': 18, 'stone': 0},
     'magician'    : {'log': 0, 'gold': 10, 'stone': 0},
+    'cavalry'     : {'log': 4, 'gold': 1, 'stone': 0}
 }
 NOTIFICATIONS = {
     None                 : ['cannot select'],
@@ -315,6 +317,7 @@ DESCRIPTIONS = {
     'acrobat'         : ['moves like a bishop but can jump over a piece'],
     'trapper'         : ['creates traps which, once moved onto', 'destroy the piece that moved onto them'],
     'magician'        : ['casts certain rituals for a gold cost'],
+    'cavalry'         : ['mines resources until it makes it\'s first move']
 }
 PIECE_POPULATION = {
     'king'          : 1,
@@ -359,7 +362,8 @@ PIECE_POPULATION = {
     'lion'          : 1,
     'fire_spinner'  : 1,
     'acrobat'       : 1,
-    'magician'      : 1
+    'magician'      : 1,
+    'cavalry'       : 1
 }
 PRAYER_COSTS = {
     'gold_general'    : {'prayer': 12, 'monk': 2, 'gold': 0},  # monk yields 3, other pieces yield 2
@@ -412,7 +416,8 @@ ADDITIONAL_PIECE_LIMIT = {
     'lion'          : 0,
     'fire_spinner'  : 0,
     'acrobat'       : 0,
-    'magician'      : 0
+    'magician'      : 0,
+    'cavalry'       : 0
 }
 BASE_TOTAL_YIELD = {
     'wood'         : 8,
@@ -438,6 +443,13 @@ BASE_YIELD_PER_HARVEST = {
         {
             'wood'         : 7,
             'gold'         : 2,
+            'quarry'       : 5,
+            'sunken_quarry': 1
+        },
+    'cavalry'   :
+        {
+            'wood'         : 7,
+            'gold'         : 3,
             'quarry'       : 5,
             'sunken_quarry': 1
         }
@@ -487,7 +499,7 @@ CENTER_X = BOARD_WIDTH_SQ * SQ_SIZE // 2 + SQ_SIZE // 2
 CENTER_Y = BOARD_HEIGHT_SQ * SQ_SIZE // 2
 KING_MENU_HEIGHT = (SQ_SIZE // 6) * 2 + SQ_SIZE
 KING_MENU_WIDTH = KING_MENU_HEIGHT
-DECREE_SCALE = round(SQ_SIZE * 9/10), round(SQ_SIZE * 9/10)
+DECREE_SCALE = round(SQ_SIZE * 9 / 10), round(SQ_SIZE * 9 / 10)
 START_MENU_WIDTH = round(SQ_SIZE * 6.5)
 START_MENU_HEIGHT = round(SQ_SIZE * 3.5)
 PRAYER_BAR_WIDTH = round(SQ_SIZE // 64)
@@ -569,6 +581,7 @@ PIECE_IMAGE_MODIFY = {
     'fire_spinner'  : {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
     'acrobat'       : {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
     'magician'      : {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
+    'cavalry'       : {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
 
 }
 IMAGES_IMAGE_MODIFY = {
@@ -644,8 +657,8 @@ CONTEXTUAL_MENU_ICONS_IMAGE_MODIFY = {
     'w_decree'  : {'SCALE': DECREE_SCALE, 'OFFSET': (0, 0)},
     'b_decree_u': {'SCALE': DECREE_SCALE, 'OFFSET': (0, 0)},
     'b_decree'  : {'SCALE': DECREE_SCALE, 'OFFSET': (0, 0)},
-    'w_ritual': {'SCALE': DECREE_SCALE, 'OFFSET': (0,0)},
-    'b_ritual': {'SCALE': DECREE_SCALE, 'OFFSET': (0, 0)}
+    'w_ritual'  : {'SCALE': DECREE_SCALE, 'OFFSET': (0, 0)},
+    'b_ritual'  : {'SCALE': DECREE_SCALE, 'OFFSET': (0, 0)}
 
 }
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""

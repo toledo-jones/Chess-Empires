@@ -125,7 +125,7 @@ class Engine:
             'builder'   : Builder, 'unicorn': Unicorn, 'stable': Stable, 'gold_general': GoldGeneral, 'duke': Duke,
             'oxen'      : Oxen, 'wall': Wall, 'doe': Doe, 'persuader': Persuader, 'trader': Trader, 'circus': Circus,
             'trapper'   : Trapper, 'trap': Trap, 'lion': Lion, 'fire_spinner': FireSpinner, 'acrobat': Acrobat,
-            'magician'  : Magician
+            'magician'  : Magician, 'cavalry' : Cavalry
         }
 
     def initialize_states(self):

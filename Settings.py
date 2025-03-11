@@ -448,9 +448,9 @@ BASE_YIELD_PER_HARVEST = {
         },
     'cavalry'   :
         {
-            'wood'         : 7,
-            'gold'         : 3,
-            'quarry'       : 5,
+            'wood'         : 10,
+            'gold'         : 7,
+            'quarry'       : 8,
             'sunken_quarry': 1
         }
 }

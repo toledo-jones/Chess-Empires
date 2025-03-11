@@ -1,53 +1,40 @@
 # Chess-Empires-v24
-Pass & Play Chess Variant.
+Pass & Play Chess Variant with fairy pieces and special moves! 
 
--- gameplay -- 
+-- gameplay (old) -- 
 https://youtu.be/ADkow6Bpi6o
-
--- windows .exe -- 
-https://drive.google.com/file/d/1gPvOwfMrn6Hc5u9mg85gd3ligwdcAk8h/view?usp=sharing
-
--- how to play -- 
-https://drive.google.com/file/d/1EMXze3Y4CcFtMuKn_PhwnMQ9uPOdeQwf/view?usp=sharing
 
 -- FEATURES -- 
 
-- Resources: Gold, Wood and Stone.
+- Oversized chess board filled with resource tiles such as Gold, Wood and Stone
 
-- Buildings spawn different pieces.
+- Press 'tab' at any point to undo an action
 
-- Multiple actions per turn dictated by how many buildings you have. 
+- Press 'm' when hovering over a piece to see how it moves
 
-- Stone is mined by creating quarries using the builder piece.
-          - (Once mined, quarries will "fall in" making them unable to be occupied. If you continue to mine them they will yield less stone but                           eventually can be cleared, allowing you to place buildings there again. You cannot place another quarry there, though)
+- Buildings used to create new types of pieces
 
-- Different playstyles require different materials.
+- Resources are 'mined' by pawns. Empty tiles can be mined to create a 'quarry' which is then mined for stone
+          - (Once mined, quarries will "fall in" making them unable to be occupied. If you continue to mine them they will yield less stone but eventually can be cleared, allowing you to place buildings there again. You cannot place another quarry there, though)
 
-- New Pieces such as: Elephant, Unicorn, Monk, Duke, Jester, Builder, Pikeman, Rogue Bishop, Rogue Knight, Rogue Rook, Rogue Pawn, Gold General
-          - (Rogue Pieces move onto and through Tree Tiles)
+- Material costs randomly generated with each map. 
 
-- Adds prayer/ritual system using certain buildings. Some rituals will sacrifice monks.
+- New pieces such as: Elephant, Unicorn, Monk, Duke, Jester, Builder, Pikeman, Rogue Bishop, Rogue Knight, Rogue Rook, Rogue Pawn, Gold General, Trapper, Acrobat, Magician, Persuader, Deer, Lion and more! 
+          - (Rogue Pieces move onto and through tree tiles and steal resources from nearby pieces enemies)
 
-- Prayer Rituals: Summon Gold General, Smite, Delete Resource, Line Destroy, Create Resource, Swap, Protect, Teleport
+- A system for casting 'rituals' which create many dynamic gameplay moments unique from chess such as: piece swapping, teleport, portals, destroy tiles in a line, and more! 
     
-- Certain pieces can steal resources from other pieces
+- Piece encyclopedia screen shows all pieces and costs with brief piece descriptions
 
-- Costs Menu outlines which pieces come from where and how much they cost
-
-- All pieces have a unique use and function. 
-         - (For Example: The Jester piece moves like a queen, cannot capture and any piece on any square directly adjacent to him cannot move or act.
+- All pieces have a unique use and function beyond just different movesets
+         - (For Example: The Jester piece moves like a queen, cannot capture and any piece on any square directly adjacent to it cannot move or act)
       
-- Fully undoable. Press tab at any point in the game to undo the last action. 
-      
-- 
       
 -- PLANNED FEATURES -- 
 
 - Tutorial
 
-- Finish cost Screen
-
-- Online play 
+- Online play (Hugely essential) 
 
 - Settings
           - Mute music, windowed mode, etc

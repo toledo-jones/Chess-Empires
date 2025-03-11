@@ -182,6 +182,8 @@ class Unit:
         self.col = col
 
     def draw_highlights(self, win):
+        if self.unused_piece_highlight:
+            self.highlight_self_square_unused(win)
         if self.purchasing:
             self.highlight_self_square(win)
             self.highlight_spawn_squares(win)
@@ -191,9 +193,6 @@ class Unit:
             self.highlight_capture_squares(win)
         if self.pre_selected:
             self.highlight_self_square(win)
-            # self.highlight_spawn_squares(win)
-        if self.unused_piece_highlight:
-            self.highlight_self_square_unused(win)
         if self.mining:
             self.highlight_self_square(win)
             self.highlight_mining_squares(win)
@@ -216,14 +215,14 @@ class Unit:
         if self.persuading:
             self.highlight_self_square(win)
             self.highlight_persuader_squares(win)
-        if self.actions_remaining == 0:
-            self.unused_piece_highlight = False
         if self.display_moves:
             self.highlight_self_square(win)
             self.highlight_move_squares(win)
             self.highlight_capture_squares(win)
         if self.check:
             self.highlight_self_square_check(win)
+        if self.actions_remaining == 0:
+            self.unused_piece_highlight = False
 
     def draw(self, win):
         # Check if the piece is not currently being dragged

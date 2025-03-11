@@ -1997,6 +1997,7 @@ class Contextual(Menu):
         self.color = Constant.turn_to_color[self.engine.turn]
         self.cost = self.engine.get_decree_cost()
         self.cost_text_surface = self.font.render(str(self.cost), True, self.color)
+        self.engine.get_occupying(row, col).pre_selected = True
         self.contextual_options = {
             'pray'    : self.engine.transfer_to_praying_state,
             'mine'    : self.engine.transfer_to_mining_state,
@@ -2091,6 +2092,9 @@ class Contextual(Menu):
 
         # Each section is now exactly one SQ_SIZE tall
         item_height = Constant.SQ_SIZE
+
+        self.engine.get_occupying(self.row, self.col).pre_selected = False
+
 
         # Check if the click is inside the menu’s X boundaries
         if not (self.menu_position_x <= mouse_x <= self.menu_position_x + self.menu_width):

@@ -1172,6 +1172,7 @@ class Magician(Piece):
                            Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
                            Constant.DOWN_LEFT)
         self.distance = 1
+        self.contextual_options = ['ritual']
 
     def right_click(self, engine):
         return True

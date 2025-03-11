@@ -25,7 +25,7 @@ DEBUG_STARTING_PRAYER = 0
 DEBUG_STARTING_WOOD = 0
 DEBUG_STARTING_GOLD = 0
 DEBUG_STARTING_STONE = 0
-DEBUG_STARTING_PIECES = ['castle', 'king', 'rook', 'rogue_rook']
+DEBUG_STARTING_PIECES = ['castle', 'king', 'magician', 'rogue_rook']
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
                                         WINDOW / BOARD / SIDE MENU / FPS
@@ -76,7 +76,7 @@ TURN_CHANGE_AFTER_START_SPAWN = True
                                         LISTS
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-SELECTABLE_STARTING_PIECES = ['pawn', 'builder', 'trader', 'trapper', 'rogue_pawn', 'monk', 'pikeman', 'cavalry']
+SELECTABLE_STARTING_PIECES = ['pawn', 'builder', 'cavalry', 'rogue_pawn',  'trapper', 'pikeman', 'monk', 'trader']
 
 MASTER_COST_LIST = ['builder', 'monk', 'stable', 'castle', 'barracks', 'fortress', 'circus']
 STABLE_SPAWN_LIST = ['doe', 'oxen', 'unicorn', 'ram', 'elephant', 'knight']

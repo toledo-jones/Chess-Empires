@@ -317,7 +317,7 @@ DESCRIPTIONS = {
     'acrobat'         : ['moves like a bishop but can jump over a piece'],
     'trapper'         : ['creates traps which, once moved onto', 'destroy the piece that moved onto them'],
     'magician'        : ['casts certain rituals for a gold cost'],
-    'cavalry'         : ['mines resources until it makes it\'s first move']
+    'cavalry'         : ['moves like a knight for it\'s first move', 'can mine resources until it makes a first move', 'moves like a pawn after it makes a first move', 'cannot mine resources after making a first move']
 }
 PIECE_POPULATION = {
     'king'          : 1,

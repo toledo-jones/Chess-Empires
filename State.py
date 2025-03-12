@@ -616,8 +616,12 @@ class Playing(State):
                         self.revert_to_playing_state()  # Revert to the 'playing' state
                     else:
                         try:
-                            print("creating contextual menu")
+                            # Create ability menu for pieces with more than 1 ability
                             self.engine.create_contextual_menu(row, col, self.win, piece.contextual_options)
+
+                            # Immediately click into the menu if there is only one option
+                            if len(piece.contextual_options) == 1:
+                                self.engine.menus[-1].left_click()
                         except AttributeError as e:
                             print(f"{e} State.py, Line 615")
 

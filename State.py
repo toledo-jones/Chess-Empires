@@ -727,7 +727,7 @@ class SelectStartingPieces(State):
         total_height_of_grid = self.y_buffer * 2 * Constant.NUMBER_OF_STARTING_PIECES
         self.initial_y = (self.window_height - total_height_of_grid) // 2
         self.cols = len(Constant.SELECTABLE_STARTING_PIECES)
-        self.rows = Constant.NUMBER_OF_STARTING_PIECES
+        self.rows = Constant.NUMBER_OF_STARTING_PIECES + Constant.NUMBER_OF_BONUS_PIECES
         self.selection_matrix = [[[0 for y in range(3)] for x in range(self.cols)] for _ in range(self.rows)]
         self.instruction_text = [' \'tab\' to go back', ' \'space bar\' to confirm selection',
                                  ' \'right click\' to view the map']
@@ -742,7 +742,10 @@ class SelectStartingPieces(State):
         self.instruction_text_height = self.instruction_text_surfaces[0].get_height()
         for c in range(self.cols):
             for r in range(self.rows):
-                self.selection_matrix[r][c][0] = Constant.SELECTABLE_STARTING_PIECES[c]
+                if r == self.cols - Constant.NUMBER_OF_BONUS_PIECES:
+                    self.selection_matrix[r][c][0] = Constant.BONUS_STARTING_PIECES[c]
+                else:
+                    self.selection_matrix[r][c][0] = Constant.SELECTABLE_STARTING_PIECES[c]
                 self.selection_matrix[r][c][1] = False  # HIGHLIGHT
                 self.selection_matrix[r][c][2] = False  # SELECTED
 
@@ -818,11 +821,18 @@ class SelectStartingPieces(State):
             piece_spacing = self.piece_spacing
             initial_y = self.initial_y
 
-            for x in range(Constant.NUMBER_OF_STARTING_PIECES):
-                for p in Constant.SELECTABLE_STARTING_PIECES:
-                    piece = self.engine.turn + "_" + p
-                    self.win.blit(self.pieces[self.engine.turn][piece], (x_buffer, initial_y))
-                    x_buffer += piece_spacing
+            for x in range(Constant.NUMBER_OF_STARTING_PIECES + Constant.NUMBER_OF_BONUS_PIECES):
+                if x < Constant.NUMBER_OF_STARTING_PIECES:
+                    for p in Constant.SELECTABLE_STARTING_PIECES:
+                        piece = self.engine.turn + "_" + p
+                        self.win.blit(self.pieces[self.engine.turn][piece], (x_buffer, initial_y))
+                        x_buffer += piece_spacing
+                else:
+                    for p in Constant.BONUS_STARTING_PIECES:
+                        piece = self.engine.turn + "_" + p
+                        self.win.blit(self.pieces[self.engine.turn][piece], (x_buffer, initial_y))
+                        x_buffer += piece_spacing
+
                 x_buffer = initial_x
                 initial_y += y_buffer * 2
 
@@ -854,7 +864,7 @@ class SelectStartingPieces(State):
                 if self.selection_matrix[r][c][2]:
                     spawn_list.append(self.selection_matrix[r][c][0])
         spawn_list.append(Constant.STARTING_PIECES[-1])
-        if len(spawn_list) == (Constant.NUMBER_OF_STARTING_PIECES + len(Constant.STARTING_PIECES)):
+        if len(spawn_list) == (Constant.NUMBER_OF_STARTING_PIECES + len(Constant.STARTING_PIECES) + Constant.NUMBER_OF_BONUS_PIECES):
             self.engine.transfer_to_starting_spawn(spawn_list)
 
     def flip_draw_map(self):

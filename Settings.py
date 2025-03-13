@@ -76,7 +76,8 @@ TURN_CHANGE_AFTER_START_SPAWN = True
                                         LISTS
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-SELECTABLE_STARTING_PIECES = ['pawn', 'ferz', 'rogue_pawn', 'builder', 'pikeman', 'monk']
+SELECTABLE_STARTING_PIECES = ['pawn', 'ferz', 'rogue_pawn', 'builder']
+BONUS_STARTING_PIECES = ['trader', 'pikeman', 'trapper', 'monk']
 
 MASTER_COST_LIST = ['builder', 'monk', 'stable', 'castle', 'barracks', 'fortress', 'circus']
 STABLE_SPAWN_LIST = ['doe', 'oxen', 'unicorn', 'ram', 'elephant', 'knight']
@@ -114,7 +115,8 @@ DECREE_INCREMENT = 5
 DEFAULT_PIECE_LIMIT = 3
 TRADING_GIVE_BOUNDS = (5 / 8, 1 / 2)
 TRADING_RECEIVE_BOUNDS = (5 / 8, 15 / 16)
-NUMBER_OF_STARTING_PIECES = 5
+NUMBER_OF_STARTING_PIECES = 4
+NUMBER_OF_BONUS_PIECES = 1
 DEFAULT_ACTIONS_REMAINING = 1
 PRAYER_STONE_YIELD = 2
 MONOLITH_YIELD = 2

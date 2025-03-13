@@ -2290,9 +2290,8 @@ class Cavalry(Piece):
         for direction in self.directions:
             r = self.row + direction[0]
             c = self.col + direction[1]
-            if str(engine.get_occupying(r, c)) != 'king':
-                if self.can_capture(r, c, engine):
-                    squares.append((r, c))
+            if self.can_capture(r, c, engine):
+                squares.append((r, c))
 
         return squares
 

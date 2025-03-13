@@ -621,7 +621,9 @@ class Playing(State):
 
                             # Immediately click into the menu if there is only one option
                             if len(piece.contextual_options) == 1:
-                                self.engine.menus[-1].left_click()
+                                if str(piece) not in ['queen', 'king']:
+                                    self.engine.menus[-1].left_click()
+
                         except AttributeError as e:
                             print(f"{e} State.py, Line 615")
 
@@ -1917,7 +1919,6 @@ class PerformCreateResource(Ritual):
             for menu in self.engine.menus:
                 flag = menu.left_click()
                 if self.engine.ritual_summon_resource:
-                    print("Reaching if statewent")
                     self.engine.close_menus()
                     acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
                     action_tile = self.engine.board[self.row][self.col]

@@ -278,6 +278,9 @@ class Engine:
             return False
 
     def valid_ritual(self, cost, cost_type):
+        if not self.players[self.turn].can_act():
+            return False
+
         if cost_type == 'prayer':
             return self.players[self.turn].prayer - cost >= 0
 

@@ -21,11 +21,11 @@ import pygame
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 POP_UPS_ON = False
-DEBUG_STARTING_PRAYER = 0
-DEBUG_STARTING_WOOD = 0
-DEBUG_STARTING_GOLD = 0
-DEBUG_STARTING_STONE = 0
-DEBUG_STARTING_PIECES = ['castle', 'king', 'magician', 'rogue_rook']
+DEBUG_STARTING_PRAYER = 10
+DEBUG_STARTING_WOOD = 100
+DEBUG_STARTING_GOLD = 100
+DEBUG_STARTING_STONE = 100
+DEBUG_STARTING_PIECES = ['castle', 'king', 'magician', 'monk', 'monk', 'monk', 'prayer_stone']
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
                                         WINDOW / BOARD / SIDE MENU / FPS
@@ -76,12 +76,12 @@ TURN_CHANGE_AFTER_START_SPAWN = True
                                         LISTS
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-SELECTABLE_STARTING_PIECES = ['pawn', 'ferz', 'builder', 'rogue_pawn',  'trapper', 'pikeman', 'monk', 'trader']
+SELECTABLE_STARTING_PIECES = ['pawn', 'ferz', 'rogue_pawn', 'builder', 'pikeman', 'monk']
 
 MASTER_COST_LIST = ['builder', 'monk', 'stable', 'castle', 'barracks', 'fortress', 'circus']
 STABLE_SPAWN_LIST = ['doe', 'oxen', 'unicorn', 'ram', 'elephant', 'knight']
 FORTRESS_SPAWN_LIST = ['rogue_rook', 'rogue_bishop', 'rogue_knight', 'rogue_pawn', 'trapper']
-CASTLE_SPAWN_LIST = ['pawn', 'builder', 'pikeman', 'monk', 'trader', 'cavalry']
+CASTLE_SPAWN_LIST = ['pawn', 'ferz', 'builder', 'pikeman', 'monk', 'trader', 'cavalry']
 BUILDER_SPAWN_LIST = ['wall', 'stable', 'castle', 'barracks', 'fortress', 'circus']
 BARRACKS_SPAWN_LIST = ['duke', 'queen', 'champion', 'rook', 'bishop']
 CIRCUS_SPAWN_LIST = ['jester', 'persuader', 'lion', 'fire_spinner', 'acrobat', 'magician']

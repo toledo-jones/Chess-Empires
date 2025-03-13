@@ -1353,6 +1353,7 @@ class Stealing(State):
             else:
                 results.append(self.revert_to_playing_state())  # Return to playing state if stealing is ongoing
         return any(results)
+
     def click_valid_square(self, row, col):
         if (row, col) in self.previously_selected.stealing_squares_list:
             return True
@@ -1914,25 +1915,23 @@ class PerformCreateResource(Ritual):
         flag = False
         if self.engine.menus:
             for menu in self.engine.menus:
-                flag = menu.left_click
-            return flag
+                flag = menu.left_click()
+                if self.engine.ritual_summon_resource:
+                    print("Reaching if statewent")
+                    self.engine.close_menus()
+                    acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+                    action_tile = self.engine.board[self.row][self.col]
+                    event = CreateResource(self.engine, acting_tile, action_tile)
+                    self.engine.add_event(event)
+                    self.engine.ritual_summon_resource = None
+                    return self.revert_to_playing_state()
+        if self.click_valid_square(row, col) and not self.engine.ritual_summon_resource:
+            self.row = row
+            self.col = col
+            menu = ResourceMenu(row, col, self.win, self.engine)
+            self.engine.menus.append(menu)
+            flag = True
         else:
-            if self.click_valid_square(row, col) and not self.engine.ritual_summon_resource:
-                self.row = row
-                self.col = col
-                menu = ResourceMenu(row, col, self.win, self.engine)
-                self.engine.menus.append(menu)
-                return True
-            else:
-                return self.revert_to_playing_state()
-
-        if self.engine.ritual_summon_resource:
-            self.engine.close_menus()
-            acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
-            action_tile = self.engine.board[self.row][self.col]
-            event = CreateResource(self.engine, acting_tile, action_tile)
-            self.engine.add_event(event)
-            self.engine.ritual_summon_resource = None
             return self.revert_to_playing_state()
 
 

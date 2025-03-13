@@ -78,7 +78,6 @@ TURN_CHANGE_AFTER_START_SPAWN = True
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 SELECTABLE_STARTING_PIECES = ['pawn', 'ferz', 'rogue_pawn', 'builder']
 BONUS_STARTING_PIECES = ['trader', 'pikeman', 'trapper', 'monk']
-
 MASTER_COST_LIST = ['builder', 'monk', 'stable', 'castle', 'barracks', 'fortress', 'circus']
 STABLE_SPAWN_LIST = ['doe', 'oxen', 'unicorn', 'ram', 'elephant', 'knight']
 FORTRESS_SPAWN_LIST = ['rogue_rook', 'rogue_bishop', 'rogue_knight', 'rogue_pawn', 'trapper']
@@ -467,7 +466,15 @@ BASE_YIELD_PER_HARVEST = {
             'gold'         : 7,
             'quarry'       : 8,
             'sunken_quarry': 1
-        }
+        },
+    'builder':
+        {
+            'wood'         : 7,
+            'gold'         : 2,
+            'quarry'       : 5,
+            'sunken_quarry': 1
+        },
+
 }
 HARVEST_YIELD_VARIANCE = {
     'wood'         : (-2, 2),

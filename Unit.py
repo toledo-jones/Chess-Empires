@@ -1501,9 +1501,29 @@ class Builder(Piece):
         self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
                            Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
                            Constant.DOWN_LEFT)
-
+        self.mining_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
+                                  Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
+                                  Constant.DOWN_LEFT)
         self.distance = 1
-        self.contextual_options = ['build']
+        self.contextual_options = ['build', 'mine']
+
+    def mining_squares(self, engine):
+        mining_squares = []
+        for direction in self.mining_directions:
+            r = self.row - direction[0]
+            c = self.col - direction[1]
+            if engine.has_mineable_resource(r, c):
+                if engine.get_occupying(r, c):
+                    if engine.get_occupying_color(r, c) is not self.color:
+                        pass
+                    elif engine.get_occupying_color(r, c) is self.color:
+                        mining_squares.append((r, c))
+                elif engine.has_none_occupying(r, c):
+                    mining_squares.append((r, c))
+            elif engine.can_contain_quarry(r, c) and engine.is_empty(r, c):
+                mining_squares.append((r, c))
+
+        return mining_squares
 
     def move_squares(self, engine):
         moves = []
@@ -2169,6 +2189,7 @@ class Monolith(Building):
     def right_click(self, engine):
         return True
 
+
 class Ferz(Piece):
     def __repr__(self):
         return 'ferz'
@@ -2180,7 +2201,7 @@ class Ferz(Piece):
                                   Constant.DOWN_LEFT)
         self.capture_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN)
         self.move_directions = (Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                                   Constant.DOWN_LEFT)
+                                Constant.DOWN_LEFT)
         self.move_distance = 3
         self.capture_distance = 1
         self.contextual_options = ['mine']
@@ -2234,6 +2255,7 @@ class Ferz(Piece):
 
     def right_click(self, engine):
         return True
+
 
 class Cavalry(Piece):
     def __repr__(self):

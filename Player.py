@@ -99,6 +99,9 @@ class Player:
             count += piece.get_population_value()
         return count
 
+    def can_trade(self):
+        return self.gold != 0 or self.wood != 0 or self.stone != 0
+
     def can_add_piece(self, piece):
         population = self.get_current_population()
         if Constant.PIECE_POPULATION[piece] + population <= self.piece_limit:

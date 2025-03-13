@@ -1221,6 +1221,10 @@ class Engine:
         event = Decree(self, acting_tile, None)
         self.add_event(event)
 
+    def can_trade(self):
+        if self.players[self.turn].can_trade():
+            return True
+
     def trade(self):
         acting_tile = self.board[self.piece_trading.row][self.piece_trading.col]
         action_tile = None

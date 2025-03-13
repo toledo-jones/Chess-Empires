@@ -47,6 +47,7 @@ SPAWN_LISTS = {
 w_pieces = ['w_king',
             'w_queen',
             'w_rook',
+            'w_ferz',
             'w_bishop',
             'w_knight',
             'w_pawn',
@@ -77,7 +78,7 @@ w_pieces = ['w_king',
             'w_magician',
             'w_cavalry'
             ]
-b_pieces = ['b_king', 'b_queen', 'b_rook', 'b_bishop',
+b_pieces = ['b_king', 'b_queen', 'b_rook','b_ferz', 'b_bishop',
             'b_knight', 'b_pawn', 'b_monk', 'b_duke',
             'b_rogue_bishop', 'b_jester', 'b_pikeman',
             'b_gold_general', 'b_silver_general',

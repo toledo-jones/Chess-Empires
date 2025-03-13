@@ -120,7 +120,9 @@ class Map:
             'fire_spinner': {'log': 0, 'gold': 18, 'stone': 0},
             'acrobat'     : {'log': 0, 'gold': 18, 'stone': 0},
             'magician'    : {'log': 0, 'gold': 10, 'stone': 0},
-            'cavalry'     : {'log': 4, 'gold': 1, 'stone': 0}
+            'cavalry'     : {'log': 4, 'gold': 1, 'stone': 0},
+            'ferz': {'log': 6, 'gold': 0, 'stone': 0},
+
         }
 
     def assign_piece_costs(self, initial_piece_costs, points_per_resource):

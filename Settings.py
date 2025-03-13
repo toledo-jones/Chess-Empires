@@ -76,12 +76,12 @@ TURN_CHANGE_AFTER_START_SPAWN = True
                                         LISTS
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-SELECTABLE_STARTING_PIECES = ['pawn', 'builder', 'cavalry', 'rogue_pawn',  'trapper', 'pikeman', 'monk', 'trader']
+SELECTABLE_STARTING_PIECES = ['pawn', 'ferz', 'builder', 'rogue_pawn',  'trapper', 'pikeman', 'monk', 'trader']
 
 MASTER_COST_LIST = ['builder', 'monk', 'stable', 'castle', 'barracks', 'fortress', 'circus']
 STABLE_SPAWN_LIST = ['doe', 'oxen', 'unicorn', 'ram', 'elephant', 'knight']
 FORTRESS_SPAWN_LIST = ['rogue_rook', 'rogue_bishop', 'rogue_knight', 'rogue_pawn', 'trapper']
-CASTLE_SPAWN_LIST = ['pawn', 'builder', 'pikeman', 'monk', 'trader']
+CASTLE_SPAWN_LIST = ['pawn', 'builder', 'pikeman', 'monk', 'trader', 'cavalry']
 BUILDER_SPAWN_LIST = ['wall', 'stable', 'castle', 'barracks', 'fortress', 'circus']
 BARRACKS_SPAWN_LIST = ['duke', 'queen', 'champion', 'rook', 'bishop']
 CIRCUS_SPAWN_LIST = ['jester', 'persuader', 'lion', 'fire_spinner', 'acrobat', 'magician']
@@ -159,6 +159,7 @@ PIECE_POINT_VALUES = {
     "gold_general": 0,
     "quarry_1"    : 6,
     "pawn"        : 12,
+    'ferz'        : 12,
     "builder"     : 12,
     "monk"        : 15,
     "pikeman"     : 20,
@@ -180,7 +181,7 @@ PIECE_POINT_VALUES = {
     "unicorn"     : 60,
     "monolith"    : 48,
     "prayer_stone": 24,
-    "duke"        : 135,
+    "duke"        : 90,
     "oxen"        : 60,
     "champion"    : 70,
     "wall"        : 9,
@@ -190,9 +191,9 @@ PIECE_POINT_VALUES = {
     "circus"      : 70,
     "trapper"     : 12,
     "trap"        : 3,
-    "lion"        : 140,
-    "fire_spinner": 126,
-    "acrobat"     : 126,
+    "lion"        : 98,
+    "fire_spinner": 80,
+    "acrobat"     : 102,
     "magician"    : 70,
     'cavalry'     : 30
 }
@@ -236,7 +237,9 @@ PIECE_COSTS = {
     'fire_spinner': {'log': 0, 'gold': 18, 'stone': 0},
     'acrobat'     : {'log': 0, 'gold': 18, 'stone': 0},
     'magician'    : {'log': 0, 'gold': 10, 'stone': 0},
-    'cavalry'     : {'log': 4, 'gold': 1, 'stone': 0}
+    'cavalry'     : {'log': 4, 'gold': 1, 'stone': 0},
+    'ferz': {'log': 6, 'gold': 0, 'stone': 0},
+
 }
 NOTIFICATIONS = {
     None                 : ['cannot select'],
@@ -257,6 +260,7 @@ DESCRIPTIONS = {
                          'eventually becomes depleted if mined after it caves in'],
     'pawn'            : ['moves two spaces orthogonally', 'harvests resources',
                          'mines certain empty squares to create quarries'],
+    'ferz'              :['moves two spaces diagonally on it\'s first move', 'harvests resources', 'mines some empty squares to create quarries'],
     'builder'         : ['creates buildings used to purchase more powerful pieces'],
     'monk'            : ['prays at monoliths to cast powerful rituals'],
     'pikeman'         : ['moves one square orthogonally', 'a valuable defender'],
@@ -363,7 +367,8 @@ PIECE_POPULATION = {
     'fire_spinner'  : 1,
     'acrobat'       : 1,
     'magician'      : 1,
-    'cavalry'       : 1
+    'cavalry'       : 1,
+    'ferz'          : 1,
 }
 PRAYER_COSTS = {
     'gold_general'    : {'prayer': 12, 'monk': 2, 'gold': 0},  # monk yields 3, other pieces yield 2
@@ -417,7 +422,8 @@ ADDITIONAL_PIECE_LIMIT = {
     'fire_spinner'  : 0,
     'acrobat'       : 0,
     'magician'      : 0,
-    'cavalry'       : 0
+    'cavalry'       : 0,
+    'ferz': 0
 }
 BASE_TOTAL_YIELD = {
     'wood'         : 8,
@@ -433,6 +439,13 @@ TOTAL_YIELD_VARIANCE = {
 }
 BASE_YIELD_PER_HARVEST = {
     'pawn'      :
+        {
+            'wood'         : 10,
+            'gold'         : 7,
+            'quarry'       : 8,
+            'sunken_quarry': 1
+        },
+    'ferz':
         {
             'wood'         : 10,
             'gold'         : 7,
@@ -582,6 +595,7 @@ PIECE_IMAGE_MODIFY = {
     'acrobat'       : {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
     'magician'      : {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
     'cavalry'       : {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
+    'ferz':         {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
 
 }
 IMAGES_IMAGE_MODIFY = {

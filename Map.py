@@ -1,21 +1,424 @@
 import math
-
-import Constant
 from Resource import *
+
+
+def quarter_squares():
+    top_left = []
+    top_right = []
+    bottom_left = []
+    bottom_right = []
+    x, y = Constant.board_max_index()
+    minimum_row = 2
+    maximum_row = y - 1
+    for c in range(x + 1):
+        for r in range(minimum_row, maximum_row):
+            if c > x // 2 and r > y // 2:
+                bottom_right.append((r, c))
+            elif c < x // 2 and r > y // 2:
+                bottom_left.append((r, c))
+            elif c > x // 2 and r < y // 2:
+                top_right.append((r, c))
+            elif c < x // 2 and r < y // 2:
+                top_left.append((r, c))
+
+    return top_left, top_right, bottom_left, bottom_right
+
+
+def big_center_squares():
+    squares = []
+    # x, y equal max val col, row
+    x, y = Constant.board_max_index()
+
+    for c in range(x // 2 - 2, x // 2 + 4):
+        for r in range(y + 1):
+            square = (r, c)
+            squares.append(square)
+    return squares
+
+
+def center_squares():
+    squares = []
+    # x, y equal max val col, row
+    x, y = Constant.board_max_index()
+
+    for c in range(x // 2, x // 2 + 2):
+        for r in range(y // 2, y // 2 + 2):
+            square = (r, c)
+            squares.append(square)
+    return squares
+
+
+def quarter_triangle_sections_a():
+    bottom_left = []
+    bottom_right = []
+    top_left = []
+    top_right = []
+    # x, y equal max val col, row
+    x, y = Constant.board_max_index()
+
+    for r in range(6, y + 1):
+        for c in range(0, r - 2):
+            bottom_left.append((r, c))
+
+    for r in range(6, y + 1):
+        for c in range(x, x - (r - 2), -1):
+            bottom_right.append((r, c))
+
+    for r in range(0, 6):
+        for c in range(6 - r, -1, -1):
+            top_left.append((r, c))
+
+    # for r in range(6, 0, -1):
+    #     for c in range( x - (r - 2), x, -1):
+    #         top_right.append((r, c))
+
+    return bottom_left, bottom_right, top_left, top_right
+
+
+def quarter_triangle_sections_b():
+    bottom_left = []
+    bottom_right = []
+    top_left = []
+    top_right = []
+    # x, y equal max val col, row
+    x, y = Constant.board_max_index()
+
+    # for r in range(6, y + 1):
+    #     for c in range(0, r - 2):
+    #         bottom_left.append((r, c))
+    #
+    for r in range(6, y + 1):
+        for c in range(x, x - (r - 2), -1):
+            bottom_right.append((r, c))
+
+    for r in range(0, 6):
+        for c in range(6 - r, -1, -1):
+            top_left.append((r, c))
+
+    for r in range(0, 6):
+        for c in range(x, x - (6 - r), -1):
+            top_right.append((r, c))
+
+    return bottom_left, bottom_right, top_left, top_right
+
+
+def quarter_triangle_sections_c():
+    bottom_left = []
+    bottom_right = []
+    top_left = []
+    top_right = []
+    # x, y equal max val col, row
+    x, y = Constant.board_max_index()
+
+    for r in range(6, y + 1):
+        for c in range(0, r - 2):
+            bottom_left.append((r, c))
+
+    for r in range(6, y + 1):
+        for c in range(x, x - (r - 2), -1):
+            bottom_right.append((r, c))
+
+    # for r in range(0, 6):
+    #     for c in range(6-r, -1, -1):
+    #         top_left.append((r, c))
+
+    for r in range(0, 6):
+        for c in range(x, x - (6 - r), -1):
+            top_right.append((r, c))
+
+    return bottom_left, bottom_right, top_left, top_right
+
+
+def quarter_triangle_sections_d():
+    bottom_left = []
+    bottom_right = []
+    top_left = []
+    top_right = []
+    # x, y equal max val col, row
+    x, y = Constant.board_max_index()
+
+    for r in range(5, y + 1):
+        for c in range(0, r - 2):
+            bottom_left.append((r, c))
+
+    # for r in range(6, y + 1):
+    #     for c in range(x, x - (r - 2), -1):
+    #         bottom_right.append((r, c))
+
+    for r in range(0, 5):
+        for c in range(5 - r, -1, -1):
+            top_left.append((r, c))
+
+    for r in range(0, 5):
+        for c in range(x, x - (5 - r), -1):
+            top_right.append((r, c))
+
+    return bottom_left, bottom_right, top_left, top_right
+
+
+def left_and_right_triangle_sections_top():
+    left_triangle = []
+    right_triangle = []
+    # x, y equal max val col, row
+    y, x = Constant.board_max_index()
+
+    print(x)
+    print(y)
+
+    # Top-left triangle (unchanged)
+    for r in range(0, 7):  # Iterate over the rows starting from 0 to 6 (top)
+        for c in range(0, 7 - r):  # Left triangle: columns from 0 to (7 - r) for each row
+            left_triangle.append((r, c))
+
+    # Top-right triangle (cleaner and more efficient version)
+    for r in range(0, 7):  # Iterate over the rows starting from 0 to 6 (top)
+        # Define the maximum column to skip for each row (row r)
+        skip_columns = set(range(7, 7 + r))  # Skip columns from 7 to 7+r-1 for each row
+
+        # I don't understand why this needs to be done this way but I'm too lazy to figure it out
+        for c in range(13, 6, -1):  # Iterate from column 13 to 7
+            if c not in skip_columns:
+                right_triangle.append((r, c))
+
+    return left_triangle, right_triangle
+
+
+def left_and_right_triangle_sections_bot():
+    left_triangle = []
+    right_triangle = []
+    # x, y equal max val col, row
+    x, y = Constant.board_max_index()
+
+    for r in range(4, y + 1):
+        for c in range(0, r - 2):
+            left_triangle.append((r, c))
+
+    for r in range(4, y + 1):
+        for c in range(x, x - (r - 2), -1):
+            right_triangle.append((r, c))
+
+    return left_triangle, right_triangle
+
+
+def top_and_bottom_squares():
+    top_squares = []
+    bottom_squares = []
+
+    # x, y equal max val col, row
+    x, y = Constant.board_max_index()
+    for c in range(3, x - 2):
+        for r in range(1, 3):
+            square = (r, c)
+            top_squares.append(square)
+        for r in range(y - 2, y):
+            square = (r, c)
+            bottom_squares.append(square)
+    return top_squares, bottom_squares
+
+
+def edge_squares():
+    squares = []
+    # Get the maximum column and row indices (board size)
+    x, y = Constant.board_max_index()
+
+    # Top 2 rows
+    for c in range(0, x + 1):
+        for r in range(0, 2):  # Only the first 2 rows (0, 1)
+            square = (r, c)
+            squares.append(square)
+
+    # Bottom 2 rows
+    for c in range(0, x + 1):
+        for r in range(y - 1, y + 1):  # Last 2 rows (y-2, y-1)
+            square = (r, c)
+            squares.append(square)
+
+    return squares
+
+
+def top_pyramid_squares():
+    squares = []
+    x, y = Constant.board_max_index()
+    height_of_island = min(x, y) // 2 - 1
+
+    # Loop through rows
+    for r in range(0, height_of_island):
+        # Loop through columns
+        for c in range(0, x + 1):
+            # Check if the square is within the pyramid shape
+            if c >= r and c < x - r + 1:
+                squares.append((r, c))
+            elif c >= x - r and c < r - 1:
+                squares.append((r, c))
+
+    return squares
+
+
+def bottom_pyramid_squares():
+    squares = []
+    x, y = Constant.board_max_index()
+    height_of_pyramid = y // 2 + 1
+
+    # Loop through rows in reverse order
+    for r in range(y, height_of_pyramid, -1):
+        for c in range(0, x + 1):
+            # Check conditions to determine whether to append the square
+            if r == y or (r == y - 1 and 0 < c <= x - 1) or (r == y - 2 and 1 < c <= x - 2):
+                squares.append((r, c))
+
+    return squares
+
+
+def center_circle_squares():
+    squares = []
+    x, y = Constant.board_max_index()
+    x += 1
+    radius = 5
+    increment = 0
+    reached_peak = False
+    for r in range(y // 2 - radius, y // 2 + radius):
+        for c in range(x // 2 - increment, x // 2 + increment):
+            square = (r, c)
+            squares.append(square)
+        if increment == radius:
+            reached_peak = True
+        if not reached_peak:
+            increment += 1
+        else:
+            increment -= 1
+
+    return squares
+
+
+def quarter_triangle_sections():
+    bottom_left = []
+    bottom_right = []
+    top_left = []
+    top_right = []
+    x, y = Constant.board_max_index()
+
+    # D TYPE:
+    for r in range(5, y + 1):
+        for c in range(0, r - 2):
+            bottom_left.append((r, c))
+
+    for r in range(y - 3, y + 1):
+        for c in range(x, x - (r - 3), -1):
+            bottom_right.append((r, c))
+
+    for r in range(0, 5):
+        for c in range(5 - r, -1, -1):
+            top_left.append((r, c))
+
+    for r in range(0, 5):
+        for c in range(x, x - (5 - r), -1):
+            top_right.append((r, c))
+
+    return bottom_left, bottom_right, top_left, top_right
+
+
+def quarter_triangle_sections_e():
+    bottom_left = []
+    bottom_right = []
+    top_left = []
+    top_right = []
+    x, y = Constant.board_max_index()
+
+    for r in range(y - 3, y + 1):
+        for c in range(0, r - 5):
+            bottom_left.append((r, c))
+
+    for r in range(y - 3, y + 1):
+        for c in range(x, x - (r - 5), -1):
+            bottom_right.append((r, c))
+
+    for r in range(0, 4):
+        for c in range(3 - r, -1, -1):
+            top_left.append((r, c))
+
+    for r in range(0, 4):
+        for c in range(x, x - (4 - r), -1):
+            top_right.append((r, c))
+
+    return bottom_left, bottom_right, top_left, top_right
+
+
+def left_right_squares():
+    left_squares, right_squares = [], []
+    x, y = Constant.board_max_index()
+    for r in range(0, y + 1):
+        for c in range(0, 3):
+            square = (r, c)
+            left_squares.append(square)
+        for c in range(x - 2, x + 1):
+            square = (r, c)
+            right_squares.append(square)
+    return left_squares, right_squares
+
+
+def alt_starting_squares_a():
+    w_starting_squares, b_starting_squares = [], []
+    x, y = Constant.board_max_index()
+    y_center = y // 2
+    for c in range(1, 3):
+        for r in range(y_center - 2, y_center + 4):
+            square = (r, c)
+            w_starting_squares.append(square)
+    for c in range(x - 2, x):
+        for r in range(y_center - 2, y_center + 4):
+            square = (r, c)
+            b_starting_squares.append(square)
+    return w_starting_squares, b_starting_squares
+
+
+def alt_starting_squares():
+    w_starting_squares, b_starting_squares = [], []
+    x, y = Constant.board_max_index()
+    y_center = y // 2
+    for c in range(2, 4):
+        for r in range(y_center - 2, y_center + 4):
+            square = (r, c)
+            w_starting_squares.append(square)
+    for c in range(x - 3, x - 1):
+        for r in range(y_center - 2, y_center + 4):
+            square = (r, c)
+            b_starting_squares.append(square)
+    return w_starting_squares, b_starting_squares
+
+
+def starting_squares():
+    w_starting_squares, b_starting_squares = [], []
+    x, y = Constant.board_max_index()
+    y_center = y // 2
+    for c in range(0, 5):
+        for r in range(y_center - 2, y_center + 4):
+            square = (r, c)
+            w_starting_squares.append(square)
+    for c in range(x - 4, x + 1):
+        for r in range(y_center - 2, y_center + 4):
+            square = (r, c)
+            b_starting_squares.append(square)
+    return w_starting_squares, b_starting_squares
+
+
+def outside_corner_squares():
+    c, r = Constant.board_max_index()
+    squares = [(0, 0), (0, c), (r, c), (r, 0)]
+    return squares
 
 
 class Map:
     def __init__(self, engine):
         self.engine = engine
-        self.w_starting_squares, self.b_starting_squares = Constant.starting_squares()
-        self.default_start_squares = Constant.starting_squares()
+        self.w_starting_squares, self.b_starting_squares = starting_squares()
+        self.default_start_squares = starting_squares()
         self.starting_squares = self.w_starting_squares + self.b_starting_squares
-        self.top_left, self.top_right, self.bottom_left, self.bottom_right = Constant.quarter_squares()
+        self.top_left, self.top_right, self.bottom_left, self.bottom_right = quarter_squares()
         self.quarters = [self.top_left, self.top_right, self.bottom_left, self.bottom_right]
-        self.center_squares_list = Constant.center_squares()
-        self.edge_squares = Constant.edge_squares()
-        self.left_triangle_bottom, self.right_triangle_bottom = Constant.left_and_right_triangle_sections_bot()
-        self.left_triangle_top, self.right_triangle_top = Constant.left_and_right_triangle_sections_top()
+        self.center_squares_list = center_squares()
+        self.edge_squares = edge_squares()
+        self.left_triangle_bottom, self.right_triangle_bottom = left_and_right_triangle_sections_bot()
+        self.left_triangle_top, self.right_triangle_top = left_and_right_triangle_sections_top()
         self.triangle_sections = [self.left_triangle_bottom, self.right_triangle_bottom]
         self.all_triangle_sections = [
             self.left_triangle_top,
@@ -121,7 +524,7 @@ class Map:
             'acrobat'     : {'log': 0, 'gold': 18, 'stone': 0},
             'magician'    : {'log': 0, 'gold': 10, 'stone': 0},
             'cavalry'     : {'log': 4, 'gold': 1, 'stone': 0},
-            'ferz': {'log': 6, 'gold': 0, 'stone': 0},
+            'ferz'        : {'log': 6, 'gold': 0, 'stone': 0},
 
         }
 
@@ -316,13 +719,13 @@ class Default(Map):
             if rand > 35:
                 self.spawn_wood(r, c)
 
-        for square_set in Constant.top_and_bottom_squares():
+        for square_set in top_and_bottom_squares():
             selected_squares = random.sample(square_set, 3)
             for square in selected_squares:
                 r, c = square[0], square[1]
                 self.spawn_wood_clover(r, c)
 
-        for square_set in Constant.top_and_bottom_squares():
+        for square_set in top_and_bottom_squares():
             # Randomly select 2 unique squares from the square_set
             selected_squares = random.sample(square_set, 1)
 
@@ -336,8 +739,8 @@ class Default(Map):
 class IslandsModified(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.top_pyramid_squares = Constant.top_pyramid_squares()
-        self.bottom_pyramid_squares = Constant.bottom_pyramid_squares()
+        self.top_pyramid_squares = top_pyramid_squares()
+        self.bottom_pyramid_squares = bottom_pyramid_squares()
 
     def generate_resources(self):
         super().generate_resources()
@@ -446,8 +849,8 @@ class Full(Map):
 class Islands(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.top_pyramid_squares = Constant.top_pyramid_squares()
-        self.bottom_pyramid_squares = Constant.bottom_pyramid_squares()
+        self.top_pyramid_squares = top_pyramid_squares()
+        self.bottom_pyramid_squares = bottom_pyramid_squares()
 
     def generate_resources(self):
         super().generate_resources()
@@ -473,7 +876,7 @@ class Minimal(Map):
     def __init__(self, engine):
         super().__init__(engine)
         self.player_wood = 9
-        self.w_starting_squares, self.b_starting_squares = Constant.alt_starting_squares()
+        self.w_starting_squares, self.b_starting_squares = alt_starting_squares()
         self.directions = (Constant.UP, Constant.DOWN, Constant.LEFT, Constant.RIGHT)
 
     def generate_wood(self, squares):
@@ -561,8 +964,8 @@ class WoodlandQuarries(Map):
 
     def __init__(self, engine):
         super().__init__(engine)
-        self.quarter_triangle_sections = Constant.quarter_triangle_sections()
-        self.center_squares = Constant.center_squares()
+        self.quarter_triangle_sections = quarter_triangle_sections()
+        self.center_squares = center_squares()
 
     def generate_resources(self):
         super().generate_resources()
@@ -664,7 +1067,7 @@ class VTrees(Map):
 class GoldTopRight(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.quarter_triangle_sections = Constant.quarter_triangle_sections_a()
+        self.quarter_triangle_sections = quarter_triangle_sections_a()
         self.top_right_squares = self.top_right_squares()
 
     def top_right_squares(self):
@@ -700,7 +1103,7 @@ class GoldTopRight(Map):
 class GoldTopLeft(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.quarter_triangle_sections = Constant.quarter_triangle_sections_c()
+        self.quarter_triangle_sections = quarter_triangle_sections_c()
         self.top_left = self.top_left_squares()
 
     def top_left_squares(self):
@@ -735,7 +1138,7 @@ class GoldTopLeft(Map):
 class TriangleTrees(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.quarter_triangle_sections = Constant.quarter_triangle_sections()
+        self.quarter_triangle_sections = quarter_triangle_sections()
 
     def generate_resources(self):
         super().generate_resources()
@@ -753,8 +1156,8 @@ class TriangleTrees(Map):
 class UnbalancedForestA(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.w_starting_squares, self.b_starting_squares = Constant.alt_starting_squares_a()
-        self.center_squares = Constant.big_center_squares()
+        self.w_starting_squares, self.b_starting_squares = alt_starting_squares_a()
+        self.center_squares = big_center_squares()
 
     def generate_resources(self):
         super().generate_resources()
@@ -789,8 +1192,8 @@ class UnbalancedForestA(Map):
 class UnbalancedForestB(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.w_starting_squares, self.b_starting_squares = Constant.alt_starting_squares_a()
-        self.center_squares = Constant.big_center_squares()
+        self.w_starting_squares, self.b_starting_squares = alt_starting_squares_a()
+        self.center_squares = big_center_squares()
 
     def generate_resources(self):
         super().generate_resources()
@@ -808,8 +1211,8 @@ class UnbalancedForestB(Map):
 class UltraBalanced(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.w_starting_squares, self.b_starting_squares = Constant.alt_starting_squares_a()
-        self.center_squares = Constant.big_center_squares()
+        self.w_starting_squares, self.b_starting_squares = alt_starting_squares_a()
+        self.center_squares = big_center_squares()
 
     def generate_resources(self):
         super().generate_resources()
@@ -827,8 +1230,8 @@ class UltraBalanced(Map):
 class TopBottomModified(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.side_squares = Constant.top_and_bottom_squares()  # Adjusted to use top and bottom
-        self.halfs = Constant.left_right_squares()  # These could be adjusted based on how you want them to behave
+        self.side_squares = top_and_bottom_squares()  # Adjusted to use top and bottom
+        self.halfs = left_right_squares()  # These could be adjusted based on how you want them to behave
         self.directions = [Constant.UP, Constant.RIGHT, Constant.DOWN, Constant.LEFT, Constant.UP_RIGHT,
                            Constant.UP_LEFT, Constant.DOWN_RIGHT, Constant.DOWN_LEFT]
 
@@ -866,7 +1269,7 @@ class TopBottomModified(Map):
                         break
 
         # Add a single gold near the center with variation
-        center_square = random.choice(Constant.center_squares())
+        center_square = random.choice(center_squares())
         variation_range = 3  # Set a variation range around the center
 
         rand_offset_row = random.randint(-variation_range, variation_range)
@@ -884,8 +1287,8 @@ class TopBottomModified(Map):
 class LeftRightModified(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.side_squares = Constant.left_right_squares()
-        self.halfs = Constant.top_and_bottom_squares()
+        self.side_squares = left_right_squares()
+        self.halfs = top_and_bottom_squares()
         self.directions = [Constant.UP, Constant.RIGHT, Constant.DOWN, Constant.LEFT, Constant.UP_RIGHT,
                            Constant.UP_LEFT, Constant.DOWN_RIGHT, Constant.DOWN_LEFT]
 
@@ -925,8 +1328,8 @@ class LeftRightModified(Map):
 class LeftRight(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.side_squares = Constant.left_right_squares()
-        self.halfs = Constant.top_and_bottom_squares()
+        self.side_squares = left_right_squares()
+        self.halfs = top_and_bottom_squares()
         self.directions = [Constant.UP, Constant.RIGHT, Constant.DOWN, Constant.LEFT, Constant.UP_RIGHT,
                            Constant.UP_LEFT, Constant.DOWN_RIGHT, Constant.DOWN_LEFT]
 
@@ -971,7 +1374,7 @@ class OnlyStoneAndGold(Map):
             if rand > 74:
                 r, c = square[0], square[1]
                 random.choice(self.choices)(r, c)
-        for section in Constant.left_right_squares():
+        for section in left_right_squares():
             sample = random.sample(section, 2)
             for square in sample:
                 r, c = square[0], square[1]
@@ -981,7 +1384,7 @@ class OnlyStoneAndGold(Map):
 class CenterCircleA(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.circle_center_squares = Constant.center_circle_squares()
+        self.circle_center_squares = center_circle_squares()
         self.directions = [Constant.UP, Constant.RIGHT, Constant.DOWN, Constant.LEFT, Constant.UP_RIGHT,
                            Constant.UP_LEFT, Constant.DOWN_RIGHT, Constant.DOWN_LEFT]
         self.choices = [self.spawn_sunken_quarry, self.spawn_quarry, self.spawn_depleted_quarry, self.spawn_wood]
@@ -1012,7 +1415,7 @@ class CenterCircleA(Map):
 class CenterCircleB(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.circle_center_squares = Constant.center_circle_squares()
+        self.circle_center_squares = center_circle_squares()
         self.directions = [Constant.UP, Constant.RIGHT, Constant.DOWN, Constant.LEFT, Constant.UP_RIGHT,
                            Constant.UP_LEFT, Constant.DOWN_RIGHT, Constant.DOWN_LEFT]
         self.choices = [self.spawn_sunken_quarry, self.spawn_quarry, self.spawn_depleted_quarry, self.spawn_wood]
@@ -1123,7 +1526,7 @@ class GoldCornersB(Map):
 
     def generate_resources(self):
         rand = random.randint(0, 1)
-        for section in Constant.quarter_triangle_sections_e():
+        for section in quarter_triangle_sections_e():
             for square in section:
                 (r, c) = square[0], square[1]
                 self.spawn_wood(r, c)
@@ -1136,7 +1539,7 @@ class GoldCornersB(Map):
                 (r, c) = square[0], square[1]
                 self.spawn_gold(r, c)
 
-        center_section = random.sample(Constant.big_center_squares(), 2)
+        center_section = random.sample(big_center_squares(), 2)
         for square in center_section:
             (r, c) = square[0], square[1]
             random.choice(self.choices)(r, c)
@@ -1149,7 +1552,7 @@ class GoldCornersA(Map):
 
     def generate_resources(self):
         rand = random.randint(0, 1)
-        for section in Constant.quarter_triangle_sections_e():
+        for section in quarter_triangle_sections_e():
             for square in section:
                 (r, c) = square[0], square[1]
                 self.spawn_wood(r, c)
@@ -1162,7 +1565,7 @@ class GoldCornersA(Map):
                 (r, c) = square[0], square[1]
                 self.spawn_gold(r, c)
 
-        center_section = random.sample(Constant.big_center_squares(), 4)
+        center_section = random.sample(big_center_squares(), 4)
         for square in center_section:
             (r, c) = square[0], square[1]
             random.choice(self.choices)(r, c)
@@ -1181,7 +1584,6 @@ class EnclosedForest(Map):
                 if rng > .4:
                     r, c = square[0], square[1]
                     self.spawn_wood(r, c)
-
 
         for section in self.all_triangle_sections:
             square = random.choice(section)

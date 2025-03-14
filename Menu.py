@@ -1,10 +1,5 @@
 import os
 import random
-from math import ceil
-
-import pygame
-
-import Constant
 from Unit import *
 
 
@@ -1290,7 +1285,6 @@ class CostMenu(Encyclopedia):
             self.engine.menus.append(menu)
             return True
 
-
     def draw(self):
         self.win.fill(Constant.MENU_COLOR)
         self.win.blit(self.text_surf, (self.text_display_x, self.text_display_y))
@@ -1642,7 +1636,11 @@ class PieceInspector(SideMenu):
 class StartMenu(SideMenu):
     def __init__(self, win, engine):
         super().__init__(win, engine)
-        self.color = Constant.INTRO_TEXT_COLOR
+        # Select a random color for the logo and intro text
+        # Used by main menu to vary the wording
+        self.faction_name = self.reselect_faction_name()
+        self.color = self.reselect_menu_color()
+
         self.font_size = round(Constant.SQ_SIZE / 3)
         self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
         self.small_font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size // 2)
@@ -1687,7 +1685,7 @@ class StartMenu(SideMenu):
         y_buffer = Constant.SQ_SIZE // 2
         for line in self.introduction:
             if line == "_":
-                line = Constant.FACTION
+                line = self.faction_name
             if line == self.introduction[0]:
                 surface = self.small_font.render(line, True, self.color)
             else:
@@ -1737,13 +1735,18 @@ class StartMenu(SideMenu):
                 self.reset_map_display_x = self.menu_width // 2 - self.reset_map_image.get_width() // 2
                 self.reset_map_display_y = (Constant.BOARD_HEIGHT_PX - self.resources_square.get_height() // 2 -
                                             self.map_image_height // 2)
-                rand = random.randint(0, len(Constant.FACTION_NAMES) - 1)
-                Constant.FACTION = Constant.FACTION_NAMES[rand]
-                rand = random.randint(0, 2)
-                if rand == 0:
-                    Constant.INTRO_TEXT_COLOR = Constant.WHITE
-                else:
-                    Constant.INTRO_TEXT_COLOR = Constant.BLACK
+                self.faction_name = self.reselect_faction_name()
+
+    def reselect_faction_name(self):
+        rand = random.randint(0, len(Constant.FACTION_NAMES) - 1)
+        return Constant.FACTION_NAMES[rand]
+
+    def reselect_menu_color(self):
+        rand = random.randint(0, 2)
+        if rand == 0:
+            return Constant.WHITE
+        else:
+            return Constant.BLACK
 
     def mouse_move(self):
         pos = pygame.mouse.get_pos()
@@ -2095,7 +2098,6 @@ class Contextual(Menu):
         item_height = Constant.SQ_SIZE
 
         self.engine.get_occupying(self.row, self.col).pre_selected = False
-
 
         # Check if the click is inside the menu’s X boundaries
         if not (self.menu_position_x <= mouse_x <= self.menu_position_x + self.menu_width):

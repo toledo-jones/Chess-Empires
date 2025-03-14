@@ -1,35 +1,64 @@
 """
-
-CONSTANT
-TODO: Untangle this atrocity 
-
+Constant.py
+Contains unchanging lists of data for use in game
 """
-import pygame
+
 import os
 import random
 
-MENU_COLOR = pygame.Color((72, 61, 139))
-GOLD = pygame.Color('gold')
-DARK_ORANGE = pygame.Color('dark orange')
-WHITE = pygame.Color('white')
-BLACK = pygame.Color('black')
-BLUE = pygame.Color('blue')
-RED = pygame.Color('red')
+# Default Start
 DEBUG_START = False
 DISPLAY_STATE_IN_HUD = False
 BOARD_STARTS_WITH_RESOURCES = True
 DEBUG_RITUALS = False
-POP_UPS_ON = True
-from Settings import *
+POP_UPS_ON = False
 STARTING_PRAYER = 0
 STARTING_WOOD = 0
 STARTING_GOLD = 0
 STARTING_STONE = 0
-SPAWN_LISTS = {
-    'stable' : STABLE_SPAWN_LIST, 'fortress': FORTRESS_SPAWN_LIST, 'castle': CASTLE_SPAWN_LIST,
-    'builder': BUILDER_SPAWN_LIST, 'barracks': BARRACKS_SPAWN_LIST, 'circus': CIRCUS_SPAWN_LIST,
-    'trapper': TRAPPER_SPAWN_LIST, 'monk': MONK_SPAWN_LIST
+#
+
+# Configurable stuff goes here
+from Settings import *
+#
+
+# Dictionaries for commonly used string conversions
+RESOURCE_YIELD_KEY = {
+    'gold_tile_1'      : 'gold',
+    'quarry_1'         : 'quarry',
+    'sunken_quarry_1'  : 'sunken_quarry',
+    'tree_tile_1'      : 'wood',
+    'tree_tile_4'      : 'wood',
+    'tree_tile_2'      : 'wood',
+    'tree_tile_3'      : 'wood',
+    'tree_tile_5'      : 'wood',
+    'tree_tile_6'      : 'wood',
+    'tree_tile_7'      : 'wood',
+    'tree_tile_8'      : 'wood',
+    'depleted_quarry_1': None
 }
+RESOURCE_KEY = {
+    'gold_tile_1'    : 'gold',
+    'quarry_1'       : 'stone',
+    'sunken_quarry_1': 'stone',
+    'tree_tile_1'    : 'wood',
+    'tree_tile_2'    : 'wood',
+    'tree_tile_3'    : 'wood',
+    'tree_tile_4'    : 'wood',
+    'tree_tile_5'    : 'wood',
+    'tree_tile_6'    : 'wood',
+    'tree_tile_7'    : 'wood',
+    'tree_tile_8'    : 'wood',
+    'gold'           : 'gold',
+    'log'            : 'wood',
+    'gold_coin'      : 'gold',
+    'stone'          : 'stone'
+}
+turn_to_color = {'w': WHITE, 'b': BLACK}
+TURNS = {'w': 'b', 'b': 'w'}
+#
+
+# Lists which tell the game which assets to load
 w_pieces = ['w_king',
             'w_queen',
             'w_rook',
@@ -64,14 +93,15 @@ w_pieces = ['w_king',
             'w_magician',
             'w_cavalry'
             ]
-b_pieces = ['b_king', 'b_queen', 'b_rook','b_ferz', 'b_bishop',
+b_pieces = ['b_king', 'b_queen', 'b_rook', 'b_ferz', 'b_bishop',
             'b_knight', 'b_pawn', 'b_monk', 'b_duke',
             'b_rogue_bishop', 'b_jester', 'b_pikeman',
             'b_gold_general', 'b_silver_general',
             'b_rogue_rook', 'b_elephant', 'b_elephant_cart',
             'b_champion', 'b_rogue_pawn', 'b_rogue_knight',
             'b_builder', 'b_unicorn', 'b_ram', 'b_oxen',
-            'b_persuader', 'b_doe', 'b_trader', 'b_trapper', 'b_lion', 'b_fire_spinner', 'b_acrobat', 'b_magician', 'b_cavalry']
+            'b_persuader', 'b_doe', 'b_trader', 'b_trapper', 'b_lion', 'b_fire_spinner', 'b_acrobat', 'b_magician',
+            'b_cavalry']
 w_buildings = ['w_castle',
                'w_fortress',
                'w_barracks',
@@ -119,46 +149,22 @@ contextual_menu_icons = [
     'b_decree_u', 'b_decree', 'w_ritual', 'b_ritual'
 ]
 sounds = []
-RESOURCE_YIELD_KEY = {
-    'gold_tile_1'      : 'gold',
-    'quarry_1'         : 'quarry',
-    'sunken_quarry_1'  : 'sunken_quarry',
-    'tree_tile_1'      : 'wood',
-    'tree_tile_4'      : 'wood',
-    'tree_tile_2'      : 'wood',
-    'tree_tile_3'      : 'wood',
-    'tree_tile_5'      : 'wood',
-    'tree_tile_6'      : 'wood',
-    'tree_tile_7'      : 'wood',
-    'tree_tile_8'      : 'wood',
-    'depleted_quarry_1': None
-}
-RESOURCE_KEY = {
-    'gold_tile_1'    : 'gold',
-    'quarry_1'       : 'stone',
-    'sunken_quarry_1': 'stone',
-    'tree_tile_1'    : 'wood',
-    'tree_tile_2'    : 'wood',
-    'tree_tile_3'    : 'wood',
-    'tree_tile_4'    : 'wood',
-    'tree_tile_5'    : 'wood',
-    'tree_tile_6'    : 'wood',
-    'tree_tile_7'    : 'wood',
-    'tree_tile_8'    : 'wood',
-    'gold'           : 'gold',
-    'log'            : 'wood',
-    'gold_coin'      : 'gold',
-    'stone'          : 'stone'
-}
-rand = random.randint(0, len(FACTION_NAMES) - 1)
-FACTION = FACTION_NAMES[rand]
-rand = random.randint(0, 2)
-if rand == 0:
-    INTRO_TEXT_COLOR = WHITE
-else:
-    INTRO_TEXT_COLOR = BLACK
-turn_to_color = {'w': WHITE, 'b': BLACK}
-TURNS = {'w': 'b', 'b': 'w'}
+ambience = []
+start_game = []
+building_spawning = []
+captures = []
+harvesting_rock = []
+harvesting_wood = []
+moves = []
+piece_spawning = []
+purchase = []
+rituals = []
+generate_resources = []
+pray = []
+change_turn = []
+#
+
+# Moves
 RIGHT = (0, 1)
 LEFT = (0, -1)
 UP = (-1, 0)
@@ -191,6 +197,9 @@ THREE_DOWN_RIGHT = (3, 1)
 THREE_RIGHT_DOWN = (1, 3)
 THREE_DOWN_LEFT = (3, -1)
 THREE_LEFT_DOWN = (1, -3)
+#
+
+# Dictionaries which will contain actual game assets
 PRAYER_RITUALS = {}
 IMAGES = {}
 RESOURCES = {}
@@ -201,45 +210,6 @@ B_PIECES = {}
 B_BUILDINGS = {}
 CONTEXTUAL_MENU_ICONS = {}
 MUSIC = {}
-ambience = []
-for i in range(7):
-    ambience.append(i)
-building_spawning = []
-for i in range(6):
-    building_spawning.append(i)
-captures = []
-for i in range(62):
-    captures.append(i)
-harvesting_rock = []
-for i in range(63):
-    harvesting_rock.append(i)
-harvesting_wood = []
-for i in range(36):
-    harvesting_wood.append(i)
-moves = []
-for i in range(118):
-    moves.append(i)
-piece_spawning = []
-for i in range(16):
-    piece_spawning.append(i)
-purchase = []
-for i in range(25):
-    purchase.append(i)
-rituals = []
-for i in range(54):
-    rituals.append(i)
-generate_resources = []
-for i in range(12):
-    generate_resources.append(i)
-pray = []
-for i in range(19):
-    pray.append(i)
-change_turn = []
-for i in range(8):
-    change_turn.append(i)
-start_game = []
-for i in range(4):
-    start_game.append(i)
 BUILDING_SPAWNING_SOUNDS = {}
 CAPTURE_SOUNDS = {}
 HARVESTING_ROCK_SOUNDS = {}
@@ -253,6 +223,35 @@ PRAY_SOUNDS = {}
 CHANGE_TURN_SOUNDS = {}
 START_GAME_SOUNDS = {}
 BOARD_TILES = {'dark': {}, 'light': {}}
+#
+
+# Loops to add lists of numbers to empty asset lists
+for i in range(7):
+    ambience.append(i)
+for i in range(6):
+    building_spawning.append(i)
+for i in range(62):
+    captures.append(i)
+for i in range(63):
+    harvesting_rock.append(i)
+for i in range(36):
+    harvesting_wood.append(i)
+for i in range(118):
+    moves.append(i)
+for i in range(16):
+    piece_spawning.append(i)
+for i in range(25):
+    purchase.append(i)
+for i in range(54):
+    rituals.append(i)
+for i in range(12):
+    generate_resources.append(i)
+for i in range(19):
+    pray.append(i)
+for i in range(8):
+    change_turn.append(i)
+for i in range(4):
+    start_game.append(i)
 
 
 def load_sounds():
@@ -386,414 +385,10 @@ def piece_color_to_type(color_piece):
     return color_piece[2:]
 
 
-def quarter_squares():
-    top_left = []
-    top_right = []
-    bottom_left = []
-    bottom_right = []
-    x, y = board_max_index()
-    minimum_row = 2
-    maximum_row = y - 1
-    for c in range(x + 1):
-        for r in range(minimum_row, maximum_row):
-            if c > x // 2 and r > y // 2:
-                bottom_right.append((r, c))
-            elif c < x // 2 and r > y // 2:
-                bottom_left.append((r, c))
-            elif c > x // 2 and r < y // 2:
-                top_right.append((r, c))
-            elif c < x // 2 and r < y // 2:
-                top_left.append((r, c))
-
-    return top_left, top_right, bottom_left, bottom_right
-
-
-def big_center_squares():
-    squares = []
-    # x, y equal max val col, row
-    x, y = board_max_index()
-
-    for c in range(x // 2 - 2, x // 2 + 4):
-        for r in range(y + 1):
-            square = (r, c)
-            squares.append(square)
-    return squares
-
-
-def center_squares():
-    squares = []
-    # x, y equal max val col, row
-    x, y = board_max_index()
-
-    for c in range(x // 2, x // 2 + 2):
-        for r in range(y // 2, y // 2 + 2):
-            square = (r, c)
-            squares.append(square)
-    return squares
-
-
-def quarter_triangle_sections_a():
-    bottom_left = []
-    bottom_right = []
-    top_left = []
-    top_right = []
-    # x, y equal max val col, row
-    x, y = board_max_index()
-
-    for r in range(6, y + 1):
-        for c in range(0, r - 2):
-            bottom_left.append((r, c))
-
-    for r in range(6, y + 1):
-        for c in range(x, x - (r - 2), -1):
-            bottom_right.append((r, c))
-
-    for r in range(0, 6):
-        for c in range(6 - r, -1, -1):
-            top_left.append((r, c))
-
-    # for r in range(6, 0, -1):
-    #     for c in range( x - (r - 2), x, -1):
-    #         top_right.append((r, c))
-
-    return bottom_left, bottom_right, top_left, top_right
-
-
-def quarter_triangle_sections_b():
-    bottom_left = []
-    bottom_right = []
-    top_left = []
-    top_right = []
-    # x, y equal max val col, row
-    x, y = board_max_index()
-
-    # for r in range(6, y + 1):
-    #     for c in range(0, r - 2):
-    #         bottom_left.append((r, c))
-    #
-    for r in range(6, y + 1):
-        for c in range(x, x - (r - 2), -1):
-            bottom_right.append((r, c))
-
-    for r in range(0, 6):
-        for c in range(6 - r, -1, -1):
-            top_left.append((r, c))
-
-    for r in range(0, 6):
-        for c in range(x, x - (6 - r), -1):
-            top_right.append((r, c))
-
-    return bottom_left, bottom_right, top_left, top_right
-
-
-def quarter_triangle_sections_c():
-    bottom_left = []
-    bottom_right = []
-    top_left = []
-    top_right = []
-    # x, y equal max val col, row
-    x, y = board_max_index()
-
-    for r in range(6, y + 1):
-        for c in range(0, r - 2):
-            bottom_left.append((r, c))
-
-    for r in range(6, y + 1):
-        for c in range(x, x - (r - 2), -1):
-            bottom_right.append((r, c))
-
-    # for r in range(0, 6):
-    #     for c in range(6-r, -1, -1):
-    #         top_left.append((r, c))
-
-    for r in range(0, 6):
-        for c in range(x, x - (6 - r), -1):
-            top_right.append((r, c))
-
-    return bottom_left, bottom_right, top_left, top_right
-
-
-def quarter_triangle_sections_d():
-    bottom_left = []
-    bottom_right = []
-    top_left = []
-    top_right = []
-    # x, y equal max val col, row
-    x, y = board_max_index()
-
-    for r in range(5, y + 1):
-        for c in range(0, r - 2):
-            bottom_left.append((r, c))
-
-    # for r in range(6, y + 1):
-    #     for c in range(x, x - (r - 2), -1):
-    #         bottom_right.append((r, c))
-
-    for r in range(0, 5):
-        for c in range(5 - r, -1, -1):
-            top_left.append((r, c))
-
-    for r in range(0, 5):
-        for c in range(x, x - (5 - r), -1):
-            top_right.append((r, c))
-
-    return bottom_left, bottom_right, top_left, top_right
-
-
-def left_and_right_triangle_sections_top():
-    left_triangle = []
-    right_triangle = []
-    # x, y equal max val col, row
-    y, x = board_max_index()
-
-    print(x)
-    print(y)
-
-    # Top-left triangle (unchanged)
-    for r in range(0, 7):  # Iterate over the rows starting from 0 to 6 (top)
-        for c in range(0, 7 - r):  # Left triangle: columns from 0 to (7 - r) for each row
-            left_triangle.append((r, c))
-
-    # Top-right triangle (cleaner and more efficient version)
-    for r in range(0, 7):  # Iterate over the rows starting from 0 to 6 (top)
-        # Define the maximum column to skip for each row (row r)
-        skip_columns = set(range(7, 7 + r))  # Skip columns from 7 to 7+r-1 for each row
-
-        # I don't understand why this needs to be done this way but I'm too lazy to figure it out
-        for c in range(13, 6, -1):  # Iterate from column 13 to 7
-            if c not in skip_columns:
-                right_triangle.append((r, c))
-
-    return left_triangle, right_triangle
-
-
-def left_and_right_triangle_sections_bot():
-    left_triangle = []
-    right_triangle = []
-    # x, y equal max val col, row
-    x, y = board_max_index()
-
-    for r in range(4, y + 1):
-        for c in range(0, r - 2):
-            left_triangle.append((r, c))
-
-    for r in range(4, y + 1):
-        for c in range(x, x - (r - 2), -1):
-            right_triangle.append((r, c))
-
-    return left_triangle, right_triangle
-
-
-def top_and_bottom_squares():
-    top_squares = []
-    bottom_squares = []
-
-    # x, y equal max val col, row
-    x, y = board_max_index()
-    for c in range(3, x - 2):
-        for r in range(1, 3):
-            square = (r, c)
-            top_squares.append(square)
-        for r in range(y - 2, y):
-            square = (r, c)
-            bottom_squares.append(square)
-    return top_squares, bottom_squares
-
-
-def edge_squares():
-    squares = []
-    # Get the maximum column and row indices (board size)
-    x, y = board_max_index()
-
-    # Top 2 rows
-    for c in range(0, x + 1):
-        for r in range(0, 2):  # Only the first 2 rows (0, 1)
-            square = (r, c)
-            squares.append(square)
-
-    # Bottom 2 rows
-    for c in range(0, x + 1):
-        for r in range(y - 1, y + 1):  # Last 2 rows (y-2, y-1)
-            square = (r, c)
-            squares.append(square)
-
-    return squares
-
-
 def board_max_index():
     x = BOARD_WIDTH_SQ - 1
     y = BOARD_HEIGHT_SQ - 1
     return x, y
-
-
-def top_pyramid_squares():
-    squares = []
-    x, y = board_max_index()
-    height_of_island = min(x, y) // 2 - 1
-
-    # Loop through rows
-    for r in range(0, height_of_island):
-        # Loop through columns
-        for c in range(0, x + 1):
-            # Check if the square is within the pyramid shape
-            if c >= r and c < x - r + 1:
-                squares.append((r, c))
-            elif c >= x - r and c < r - 1:
-                squares.append((r, c))
-
-    return squares
-
-
-def bottom_pyramid_squares():
-    squares = []
-    x, y = board_max_index()
-    height_of_pyramid = y // 2 + 1
-
-    # Loop through rows in reverse order
-    for r in range(y, height_of_pyramid, -1):
-        for c in range(0, x + 1):
-            # Check conditions to determine whether to append the square
-            if r == y or (r == y - 1 and 0 < c <= x - 1) or (r == y - 2 and 1 < c <= x - 2):
-                squares.append((r, c))
-
-    return squares
-
-
-# Example usage
-top_result = top_pyramid_squares()
-bottom_result = bottom_pyramid_squares()
-
-
-def center_circle_squares():
-    squares = []
-    x, y = board_max_index()
-    x += 1
-    radius = 5
-    increment = 0
-    reached_peak = False
-    for r in range(y // 2 - radius, y // 2 + radius):
-        for c in range(x // 2 - increment, x // 2 + increment):
-            square = (r, c)
-            squares.append(square)
-        if increment == radius:
-            reached_peak = True
-        if not reached_peak:
-            increment += 1
-        else:
-            increment -= 1
-
-    return squares
-
-
-def quarter_triangle_sections():
-    bottom_left = []
-    bottom_right = []
-    top_left = []
-    top_right = []
-    x, y = board_max_index()
-
-    # D TYPE:
-    for r in range(5, y + 1):
-        for c in range(0, r - 2):
-            bottom_left.append((r, c))
-
-    for r in range(y - 3, y + 1):
-        for c in range(x, x - (r - 3), -1):
-            bottom_right.append((r, c))
-
-    for r in range(0, 5):
-        for c in range(5 - r, -1, -1):
-            top_left.append((r, c))
-
-    for r in range(0, 5):
-        for c in range(x, x - (5 - r), -1):
-            top_right.append((r, c))
-
-    return bottom_left, bottom_right, top_left, top_right
-
-
-def quarter_triangle_sections_e():
-    bottom_left = []
-    bottom_right = []
-    top_left = []
-    top_right = []
-    x, y = board_max_index()
-
-    for r in range(y - 3, y + 1):
-        for c in range(0, r - 5):
-            bottom_left.append((r, c))
-
-    for r in range(y - 3, y + 1):
-        for c in range(x, x - (r - 5), -1):
-            bottom_right.append((r, c))
-
-    for r in range(0, 4):
-        for c in range(3 - r, -1, -1):
-            top_left.append((r, c))
-
-    for r in range(0, 4):
-        for c in range(x, x - (4 - r), -1):
-            top_right.append((r, c))
-
-    return bottom_left, bottom_right, top_left, top_right
-
-
-def left_right_squares():
-    left_squares, right_squares = [], []
-    x, y = board_max_index()
-    for r in range(0, y + 1):
-        for c in range(0, 3):
-            square = (r, c)
-            left_squares.append(square)
-        for c in range(x - 2, x + 1):
-            square = (r, c)
-            right_squares.append(square)
-    return left_squares, right_squares
-
-
-def alt_starting_squares_a():
-    w_starting_squares, b_starting_squares = [], []
-    x, y = board_max_index()
-    y_center = y // 2
-    for c in range(1, 3):
-        for r in range(y_center - 2, y_center + 4):
-            square = (r, c)
-            w_starting_squares.append(square)
-    for c in range(x - 2, x):
-        for r in range(y_center - 2, y_center + 4):
-            square = (r, c)
-            b_starting_squares.append(square)
-    return w_starting_squares, b_starting_squares
-
-
-def alt_starting_squares():
-    w_starting_squares, b_starting_squares = [], []
-    x, y = board_max_index()
-    y_center = y // 2
-    for c in range(2, 4):
-        for r in range(y_center - 2, y_center + 4):
-            square = (r, c)
-            w_starting_squares.append(square)
-    for c in range(x - 3, x - 1):
-        for r in range(y_center - 2, y_center + 4):
-            square = (r, c)
-            b_starting_squares.append(square)
-    return w_starting_squares, b_starting_squares
-
-
-def starting_squares():
-    w_starting_squares, b_starting_squares = [], []
-    x, y = board_max_index()
-    y_center = y // 2
-    for c in range(0, 5):
-        for r in range(y_center - 2, y_center + 4):
-            square = (r, c)
-            w_starting_squares.append(square)
-    for c in range(x - 4, x + 1):
-        for r in range(y_center - 2, y_center + 4):
-            square = (r, c)
-            b_starting_squares.append(square)
-    return w_starting_squares, b_starting_squares
 
 
 def outside_corner_squares():
@@ -805,8 +400,6 @@ def outside_corner_squares():
 def pos_in_bounds(pos):
     if BOARD_WIDTH_PX > pos[0] > 0 and BOARD_HEIGHT_PX > pos[1] > 0:
         return True
-    else:
-        return False
 
 
 def tile_in_bounds(r, c):

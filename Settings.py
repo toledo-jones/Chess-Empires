@@ -10,6 +10,9 @@ import pygame
                                         -Minimal boilerplate
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"""
+Uncomment this section to enable debug features 
+"""
 # DEBUG_START = True
 # DISPLAY_STATE_IN_HUD = True
 # BOARD_STARTS_WITH_RESOURCES = False
@@ -55,6 +58,13 @@ UNUSED_PIECE_HIGHLIGHT_COLOR = pygame.Color((237, 225, 199))
 SELF_SQUARE_HIGHLIGHT_COLOR = pygame.Color('blue')
 MOVE_SQUARE_HIGHLIGHT_COLOR = pygame.Color((199, 202, 237))
 CHECK_SQUARE_HIGHLIGHT_COLOR = pygame.Color('red')
+GOLD = pygame.Color('gold')
+DARK_ORANGE = pygame.Color('dark orange')
+WHITE = pygame.Color('white')
+BLACK = pygame.Color('black')
+BLUE = pygame.Color('blue')
+RED = pygame.Color('red')
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 
@@ -76,6 +86,7 @@ TURN_CHANGE_AFTER_START_SPAWN = True
                                         LISTS
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
 SELECTABLE_STARTING_PIECES = ['pawn', 'ferz', 'rogue_pawn', 'builder']
 BONUS_STARTING_PIECES = ['trader', 'pikeman', 'trapper', 'monk']
 MASTER_COST_LIST = ['builder', 'monk', 'stable', 'castle', 'barracks', 'fortress', 'circus']
@@ -88,6 +99,11 @@ CIRCUS_SPAWN_LIST = ['jester', 'persuader', 'lion', 'fire_spinner', 'acrobat', '
 TRAPPER_SPAWN_LIST = ['trap']
 MONK_SPAWN_LIST = ['monolith', 'prayer_stone']
 STARTING_PIECES = ['castle', 'king']
+SPAWN_LISTS = {
+    'stable' : STABLE_SPAWN_LIST, 'fortress': FORTRESS_SPAWN_LIST, 'castle': CASTLE_SPAWN_LIST,
+    'builder': BUILDER_SPAWN_LIST, 'barracks': BARRACKS_SPAWN_LIST, 'circus': CIRCUS_SPAWN_LIST,
+    'trapper': TRAPPER_SPAWN_LIST, 'monk': MONK_SPAWN_LIST
+}
 FACTION_NAMES = ['clique', 'coterie', 'cabal', 'bloc', 'camp', 'grouping',
                  'side', 'division', 'wing', 'section', 'countrymen', 'squad', 'faction',
                  'company', 'troupe', 'set', 'army', 'party', 'gang', 'selection', 'crew',

@@ -255,11 +255,11 @@ class State:
 
 
 class MainMenu(State):
-    def __init__(self, win, engine):
+    def __init__(self, win, engine, splash_screen):
         super().__init__(win, engine)
-        self.main_menu_logo = Constant.MAIN_MENU_LOGO
-        self.logo_position = Constant.LOGO_POSITION
-        self.color = Constant.turn_to_color[Constant.LOGO_COLOR]
+        self.main_menu_logo = splash_screen.logo_image
+        self.logo_position = splash_screen.logo_position
+        self.color = Constant.turn_to_color[splash_screen.logo_color]
 
         self.window_width = pygame.display.Info().current_w
         self.window_height = pygame.display.Info().current_h
@@ -294,6 +294,11 @@ class MainMenu(State):
 
     def __repr__(self):
         return 'main menu'
+
+    def set_splash(self, splash_screen):
+        self.main_menu_logo = splash_screen.logo_image
+        self.logo_position = splash_screen.logo_position
+        self.color = Constant.turn_to_color[splash_screen.logo_color]
 
     def draw(self):
         self.win.fill(Constant.MENU_COLOR)

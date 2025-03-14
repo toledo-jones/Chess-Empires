@@ -1,13 +1,31 @@
-from Engine import Engine
-from State import *
-import sys
-
-import pygame
+from Splash import SplashScreen
 
 
 def main():
+    import sys
+
+    import pygame
     # Initialize Pygame and load all necessary game resources
     pygame.init()
+
+    # Initialize the window (fullscreen mode)
+    window = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    pygame.display.toggle_fullscreen()  # Toggle fullscreen twice to force it on
+    pygame.display.toggle_fullscreen()
+
+    import Constant
+
+    # Constants for splash screen
+    LOGO_COLORS = {0: 'w', 1: 'b'}
+    LOGO_FOLDER = "files/images"
+    DISPLAY_TIME = 2.0  # Time for splash screen to show
+
+    # Create and display the splash screen
+    splash_screen = SplashScreen(window, LOGO_FOLDER, LOGO_COLORS, display_time=DISPLAY_TIME)
+    splash_screen.display()
+
+    from Engine import Engine
+
     Constant.load_images()  # Load images required for the game (pieces, board, etc.)
     Constant.load_music()  # Load background music
     Constant.load_sounds()  # Load sound effects (clicks, moves, etc.)
@@ -25,8 +43,10 @@ def main():
     # Create and initialize the game engine
     engine = Engine()
 
+    from State import MainMenu
+
     # Set the initial game state to the Main Menu
-    state = MainMenu(Constant.win, engine)
+    state = MainMenu(window, engine, splash_screen)
     engine.set_state(state)  # Set the initial state in the engine
 
     # Set the game window's title and icon

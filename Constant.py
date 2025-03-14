@@ -1,40 +1,26 @@
-import os
-import random
-import pygame
-import time
-
 """
 
 CONSTANT
 TODO: Untangle this atrocity 
 
 """
-DEBUG_START = False
-DISPLAY_STATE_IN_HUD = False
-BOARD_STARTS_WITH_RESOURCES = True
-DEBUG_RITUALS = False
-POP_UPS_ON = True
+import pygame
+import os
+import random
+
+MENU_COLOR = pygame.Color((72, 61, 139))
 GOLD = pygame.Color('gold')
 DARK_ORANGE = pygame.Color('dark orange')
 WHITE = pygame.Color('white')
 BLACK = pygame.Color('black')
 BLUE = pygame.Color('blue')
 RED = pygame.Color('red')
-ICON_COLORS = {0: 'w', 1: 'b'}
-win = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-pygame.display.toggle_fullscreen()
-pygame.display.toggle_fullscreen()
-MENU_COLOR = pygame.Color((72, 61, 139))
-win.fill(MENU_COLOR)
-LOGO_COLOR = ICON_COLORS[random.randint(0, 1)]
-MAIN_MENU_LOGO = pygame.transform.scale(
-        pygame.image.load(os.path.join("files/images", LOGO_COLOR + "_game_name.png")), (400, 400))
-LOGO_POSITION = (pygame.display.Info().current_w // 2 - 200, pygame.display.Info().current_h // 2 - 300)
-win.blit(MAIN_MENU_LOGO, LOGO_POSITION)
-pygame.display.update()
-time.sleep(2)
+DEBUG_START = False
+DISPLAY_STATE_IN_HUD = False
+BOARD_STARTS_WITH_RESOURCES = True
+DEBUG_RITUALS = False
+POP_UPS_ON = True
 from Settings import *
-
 STARTING_PRAYER = 0
 STARTING_WOOD = 0
 STARTING_GOLD = 0

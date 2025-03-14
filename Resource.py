@@ -3,6 +3,7 @@ import random
 import Constant
 
 
+
 class Resource:
     def __init__(self, row, col, owner=None):
         self.row = row

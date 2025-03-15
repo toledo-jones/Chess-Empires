@@ -16,11 +16,9 @@ STARTING_PRAYER = 0
 STARTING_WOOD = 0
 STARTING_GOLD = 0
 STARTING_STONE = 0
-#
 
 # Configurable stuff goes here
 from Settings import *
-#
 
 # Dictionaries for commonly used string conversions
 RESOURCE_YIELD_KEY = {
@@ -56,13 +54,13 @@ RESOURCE_KEY = {
 }
 turn_to_color = {'w': WHITE, 'b': BLACK}
 TURNS = {'w': 'b', 'b': 'w'}
-#
 
 # Lists which tell the game which assets to load
 w_pieces = ['w_king',
             'w_queen',
             'w_rook',
             'w_ferz',
+            'w_assassin',
             'w_bishop',
             'w_knight',
             'w_pawn',
@@ -93,7 +91,7 @@ w_pieces = ['w_king',
             'w_magician',
             'w_cavalry'
             ]
-b_pieces = ['b_king', 'b_queen', 'b_rook', 'b_ferz', 'b_bishop',
+b_pieces = ['b_king', 'b_queen', 'b_rook', 'b_ferz', 'b_assassin', 'b_bishop',
             'b_knight', 'b_pawn', 'b_monk', 'b_duke',
             'b_rogue_bishop', 'b_jester', 'b_pikeman',
             'b_gold_general', 'b_silver_general',
@@ -162,7 +160,6 @@ rituals = []
 generate_resources = []
 pray = []
 change_turn = []
-#
 
 # Moves
 RIGHT = (0, 1)
@@ -197,7 +194,6 @@ THREE_DOWN_RIGHT = (3, 1)
 THREE_RIGHT_DOWN = (1, 3)
 THREE_DOWN_LEFT = (3, -1)
 THREE_LEFT_DOWN = (1, -3)
-#
 
 # Dictionaries which will contain actual game assets
 PRAYER_RITUALS = {}
@@ -223,7 +219,6 @@ PRAY_SOUNDS = {}
 CHANGE_TURN_SOUNDS = {}
 START_GAME_SOUNDS = {}
 BOARD_TILES = {'dark': {}, 'light': {}}
-#
 
 # Loops to add lists of numbers to empty asset lists
 for i in range(7):

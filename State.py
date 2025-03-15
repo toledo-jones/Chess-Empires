@@ -404,7 +404,6 @@ class Playing(State):
             row, col = Constant.convert_pos(pos)
             currently_selected = self.engine.get_occupying(row, col)
             if self.can_select_piece(currently_selected):
-                print("Can Select Piece")
                 self.dragging_piece = currently_selected
                 currently_selected.dragging = True
                 return self.select_piece(currently_selected)
@@ -420,6 +419,17 @@ class Playing(State):
                     # If nothing valid is selected, show a popup menu
                     self.engine.reset_selected()  # Reset selected piece
             self.reset_dragging_piece()
+
+    def can_swap_to_square(self, previously_selected, row, col):
+        if previously_selected is None:
+            return False
+        if not previously_selected.can_act():
+            return False
+        if not self.engine.player_can_do_action(self.engine.turn):
+            return False
+        if (row, col) not in previously_selected.swap_squares_list:
+            return False
+        return True
 
     def can_move_to_square(self, previously_selected, row, col):
         """
@@ -450,7 +460,7 @@ class Playing(State):
             return False
         if self.engine.turn != currently_selected.color:  # The piece does not belong to the current player
             return False
-        if currently_selected.actions_remaining == 0:  # No actions left for the piece
+        if not currently_selected.can_act():  # No actions left for the piece
             self.engine.set_popup_reason('piece_action')  # Set reason for piece not being able to be selected
             return False
         if not self.engine.player_can_do_action(self.engine.turn):  # Player can't perform actions
@@ -502,6 +512,10 @@ class Playing(State):
             self.perform_move(previously_selected, row, col)
             return True  # Move successful
 
+        if self.can_swap_to_square(previously_selected, row, col):
+            self.perform_swap(previously_selected, row, col)
+            return True
+
         # Check if the same piece is selected again (deselect it)
         if self.same_piece_selected(previously_selected, row, col):
             self.engine.reset_selected()
@@ -531,15 +545,14 @@ class Playing(State):
         self.engine.add_event(event)  # Add event to engine
         self.engine.reset_selected()  # Reset selected piece
 
-    def perform_contextual(self, previously_selected, row, col):
+    def perform_swap(self, previously_selected, row, col):
         """
-        Performs the contextual action by creating an event and updating the game state.
+        Performs the move action by creating an event and updating the game state.
         """
-        prev_row, prev_col = previously_selected.get_position()
-        acting_tile = self.engine.board[prev_row][prev_col]
+        prev_position = previously_selected.get_position()
+        acting_tile = self.engine.board[prev_position[0]][prev_position[1]]
         action_tile = self.engine.board[row][col]
-        contextual = {'pray': Pray, 'steal': Steal, 'persuade': Persuade}
-        event = contextual[self.contextual](self.engine, acting_tile, action_tile)  # Create the contextual event
+        event = Swap(self.engine, acting_tile, action_tile)  # Create the move event
         self.engine.add_event(event)  # Add event to engine
         self.engine.reset_selected()  # Reset selected piece
 
@@ -869,7 +882,8 @@ class SelectStartingPieces(State):
                 if self.selection_matrix[r][c][2]:
                     spawn_list.append(self.selection_matrix[r][c][0])
         spawn_list.append(Constant.STARTING_PIECES[-1])
-        if len(spawn_list) == (Constant.NUMBER_OF_STARTING_PIECES + len(Constant.STARTING_PIECES) + Constant.NUMBER_OF_BONUS_PIECES):
+        if len(spawn_list) == (
+                Constant.NUMBER_OF_STARTING_PIECES + len(Constant.STARTING_PIECES) + Constant.NUMBER_OF_BONUS_PIECES):
             self.engine.transfer_to_starting_spawn(spawn_list)
 
     def flip_draw_map(self):
@@ -2022,6 +2036,10 @@ class PerformSwap(Ritual):
         self.first_selected = None
         self.second_selected = None
         self.previously_selected.ritual_squares_list = self.swap_ritual_squares()
+        if str(self.previously_selected) == 'assassin':
+            self.first_selected = self.previously_selected
+            self.previously_selected.ritual_squares_list = self.swap_ritual_squares()
+
 
     def __repr__(self):
         return 'swap'
@@ -2032,6 +2050,8 @@ class PerformSwap(Ritual):
         self.previously_selected.highlight_ritual_squares(self.win)
         self.draw_ritual_at_mouse_position()
         if self.first_selected:
+            if str(self.first_selected) == 'assassin':
+                return
             self.first_selected.highlight_self_square(self.win)
 
     def swap_criteria(self, piece):

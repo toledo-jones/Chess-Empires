@@ -48,6 +48,7 @@ class Unit:
         self.ritual_squares_list = []
         self.capture_squares_list = []
         self.persuader_squares_list = []
+        self.swap_squares_list = []
 
         self.square = pygame.Surface((Constant.SQ_SIZE, Constant.SQ_SIZE))
         self.self_selected_square_color = Constant.SELF_SQUARE_HIGHLIGHT_COLOR
@@ -58,6 +59,9 @@ class Unit:
 
     def update_praying_squares(self, engine):
         self.praying_squares_list = self.praying_squares(engine)
+
+    def update_swap_squares(self, engine):
+        self.swap_squares_list = self.swap_squares(engine)
 
     def update_stealing_squares(self, engine):
         self.stealing_squares_list = self.stealing_squares(engine)
@@ -162,6 +166,9 @@ class Unit:
     def stealing_squares(self, engine):
         return []
 
+    def swap_squares(self, engine):
+        return []
+
     def praying_squares(self, engine):
         return []
 
@@ -191,6 +198,7 @@ class Unit:
             self.highlight_self_square(win)
             self.highlight_move_squares(win)
             self.highlight_capture_squares(win)
+            self.highlight_swap_squares(win)
         if self.pre_selected:
             self.highlight_self_square(win)
         if self.mining:
@@ -219,6 +227,7 @@ class Unit:
             self.highlight_self_square(win)
             self.highlight_move_squares(win)
             self.highlight_capture_squares(win)
+            self.highlight_swap_squares(win)
         if self.check:
             self.highlight_self_square_check(win)
         if self.actions_remaining == 0:
@@ -282,6 +291,9 @@ class Unit:
 
     def highlight_capture_squares(self, win):
         self.draw_squares_in_list(win, self.capture_squares_list, self.move_square_color)
+
+    def highlight_swap_squares(self, win):
+        self.draw_squares_in_list(win, self.swap_squares_list, self.move_square_color)
 
     def highlight_persuader_squares(self, win):
         self.draw_squares_in_list(win, self.persuader_squares_list, self.move_square_color)
@@ -1357,6 +1369,28 @@ class Elephant(Piece):
                 if self.base_move_criteria(engine, r, c):
                     squares.append((r, c))
 
+        return squares
+
+
+class Assassin(Piece):
+    def __repr__(self):
+        return 'assassin'
+
+    def __init__(self, row, col, color):
+        super().__init__(row, col, color)
+        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
+                           Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
+                           Constant.DOWN_LEFT)
+        self.distance = Constant.BOARD_WIDTH_SQ
+        self.contextual_options = ['ritual']
+
+    def capture_squares(self, engine):
+        squares = []
+        for direction in self.directions:
+            r = self.row + direction[0]
+            c = self.col + direction[1]
+            if self.can_capture(r, c, engine):
+                squares.append((r, c))
         return squares
 
 

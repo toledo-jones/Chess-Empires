@@ -10,30 +10,22 @@ import pygame
                                         -Minimal boilerplate
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-"""
-Uncomment this section to enable debug features 
-"""
+# Uncomment the section below to enable debug
+
 # DEBUG_START = True
 # DISPLAY_STATE_IN_HUD = True
 # BOARD_STARTS_WITH_RESOURCES = False
 # DEBUG_RITUALS = True
 # POP_UPS_ON = False
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-                                        DEBUG
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-POP_UPS_ON = False
+# Debug settings
 DEBUG_STARTING_PRAYER = 10
 DEBUG_STARTING_WOOD = 100
 DEBUG_STARTING_GOLD = 100
 DEBUG_STARTING_STONE = 100
-DEBUG_STARTING_PIECES = ['castle', 'king', 'magician', 'monk', 'monk', 'monk', 'prayer_stone']
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+DEBUG_STARTING_PIECES = ['castle', 'king', 'assassin']
 
-                                        WINDOW / BOARD / SIDE MENU / FPS
-        
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+# Window and board sizes
 MAX_FPS = 120
 VERSION = "v24.1"
 NUMBER = ""
@@ -44,12 +36,8 @@ BOARD_WIDTH_SQ = 14
 BOARD_WIDTH_PX = BOARD_WIDTH_SQ * SQ_SIZE
 SIDE_MENU_WIDTH = pygame.display.Info().current_w - BOARD_WIDTH_PX
 BOARD_HEIGHT_PX = pygame.display.Info().current_h
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-
-                                        COLORS
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+# Colors
 MENU_COLOR = pygame.Color((72, 61, 139))
 LIGHT_SQUARE_COLOR = pygame.Color((255, 255, 255, 255))
 DARK_SQUARE_COLOR = (pygame.Color((66.3, 33.6, 21.4, 255)))
@@ -65,12 +53,7 @@ BLACK = pygame.Color('black')
 BLUE = pygame.Color('blue')
 RED = pygame.Color('red')
 
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-
-                                        TOGGLES
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+# Toggles
 ACTIONS_UPDATE_ON_SPAWN = False
 MINING_COSTS_ACTION = False
 PRAYING_COSTS_ACTION = False
@@ -80,13 +63,8 @@ QUARRY_COSTS_ACTION = False
 QUARRY_COSTS_RESOURCE = False
 TRAP_COSTS_ACTION = False
 TURN_CHANGE_AFTER_START_SPAWN = True
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-
-                                        LISTS
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
+# Lists
 SELECTABLE_STARTING_PIECES = ['pawn', 'ferz', 'rogue_pawn', 'builder']
 BONUS_STARTING_PIECES = ['trader', 'pikeman', 'trapper', 'monk']
 MASTER_COST_LIST = ['builder', 'monk', 'stable', 'castle', 'barracks', 'fortress', 'circus']
@@ -95,7 +73,7 @@ FORTRESS_SPAWN_LIST = ['rogue_rook', 'rogue_bishop', 'rogue_knight', 'rogue_pawn
 CASTLE_SPAWN_LIST = ['pawn', 'ferz', 'cavalry', 'builder', 'pikeman', 'monk', 'trader']
 BUILDER_SPAWN_LIST = ['wall', 'stable', 'castle', 'barracks', 'fortress', 'circus']
 BARRACKS_SPAWN_LIST = ['duke', 'queen', 'champion', 'rook', 'bishop']
-CIRCUS_SPAWN_LIST = ['jester', 'persuader', 'lion', 'fire_spinner', 'acrobat', 'magician']
+CIRCUS_SPAWN_LIST = ['jester', 'persuader', 'lion', 'fire_spinner', 'acrobat', 'magician', 'assassin']
 TRAPPER_SPAWN_LIST = ['trap']
 MONK_SPAWN_LIST = ['monolith', 'prayer_stone']
 STARTING_PIECES = ['castle', 'king']
@@ -112,6 +90,7 @@ FACTION_NAMES = ['clique', 'coterie', 'cabal', 'bloc', 'camp', 'grouping',
 MONOLITH_RITUALS = ['gold_general',
                     'line_destroy',
                     'smite']
+ASSASSIN_RITUALS = ['swap']
 PRAYER_STONE_RITUALS = ['protect',
                         'swap',
                         'teleport',
@@ -119,12 +98,9 @@ PRAYER_STONE_RITUALS = ['protect',
                         'portal',
                         'destroy_resource', ]
 MAGICIAN_RITUALS = ['portal', 'swap', 'teleport']
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-
-                                        VALUES
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+# Values
+HIGHLIGHT_ALPHA = 110
 DECREE_COST = {'gold': 35}
 DECREE_INCREMENT = 5
 DEFAULT_PIECE_LIMIT = 3
@@ -146,31 +122,8 @@ ADDITIONAL_PRAYER_FROM_MONK = 1
 MAX_MONOLITH_RITUALS_PER_TURN = 1
 MAX_PRAYER_STONE_RITUALS_PER_TURN = 2
 MAX_MAGICIAN_RITUALS_PER_TURN = 1
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-                                        DICTIONARIES
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-_piece_costs = {}
-
-
-@property
-def PIECE_COSTS():
-    return _piece_costs
-
-
-# To allow item assignment
-@PIECE_COSTS.setter
-def PIECE_COSTS(new_costs):
-    global _piece_costs
-    _piece_costs = new_costs
-
-
-@PIECE_COSTS.getter
-def PIECE_COSTS():
-    return _piece_costs
-
-
+# Dictionaries
 PIECE_POINT_VALUES = {
     "king"        : 0,
     "gold_general": 0,
@@ -212,7 +165,8 @@ PIECE_POINT_VALUES = {
     "fire_spinner": 80,
     "acrobat"     : 102,
     "magician"    : 70,
-    'cavalry'     : 30
+    'cavalry'     : 30,
+    'assassin'    : 68
 }
 PIECE_COSTS = {
     'king'        : {'log': 0, 'gold': 0, 'stone': 0},
@@ -255,7 +209,8 @@ PIECE_COSTS = {
     'acrobat'     : {'log': 0, 'gold': 18, 'stone': 0},
     'magician'    : {'log': 0, 'gold': 10, 'stone': 0},
     'cavalry'     : {'log': 4, 'gold': 1, 'stone': 0},
-    'ferz': {'log': 6, 'gold': 0, 'stone': 0},
+    'ferz'        : {'log': 6, 'gold': 0, 'stone': 0},
+    'assassin'    : {'log': 0, 'gold': 10, 'stone': 0},
 
 }
 NOTIFICATIONS = {
@@ -277,7 +232,8 @@ DESCRIPTIONS = {
                          'eventually becomes depleted if mined after it caves in'],
     'pawn'            : ['moves two spaces orthogonally', 'harvests resources',
                          'mines certain empty squares to create quarries'],
-    'ferz'              :['moves two spaces diagonally on it\'s first move', 'harvests resources', 'mines some empty squares to create quarries'],
+    'ferz'            : ['moves two spaces diagonally on it\'s first move', 'harvests resources',
+                         'mines some empty squares to create quarries'],
     'builder'         : ['creates buildings used to purchase more powerful pieces'],
     'monk'            : ['prays at monoliths to cast powerful rituals'],
     'pikeman'         : ['moves one square orthogonally', 'a valuable defender'],
@@ -311,6 +267,7 @@ DESCRIPTIONS = {
     'oxen'            : ['moves like a knight, then like a rook from that square'],
     'champion'        : ['moves diagonally one square',
                          'then moves like a rook from that square in the same two directions'],
+    'assassin'        : ['moves by swapping with enemy pieces ', 'captures by in all directions around it'],
     'elephant'        : ['moves like a knight',
                          'if it\'s knight move was unobstructed it can move forward one more square'],
     'ram'             : ['moves like a knight, then like a bishop in those two directions'],
@@ -338,7 +295,9 @@ DESCRIPTIONS = {
     'acrobat'         : ['moves like a bishop but can jump over a piece'],
     'trapper'         : ['creates traps which, once moved onto', 'destroy the piece that moved onto them'],
     'magician'        : ['casts certain rituals for a gold cost'],
-    'cavalry'         : ['moves like a knight for it\'s first move', 'can mine resources until it makes a first move', 'moves like a pawn after it makes a first move', 'cannot mine resources after making a first move']
+    'cavalry'         : ['moves like a knight for it\'s first move', 'can mine resources until it makes a first move',
+                         'moves like a pawn after it makes a first move',
+                         'cannot mine resources after making a first move']
 }
 PIECE_POPULATION = {
     'king'          : 1,
@@ -386,6 +345,7 @@ PIECE_POPULATION = {
     'magician'      : 1,
     'cavalry'       : 1,
     'ferz'          : 1,
+    'assassin'      : 1,
 }
 PRAYER_COSTS = {
     'gold_general'    : {'prayer': 12, 'monk': 2, 'gold': 0},  # monk yields 3, other pieces yield 2
@@ -440,7 +400,8 @@ ADDITIONAL_PIECE_LIMIT = {
     'acrobat'       : 0,
     'magician'      : 0,
     'cavalry'       : 0,
-    'ferz': 0
+    'ferz'          : 0,
+    'assassin'      : 0
 }
 BASE_TOTAL_YIELD = {
     'wood'         : 8,
@@ -462,7 +423,7 @@ BASE_YIELD_PER_HARVEST = {
             'quarry'       : 8,
             'sunken_quarry': 1
         },
-    'ferz':
+    'ferz'      :
         {
             'wood'         : 10,
             'gold'         : 7,
@@ -483,7 +444,7 @@ BASE_YIELD_PER_HARVEST = {
             'quarry'       : 8,
             'sunken_quarry': 1
         },
-    'builder':
+    'builder'   :
         {
             'wood'         : 7,
             'gold'         : 2,
@@ -515,19 +476,13 @@ STEALING_KEY = {
         'stone': {'variance': (-2, 2), 'value': 4}
     }
 }
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-                                        SOUND
 
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+# Sound
 SOUND_EFFECT_VOLUME = .5
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-                                        SPRITE SCALING
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+# Sprite scaling and sizes
 DEFAULT_PIECE_SCALE = (SQ_SIZE, SQ_SIZE)
-HIGHLIGHT_ALPHA = 110
 SPAWNING_MENU_WIDTH = round(SQ_SIZE * 5.5)
 SPAWNING_MENU_HEIGHT_BUFFER = SQ_SIZE * 1.3
 SIDE_MENU_HEIGHT = BOARD_HEIGHT_PX
@@ -565,6 +520,8 @@ YES_NO_BUTTON_SCALE = (SQ_SIZE // 3, SQ_SIZE // 3)
 CONTEXTUAL_MENU_ICON_DEFAULT_SCALE = (SQ_SIZE // 2, SQ_SIZE // 2)
 PROTECT_SQUARE_SCALE = (SQ_SIZE, SQ_SIZE)
 PROTECT_SQUARE_OFFSET = (SQ_SIZE // 2 - PROTECT_SQUARE_SCALE[0] // 2, SQ_SIZE // 2 - PROTECT_SQUARE_SCALE[1] // 2)
+
+# Image Modify
 RITUAL_IMAGE_MODIFY = {
     'gold_general'    : {'SCALE': PRAYER_RITUAL_SCALE, 'OFFSET': (0, 0)},
     'smite'           : {'SCALE': PRAYER_RITUAL_SCALE, 'OFFSET': (0, 0)},
@@ -620,7 +577,8 @@ PIECE_IMAGE_MODIFY = {
     'acrobat'       : {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
     'magician'      : {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
     'cavalry'       : {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
-    'ferz':         {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
+    'ferz'          : {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
+    'assassin': {'SCALE': DEFAULT_PIECE_SCALE, 'OFFSET': (0, 0)},
 
 }
 IMAGES_IMAGE_MODIFY = {

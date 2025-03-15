@@ -73,10 +73,15 @@ class Player:
         return self.prayer
 
     def do_ritual(self, cost, cost_type):
+        if not cost_type:
+            return
+
         resource = getattr(self, cost_type)
         setattr(self, cost_type, resource - cost)
 
     def undo_ritual(self, cost, cost_type):
+        if not cost_type:
+            return
         resource = getattr(self, cost_type)
         setattr(self, cost_type, resource + cost)
 

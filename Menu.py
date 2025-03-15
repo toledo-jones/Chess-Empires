@@ -198,6 +198,8 @@ class RitualMenu(Menu):
 
         for _ in self.ritual_list:
             self.ritual_highlight_list.append(False)
+        if str(self.engine.get_occupying(row, col)) == 'assassin':
+            self.left_click()
 
     def full_length_of_prayer_bar(self, length_of_ritual):
         return self.bar_end_width * length_of_ritual + self.bar_width

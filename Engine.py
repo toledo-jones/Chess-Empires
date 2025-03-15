@@ -125,7 +125,7 @@ class Engine:
             'builder'   : Builder, 'unicorn': Unicorn, 'stable': Stable, 'gold_general': GoldGeneral, 'duke': Duke,
             'oxen'      : Oxen, 'wall': Wall, 'doe': Doe, 'persuader': Persuader, 'trader': Trader, 'circus': Circus,
             'trapper'   : Trapper, 'trap': Trap, 'lion': Lion, 'fire_spinner': FireSpinner, 'acrobat': Acrobat,
-            'magician'  : Magician, 'cavalry' : Cavalry, 'ferz': Ferz
+            'magician'  : Magician, 'cavalry' : Cavalry, 'ferz': Ferz, 'assassin': Assassin
         }
 
     def initialize_states(self):
@@ -281,11 +281,15 @@ class Engine:
         if not self.players[self.turn].can_act():
             return False
 
+        if not cost:
+            return True
+
         if cost_type == 'prayer':
             return self.players[self.turn].prayer - cost >= 0
 
         elif cost_type == 'gold':
             return self.players[self.turn].gold - cost >= 0
+
 
     def valid_purchase(self, cost):
         #
@@ -372,6 +376,7 @@ class Engine:
     def update_moves(self):
         for player in self.players:
             for piece in self.players[player].pieces:
+                piece.update_swap_squares(self)
                 piece.update_move_squares(self)
                 piece.update_capture_squares(self)
 
@@ -435,6 +440,7 @@ class Engine:
                 piece.update_capture_squares(self)
                 piece.update_spawn_squares(self)
                 piece.update_persuader_squares(self)
+                piece.update_swap_squares(self)
 
     def update_mining_squares(self):
         for player in self.players:
@@ -979,7 +985,10 @@ class Engine:
         self.determine_winner()
 
     def is_legal_ritual(self, ritual, cost_type):
-        ritual_cost = Constant.PRAYER_COSTS[ritual][cost_type]
+        if not cost_type:
+            ritual_cost = None
+        else:
+            ritual_cost = Constant.PRAYER_COSTS[ritual][cost_type]
         if self.valid_ritual(ritual_cost, cost_type):
             return True
 
@@ -1195,7 +1204,8 @@ class Engine:
         ritual_key = {
             'magician': ('gold', self.magician_rituals[self.turn_count_actual]),
             'prayer_stone' : ('prayer', self.prayer_stone_rituals[self.turn_count_actual]),
-            'monolith' : ('prayer', self.monolith_rituals[self.turn_count_actual])
+            'monolith' : ('prayer', self.monolith_rituals[self.turn_count_actual]),
+            'assassin': (None, Constant.ASSASSIN_RITUALS)
         }
         cost_type, ritual_list = ritual_key[str(self.get_occupying(row, col))]
         return self.create_ritual_menu(row, col, ritual_list, cost_type)

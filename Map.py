@@ -483,50 +483,7 @@ class Map:
         return points_per_resource
 
     def get_initial_piece_costs(self):
-        return {
-            'king'        : {'log': 0, 'gold': 0, 'stone': 0},
-            'gold_general': {'log': 0, 'gold': 0, 'stone': 0},
-            'quarry_1'    : {'log': 3, 'gold': 0, 'stone': 0},
-            'pawn'        : {'log': 6, 'gold': 0, 'stone': 0},
-            'builder'     : {'log': 6, 'gold': 0, 'stone': 0},
-            'monk'        : {'log': 6, 'gold': 0, 'stone': 1},
-            'pikeman'     : {'log': 0, 'gold': 4, 'stone': 4},
-            'castle'      : {'log': 10, 'gold': 0, 'stone': 0},
-            'stable'      : {'log': 10, 'gold': 0, 'stone': 10},
-            'barracks'    : {'log': 4, 'gold': 10, 'stone': 0},
-            'fortress'    : {'log': 0, 'gold': 12, 'stone': 12},
-            'queen'       : {'log': 0, 'gold': 12, 'stone': 12},
-            'rook'        : {'log': 0, 'gold': 5, 'stone': 5},
-            'bishop'      : {'log': 5, 'gold': 5, 'stone': 0},
-            'knight'      : {'log': 1, 'gold': 0, 'stone': 3},
-            'jester'      : {'log': 0, 'gold': 10, 'stone': 0},
-            'rogue_rook'  : {'log': 0, 'gold': 10, 'stone': 10},
-            'rogue_bishop': {'log': 7, 'gold': 7, 'stone': 0},
-            'rogue_knight': {'log': 5, 'gold': 0, 'stone': 5},
-            'rogue_pawn'  : {'log': 6, 'gold': 0, 'stone': 0},
-            'elephant'    : {'log': 8, 'gold': 0, 'stone': 8},
-            'ram'         : {'log': 8, 'gold': 0, 'stone': 8},
-            'unicorn'     : {'log': 12, 'gold': 0, 'stone': 12},
-            'monolith'    : {'log': 0, 'gold': 0, 'stone': 16},
-            'prayer_stone': {'log': 0, 'gold': 0, 'stone': 8},
-            'duke'        : {'log': 6, 'gold': 12, 'stone': 13},
-            'oxen'        : {'log': 12, 'gold': 0, 'stone': 12},
-            'champion'    : {'log': 0, 'gold': 7, 'stone': 7},
-            'wall'        : {'log': 0, 'gold': 0, 'stone': 3},
-            'persuader'   : {'log': 0, 'gold': 14, 'stone': 0},
-            'doe'         : {'log': 14, 'gold': 0, 'stone': 14},
-            'trader'      : {'log': 6, 'gold': 0, 'stone': 0},
-            'circus'      : {'log': 0, 'gold': 10, 'stone': 0},
-            'trapper'     : {'log': 6, 'gold': 0, 'stone': 0},
-            'trap'        : {'log': 0, 'gold': 0, 'stone': 1},
-            'lion'        : {'log': 0, 'gold': 20, 'stone': 0},
-            'fire_spinner': {'log': 0, 'gold': 18, 'stone': 0},
-            'acrobat'     : {'log': 0, 'gold': 18, 'stone': 0},
-            'magician'    : {'log': 0, 'gold': 10, 'stone': 0},
-            'cavalry'     : {'log': 4, 'gold': 1, 'stone': 0},
-            'ferz'        : {'log': 6, 'gold': 0, 'stone': 0},
-
-        }
+        return Constant.PIECE_COSTS
 
     def assign_piece_costs(self, initial_piece_costs, points_per_resource):
         for piece, costs in initial_piece_costs.items():

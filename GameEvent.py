@@ -46,8 +46,7 @@ class GameEvent:
             self.engine.events[-1].undo()
             self.determine_check()
             del self.engine.events[-1]
-            self.engine.set_popup_reason("check")
-            self.engine.create_popup_menu(self.action_tile.row, self.action_tile.col, self.engine.popup_reason)
+
 
     def complete(self):
         self.engine.reset_selected()
@@ -1012,10 +1011,18 @@ class RitualEvent(GameEvent):
         self.engine = engine
         self.ritual_building = self.acting_tile.get_occupying()
         self.deleted_monks = []
-        self.cost_type = self.engine.state[-1].cost_type
-        self.ritual_cost = Constant.PRAYER_COSTS[str(self)][self.cost_type]
+        try:
+            self.cost_type = self.engine.state[-1].cost_type
+        except AttributeError as e:
+            self.cost_type = None
+            print(e)
+        self.ritual_cost = None
 
-        if self.cost_type == 'gold':
+        if self.cost_type:
+            self.ritual_cost = Constant.PRAYER_COSTS[str(self)][self.cost_type]
+
+
+        if self.cost_type == 'gold' or not self.cost_type:
             self.monk_cost = 0
         else:
             self.monk_cost = Constant.PRAYER_COSTS[str(self)]['monk']

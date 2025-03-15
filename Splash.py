@@ -28,7 +28,7 @@ class SplashScreen:
         # Calculate the position of the logo (centered)
         self.logo_position = (
             self.window.get_width() // 2 - self.logo_size[0] // 2,
-            self.window.get_height() // 2 - self.logo_size[1] // 2
+            self.window.get_height() // 3 - self.logo_size[1] // 2
         )
 
     def load_logo(self) -> pygame.Surface:

@@ -47,7 +47,6 @@ class GameEvent:
             self.determine_check()
             del self.engine.events[-1]
 
-
     def complete(self):
         self.engine.reset_selected()
 
@@ -1020,7 +1019,6 @@ class RitualEvent(GameEvent):
 
         if self.cost_type:
             self.ritual_cost = Constant.PRAYER_COSTS[str(self)][self.cost_type]
-
 
         if self.cost_type == 'gold' or not self.cost_type:
             self.monk_cost = 0

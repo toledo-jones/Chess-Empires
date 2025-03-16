@@ -761,7 +761,7 @@ class Engine:
 
     def has_none_occupying(self, r, c):
         if Constant.tile_in_bounds(r, c):
-            if self.board[r][c].occupying is None:
+            if not self.board[r][c].get_occupying():
                 return True
 
     def has_no_resource(self, r, c):

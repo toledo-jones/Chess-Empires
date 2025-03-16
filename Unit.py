@@ -901,11 +901,15 @@ class Pawn(Piece):
                 r = self.row + direction[0] * distance
                 c = self.col + direction[1] * distance
                 if not Constant.tile_in_bounds(r, c):
+                    print("tile not in bounds")
                     break
                 if not self.base_move_criteria(engine, r, c):
+                    print("move criteria not met")
                     break
+
                 else:
                     squares.append((r, c))
+
         return squares
 
     def right_click(self, engine):

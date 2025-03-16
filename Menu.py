@@ -1174,7 +1174,7 @@ class PieceDescription(Encyclopedia):
         # Set up layout shift when the type is 'piece' to make room for the board
         self.move_offset = 0
         if self.type == 'piece':
-            # Move everything right by the board width + buffer space
+            # Move everything right by the buffer space
             self.move_offset = self.window_width // 8
 
         # Graphics Math for layout calculations
@@ -1195,7 +1195,6 @@ class PieceDescription(Encyclopedia):
             self.cost_display_x = self.window_width // 2 - full_length // 2 + self.move_offset
             self.title_text_display_x = (self.window_width // 2 - self.title_text_width // 2) + self.move_offset
             self.menu_logo_display_x = (self.window_width // 2 - self.menu_logo.get_width() // 2) + self.move_offset
-            self.set_up_demonstration_board()
 
         elif self.type == 'ritual':
             # For rituals, calculate the length of the prayer bar and center it

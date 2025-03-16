@@ -735,6 +735,7 @@ class SelectStartingPieces(State):
         # Set up initial attributes
         self.draw_map = False
         self.pieces = {'w': Constant.W_PIECES | Constant.W_BUILDINGS, 'b': Constant.B_PIECES | Constant.B_BUILDINGS}
+        self.board_copy = None
 
         # Window dimensions
         self.window_width = pygame.display.Info().current_w
@@ -821,6 +822,7 @@ class SelectStartingPieces(State):
     def right_click(self):
         if self.engine.menus:
             self.engine.close_menus()
+            self.engine.board = self.board_copy
             return
         piece_selected = self.piece_selected()
 
@@ -835,9 +837,10 @@ class SelectStartingPieces(State):
                 return
             piece = self.selection_matrix[row][col][0]
             menu = PieceDescription(self.win, self.engine, piece)
+            self.board_copy = self.engine.board
+            self.engine.board = menu.board
+            menu.set_up_demonstration_board()
             self.engine.menus.append(menu)
-
-
 
     def piece_selected(self):
         piece_selected = None
@@ -943,6 +946,9 @@ class SelectStartingPieces(State):
         return not self.draw_map
 
     def tab(self):
+        if self.engine.menus:
+            self.engine.board = self.board_copy
+            self.engine.close_menus()
         if not self.engine.final_spawn:
             self.revert_to_starting_state(self.engine.first)
         else:
@@ -2092,7 +2098,6 @@ class PerformSwap(Ritual):
         if str(self.previously_selected) == 'assassin':
             self.first_selected = self.previously_selected
             self.previously_selected.ritual_squares_list = self.swap_ritual_squares()
-
 
     def __repr__(self):
         return 'swap'

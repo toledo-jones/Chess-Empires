@@ -23,7 +23,7 @@ DEBUG_STARTING_PRAYER = 10
 DEBUG_STARTING_WOOD = 100
 DEBUG_STARTING_GOLD = 100
 DEBUG_STARTING_STONE = 100
-DEBUG_STARTING_PIECES = ['castle', 'king', 'assassin']
+DEBUG_STARTING_PIECES = ['castle', 'king', 'assassin', 'pawn']
 
 # Window and board sizes
 MAX_FPS = 120
@@ -162,7 +162,7 @@ PIECE_POINT_VALUES = {
     "trapper"     : 12,
     "trap"        : 3,
     "lion"        : 85,
-    "fire_spinner": 80,
+    "fire_spinner": 48,
     "acrobat"     : 75,
     "magician"    : 50,
     'cavalry'     : 30,

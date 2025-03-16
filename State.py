@@ -729,26 +729,48 @@ class Starting(State):
 class SelectStartingPieces(State):
 
     def __init__(self, win, engine):
+        # Initialize the base class
         super().__init__(win, engine)
+
+        # Set up initial attributes
         self.draw_map = False
         self.pieces = {'w': Constant.W_PIECES | Constant.W_BUILDINGS, 'b': Constant.B_PIECES | Constant.B_BUILDINGS}
+
+        # Window dimensions
         self.window_width = pygame.display.Info().current_w
         self.window_height = pygame.display.Info().current_h
+
+        # Font size and rendering
         self.font_size = round(Constant.SQ_SIZE * 1)
         self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
-        self.description_text = "Select your Starting Pieces:"
+        self.description_text = "Select your starting pieces:"
         self.text_surf = self.font.render(self.description_text, True, Constant.turn_to_color[self.engine.turn])
+
+        # Y-buffer for spacing
         self.y_buffer = round(Constant.SQ_SIZE * .55)
+
+        # Calculate initial positions and spacing
         self.initial_x = round(2.5 * self.window_width) // len(Constant.SELECTABLE_STARTING_PIECES)
         self.x_buffer = self.initial_x
         self.piece_spacing = round(Constant.SQ_SIZE * 1.5)
+
+        # Calculate total height of the grid and starting Y position
         total_height_of_grid = self.y_buffer * 2 * Constant.NUMBER_OF_STARTING_PIECES
         self.initial_y = (self.window_height - total_height_of_grid) // 2
+
+        # Define grid dimensions
         self.cols = len(Constant.SELECTABLE_STARTING_PIECES)
         self.rows = Constant.NUMBER_OF_STARTING_PIECES + Constant.NUMBER_OF_BONUS_PIECES
+
+        # Initialize the selection matrix (3D list to track piece status)
         self.selection_matrix = [[[0 for y in range(3)] for x in range(self.cols)] for _ in range(self.rows)]
-        self.instruction_text = [' \'tab\' to go back', ' \'space bar\' to confirm selection',
-                                 ' \'right click\' to view the map']
+
+        # Instruction text and surfaces
+        self.instruction_text = [
+            ' \'tab\' to go back',
+            ' \'space bar\' to confirm selection',
+            ' \'right click\' to view the map'
+        ]
         self.instruction_text_surfaces = []
         self.instruction_text_font_size = Constant.SQ_SIZE // 2
         self.instruction_text_font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"),
@@ -757,16 +779,25 @@ class SelectStartingPieces(State):
             l = self.instruction_text_font.render(line, True, Constant.turn_to_color[self.engine.turn])
             self.instruction_text_surfaces.append(l)
 
+        # Get the height of the instruction text for layout purposes
         self.instruction_text_height = self.instruction_text_surfaces[0].get_height()
-        for c in range(self.cols):
-            for r in range(self.rows):
-                if r == self.cols - Constant.NUMBER_OF_BONUS_PIECES:
+
+        # Assign pieces to the selection matrix
+        for r in range(self.rows):
+            for c in range(self.cols):
+                # Check if we are in the bonus piece rows
+                if r >= Constant.NUMBER_OF_STARTING_PIECES:
+                    # If it's a bonus piece, assign it
                     self.selection_matrix[r][c][0] = Constant.BONUS_STARTING_PIECES[c]
                 else:
+                    # Otherwise, assign a selectable starting piece
                     self.selection_matrix[r][c][0] = Constant.SELECTABLE_STARTING_PIECES[c]
+
+                # Initialize the selection matrix states (highlight and selected status)
                 self.selection_matrix[r][c][1] = False  # HIGHLIGHT
                 self.selection_matrix[r][c][2] = False  # SELECTED
 
+        # Create a surface for highlighting unused pieces
         self.square = pygame.Surface((Constant.SQ_SIZE, Constant.SQ_SIZE))
         self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
         self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
@@ -788,7 +819,25 @@ class SelectStartingPieces(State):
             return True
 
     def right_click(self):
-        self.draw_map = self.flip_draw_map()
+        if self.engine.menus:
+            self.engine.close_menus()
+            return
+        piece_selected = self.piece_selected()
+
+        if not piece_selected or self.draw_map:
+            self.draw_map = self.flip_draw_map()
+            return
+
+        if not self.draw_map:
+            try:
+                row, col = piece_selected
+            except TypeError:
+                return
+            piece = self.selection_matrix[row][col][0]
+            menu = PieceDescription(self.win, self.engine, piece)
+            self.engine.menus.append(menu)
+
+
 
     def piece_selected(self):
         piece_selected = None
@@ -830,6 +879,10 @@ class SelectStartingPieces(State):
         return row, col
 
     def draw(self):
+        if self.engine.menus:
+            for menu in self.engine.menus:
+                menu.draw()
+                return
         if not self.draw_map:
             self.win.fill(Constant.MENU_COLOR)
 

@@ -1123,64 +1123,130 @@ class Encyclopedia(Menu):
 
 class PieceDescription(Encyclopedia):
     def __init__(self, win, engine, selected):
+        # Initialize instance variables
         self.selected = selected
         super().__init__(win, engine)
+        # Define the alternating colors for the squares
+        self.colors = [Constant.DARK_SQUARE_COLOR, Constant.LIGHT_SQUARE_COLOR]
+        self.color_key = {0: 'dark', 1: 'light'}
 
-        # Boiler Plate
+        # Define board size and initialize the 2D board list with None
+        self.cols = 7
+        self.rows = 7
+        from Tile import Tile
+        self.board = [[Tile(x, y) for y in range(self.cols)] for x in range(self.rows)]
+
+        # Initialize pygame surface for the board
+        self.board_surface = pygame.Surface((self.cols * Constant.SQ_SIZE, self.rows * Constant.SQ_SIZE))
+
+        self.board_x = self.window_width // 40
+        self.board_y = (self.window_height - self.board_surface.get_height()) // 2
+
+        # Initialize description text and render it
         self.description_text = Constant.DESCRIPTIONS[str(self)]
         self.description_text_surfs = []
         for line in self.description_text:
             text_surf = self.small_font.render(line, True, self.color)
             self.description_text_surfs.append(text_surf)
+
+        # Get dimensions for description text
         self.description_text_width = self.description_text_surfs[0].get_width()
         self.description_text_height = self.description_text_surfs[0].get_height()
+
+        # Load images for prayer bar display
         self.prayer_bar_end = Constant.IMAGES['prayer_bar_end']
         self.prayer_bar = Constant.IMAGES['prayer_bar']
         self.bar_end_width = self.prayer_bar_end.get_width()
         self.bar_width = self.prayer_bar.get_width()
+
+        # Initialize cost and type based on selected piece
         self.cost = None
         self.type = None
         try:
+            # If selected is a prayer, use prayer costs
             self.cost = Constant.PRAYER_COSTS[self.selected]['prayer']
             self.type = 'ritual'
         except KeyError:
+            # If selected is a piece, use piece costs
             self.cost = Constant.PIECE_COSTS[self.selected]
             self.type = 'piece'
 
-        # Graphics Math
+        # Set up layout shift when the type is 'piece' to make room for the board
+        self.move_offset = 0
+        if self.type == 'piece':
+            # Move everything right by the board width + buffer space
+            self.move_offset = self.window_width // 8
+
+        # Graphics Math for layout calculations
         self.cost_display_y = self.window_height // 2 - self.resources['wood'].get_height() // 2
         self.x_buffer_between_costs = round(Constant.SQ_SIZE * 1.5)
-        self.description_text_y = round(self.window_height * 2 / 3)
+        self.description_text_y = round(self.window_height * 5 / 8)
         self.cost_display_x = 0
+
+        # Calculate the x position for displaying the costs based on the selected type
         if self.type == 'piece':
-            count = 0
-            for cost in Constant.PIECE_COSTS[self.selected]:
-                if Constant.PIECE_COSTS[self.selected][cost] != 0:
-                    count += 1
+            # For pieces, count how many costs are non-zero
+            count = sum(
+                    1 for cost in Constant.PIECE_COSTS[self.selected] if Constant.PIECE_COSTS[self.selected][cost] != 0)
+
+            # Calculate the total length of the cost display (based on resources and spacing)
             full_length = self.resources['wood'].get_width() * count + (self.x_buffer_between_costs // 2) * count
-            self.cost_display_x = self.window_width // 2 - full_length // 2
+            # Center the display with offset
+            self.cost_display_x = self.window_width // 2 - full_length // 2 + self.move_offset
+            self.title_text_display_x = (self.window_width // 2 - self.title_text_width // 2) + self.move_offset
+            self.menu_logo_display_x = (self.window_width // 2 - self.menu_logo.get_width() // 2) + self.move_offset
+            self.set_up_demonstration_board()
+
         elif self.type == 'ritual':
+            # For rituals, calculate the length of the prayer bar and center it
             length_of_this_prayer_bar = self.full_length_of_prayer_bar(self.cost)
-            self.cost_display_x = self.window_width // 2 - length_of_this_prayer_bar // 2
+            # Center with offset
+            self.cost_display_x = self.window_width // 2 - length_of_this_prayer_bar // 2 + self.move_offset
 
     def __repr__(self):
         return self.selected
 
+    def set_up_demonstration_board(self):
+        color = self.engine.turn
+        if not color:
+            color = 'w'
+        resource_tiles = [f'tree_tile_{i}' for i in range(1, 9)] + ['gold_tile_1', 'quarry_1']
+        contextual_options = {
+            'pray'    : ['monolith, prayer_stone'],
+            'mine'    : resource_tiles,
+            'king'    : list(),
+            'queen'   : list(),
+            'trade'   : list(),
+            'persuade': ['enemy'],
+            'steal'   : ['enemy'],
+            'build'   : list(),
+            'ritual'  : list(),
+        }
+        row, col = 3, 3
+        self.board[row][col].set_occupying(self.engine.PIECES[self.selected](row, col, color))
+        self.board[row][col].get_occupying().update_move_squares(self.engine)
+        self.board[row][col].get_occupying().display_moves = True
+
     def draw(self):
         self.win.fill(Constant.MENU_COLOR)
-        self.win.blit(self.text_surf, (self.title_text_display_x, self.title_text_display_y))
-        self.win.blit(self.menu_logo, (self.menu_logo_display_x, self.menu_logo_display_y))
-        y_buffer = self.description_text_y
-
-        for line in self.description_text_surfs:
-            description_text_x = self.window_width // 2 - line.get_width() // 2
-            self.win.blit(line, (description_text_x, y_buffer))
-            y_buffer += self.description_text_height
 
         if self.type == 'ritual':
             self.draw_ritual_cost()
         elif self.type == 'piece':
             self.draw_piece_cost()
+            self.draw_board()
+            self.win.blit(self.board_surface, (self.board_x, self.board_y))
+        self.win.blit(self.text_surf, (self.title_text_display_x, self.title_text_display_y))
+        self.win.blit(self.menu_logo, (self.menu_logo_display_x, self.menu_logo_display_y))
+        y_buffer = self.description_text_y
+
+        for line in self.description_text_surfs:
+            if self.type == 'piece':
+                description_text_x = self.window_width // 2 - line.get_width() // 2 + self.move_offset
+            else:
+                description_text_x = self.window_width // 2 - line.get_width() // 2
+            self.win.blit(line, (description_text_x, y_buffer))
+            y_buffer += self.description_text_height
 
     def draw_piece_cost(self):
         cost_x = self.cost_display_x
@@ -1211,6 +1277,38 @@ class PieceDescription(Encyclopedia):
         for z in range(self.cost):
             new_edge = bar_end_edge + self.bar_end_width * z
             self.win.blit(self.prayer_bar_end, (new_edge, self.cost_display_y))
+
+    def draw_board(self):
+        # Draw the board squares and tiles
+        for r in range(self.rows):
+            for c in range(self.cols):
+                # Calculate the color for the current square
+                color = self.colors[(r + c) % 2]
+
+                # Determine the rectangle size for the current square
+                rect_size = (Constant.SQ_SIZE, Constant.SQ_SIZE)
+
+                # Calculate position for the square
+                x = c * Constant.SQ_SIZE
+                y = r * Constant.SQ_SIZE
+
+                # Draw the square
+                pygame.draw.rect(
+                        self.board_surface,
+                        color,
+                        pygame.Rect(x, y, rect_size[0], rect_size[1])
+                )
+                # Draw the tile using blend mode (avoid re-evaluating color calculation)
+                tile_color = self.color_key[(r + c) % 2]
+                self.board_surface.blit(
+                        Constant.BOARD_TILES[tile_color][self.board[r][c].index],
+                        (x, y),
+                        special_flags=pygame.BLEND_RGBA_MULT
+                )
+        # Draw the board pieces
+        for r in range(self.rows):
+            for c in range(self.cols):
+                self.board[r][c].draw(self.board_surface)
 
     def full_length_of_prayer_bar(self, cost):
         return self.bar_end_width * cost + self.bar_width

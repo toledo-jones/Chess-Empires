@@ -398,6 +398,7 @@ def pos_in_bounds(pos):
 
 
 def tile_in_bounds(r, c):
+    # TODO: remove this and replace all calls with Try, except
     x, y = board_max_index()
     if c <= x and r <= y:
         if c >= 0 and r >= 0:

@@ -318,41 +318,44 @@ class Engine:
                 piece.update_stealing_squares(self)
 
     def draw(self, win):
-        # Define the alternating colors for the squares
-        colors = [Constant.DARK_SQUARE_COLOR, Constant.LIGHT_SQUARE_COLOR]
+        try:
+            # Define the alternating colors for the squares
+            colors = [Constant.DARK_SQUARE_COLOR, Constant.LIGHT_SQUARE_COLOR]
+            # Draw the board squares and tiles
+            for r in range(self.rows):
+                for c in range(self.cols):
+                    # Calculate the color for the current square
+                    color = colors[(r + c) % 2]
 
-        # Draw the board squares and tiles
-        for r in range(self.rows):
-            for c in range(self.cols):
-                # Calculate the color for the current square
-                color = colors[(r + c) % 2]
+                    # Determine the rectangle size for the current square
+                    rect_size = (Constant.SQ_SIZE, Constant.SQ_SIZE)
 
-                # Determine the rectangle size for the current square
-                rect_size = (Constant.SQ_SIZE, Constant.SQ_SIZE)
+                    # Calculate position for the square
+                    x = c * Constant.SQ_SIZE
+                    y = r * Constant.SQ_SIZE
 
-                # Calculate position for the square
-                x = c * Constant.SQ_SIZE
-                y = r * Constant.SQ_SIZE
+                    # Draw the square
+                    pygame.draw.rect(
+                            win,
+                            color,
+                            pygame.Rect(x, y, rect_size[0], rect_size[1])
+                    )
 
-                # Draw the square
-                pygame.draw.rect(
-                        win,
-                        color,
-                        pygame.Rect(x, y, rect_size[0], rect_size[1])
-                )
+                    # Draw the tile using blend mode (avoid re-evaluating color calculation)
+                    tile_color = self.COLORS[(r + c) % 2]
+                    win.blit(
+                            Constant.BOARD_TILES[tile_color][self.board[r][c].index],
+                            (x, y),
+                            special_flags=pygame.BLEND_RGBA_MULT
+                    )
 
-                # Draw the tile using blend mode (avoid re-evaluating color calculation)
-                tile_color = self.COLORS[(r + c) % 2]
-                win.blit(
-                        Constant.BOARD_TILES[tile_color][self.board[r][c].index],
-                        (x, y),
-                        special_flags=pygame.BLEND_RGBA_MULT
-                )
+            # Draw the board pieces
+            for r in range(self.rows):
+                for c in range(self.cols):
+                    self.board[r][c].draw(win)
 
-        # Draw the board pieces
-        for r in range(self.rows):
-            for c in range(self.cols):
-                self.board[r][c].draw(win)
+        except IndexError:
+            pass
 
     def get_player_king(self):
         for piece in self.players[self.turn].pieces:
@@ -381,10 +384,12 @@ class Engine:
                 piece.update_capture_squares(self)
 
     def has_prayer_stone(self, row, col):
-        if Constant.tile_in_bounds(row, col):
+        try:
             p = self.board[row][col].get_occupying()
             if isinstance(p, PrayerStone):
                 return True
+        except IndexError:
+            return False
 
     def piece_is_selected(self, piece):
         selected_list = [piece.selected, piece.mining, piece.pre_selected, piece.purchasing, piece.praying,
@@ -493,16 +498,20 @@ class Engine:
                 self.board[r][c] = Tile(r, c)
 
     def has_enemy_occupying(self, color, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             if not self.has_occupying(r, c):
                 return False
             if self.get_occupying(r, c).color is not color:
                 return True
             return False
+        except IndexError:
+            return False
 
     def can_contain_quarry(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             return self.board[r][c].can_contain_quarry and not self.has_depleted_quarry(r, c)
+        except IndexError:
+            return False
 
     def reset_unused_piece_highlight(self):
         for player in self.players:
@@ -562,38 +571,49 @@ class Engine:
         self.board[moving_row][moving_col].set_occupying(None)
 
     def has_portal(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             return self.board[r][c].portal
-
+        except IndexError:
+            return False
     def has_gold(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             p = self.board[r][c].get_resource()
             if isinstance(p, Gold):
                 return True
+        except IndexError:
+            return False
 
     def has_wood(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             p = self.board[r][c].get_resource()
             if isinstance(p, Wood):
                 return True
+        except IndexError:
+            return False
 
     def has_sunken_quarry(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             p = self.board[r][c].get_resource()
             if isinstance(p, SunkenQuarry):
                 return True
+        except IndexError:
+            return False
 
     def has_depleted_quarry(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             p = self.board[r][c].get_resource()
             if isinstance(p, DepletedQuarry):
                 return True
+        except IndexError:
+            return False
 
     def has_fortress(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             p = self.board[r][c].get_occupying()
             if isinstance(p, Fortress):
                 return True
+        except IndexError:
+            return False
 
     def enable_monoliths(self):
         monoliths = []
@@ -617,10 +637,12 @@ class Engine:
         return monoliths
 
     def has_builder(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             p = self.board[r][c].get_occupying()
             if isinstance(p, Builder):
                 return True
+        except IndexError:
+            return False
 
     def has_player_king(self, r, c):
         p = self.board[r][c].occupying
@@ -631,155 +653,185 @@ class Engine:
             return False
 
     def has_building(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             p = self.board[r][c].occupying
             if isinstance(p, Building):
                 return True
             else:
                 return False
+        except IndexError:
+            return False
 
     def has_resource(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             p = self.board[r][c].get_resource()
             if p is not None:
                 return True
+        except IndexError:
+            return False
 
     def has_piece(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             p = self.board[r][c].get_occupying()
             if isinstance(p, Piece):
                 return True
+        except IndexError:
+            return False
 
     def has_elephant(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             p = self.board[r][c].occupying
             if isinstance(p, Elephant):
                 return True
-            else:
-                return False
+        except IndexError:
+            return False
 
     def has_stable(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             p = self.board[r][c].get_occupying()
             if isinstance(p, Stable):
                 return True
+        except IndexError:
+            return False
 
     def has_king(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             p = self.board[r][c].occupying
             if isinstance(p, King):
                 return True
-            else:
-                return False
+        except IndexError:
+            return False
 
     def has_knight(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             p = self.board[r][c].get_occupying()
             if isinstance(p, Knight):
                 return True
-            else:
-                return False
+        except IndexError:
+            return False
 
     def has_rogue_pawn(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             p = self.board[r][c].get_occupying()
             if isinstance(p, RoguePawn):
                 return True
+        except IndexError:
+            return False
 
     def has_pawn(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             p = self.board[r][c].get_occupying()
             if isinstance(p, Pawn):
                 return True
+        except IndexError:
+            return False
 
     def has_rook(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             p = self.board[r][c].get_occupying()
             if isinstance(p, Rook):
                 return True
+        except IndexError:
+            return False
 
     def has_bishop(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             p = self.board[r][c].get_occupying()
             if isinstance(p, Bishop):
                 return True
+        except IndexError:
+            return False
 
     def has_duke(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             p = self.board[r][c].get_occupying()
             if isinstance(p, Duke):
                 return True
+        except IndexError:
+            return False
 
     def has_castle(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             p = self.board[r][c].get_occupying()
             if isinstance(p, Castle):
                 return True
-            else:
-                return False
+        except IndexError:
+            return False
 
     def has_barracks(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             p = self.board[r][c].get_occupying()
             if isinstance(p, Barracks):
                 return True
-            else:
-                return False
+        except IndexError:
+            return False
 
     def has_monk(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             p = self.board[r][c].get_occupying()
             if isinstance(p, Monk):
                 return True
+        except IndexError:
+            return False
 
     def has_gold_general(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             p = self.board[r][c].get_occupying()
             if isinstance(p, GoldGeneral):
                 return True
+        except IndexError:
+            return False
 
     def has_monolith(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             p = self.board[r][c].occupying
             if isinstance(p, Monolith):
                 return True
-            else:
-                return False
+        except IndexError:
+            return False
 
     def has_quarry(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             p = self.board[r][c].get_resource()
             if isinstance(p, Quarry):
                 return True
-            else:
-                return False
+        except IndexError:
+            return False
 
     def has_occupying(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             if self.board[r][c].get_occupying():
                 return True
+        except IndexError:
+            return False
 
     def has_none_occupying(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             if not self.board[r][c].get_occupying():
                 return True
-
+        except IndexError:
+            return False
     def has_no_resource(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             if self.board[r][c].resource is None:
                 return True
+        except IndexError:
+            return False
 
     def is_empty(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             if self.has_no_resource(r, c) and self.has_none_occupying(r, c):
                 return True
+        except IndexError:
+            return False
 
     def get_resource(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             return self.board[r][c].get_resource()
-
+        except IndexError:
+            return False
     def can_be_legally_occupied(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             if self.has_gold(r, c) or self.has_wood(r, c) or self.has_sunken_quarry(r, c):
                 return False
             else:
@@ -791,9 +843,11 @@ class Engine:
                     return True
                 elif self.has_occupying(r, c):
                     return True
+        except IndexError:
+            return False
 
     def can_be_legally_occupied_by_rogue(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             if self.has_gold(r, c) or self.has_sunken_quarry(r, c):
                 return False
             else:
@@ -805,9 +859,11 @@ class Engine:
                     return True
                 elif self.has_occupying(r, c):
                     return True
+        except IndexError:
+            return False
 
     def can_be_legally_occupied_by_gold_general(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             if self.is_empty(r, c):
                 return True
             elif self.has_quarry(r, c):
@@ -822,9 +878,11 @@ class Engine:
                 return True
             elif self.has_wood(r, c):
                 return True
+        except IndexError:
+            return False
 
     def can_be_occupied_by_gold_general(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             if self.is_empty(r, c):
                 return True
             elif self.has_none_occupying(r, c) and self.has_quarry(r, c):
@@ -837,9 +895,11 @@ class Engine:
                 return True
             elif self.has_none_occupying(r, c) and self.has_sunken_quarry(r, c):
                 return True
+        except IndexError:
+            return False
 
     def can_be_occupied(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             if self.has_none_occupying(r, c) and self.has_quarry(r, c):
                 return True
             elif self.is_empty(r, c):
@@ -848,9 +908,11 @@ class Engine:
                 return True
             elif self.has_wood(r, c) or self.has_gold(r, c):
                 return False
+        except IndexError:
+            return False
 
     def can_be_occupied_by_rogue(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             if self.has_none_occupying(r, c) and self.has_quarry(r, c):
                 return True
             elif self.is_empty(r, c):
@@ -859,6 +921,8 @@ class Engine:
                 return True
             elif self.has_none_occupying(r, c) and (self.has_wood(r, c)):
                 return True
+        except IndexError:
+            return False
 
     def create_resource(self, row, col, resource):
         try:
@@ -879,13 +943,19 @@ class Engine:
         self.board[row][col].set_resource(None)
 
     def get_occupying(self, row, col):
-        if Constant.tile_in_bounds(row, col):
+        try:
             return self.board[row][col].occupying
+        except IndexError:
+            return False
+        except AttributeError:
+            return False
 
     def has_rogue(self, row, col):
-        if Constant.tile_in_bounds(row, col):
+        try:
             if self.get_occupying(row, col).is_rogue:
                 return True
+        except IndexError:
+            return False
 
     def count_unused_pieces(self):
         unused_pieces = []
@@ -909,6 +979,9 @@ class Engine:
         return count
 
     def close_menus(self):
+        if self.menus:
+            for menu in self.menus:
+                menu.close()
         self.menus = []
 
     def set_winner(self):
@@ -937,8 +1010,12 @@ class Engine:
         self.players[self.turn].begin_turn(self)
 
     def get_occupying_color(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             return self.board[r][c].occupying.get_color()
+        except IndexError:
+            return False
+        except AttributeError:
+            return False
 
     def set_purchasing(self, row, col, boolean):
         self.board[row][col].occupying.purchasing = boolean
@@ -1023,10 +1100,12 @@ class Engine:
         return True
 
     def has_mineable_resource(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             r = self.board[r][c].get_resource()
             if isinstance(r, Wood) or isinstance(r, Quarry) or isinstance(r, Gold) or isinstance(r, SunkenQuarry):
                 return True
+        except IndexError:
+            return False
 
     def update_persuader_squares(self):
         for piece in self.players[self.turn].pieces:
@@ -1042,15 +1121,19 @@ class Engine:
                 piece.update_interceptor_squares(self)
 
     def has_trap(self, row, col):
-        if Constant.tile_in_bounds(row, col):
+        try:
             return self.board[row][col].has_trap()
+        except IndexError:
+            return False
 
     def has_prayable_building(self, r, c):
-        if Constant.tile_in_bounds(r, c):
+        try:
             b = self.board[r][c].get_occupying()
             if not self.rituals_banned:
                 if isinstance(b, PrayerStone) or isinstance(b, Monolith):
                     return True
+        except IndexError:
+            return False
 
     def get_intercepted_pieces(self):
         intercepted_pieces = []

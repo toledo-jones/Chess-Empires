@@ -735,7 +735,6 @@ class SelectStartingPieces(State):
         # Set up initial attributes
         self.draw_map = False
         self.pieces = {'w': Constant.W_PIECES | Constant.W_BUILDINGS, 'b': Constant.B_PIECES | Constant.B_BUILDINGS}
-        self.board_copy = None
 
         # Window dimensions
         self.window_width = pygame.display.Info().current_w
@@ -822,7 +821,6 @@ class SelectStartingPieces(State):
     def right_click(self):
         if self.engine.menus:
             self.engine.close_menus()
-            self.engine.board = self.board_copy
             return
         piece_selected = self.piece_selected()
 
@@ -837,9 +835,6 @@ class SelectStartingPieces(State):
                 return
             piece = self.selection_matrix[row][col][0]
             menu = PieceDescription(self.win, self.engine, piece)
-            self.board_copy = self.engine.board
-            self.engine.board = menu.board
-            menu.set_up_demonstration_board()
             self.engine.menus.append(menu)
 
     def piece_selected(self):
@@ -947,7 +942,6 @@ class SelectStartingPieces(State):
 
     def tab(self):
         if self.engine.menus:
-            self.engine.board = self.board_copy
             self.engine.close_menus()
         if not self.engine.final_spawn:
             self.revert_to_starting_state(self.engine.first)
@@ -1780,6 +1774,7 @@ class PieceCost(State):
         menu = Master(self.win, self.engine, Constant.MASTER_COST_LIST)
         self.engine.menus.append(menu)
 
+
     def __repr__(self):
         return 'piece cost screen'
 
@@ -1792,6 +1787,7 @@ class PieceCost(State):
                 self.revert_to_starting_state()
 
         else:
+            self.engine.menus[-1].close()
             del self.engine.menus[-1]
 
     def right_click(self):

@@ -69,6 +69,8 @@ class Menu:
 
         return True
 
+    def close(self):
+        pass
 
 class Notification(Menu):
     def __init__(self, row, col, win, engine, message='blank'):
@@ -1060,6 +1062,9 @@ class Encyclopedia(Menu):
         self.win = win
         self.engine = engine
 
+        self.description = False
+
+
         # Window Variables
         self.window_width = pygame.display.Info().current_w
         self.window_height = pygame.display.Info().current_h
@@ -1129,12 +1134,14 @@ class PieceDescription(Encyclopedia):
         # Define the alternating colors for the squares
         self.colors = [Constant.DARK_SQUARE_COLOR, Constant.LIGHT_SQUARE_COLOR]
         self.color_key = {0: 'dark', 1: 'light'}
+        self.board_copy = self.engine.board
 
         # Define board size and initialize the 2D board list with None
         self.cols = 7
         self.rows = 7
         from Tile import Tile
         self.board = [[Tile(x, y) for y in range(self.cols)] for x in range(self.rows)]
+        self.engine.board = self.board
 
         # Initialize pygame surface for the board
         self.board_surface = pygame.Surface((self.cols * Constant.SQ_SIZE, self.rows * Constant.SQ_SIZE))
@@ -1201,9 +1208,13 @@ class PieceDescription(Encyclopedia):
             length_of_this_prayer_bar = self.full_length_of_prayer_bar(self.cost)
             # Center with offset
             self.cost_display_x = self.window_width // 2 - length_of_this_prayer_bar // 2 + self.move_offset
+        self.set_up_demonstration_board()
 
     def __repr__(self):
         return self.selected
+
+    def close(self):
+        self.engine.board = self.board_copy
 
     def set_up_demonstration_board(self):
         color = self.engine.turn
@@ -1326,6 +1337,7 @@ class CostMenu(Encyclopedia):
     def __init__(self, win, engine, spawn_list):
         super().__init__(win, engine)
 
+        self.board_copy = None
         self.spawn_list = spawn_list
         self.win = win
         self.engine = engine

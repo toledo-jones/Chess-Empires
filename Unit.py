@@ -100,7 +100,7 @@ class Unit:
 
     def can_capture(self, r, c, engine):
         capture_tile = None
-        if Constant.tile_in_bounds(r, c):
+        if engine.tile_in_bounds(r, c):
             capture_tile = engine.board[r][c].get_occupying()
         valid_square = isinstance(capture_tile, Piece) or isinstance(capture_tile, Building)
         if not valid_square:
@@ -336,7 +336,7 @@ class Building(Unit):
         self.contextual_options = ['build']
 
     def base_spawn_criteria(self, engine, row, col):
-        if Constant.tile_in_bounds(row, col):
+        if engine.tile_in_bounds(row, col):
             return not engine.board[row][col].is_protected_by_opposite_color(self.color)
 
     def get_unit_kind(self):
@@ -428,7 +428,7 @@ class Queen(Piece):
             for distance in range(1, self.distance):
                 r = self.row + direction[0] * distance
                 c = self.col + direction[1] * distance
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     break
                 if self.can_capture(r, c, engine):
                     squares.append((r, c))
@@ -445,7 +445,7 @@ class Queen(Piece):
             for distance in range(1, self.distance):
                 r = self.row + direction[0] * distance
                 c = self.col + direction[1] * distance
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     break
                 if not self.base_move_criteria(engine, r, c):
                     break
@@ -488,7 +488,7 @@ class Duke(Piece):
             for distance in range(1, self.distance):
                 r = self.row + direction[0] * distance
                 c = self.col + direction[1] * distance
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     break
                 if self.can_capture(r, c, engine):
                     squares.append((r, c))
@@ -505,7 +505,7 @@ class Duke(Piece):
             for distance in range(1, self.distance):
                 r = self.row + direction[0] * distance
                 c = self.col + direction[1] * distance
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     break
                 if not self.base_move_criteria(engine, r, c):
                     break
@@ -592,7 +592,7 @@ class Lion(Piece):
             for distance in range(1, self.distance):
                 r = self.row + direction[0] * distance
                 c = self.col + direction[1] * distance
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     break
                 if self.can_capture(r, c, engine):
                     squares.append((r, c))
@@ -615,7 +615,7 @@ class Lion(Piece):
             for distance in range(1, self.distance):
                 r = self.row + direction[0] * distance
                 c = self.col + direction[1] * distance
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     break
                 if not self.base_move_criteria(engine, r, c):
                     break
@@ -657,7 +657,7 @@ class Rook(Piece):
             for distance in range(1, self.distance):
                 r = self.row + direction[0] * distance
                 c = self.col + direction[1] * distance
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     break
                 if self.can_capture(r, c, engine):
                     squares.append((r, c))
@@ -674,7 +674,7 @@ class Rook(Piece):
             for distance in range(1, self.distance):
                 r = self.row + direction[0] * distance
                 c = self.col + direction[1] * distance
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     break
                 if not self.base_move_criteria(engine, r, c):
                     break
@@ -781,7 +781,7 @@ class Bishop(Piece):
             for distance in range(1, self.distance):
                 r = self.row + direction[0] * distance
                 c = self.col + direction[1] * distance
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     break
                 if self.can_capture(r, c, engine):
                     squares.append((r, c))
@@ -798,7 +798,7 @@ class Bishop(Piece):
             for distance in range(1, self.distance):
                 r = self.row + direction[0] * distance
                 c = self.col + direction[1] * distance
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     break
                 if not self.base_move_criteria(engine, r, c):
                     break
@@ -900,7 +900,7 @@ class Pawn(Piece):
             for distance in range(1, self.move_distance):
                 r = self.row + direction[0] * distance
                 c = self.col + direction[1] * distance
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     print("tile not in bounds")
                     break
                 if not self.base_move_criteria(engine, r, c):
@@ -937,7 +937,7 @@ class RogueRook(Piece):
             for distance in range(1, self.distance):
                 r = self.row + direction[0] * distance
                 c = self.col + direction[1] * distance
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     break
                 if self.can_capture(r, c, engine):
                     squares.append((r, c))
@@ -954,7 +954,7 @@ class RogueRook(Piece):
             for distance in range(1, self.distance):
                 r = self.row + direction[0] * distance
                 c = self.col + direction[1] * distance
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     break
                 if not self.rogue_move_criteria(engine, r, c):
                     break
@@ -999,7 +999,7 @@ class RogueBishop(Piece):
             for distance in range(1, self.distance):
                 r = self.row + direction[0] * distance
                 c = self.col + direction[1] * distance
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     break
                 if self.can_capture(r, c, engine):
                     squares.append((r, c))
@@ -1016,7 +1016,7 @@ class RogueBishop(Piece):
             for distance in range(1, self.distance):
                 r = self.row + direction[0] * distance
                 c = self.col + direction[1] * distance
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     break
                 if not self.rogue_move_criteria(engine, r, c):
                     break
@@ -1154,7 +1154,7 @@ class RoguePawn(Piece):
             for distance in range(1, self.move_distance):
                 r = self.row + direction[0] * distance
                 c = self.col + direction[1] * distance
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     break
                 if not self.rogue_move_criteria(engine, r, c):
                     break
@@ -1232,7 +1232,7 @@ class Monk(Piece):
         return squares
 
     def base_spawn_criteria(self, engine, row, col):
-        if Constant.tile_in_bounds(row, col):
+        if engine.tile_in_bounds(row, col):
             return engine.has_none_occupying(row, col) and not engine.has_portal(row, col) and not engine.has_trap(row,
                                                                                                                    col)
 
@@ -1292,7 +1292,7 @@ class Ram(Piece):
                 d = self.extra_move_directions[direction]
                 r = self.row + direction[0] + d[0] * distance
                 c = self.col + direction[1] + d[1] * distance
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     break
                 if self.can_capture(r, c, engine):
                     squares.append((r, c))
@@ -1309,7 +1309,7 @@ class Ram(Piece):
                 d = self.extra_move_directions[direction]
                 r = self.row + direction[0] + d[0] * distance
                 c = self.col + direction[1] + d[1] * distance
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     break
                 if not self.base_move_criteria(engine, r, c):
                     break
@@ -1416,7 +1416,7 @@ class Jester(Piece):
             for distance in range(1, self.distance):
                 r = self.row + direction[0] * distance
                 c = self.col + direction[1] * distance
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     break
                 if not self.base_move_criteria(engine, r, c):
                     break
@@ -1461,7 +1461,7 @@ class Doe(Piece):
             for i in range(1, self.distance):
                 r = self.row + direction[0] * i
                 c = self.col + direction[1] * i
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     break
                 if self.can_capture(r, c, engine):
                     squares.append((r, c))
@@ -1484,7 +1484,7 @@ class Doe(Piece):
             for i in range(1, self.distance):
                 r = self.row + direction[0] * i
                 c = self.col + direction[1] * i
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     break
                 if not self.base_move_criteria(engine, r, c):
                     break
@@ -1573,7 +1573,7 @@ class Builder(Piece):
         return moves
 
     def base_spawn_criteria(self, engine, row, col):
-        if Constant.tile_in_bounds(row, col):
+        if engine.tile_in_bounds(row, col):
             return engine.has_none_occupying(row, col) and not engine.has_portal(row, col) and not engine.has_trap(row,
                                                                                                                    col)
 
@@ -1710,7 +1710,7 @@ class Champion(Piece):
                 for distance in range(0, self.distance):
                     r = self.row + direction[0] + extra_direction[0] * distance
                     c = self.col + direction[1] + extra_direction[1] * distance
-                    if not Constant.tile_in_bounds(r, c):
+                    if not engine.tile_in_bounds(r, c):
                         break
                     if self.can_capture(r, c, engine):
                         if (r, c) not in squares:
@@ -1729,7 +1729,7 @@ class Champion(Piece):
                 for distance in range(0, self.distance):
                     r = self.row + direction[0] + extra_direction[0] * distance
                     c = self.col + direction[1] + extra_direction[1] * distance
-                    if not Constant.tile_in_bounds(r, c):
+                    if not engine.tile_in_bounds(r, c):
                         break
                     if not self.base_move_criteria(engine, r, c):
                         break
@@ -1774,7 +1774,7 @@ class Oxen(Piece):
             for distance in range(0, self.distance):
                 r = self.row + direction[0] + extra_direction[0] * distance
                 c = self.col + direction[1] + extra_direction[1] * distance
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     break
                 if self.can_capture(r, c, engine):
                     if (r, c) not in squares:
@@ -1793,7 +1793,7 @@ class Oxen(Piece):
             for distance in range(0, self.distance):
                 r = self.row + direction[0] + extra_direction[0] * distance
                 c = self.col + direction[1] + extra_direction[1] * distance
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     break
                 if not self.base_move_criteria(engine, r, c):
                     break
@@ -1835,7 +1835,7 @@ class Persuader(Piece):
             for distance in range(1, self.distance):
                 r = self.row + direction[0] * distance
                 c = self.col + direction[1] * distance
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     break
                 if not self.base_move_criteria(engine, r, c):
                     break
@@ -1880,7 +1880,7 @@ class GoldGeneral(Piece):
             for distance in range(1, self.distance):
                 r = self.row + direction[0] * distance
                 c = self.col + direction[1] * distance
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     break
                 if self.can_capture(r, c, engine):
                     squares.append((r, c))
@@ -1897,7 +1897,7 @@ class GoldGeneral(Piece):
             for distance in range(1, self.distance):
                 r = self.row + direction[0] * distance
                 c = self.col + direction[1] * distance
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     break
                 if not self.general_move_criteria(engine, r, c):
                     break
@@ -1961,7 +1961,7 @@ class Trapper(Piece):
         return squares
 
     def base_spawn_criteria(self, engine, row, col):
-        if Constant.tile_in_bounds(row, col):
+        if engine.tile_in_bounds(row, col):
             return not engine.has_trap(row, col) and not engine.board[row][col].is_protected_by_opposite_color(
                     self.color)
 
@@ -1988,7 +1988,7 @@ class Trapper(Piece):
             for distance in range(1, self.move_distance):
                 r = self.row + direction[0] * distance
                 c = self.col + direction[1] * distance
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     break
                 if not self.rogue_move_criteria(engine, r, c):
                     break
@@ -2283,7 +2283,7 @@ class Ferz(Piece):
             for distance in range(1, self.move_distance):
                 r = self.row + direction[0] * distance
                 c = self.col + direction[1] * distance
-                if not Constant.tile_in_bounds(r, c):
+                if not engine.tile_in_bounds(r, c):
                     break
                 if not self.base_move_criteria(engine, r, c):
                     break
@@ -2367,7 +2367,7 @@ class Cavalry(Piece):
                 for distance in range(1, self.move_distance):
                     r = self.row + direction[0] * distance
                     c = self.col + direction[1] * distance
-                    if not Constant.tile_in_bounds(r, c):
+                    if not engine.tile_in_bounds(r, c):
                         break
                     if not self.base_move_criteria(engine, r, c):
                         break

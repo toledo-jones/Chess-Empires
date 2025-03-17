@@ -125,8 +125,19 @@ class Engine:
             'builder'   : Builder, 'unicorn': Unicorn, 'stable': Stable, 'gold_general': GoldGeneral, 'duke': Duke,
             'oxen'      : Oxen, 'wall': Wall, 'doe': Doe, 'persuader': Persuader, 'trader': Trader, 'circus': Circus,
             'trapper'   : Trapper, 'trap': Trap, 'lion': Lion, 'fire_spinner': FireSpinner, 'acrobat': Acrobat,
-            'magician'  : Magician, 'cavalry' : Cavalry, 'ferz': Ferz, 'assassin': Assassin
+            'magician'  : Magician, 'cavalry': Cavalry, 'ferz': Ferz, 'assassin': Assassin
         }
+
+    def tile_in_bounds(self, r, c):
+        try:
+            # Get the number of rows and columns in the board
+            rows = len(self.board)
+            cols = len(self.board[r]) if rows > 0 else 0  # Handle case for empty board
+
+            # Check if the row and column are within bounds
+        except IndexError:
+            return False
+        return 0 <= r < rows and 0 <= c < cols
 
     def initialize_states(self):
         """Returns a dictionary of game states."""
@@ -289,7 +300,6 @@ class Engine:
 
         elif cost_type == 'gold':
             return self.players[self.turn].gold - cost >= 0
-
 
     def valid_purchase(self, cost):
         #
@@ -575,6 +585,7 @@ class Engine:
             return self.board[r][c].portal
         except IndexError:
             return False
+
     def has_gold(self, r, c):
         try:
             p = self.board[r][c].get_resource()
@@ -811,6 +822,7 @@ class Engine:
                 return True
         except IndexError:
             return False
+
     def has_no_resource(self, r, c):
         try:
             if self.board[r][c].resource is None:
@@ -830,6 +842,7 @@ class Engine:
             return self.board[r][c].get_resource()
         except IndexError:
             return False
+
     def can_be_legally_occupied(self, r, c):
         try:
             if self.has_gold(r, c) or self.has_wood(r, c) or self.has_sunken_quarry(r, c):
@@ -927,8 +940,10 @@ class Engine:
     def create_resource(self, row, col, resource):
         try:
             self.board[row][col].set_resource(resource)
-        except IndexError as e:
-            print(f"{e}. Tried to spawn resource at (row:{row}, col:{col})")
+            return True
+        except IndexError:
+            return False
+
     def delete_piece(self, row, col):
         piece = self.board[row][col].get_occupying()
         pieces = self.players[piece.get_color()].pieces
@@ -1285,10 +1300,10 @@ class Engine:
 
     def transfer_to_pre_ritual_state(self, row, col):
         ritual_key = {
-            'magician': ('gold', self.magician_rituals[self.turn_count_actual]),
-            'prayer_stone' : ('prayer', self.prayer_stone_rituals[self.turn_count_actual]),
-            'monolith' : ('prayer', self.monolith_rituals[self.turn_count_actual]),
-            'assassin': (None, Constant.ASSASSIN_RITUALS)
+            'magician'    : ('gold', self.magician_rituals[self.turn_count_actual]),
+            'prayer_stone': ('prayer', self.prayer_stone_rituals[self.turn_count_actual]),
+            'monolith'    : ('prayer', self.monolith_rituals[self.turn_count_actual]),
+            'assassin'    : (None, Constant.ASSASSIN_RITUALS)
         }
         cost_type, ritual_list = ritual_key[str(self.get_occupying(row, col))]
         return self.create_ritual_menu(row, col, ritual_list, cost_type)
@@ -1297,7 +1312,6 @@ class Engine:
         self.get_occupying(row, col).casting = True
         ritual_menu = RitualMenu(row, col, self.state[-1].win, self, ritual_list, cost_type)
         self.menus.append(ritual_menu)
-        print("creating ritual menu")
         return True
 
     def can_decree(self, row, col):

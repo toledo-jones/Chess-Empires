@@ -1539,11 +1539,6 @@ class PreBuilding(State):
 
     def select(self, row, col):
         return True
-        # if self.click_square_in_spawn_squares(row, col):
-        #     self.engine.menus.append(
-        #             self.engine.MENUS[self.menu_queue](row, col, self.win, self.engine, self.spawning_piece))
-        #     self.spawning_piece.spawn_squares_list = [(row, col)]
-        #     return True
 
     def tab(self):
         self.revert_to_playing_state()

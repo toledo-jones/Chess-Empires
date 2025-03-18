@@ -324,9 +324,16 @@ def load_images():
                                                (scale[0], scale[1])).convert_alpha()
     for resource in resources:
         scale = RESOURCES_IMAGE_MODIFY[resource]['SCALE']
-        RESOURCES[resource] = pygame.transform.scale(
-                pygame.image.load(os.path.join("files/resources", resource + ".png")),
-                (scale[0], scale[1])).convert_alpha()
+        image = pygame.image.load(os.path.join("files/resources", resource + ".png")).convert_alpha()
+
+        # Create a new surface with per-pixel alpha
+        resource_surface = pygame.Surface((scale[0], scale[1]), pygame.SRCALPHA)
+
+        # Scale the image first, then blit it onto the new surface
+        scaled_image = pygame.transform.scale(image, (scale[0], scale[1]))
+
+        RESOURCES[resource] = scaled_image  # Store the processed surface
+
     for menu_icon in menu_icons:
         scale = MENU_ICONS_IMAGE_MODIFY[menu_icon]['SCALE']
         MENU_ICONS[menu_icon] = pygame.transform.scale(

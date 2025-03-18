@@ -12,6 +12,11 @@ class Tile:
         self.resource = None
         self.color = None
         self.protected = False
+        self.highlight_check = False
+        self.highlight_unused = False
+        self.highlight_default = False
+        self.highlight_self = False
+
         self.protected_image = None
         self.protect_timer = 0
         self.portal_image = None
@@ -138,6 +143,10 @@ class Tile:
     def set_trap(self, trap):
         self.trap = trap
 
+    def draw_highlights(self, win):
+        if self.occupying:
+            self.occupying.draw_highlights(win)
+
     def draw(self, win):
         if self.has_resource():
             self.resource.draw(win)
@@ -152,5 +161,5 @@ class Tile:
             self.trap.draw(win)
 
         if self.has_occupying():
-            self.occupying.draw_highlights(win)
             self.occupying.draw(win)
+

@@ -376,6 +376,10 @@ class Engine:
                             (x, y),
                             special_flags=pygame.BLEND_RGBA_MULT
                     )
+            # Draw the board pieces
+            for r in range(self.rows):
+                for c in range(self.cols):
+                    self.board[r][c].draw_highlights(self.board_surface)
 
             # Draw the board pieces
             for r in range(self.rows):
@@ -392,6 +396,41 @@ class Engine:
         for piece in self.players[self.turn].pieces:
             if isinstance(piece, King):
                 return piece
+
+    def set_highlight(
+            self,
+            squares: list[tuple[int, int]],
+            boolean: bool, highlight_type: str
+    ) -> bool:
+        """
+        Sets the highlight of a set of squares to on or off.
+        :param squares: list of squares [(row, col), (row, col)...]
+        :param boolean: value to set the highlight of the squares to
+        :param highlight_type: Valid inputs are 'check, default, unused, self'
+        :return: success of setting attribute
+        """
+
+        # Valid inputs
+        valid_types = ['check', 'default', 'unused', 'self']
+
+        # Check validity
+        if highlight_type not in valid_types:
+
+            # Raise error if value is invalid
+            raise ValueError(f"Invalid highlight type: {highlight_type}. Valid inputs are: {', '.join(valid_types)}")
+        try:
+
+            # For each square
+            for row, col in squares:
+
+                # Set attribute
+                setattr(self.board[row][col], f"highlight_{highlight_type}", boolean)
+
+            return True
+
+        # Pass over row/col pairs that are outside of current board
+        except IndexError:
+            return False
 
     def player_king_does_not_exist(self):
         does_king_exist = False

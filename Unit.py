@@ -261,12 +261,12 @@ class Unit:
             win.blit(self.square, (square[1] * Constant.SQ_SIZE, square[0] * Constant.SQ_SIZE))
 
     def draw_self_highlight(self, win, color):
+        self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
         self.square_fill(color)
         win.blit(self.square, (self.col * Constant.SQ_SIZE, self.row * Constant.SQ_SIZE))
 
     def highlight_self_square_unused(self, win):
         win.blit(Constant.IMAGES['sparkle'], (self.col * Constant.SQ_SIZE, self.row * Constant.SQ_SIZE))
-        # self.draw_self_highlight(win, self.unused_square_color)
 
     def highlight_self_square(self, win):
         self.draw_self_highlight(win, self.self_selected_square_color)

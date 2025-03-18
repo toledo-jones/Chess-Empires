@@ -326,9 +326,6 @@ def load_images():
         scale = RESOURCES_IMAGE_MODIFY[resource]['SCALE']
         image = pygame.image.load(os.path.join("files/resources", resource + ".png")).convert_alpha()
 
-        # Create a new surface with per-pixel alpha
-        resource_surface = pygame.Surface((scale[0], scale[1]), pygame.SRCALPHA)
-
         # Scale the image first, then blit it onto the new surface
         scaled_image = pygame.transform.scale(image, (scale[0], scale[1]))
 

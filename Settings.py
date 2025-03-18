@@ -12,11 +12,11 @@ import pygame
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Uncomment the section below to enable debug
 
-DEBUG_START = True
-DISPLAY_STATE_IN_HUD = True
-BOARD_STARTS_WITH_RESOURCES = False
-DEBUG_RITUALS = True
-POP_UPS_ON = False
+# DEBUG_START = True
+# DISPLAY_STATE_IN_HUD = True
+# BOARD_STARTS_WITH_RESOURCES = False
+# DEBUG_RITUALS = True
+# POP_UPS_ON = False
 
 # Debug settings
 DEBUG_STARTING_PRAYER = 10
@@ -27,7 +27,7 @@ DEBUG_STARTING_PIECES = ['castle', 'king', 'queen', 'pawn']
 
 # Window and board sizes
 MAX_FPS = 120
-VERSION = "v24.1"
+VERSION = "playtest alpha 0.01"
 NUMBER = ""
 BOARD_HEIGHT_PX = pygame.display.Info().current_h
 SQ_SIZE = BOARD_HEIGHT_PX // 10
@@ -38,7 +38,7 @@ SIDE_MENU_WIDTH = pygame.display.Info().current_w - BOARD_WIDTH_PX
 BOARD_HEIGHT_PX = pygame.display.Info().current_h
 
 # Colors
-HIGHLIGHT_ALPHA = 100
+HIGHLIGHT_ALPHA = 110
 MENU_COLOR = pygame.Color((72, 61, 139))
 LIGHT_SQUARE_COLOR = pygame.Color((255, 255, 255, 255))
 DARK_SQUARE_COLOR = (pygame.Color((66.3, 33.6, 21.4, 255)))
@@ -239,7 +239,7 @@ DESCRIPTIONS = {
     'monk'            : ['prays at monoliths to cast powerful rituals'],
     'pikeman'         : ['moves one square orthogonally', 'a valuable defender'],
     'castle'          : ['creates essential pieces such as pawns and builders'],
-    'stable'          : ['creates cavalry such as knights, elephants and rams', 'these pieces are known as leapers',
+    'stable'          : ['creates pieces such as knights, elephants and rams', 'these pieces are known as leapers',
                          'all leapers can capture walls'],
     'barracks'        : ['creates standard chess pieces such as rooks and bishops'],
     'fortress'        : ['creates rogue versions of the standard chess pieces',

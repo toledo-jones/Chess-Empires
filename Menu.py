@@ -72,6 +72,7 @@ class Menu:
     def close(self):
         pass
 
+
 class Notification(Menu):
     def __init__(self, row, col, win, engine, message='blank'):
         """Initializes the notification menu at the given board position."""
@@ -1064,7 +1065,6 @@ class Encyclopedia(Menu):
 
         self.description = False
 
-
         # Window Variables
         self.window_width = pygame.display.Info().current_w
         self.window_height = pygame.display.Info().current_h
@@ -1136,6 +1136,9 @@ class PieceDescription(Encyclopedia):
         self.color_key = {0: 'dark', 1: 'light'}
         self.board_copy = self.engine.board
 
+        self.small_font_size = round(Constant.SQ_SIZE * (1 / 3))
+        self.small_font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.small_font_size)
+
         # Define board size and initialize the 2D board list with None
         self.cols = 7
         self.rows = 7
@@ -1169,6 +1172,11 @@ class PieceDescription(Encyclopedia):
         # Initialize cost and type based on selected piece
         self.cost = None
         self.type = None
+
+        self.text_box_x = self.board_surface.get_width() + self.board_x * 2
+        self.text_box_width = self.window_width - (self.board_surface.get_width() + self.board_x * 3)
+        self.text_box = pygame.Surface((self.text_box_width, self.window_height // 2.2))
+
         try:
             # If selected is a prayer, use prayer costs
             self.cost = Constant.PRAYER_COSTS[self.selected]['prayer']
@@ -1187,7 +1195,7 @@ class PieceDescription(Encyclopedia):
         # Graphics Math for layout calculations
         self.cost_display_y = self.window_height // 2 - self.resources['wood'].get_height() // 2
         self.x_buffer_between_costs = round(Constant.SQ_SIZE * 1.5)
-        self.description_text_y = round(self.window_height * 5 / 8)
+        self.description_text_y = self.cost_display_y + self.description_text_height
         self.cost_display_x = 0
 
         # Calculate the x position for displaying the costs based on the selected type
@@ -1207,7 +1215,7 @@ class PieceDescription(Encyclopedia):
             # For rituals, calculate the length of the prayer bar and center it
             length_of_this_prayer_bar = self.full_length_of_prayer_bar(self.cost)
             # Center with offset
-            self.cost_display_x = self.window_width // 2 - length_of_this_prayer_bar // 2 + self.move_offset
+            self.cost_display_x = self.window_width // 2 - length_of_this_prayer_bar // 2
         self.set_up_demonstration_board()
 
     def __repr__(self):
@@ -1237,6 +1245,49 @@ class PieceDescription(Encyclopedia):
         self.board[row][col].get_occupying().update_move_squares(self.engine)
         self.board[row][col].get_occupying().display_moves = True
 
+    import pygame
+
+    def justify_text(self, font, text, max_width):
+        """ Justifies a given text into a set width using a pygame font. """
+        words = text.split()
+        lines = []
+        current_line = []
+        current_width = 0
+
+        # Split text into lines that fit within max_width
+        for word in words:
+            word_width, _ = self.small_font.size(word + ' ')  # Include space
+            if current_width + word_width > max_width and current_line:
+                lines.append(current_line)
+                current_line = [word]
+                current_width = word_width
+            else:
+                current_line.append(word)
+                current_width += word_width
+
+        if current_line:
+            lines.append(current_line)
+
+        # Render each line with justified spacing
+        justified_lines = []
+        for line in lines:
+            if len(line) == 1:  # Single word case (left-align)
+                surface = self.small_font.render(line[0], True, (255, 255, 255))
+            else:
+                total_word_width = sum(font.size(word)[0] for word in line)
+                space_width = (max_width - total_word_width) // (len(line) - 1)
+                surface = pygame.Surface((max_width, font.get_height()), pygame.SRCALPHA)
+                x_offset = 0
+
+                for i, word in enumerate(line):
+                    word_surf = self.small_font.render(word, True, (255, 255, 255))
+                    surface.blit(word_surf, (x_offset, 0))
+                    x_offset += self.small_font.size(word)[0] + (space_width if i < len(line) - 1 else 0)
+
+            justified_lines.append(surface)
+
+        return justified_lines
+
     def draw(self):
         self.win.fill(Constant.MENU_COLOR)
 
@@ -1248,15 +1299,17 @@ class PieceDescription(Encyclopedia):
             self.win.blit(self.board_surface, (self.board_x, self.board_y))
         self.win.blit(self.text_surf, (self.title_text_display_x, self.title_text_display_y))
         self.win.blit(self.menu_logo, (self.menu_logo_display_x, self.menu_logo_display_y))
-        y_buffer = self.description_text_y
 
-        for line in self.description_text_surfs:
-            if self.type == 'piece':
-                description_text_x = self.window_width // 2 - line.get_width() // 2 + self.move_offset
-            else:
-                description_text_x = self.window_width // 2 - line.get_width() // 2
-            self.win.blit(line, (description_text_x, y_buffer))
+        y_buffer = 0
+        max_width = self.text_box.get_width()
+        self.text_box.fill(Constant.MENU_COLOR)
+
+        for line_surface in self.justify_text(self.small_font, "".join(self.description_text), max_width):
+            x_position = 0  # Center align justified block
+            self.text_box.blit(line_surface, (x_position, y_buffer))
             y_buffer += self.description_text_height
+
+        self.win.blit(self.text_box, (self.text_box_x, self.description_text_y))
 
     def draw_piece_cost(self):
         cost_x = self.cost_display_x
@@ -1298,7 +1351,7 @@ class PieceDescription(Encyclopedia):
                 # Determine the rectangle size for the current square
                 rect_size = (Constant.SQ_SIZE, Constant.SQ_SIZE)
 
-                # Calculate position for the square
+                # Calculate position for the square, with the offset
                 x = c * Constant.SQ_SIZE
                 y = r * Constant.SQ_SIZE
 
@@ -1308,6 +1361,7 @@ class PieceDescription(Encyclopedia):
                         color,
                         pygame.Rect(x, y, rect_size[0], rect_size[1])
                 )
+
                 # Draw the tile using blend mode (avoid re-evaluating color calculation)
                 tile_color = self.color_key[(r + c) % 2]
                 self.board_surface.blit(
@@ -1315,6 +1369,11 @@ class PieceDescription(Encyclopedia):
                         (x, y),
                         special_flags=pygame.BLEND_RGBA_MULT
                 )
+        # Draw the board pieces
+        for r in range(self.rows):
+            for c in range(self.cols):
+                self.board[r][c].draw_highlights(self.board_surface)
+
         # Draw the board pieces
         for r in range(self.rows):
             for c in range(self.cols):

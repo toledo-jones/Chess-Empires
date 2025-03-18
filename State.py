@@ -261,8 +261,8 @@ class MainMenu(State):
         self.logo_position = splash_screen.logo_position
         self.color = Constant.turn_to_color[splash_screen.logo_color]
 
-        self.window_width = pygame.display.Info().current_w
-        self.window_height = pygame.display.Info().current_h
+        self.window_width = self.win.get_width()
+        self.window_height = self.win.get_height()
         self.font_size = round(Constant.SQ_SIZE * 1)
         self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
 

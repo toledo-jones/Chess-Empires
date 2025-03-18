@@ -10,15 +10,18 @@ import pygame
 
 
 class Engine:
-    def __init__(self):
+    def __init__(self, window):
         """Initializes the game engine and sets up game attributes."""
+
         self.running = True
+        self.window = window
 
         # Board Setup
         self.cols = Constant.BOARD_WIDTH_SQ
         self.rows = Constant.BOARD_HEIGHT_SQ
         self.board = [[Tile(x, y) for y in range(self.cols)] for x in range(self.rows)]
         self.board_surface = pygame.Surface((self.cols * Constant.SQ_SIZE, self.rows * Constant.SQ_SIZE))
+        self.display_surface = pygame.Surface((self.window.get_width(), self.rows * Constant.SQ_SIZE))
         self.map = None
 
         # Game State
@@ -94,6 +97,10 @@ class Engine:
     def reset(self):
         """Resets the engine's running state."""
         self.running = False
+
+    def draw_display_surface(self):
+        offset_y = self.window.get_height() // 2 - self.display_surface.get_height() // 2
+        self.window.blit(self.display_surface, (0, offset_y))
 
     def initialize_rituals(self):
         """Initializes rituals based on debug mode."""
@@ -377,10 +384,6 @@ class Engine:
 
             # Blit the board surface to the main window
             win.blit(self.board_surface, (0, offset_y))
-
-        except Exception as e:
-            print(f"Error drawing the board: {e}")
-
 
         except IndexError:
             pass

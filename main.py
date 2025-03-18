@@ -1,5 +1,3 @@
-
-
 def main():
     import sys
 
@@ -18,16 +16,7 @@ def main():
     LOGO_FOLDER = "files/images"
     DISPLAY_TIME = 2.0  # Time  for splash screen to show
 
-    # Create and display the splash screen
-    from Splash import SplashScreen
-    splash_screen = SplashScreen(window, LOGO_FOLDER, LOGO_COLORS, display_time=DISPLAY_TIME)
-    splash_screen.display()
-
-
-
     import Constant
-
-
 
     from Engine import Engine
 
@@ -46,12 +35,17 @@ def main():
     clock = pygame.time.Clock()
 
     # Create and initialize the game engine
-    engine = Engine()
+    engine = Engine(window)
+
+    # Create and display the splash screen
+    from Splash import SplashScreen
+    splash_screen = SplashScreen(engine.display_surface, LOGO_FOLDER, LOGO_COLORS, display_time=DISPLAY_TIME)
+    splash_screen.display()
 
     from State import MainMenu
 
     # Set the initial game state to the Main Menu
-    state = MainMenu(window, engine, splash_screen)
+    state = MainMenu(engine.display_surface, engine, splash_screen)
     engine.set_state(state)  # Set the initial state in the engine
 
     # Set the game window's title and icon
@@ -131,6 +125,8 @@ def main():
 
         # Draw the current game state (rendering the game scene)
         current_state.draw()
+
+        engine.draw_display_surface()
 
         # Update the game display (rendering everything to the window)
         pygame.display.update()

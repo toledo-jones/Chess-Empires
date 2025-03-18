@@ -1852,6 +1852,7 @@ class SummonGoldGeneral(Ritual):
         return 'gold_general'
 
     def draw(self):
+
         super().draw()
         self.side_bar.draw()
         # Display Gold General at mouse position while mouse is on valid spawn square

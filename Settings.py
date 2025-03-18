@@ -12,18 +12,18 @@ import pygame
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Uncomment the section below to enable debug
 
-# DEBUG_START = True
-# DISPLAY_STATE_IN_HUD = True
-# BOARD_STARTS_WITH_RESOURCES = False
-# DEBUG_RITUALS = True
-# POP_UPS_ON = False
+DEBUG_START = True
+DISPLAY_STATE_IN_HUD = True
+BOARD_STARTS_WITH_RESOURCES = False
+DEBUG_RITUALS = True
+POP_UPS_ON = False
 
 # Debug settings
 DEBUG_STARTING_PRAYER = 10
 DEBUG_STARTING_WOOD = 100
 DEBUG_STARTING_GOLD = 100
 DEBUG_STARTING_STONE = 100
-DEBUG_STARTING_PIECES = ['castle', 'king', 'assassin', 'pawn']
+DEBUG_STARTING_PIECES = ['castle', 'king', 'queen', 'pawn']
 
 # Window and board sizes
 MAX_FPS = 120
@@ -100,7 +100,7 @@ PRAYER_STONE_RITUALS = ['protect',
 MAGICIAN_RITUALS = ['portal', 'swap', 'teleport']
 
 # Values
-HIGHLIGHT_ALPHA = 110
+HIGHLIGHT_ALPHA = 100
 DECREE_COST = {'gold': 35}
 DECREE_INCREMENT = 5
 DEFAULT_PIECE_LIMIT = 3

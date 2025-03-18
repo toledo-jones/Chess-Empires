@@ -1,6 +1,5 @@
 def main():
     import sys
-
     import pygame
 
     # Initialize Pygame and load all necessary game resources
@@ -20,10 +19,6 @@ def main():
 
     from Engine import Engine
 
-    Constant.load_images()  # Load images required for the game (pieces, board, etc.)
-    Constant.load_music()  # Load background music
-    Constant.load_sounds()  # Load sound effects (clicks, moves, etc.)
-
     # Set the volume for the background music (0.0 is mute, 1.0 is full volume)
     pygame.mixer.music.set_volume(0.1)
 
@@ -42,7 +37,17 @@ def main():
     splash_screen = SplashScreen(engine.display_surface, LOGO_FOLDER, LOGO_COLORS, display_time=DISPLAY_TIME)
     splash_screen.display()
 
+    # Load images required for the game (pieces, board, etc.)\
+    Constant.load_images()
+
+    # Load background music
+    Constant.load_music()
+
+    # Load sound effects (clicks, moves, etc.)
+    Constant.load_sounds()
+
     from State import MainMenu
+    import time
 
     # Set the initial game state to the Main Menu
     state = MainMenu(engine.display_surface, engine, splash_screen)
@@ -56,11 +61,6 @@ def main():
     while engine.running:
         # Current state handling input
         current_state = engine.state[-1]
-
-        # Initialize frame counter
-        frame_counter = 0
-
-        import time
 
         # Initialize a dictionary to track last input times for each event type
         last_input_time = {

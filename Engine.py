@@ -4,8 +4,6 @@ from Tile import *
 from Map import *
 from Trades import *
 from Sounds import *
-
-import os
 import pygame
 
 
@@ -41,7 +39,6 @@ class Engine:
         self.spawn_success = False
         self.spawning = None
         self.final_spawn = False
-
         self.ritual = None
         self.rituals_banned = False
         self.mining = False
@@ -341,12 +338,10 @@ class Engine:
             colors = [Constant.DARK_SQUARE_COLOR, Constant.LIGHT_SQUARE_COLOR]
 
             # Calculate the total size of the board
-            board_width = self.board_surface.get_width()
             board_height = self.board_surface.get_height()
 
             # Calculate the offset to center the board on the window
             window_width, window_height = win.get_size()
-            offset_x = (window_width - board_width) // 2
             offset_y = (window_height - board_height) // 2
 
             # Draw the board squares and tiles

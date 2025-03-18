@@ -50,7 +50,7 @@ class Unit:
         self.persuader_squares_list = []
         self.swap_squares_list = []
 
-        self.square = pygame.Surface((Constant.SQ_SIZE, Constant.SQ_SIZE), pygame.BLEND_RGBA_MULT)
+        self.square = pygame.Surface((Constant.SQ_SIZE, Constant.SQ_SIZE), pygame.SRCALPHA)
         self.self_selected_square_color = Constant.SELF_SQUARE_HIGHLIGHT_COLOR
         self.unused_square_color = Constant.UNUSED_PIECE_HIGHLIGHT_COLOR
         self.move_square_color = Constant.MOVE_SQUARE_HIGHLIGHT_COLOR
@@ -251,17 +251,17 @@ class Unit:
         self.draw_self_highlight(win, self.check_color)
 
     def square_fill(self, color):
-        self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
         self.square.fill(color)
 
+    def draw_self_highlight(self, win, color):
+        self.square_fill(color)
+        win.blit(self.square, (self.col * Constant.SQ_SIZE, self.row * Constant.SQ_SIZE))
     def draw_squares_in_list(self, win, square_list, color):
         self.square_fill(color)
         for square in square_list:
             win.blit(self.square, (square[1] * Constant.SQ_SIZE, square[0] * Constant.SQ_SIZE))
 
-    def draw_self_highlight(self, win, color):
-        self.square_fill(color)
-        win.blit(self.square, (self.col * Constant.SQ_SIZE, self.row * Constant.SQ_SIZE))
+
 
     def highlight_self_square_unused(self, win):
         win.blit(Constant.IMAGES['sparkle'], (self.col * Constant.SQ_SIZE, self.row * Constant.SQ_SIZE))

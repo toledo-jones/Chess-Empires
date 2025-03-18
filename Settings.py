@@ -12,11 +12,11 @@ import pygame
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Uncomment the section below to enable debug
 
-# DEBUG_START = True
-# DISPLAY_STATE_IN_HUD = True
-# BOARD_STARTS_WITH_RESOURCES = False
-# DEBUG_RITUALS = True
-# POP_UPS_ON = False
+DEBUG_START = True
+DISPLAY_STATE_IN_HUD = True
+BOARD_STARTS_WITH_RESOURCES = False
+DEBUG_RITUALS = True
+POP_UPS_ON = False
 
 # Debug settings
 DEBUG_STARTING_PRAYER = 10
@@ -38,14 +38,16 @@ SIDE_MENU_WIDTH = pygame.display.Info().current_w - BOARD_WIDTH_PX
 BOARD_HEIGHT_PX = pygame.display.Info().current_h
 
 # Colors
+HIGHLIGHT_ALPHA = 100
 MENU_COLOR = pygame.Color((72, 61, 139))
 LIGHT_SQUARE_COLOR = pygame.Color((255, 255, 255, 255))
 DARK_SQUARE_COLOR = (pygame.Color((66.3, 33.6, 21.4, 255)))
-TINT_COLORS = pygame.Color((225.2, 212.4, 172.6))
-UNUSED_PIECE_HIGHLIGHT_COLOR = pygame.Color((237, 225, 199))
-SELF_SQUARE_HIGHLIGHT_COLOR = pygame.Color('blue')
-MOVE_SQUARE_HIGHLIGHT_COLOR = pygame.Color((199, 202, 237))
-CHECK_SQUARE_HIGHLIGHT_COLOR = pygame.Color('red')
+TINT_COLORS = pygame.Color((225.2, 212.4, 172.6, 255))
+UNUSED_PIECE_HIGHLIGHT_COLOR = pygame.Color((237, 225, 199, HIGHLIGHT_ALPHA))
+MOVE_SQUARE_HIGHLIGHT_COLOR = pygame.Color((199, 202, 237, HIGHLIGHT_ALPHA))
+SELF_SQUARE_HIGHLIGHT_COLOR = pygame.Color(0, 0, 255, HIGHLIGHT_ALPHA)  # Blue with alpha
+CHECK_SQUARE_HIGHLIGHT_COLOR = pygame.Color(255, 0, 0, HIGHLIGHT_ALPHA)  # Red with alpha
+
 GOLD = pygame.Color('gold')
 DARK_ORANGE = pygame.Color('dark orange')
 WHITE = pygame.Color('white')
@@ -100,7 +102,6 @@ PRAYER_STONE_RITUALS = ['protect',
 MAGICIAN_RITUALS = ['portal', 'swap', 'teleport']
 
 # Values
-HIGHLIGHT_ALPHA = 100
 DECREE_COST = {'gold': 35}
 DECREE_INCREMENT = 5
 DEFAULT_PIECE_LIMIT = 3

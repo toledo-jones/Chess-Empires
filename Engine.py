@@ -18,6 +18,7 @@ class Engine:
         self.cols = Constant.BOARD_WIDTH_SQ
         self.rows = Constant.BOARD_HEIGHT_SQ
         self.board = [[Tile(x, y) for y in range(self.cols)] for x in range(self.rows)]
+        self.board_surface = pygame.Surface((self.cols * Constant.SQ_SIZE, self.rows * Constant.SQ_SIZE))
         self.map = None
 
         # Game State
@@ -331,6 +332,16 @@ class Engine:
         try:
             # Define the alternating colors for the squares
             colors = [Constant.DARK_SQUARE_COLOR, Constant.LIGHT_SQUARE_COLOR]
+
+            # Calculate the total size of the board
+            board_width = self.board_surface.get_width()
+            board_height = self.board_surface.get_height()
+
+            # Calculate the offset to center the board on the window
+            window_width, window_height = win.get_size()
+            offset_x = (window_width - board_width) // 2
+            offset_y = (window_height - board_height) // 2
+
             # Draw the board squares and tiles
             for r in range(self.rows):
                 for c in range(self.cols):
@@ -340,20 +351,20 @@ class Engine:
                     # Determine the rectangle size for the current square
                     rect_size = (Constant.SQ_SIZE, Constant.SQ_SIZE)
 
-                    # Calculate position for the square
+                    # Calculate position for the square, with the offset
                     x = c * Constant.SQ_SIZE
                     y = r * Constant.SQ_SIZE
 
                     # Draw the square
                     pygame.draw.rect(
-                            win,
+                            self.board_surface,
                             color,
                             pygame.Rect(x, y, rect_size[0], rect_size[1])
                     )
 
                     # Draw the tile using blend mode (avoid re-evaluating color calculation)
                     tile_color = self.COLORS[(r + c) % 2]
-                    win.blit(
+                    self.board_surface.blit(
                             Constant.BOARD_TILES[tile_color][self.board[r][c].index],
                             (x, y),
                             special_flags=pygame.BLEND_RGBA_MULT
@@ -362,7 +373,14 @@ class Engine:
             # Draw the board pieces
             for r in range(self.rows):
                 for c in range(self.cols):
-                    self.board[r][c].draw(win)
+                    self.board[r][c].draw(self.board_surface)
+
+            # Blit the board surface to the main window
+            win.blit(self.board_surface, (0, offset_y))
+
+        except Exception as e:
+            print(f"Error drawing the board: {e}")
+
 
         except IndexError:
             pass

@@ -1981,6 +1981,8 @@ class Trapper(Piece):
         squares = []
         if not self.first_move:
             self.move_distance = 2
+        else:
+            self.move_distance = 3
 
         for direction in self.move_directions:
             for distance in range(1, self.move_distance):

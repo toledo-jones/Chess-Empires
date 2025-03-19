@@ -967,6 +967,7 @@ class Move(GameEvent):
     def __init__(self, engine, acting_tile, action_tile):
         super().__init__(engine, acting_tile, action_tile)
         self.moved = self.acting_tile.get_occupying()
+        print(f"stored first move as {self.moved.first_move}")
         self.first_move = self.moved.first_move
         self.start = self.moved.row, self.moved.col
         self.end = self.action_tile.get_position()
@@ -992,6 +993,8 @@ class Move(GameEvent):
     def undo(self):
         super().undo()
         self.moved.actions_remaining += 1
+        print(f"undoing first move, setting it to {self.first_move}")
+        print(f"Piece moving is f{str(self.moved)}")
         self.moved.first_move = self.first_move
         self.engine.move(self.end[0], self.end[1], self.start[0], self.start[1])
         self.engine.sounds.play('move')

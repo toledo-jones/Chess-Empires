@@ -267,18 +267,18 @@ class Engine:
         self.players[color] = player
 
     def set_state(self, state):
-        #
         #   Accepts State Object and adds it to State List
-        #
-
         if isinstance(state, State):
             self.state.append(state)
 
-        #
         #   Accepts 'state' string and converts it to state Object. Then adds it to State List
-        #
         else:
-            new_state = self.STATES[state](self.state[-1].win, self)
+            if state == 'main menu':
+                from Splash import SplashScreen
+                new_state = self.STATES[state](self.state[-1].win, self, SplashScreen(self.state[-1].win))
+            else:
+                new_state = self.STATES[state](self.state[-1].win, self)
+
             self.set_state(new_state)
 
         #

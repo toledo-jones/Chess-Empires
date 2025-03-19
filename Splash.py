@@ -6,11 +6,14 @@ import typing
 
 
 class SplashScreen:
+    # Constants for splash screen
+    LOGO_COLORS = {0: 'w', 1: 'b'}
+    LOGO_FOLDER = "files/images"
+    DISPLAY_TIME = 2.0  # Time  for splash screen to show
+
     def __init__(
             self,
             window: pygame.Surface,
-            logo_folder: str,
-            logo_colors: typing.Dict[int, str],
             logo_size: tuple = (400, 400), display_time: float = 2.0
     ):
         """
@@ -18,11 +21,8 @@ class SplashScreen:
         """
 
         self.window = window
-        self.logo_folder = logo_folder
-        self.logo_colors = logo_colors
         self.logo_size = logo_size
-        self.display_time = display_time
-        self.logo_color = self.logo_colors[random.randint(0, 1)]
+        self.logo_color = self.LOGO_COLORS[random.randint(0, 1)]
         self.logo_image = self.load_logo()
 
         # Calculate the position of the logo (centered)
@@ -33,7 +33,7 @@ class SplashScreen:
 
     def load_logo(self) -> pygame.Surface:
         """Load the logo image with a random color."""
-        logo_path = os.path.join(self.logo_folder, f"{self.logo_color}_game_name.png")
+        logo_path = os.path.join(self.LOGO_FOLDER, f"{self.logo_color}_game_name.png")
 
         try:
             logo = pygame.image.load(logo_path)
@@ -51,4 +51,4 @@ class SplashScreen:
         pygame.display.update()
 
         # Wait for the splash screen to display for the specified time
-        time.sleep(self.display_time)
+        time.sleep(self.DISPLAY_TIME)

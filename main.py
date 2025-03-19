@@ -10,11 +10,6 @@ def main():
     pygame.display.toggle_fullscreen()  # Toggle fullscreen twice to force it on
     pygame.display.toggle_fullscreen()
 
-    # Constants for splash screen
-    LOGO_COLORS = {0: 'w', 1: 'b'}
-    LOGO_FOLDER = "files/images"
-    DISPLAY_TIME = 2.0  # Time  for splash screen to show
-
     import Constant
 
     from Engine import Engine
@@ -34,7 +29,7 @@ def main():
 
     # Create and display the splash screen
     from Splash import SplashScreen
-    splash_screen = SplashScreen(engine.display_surface, LOGO_FOLDER, LOGO_COLORS, display_time=DISPLAY_TIME)
+    splash_screen = SplashScreen(engine.display_surface)
     splash_screen.display()
 
     # Load images required for the game (pieces, board, etc.)\

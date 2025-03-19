@@ -12,18 +12,18 @@ import pygame
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Uncomment the section below to enable debug
 
-# DEBUG_START = True
-# DISPLAY_STATE_IN_HUD = True
-# BOARD_STARTS_WITH_RESOURCES = False
-# DEBUG_RITUALS = True
-# POP_UPS_ON = False
+DEBUG_START = True
+DISPLAY_STATE_IN_HUD = True
+BOARD_STARTS_WITH_RESOURCES = False
+DEBUG_RITUALS = True
+POP_UPS_ON = False
 
 # Debug settings
 DEBUG_STARTING_PRAYER = 10
 DEBUG_STARTING_WOOD = 100
 DEBUG_STARTING_GOLD = 100
 DEBUG_STARTING_STONE = 100
-DEBUG_STARTING_PIECES = ['castle', 'king', 'queen', 'pawn']
+DEBUG_STARTING_PIECES = ['castle', 'king', 'trapper' ]
 
 # Window and board sizes
 MAX_FPS = 120
@@ -138,13 +138,13 @@ PIECE_POINT_VALUES = {
     "stable"      : 50,
     "barracks"    : 50,
     "fortress"    : 50,
-    "queen"       : 90,
-    "rook"        : 50,
+    "queen"       : 100,
+    "rook"        : 60,
     "bishop"      : 45,
     "knight"      : 11,
-    "jester"      : 53,
-    "rogue_rook"  : 100,
-    "rogue_bishop": 63,
+    "jester"      : 30,
+    "rogue_rook"  : 90,
+    "rogue_bishop": 50,
     "rogue_knight": 25,
     "rogue_pawn"  : 12,
     "elephant"    : 40,
@@ -152,22 +152,22 @@ PIECE_POINT_VALUES = {
     "unicorn"     : 60,
     "monolith"    : 50,
     "prayer_stone": 26,
-    "duke"        : 90,
-    "oxen"        : 60,
-    "champion"    : 70,
+    "duke"        : 100,
+    "oxen"        : 75,
+    "champion"    : 75,
     "wall"        : 9,
-    "persuader"   : 40,
-    "doe"         : 70,
+    "persuader"   : 30,
+    "doe"         : 50,
     "trader"      : 12,
-    "circus"      : 58,
-    "trapper"     : 12,
-    "trap"        : 3,
-    "lion"        : 85,
-    "fire_spinner": 48,
+    "circus"      : 50,
+    "trapper"     : 14,
+    "trap"        : 4,
+    "lion"        : 71,
+    "fire_spinner": 33,
     "acrobat"     : 75,
-    "magician"    : 50,
-    'cavalry'     : 30,
-    'assassin'    : 55
+    "magician"    : 30,
+    'cavalry'     : 28,
+    'assassin'    : 33
 }
 PIECE_COSTS = {
     'king'        : {'log': 0, 'gold': 0, 'stone': 0},

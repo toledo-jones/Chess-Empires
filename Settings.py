@@ -17,6 +17,7 @@ import pygame
 # BOARD_STARTS_WITH_RESOURCES = False
 # DEBUG_RITUALS = True
 # POP_UPS_ON = False
+# SHOW_STONE = True
 
 # Debug settings
 DEBUG_STARTING_PRAYER = 10
@@ -131,18 +132,18 @@ PIECE_POINT_VALUES = {
     "quarry_1"    : 6,
     "pawn"        : 12,
     'ferz'        : 12,
-    "builder"     : 12,
-    "monk"        : 15,
+    "builder"     : 13,
+    "monk"        : 16,
     "pikeman"     : 20,
     "castle"      : 20,
     "stable"      : 50,
     "barracks"    : 50,
     "fortress"    : 50,
-    "queen"       : 100,
-    "rook"        : 60,
+    "queen"       : 95,
+    "rook"        : 63,
     "bishop"      : 45,
-    "knight"      : 11,
-    "jester"      : 30,
+    "knight"      : 12,
+    "jester"      : 40,
     "rogue_rook"  : 90,
     "rogue_bishop": 50,
     "rogue_knight": 25,
@@ -152,8 +153,8 @@ PIECE_POINT_VALUES = {
     "unicorn"     : 60,
     "monolith"    : 50,
     "prayer_stone": 26,
-    "duke"        : 100,
-    "oxen"        : 75,
+    "duke"        : 95,
+    "oxen"        : 80,
     "champion"    : 75,
     "wall"        : 9,
     "persuader"   : 30,
@@ -162,7 +163,7 @@ PIECE_POINT_VALUES = {
     "circus"      : 50,
     "trapper"     : 14,
     "trap"        : 4,
-    "lion"        : 71,
+    "lion"        : 90,
     "fire_spinner": 33,
     "acrobat"     : 75,
     "magician"    : 30,
@@ -406,49 +407,49 @@ ADDITIONAL_PIECE_LIMIT = {
 BASE_TOTAL_YIELD = {
     'wood'         : 8,
     'gold'         : 25,
-    'quarry'       : 10,
-    'sunken_quarry': 2
+    'quarry'       : 8,
+    'sunken_quarry': 1
 }
 TOTAL_YIELD_VARIANCE = {
     'wood'         : (-2, 2),
     'gold'         : (-3, 3),
-    'quarry'       : (-2, 2),
-    'sunken_quarry': (0, 2)
+    'quarry'       : (-1, 2),
+    'sunken_quarry': (0, 1)
 }
 BASE_YIELD_PER_HARVEST = {
     'pawn'      :
         {
             'wood'         : 10,
             'gold'         : 7,
-            'quarry'       : 8,
+            'quarry'       : 5,
             'sunken_quarry': 1
         },
     'ferz'      :
         {
             'wood'         : 10,
             'gold'         : 7,
-            'quarry'       : 8,
+            'quarry'       : 5,
             'sunken_quarry': 1
         },
     'rogue_pawn':
         {
             'wood'         : 7,
             'gold'         : 2,
-            'quarry'       : 5,
+            'quarry'       : 4,
             'sunken_quarry': 1
         },
     'cavalry'   :
         {
             'wood'         : 10,
             'gold'         : 7,
-            'quarry'       : 8,
+            'quarry'       : 5,
             'sunken_quarry': 1
         },
     'builder'   :
         {
             'wood'         : 7,
             'gold'         : 2,
-            'quarry'       : 5,
+            'quarry'       : 4,
             'sunken_quarry': 1
         },
 
@@ -456,8 +457,8 @@ BASE_YIELD_PER_HARVEST = {
 HARVEST_YIELD_VARIANCE = {
     'wood'         : (-2, 2),
     'gold'         : (-2, 2),
-    'quarry'       : (-3, 3),
-    'sunken_quarry': (0, 2)
+    'quarry'       : (-2, 2),
+    'sunken_quarry': (0, 1)
 }
 STEALING_KEY = {
     'building': {

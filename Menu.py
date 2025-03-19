@@ -1210,13 +1210,13 @@ class PieceDescription(Encyclopedia):
             self.cost_display_x = self.window_width // 2 - full_length // 2 + self.move_offset
             self.title_text_display_x = (self.window_width // 2 - self.title_text_width // 2) + self.move_offset
             self.menu_logo_display_x = (self.window_width // 2 - self.menu_logo.get_width() // 2) + self.move_offset
+            self.set_up_demonstration_board()
 
         elif self.type == 'ritual':
             # For rituals, calculate the length of the prayer bar and center it
             length_of_this_prayer_bar = self.full_length_of_prayer_bar(self.cost)
             # Center with offset
             self.cost_display_x = self.window_width // 2 - length_of_this_prayer_bar // 2
-        self.set_up_demonstration_board()
 
     def __repr__(self):
         return self.selected

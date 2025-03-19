@@ -168,10 +168,11 @@ class Engine:
     def initialize_maps(self):
         """Returns a list of available maps."""
         # DEBUG:
+        # return [HyperBalanced, OctoBalanced]
         return [Default, Minimal, VTrees, TriangleTrees, UltraBalanced, LeftRight, OnlyStoneAndGold,
                 FourCorners, CenterCircleA, CenterCircleB, EnclosedForest, GoldCornersA, GoldCornersB, Islands,
                 WoodlandQuarries, GoldForest, LeftRightModified, TopBottomModified, IslandsModified, Full, ATrees,
-                AngleTrees]
+                AngleTrees, HyperBalanced, OctoBalanced]
 
     def initialize_menus(self):
         """Returns a dictionary of building menus."""
@@ -357,6 +358,9 @@ class Engine:
                     x = c * Constant.SQ_SIZE
                     y = r * Constant.SQ_SIZE
 
+                    if Constant.SHOW_STONE:
+                        if self.board[r][c].can_contain_quarry:
+                            color = Constant.RED
                     # Draw the square
                     pygame.draw.rect(
                             self.board_surface,

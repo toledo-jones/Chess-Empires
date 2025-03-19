@@ -23,7 +23,7 @@ DEBUG_STARTING_PRAYER = 10
 DEBUG_STARTING_WOOD = 100
 DEBUG_STARTING_GOLD = 100
 DEBUG_STARTING_STONE = 100
-DEBUG_STARTING_PIECES = ['castle', 'king', 'trapper' ]
+DEBUG_STARTING_PIECES = ['castle', 'king', 'trapper', 'trader']
 
 # Window and board sizes
 MAX_FPS = 120

@@ -2187,7 +2187,7 @@ class Contextual(Menu):
         pray_requirements = standard_requirements and not self.engine.rituals_banned
         half_requirements = self.engine.get_occupying(self.row, self.col).can_act()
         no_requirements = True
-        trade_requirements = standard_requirements and self.engine.can_trade()
+        trade_requirements = half_requirements and self.engine.can_trade()
         queen_requirements = standard_requirements and self.engine.can_decree(self.row, self.col)
         self.requirements = {
             'pray'    : pray_requirements,

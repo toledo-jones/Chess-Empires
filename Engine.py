@@ -410,14 +410,12 @@ class Engine:
 
         # Check validity
         if highlight_type not in valid_types:
-
             # Raise error if value is invalid
             raise ValueError(f"Invalid highlight type: {highlight_type}. Valid inputs are: {', '.join(valid_types)}")
         try:
 
             # For each square
             for row, col in squares:
-
                 # Set attribute
                 setattr(self.board[row][col], f"highlight_{highlight_type}", boolean)
 
@@ -1147,6 +1145,10 @@ class Engine:
     def is_legal_spawn(self, spawning, spawner):
         piece_cost = Constant.PIECE_COSTS[spawning]
 
+        # Anything after this requires a piece action
+        if not spawner.can_act():
+            return False
+
         # Check if the piece can be purchased
         if not self.valid_purchase(piece_cost):
             return False
@@ -1155,18 +1157,17 @@ class Engine:
         if not self.players[self.turn].can_add_piece(spawning):
             return False
 
-        # Check if the player and spawner can act
-        if not self.players[self.turn].can_act() or not spawner.can_act():
-            return False
+        # Special check for 'trapper' piece, handle its action requirements explicitly
+        if str(spawner) == 'trapper':
+            return True
 
-        # Special check for 'trapper' piece, handle its action requirements explicitly if needed
-        if str(spawner) == 'trapper' and not spawner.can_act():
-            return False  # Trapper cannot act if it fails can_act() check
+        # Anything after this requires a turn action
+        if not self.players[self.turn].can_act():
+            return False
 
         # Check if the player has a gold general for monk spawn
         if self.player_has_gold_general(self.turn) and spawning == 'monk':
             return True
-
         return True
 
     def has_mineable_resource(self, r, c):
@@ -1268,7 +1269,6 @@ class Engine:
 
     def transfer_to_building_state(self, row, col):
         self.update_spawn_squares()
-        spawn_squares = self.board[row][col].get_occupying().spawn_squares_list
         self.set_pre_selected(row, col, True)
         new_state = PreBuilding(self.state[-1].win, self)
         self.menus = []

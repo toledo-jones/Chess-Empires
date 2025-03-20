@@ -1,6 +1,9 @@
-import os
 import random
 from Unit import *
+import pygame
+import os
+from typing import Dict, List, Tuple, Optional
+from Tile import Tile
 
 
 def get_decree_resource_sprite():
@@ -1127,96 +1130,149 @@ class Encyclopedia(Menu):
 
 
 class PieceDescription(Encyclopedia):
-    def __init__(self, win, engine, selected):
-        # Initialize instance variables
-        self.selected = selected
+    """
+    Represents the description and visualization of a game piece or ritual,
+    including its board representation, cost, and description text.
+    """
+
+    def __init__(self, win: pygame.Surface, engine, selected: str) -> None:
+        """
+        Initializes the PieceDescription class.
+
+        Args:
+            win (pygame.Surface): The game window surface.
+            engine: The game engine containing board state and logic.
+            selected (str): The selected piece or ritual identifier.
+        """
+
+        # Store selected item
+        self.selected: str = selected
+
+        # Call superclass initializer
         super().__init__(win, engine)
-        # Define the alternating colors for the squares
-        self.colors = [Constant.DARK_SQUARE_COLOR, Constant.LIGHT_SQUARE_COLOR]
-        self.color_key = {0: 'dark', 1: 'light'}
+
+        # Define alternating square colors for the board
+        self.colors: List[Tuple[int, int, int]] = [Constant.DARK_SQUARE_COLOR, Constant.LIGHT_SQUARE_COLOR]
+        self.color_key: Dict[int, str] = {0: 'dark', 1: 'light'}
+
+        # Create a copy of the engine's board state
         self.board_copy = self.engine.board
 
-        self.small_font_size = round(Constant.SQ_SIZE * (1 / 3))
-        self.small_font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.small_font_size)
+        # Define font size and load the font
+        self.small_font_size: int = round(Constant.SQ_SIZE * (1 / 3))
+        self.small_font: pygame.font.Font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"),
+                                                             self.small_font_size)
 
-        # Define board size and initialize the 2D board list with None
-        self.cols = 7
-        self.rows = 7
-        from Tile import Tile
-        self.board = [[Tile(x, y) for y in range(self.cols)] for x in range(self.rows)]
+        # Define board dimensions
+        self.cols: int = 7
+        self.rows: int = 7
+
+        # Initialize the board with Tile objects
+        self.board: List[List[Tile]] = [[Tile(x, y) for y in range(self.cols)] for x in range(self.rows)]
         self.engine.board = self.board
 
-        # Initialize pygame surface for the board
-        self.board_surface = pygame.Surface((self.cols * Constant.SQ_SIZE, self.rows * Constant.SQ_SIZE))
+        # Create the board surface
+        self.board_surface: pygame.Surface = pygame.Surface(
+                (self.cols * Constant.SQ_SIZE, self.rows * Constant.SQ_SIZE))
 
-        self.board_x = self.window_width // 40
-        self.board_y = (self.window_height - self.board_surface.get_height()) // 2
+        # Define board positioning on the window
+        self.board_x: int = self.window_width // 40
+        self.board_y: int = (self.window_height - self.board_surface.get_height()) // 2
 
-        # Initialize description text and render it
-        self.description_text = Constant.DESCRIPTIONS[str(self)]
-        self.description_text_surfs = []
+        # Load description text
+        self.description_text: List[str] = Constant.DESCRIPTIONS[str(self)]
+        self.description_text_surfs: List[pygame.Surface] = []
+
+        # Render description text as pygame surfaces
         for line in self.description_text:
             text_surf = self.small_font.render(line, True, self.color)
             self.description_text_surfs.append(text_surf)
 
-        # Get dimensions for description text
-        self.description_text_width = self.description_text_surfs[0].get_width()
-        self.description_text_height = self.description_text_surfs[0].get_height()
+        # Get dimensions of description text
+        self.description_text_width: int = self.description_text_surfs[0].get_width()
+        self.description_text_height: int = self.description_text_surfs[0].get_height()
 
         # Load images for prayer bar display
-        self.prayer_bar_end = Constant.IMAGES['prayer_bar_end']
-        self.prayer_bar = Constant.IMAGES['prayer_bar']
-        self.bar_end_width = self.prayer_bar_end.get_width()
-        self.bar_width = self.prayer_bar.get_width()
+        self.prayer_bar_end: pygame.Surface = Constant.IMAGES['prayer_bar_end']
+        self.prayer_bar: pygame.Surface = Constant.IMAGES['prayer_bar']
+        self.bar_end_width: int = self.prayer_bar_end.get_width()
+        self.bar_width: int = self.prayer_bar.get_width()
 
-        # Initialize cost and type based on selected piece
-        self.cost = None
-        self.type = None
+        # Initialize cost and type variables
+        self.cost: Optional[int] = None
+        self.type: Optional[str] = None
 
-        self.text_box_x = self.board_surface.get_width() + self.board_x * 2
-        self.text_box_width = self.window_width - (self.board_surface.get_width() + self.board_x * 3)
-        self.text_box = pygame.Surface((self.text_box_width, self.window_height // 2.2))
+        # Define text box positioning
+        self.text_box_x: int = self.board_surface.get_width() + self.board_x * 2
+        self.text_box_width: int = self.window_width - (self.board_surface.get_width() + self.board_x * 3)
+        self.text_box: pygame.Surface = pygame.Surface((self.text_box_width, self.window_height // 2.2))
 
+        # Determine cost and type based on selection
         try:
-            # If selected is a prayer, use prayer costs
             self.cost = Constant.PRAYER_COSTS[self.selected]['prayer']
             self.type = 'ritual'
         except KeyError:
-            # If selected is a piece, use piece costs
             self.cost = Constant.PIECE_COSTS[self.selected]
             self.type = 'piece'
 
-        # Set up layout shift when the type is 'piece' to make room for the board
-        self.move_offset = 0
+        # Adjust layout for piece selection
+        self.move_offset: int = 0
         if self.type == 'piece':
-            # Move everything right by the buffer space
             self.move_offset = self.window_width // 8
 
-        # Graphics Math for layout calculations
-        self.cost_display_y = self.window_height // 2 - self.resources['wood'].get_height() // 2
-        self.x_buffer_between_costs = round(Constant.SQ_SIZE * 1.5)
-        self.description_text_y = self.cost_display_y + self.description_text_height
-        self.cost_display_x = 0
+        # Define layout calculations for cost display
+        self.cost_display_y: int = self.window_height // 2 - self.resources['wood'].get_height() // 2
+        self.x_buffer_between_costs: int = round(Constant.SQ_SIZE * 1.5)
+        self.description_text_y: int = self.cost_display_y + self.description_text_height
+        self.cost_display_x: int = 0
 
-        # Calculate the x position for displaying the costs based on the selected type
+        # Determine cost display positioning based on type
         if self.type == 'piece':
-            # For pieces, count how many costs are non-zero
             count = sum(
                     1 for cost in Constant.PIECE_COSTS[self.selected] if Constant.PIECE_COSTS[self.selected][cost] != 0)
-
-            # Calculate the total length of the cost display (based on resources and spacing)
             full_length = self.resources['wood'].get_width() * count + (self.x_buffer_between_costs // 2) * count
-            # Center the display with offset
-            self.cost_display_x = self.window_width // 2 - full_length // 2 + self.move_offset
-            self.title_text_display_x = (self.window_width // 2 - self.title_text_width // 2) + self.move_offset
-            self.menu_logo_display_x = (self.window_width // 2 - self.menu_logo.get_width() // 2) + self.move_offset
+            self.cost_display_x = self.window_width // 2 - full_length // 2 + self.board_x // 2 + self.board_surface.get_width() // 2
+            self.title_text_display_x = self.window_width // 2 - self.title_text_width // 2 + self.board_x // 2 + self.board_surface.get_width() // 2
+            self.menu_logo_display_x = self.window_width // 2 - self.menu_logo.get_width() // 2 + self.board_x  // 2 + self.board_surface.get_width() // 2
             self.set_up_demonstration_board()
-
         elif self.type == 'ritual':
-            # For rituals, calculate the length of the prayer bar and center it
-            length_of_this_prayer_bar = self.full_length_of_prayer_bar(self.cost)
-            # Center with offset
+            length_of_this_prayer_bar: int = self.full_length_of_prayer_bar(self.cost)
             self.cost_display_x = self.window_width // 2 - length_of_this_prayer_bar // 2
+            self.text_box_x = (self.window_width - self.text_box_width) // 2
+
+    def draw(self) -> None:
+        """
+        Renders the piece description screen, including board, costs, and text.
+        """
+
+        # Fill background with menu color
+        self.win.fill(Constant.MENU_COLOR)
+
+        # Draw cost display based on type
+        if self.type == 'ritual':
+            self.draw_ritual_cost()
+        elif self.type == 'piece':
+            self.draw_piece_cost()
+            self.draw_board()
+            self.win.blit(self.board_surface, (self.board_x, self.board_y))
+
+        # Render title and menu logo
+        self.win.blit(self.text_surf, (self.title_text_display_x, self.title_text_display_y))
+        self.win.blit(self.menu_logo, (self.menu_logo_display_x, self.menu_logo_display_y))
+
+        # Set initial position for description text rendering
+        y_buffer: int = 0
+        max_width: int = self.text_box.get_width()
+        self.text_box.fill(Constant.MENU_COLOR)
+
+        # Render and justify description text
+        for line_surface in self.justify_text(self.small_font, " ".join(self.description_text), max_width, self.color):
+            x_position: int = (max_width - line_surface.get_width()) // 2
+            self.text_box.blit(line_surface, (x_position, y_buffer))
+            y_buffer += self.description_text_height
+
+        # Blit the text box to the screen
+        self.win.blit(self.text_box, (self.text_box_x, self.description_text_y))
 
     def __repr__(self):
         return self.selected
@@ -1247,69 +1303,51 @@ class PieceDescription(Encyclopedia):
 
     import pygame
 
-    def justify_text(self, font, text, max_width):
-        """ Justifies a given text into a set width using a pygame font. """
-        words = text.split()
-        lines = []
-        current_line = []
-        current_width = 0
+    def justify_text(self, font, text, max_width, color):
+        """ Formats and displays text within a given width using a pygame font.
+            - Starts a new line after a period.
+            - Wraps words normally when reaching the edge.
+            - Ensures readability and proper formatting.
+        """
 
-        # Split text into lines that fit within max_width
-        for word in words:
-            word_width, _ = self.small_font.size(word + ' ')  # Include space
-            if current_width + word_width > max_width and current_line:
-                lines.append(current_line)
-                current_line = [word]
-                current_width = word_width
-            else:
+        # Split the text into sentences based on periods
+        sentences = text.split('. ')
+
+        # List to store lines of formatted text
+        lines = []
+
+        for sentence in sentences:
+            words = sentence.split()
+            current_line = []
+            current_width = 0
+
+            for word in words:
+                # Get the width of the word including a space
+                word_width, _ = font.size(word + ' ')
+
+                # If adding this word exceeds max_width and current_line is not empty
+                if current_width + word_width > max_width and current_line:
+                    lines.append(current_line)
+                    current_line = []
+                    current_width = 0
+
+                # Add the word to the current line
                 current_line.append(word)
                 current_width += word_width
 
-        if current_line:
-            lines.append(current_line)
+            # Append the sentence as a separate line
+            if current_line:
+                lines.append(current_line)
 
-        # Render each line with justified spacing
-        justified_lines = []
+        # List to store rendered lines as pygame surfaces
+        rendered_lines = []
+
         for line in lines:
-            if len(line) == 1:  # Single word case (left-align)
-                surface = self.small_font.render(line[0], True, (255, 255, 255))
-            else:
-                total_word_width = sum(font.size(word)[0] for word in line)
-                space_width = (max_width - total_word_width) // (len(line) - 1)
-                surface = pygame.Surface((max_width, font.get_height()), pygame.SRCALPHA)
-                x_offset = 0
+            # Render the line with normal spacing (no justification spreading)
+            text_surface = font.render(' '.join(line), True, color)
+            rendered_lines.append(text_surface)
 
-                for i, word in enumerate(line):
-                    word_surf = self.small_font.render(word, True, (255, 255, 255))
-                    surface.blit(word_surf, (x_offset, 0))
-                    x_offset += self.small_font.size(word)[0] + (space_width if i < len(line) - 1 else 0)
-
-            justified_lines.append(surface)
-
-        return justified_lines
-
-    def draw(self):
-        self.win.fill(Constant.MENU_COLOR)
-
-        if self.type == 'ritual':
-            self.draw_ritual_cost()
-        elif self.type == 'piece':
-            self.draw_piece_cost()
-            self.draw_board()
-            self.win.blit(self.board_surface, (self.board_x, self.board_y))
-        self.win.blit(self.text_surf, (self.title_text_display_x, self.title_text_display_y))
-        self.win.blit(self.menu_logo, (self.menu_logo_display_x, self.menu_logo_display_y))
-
-        y_buffer = 0
-        max_width = self.text_box.get_width()
-        self.text_box.fill(Constant.MENU_COLOR)
-
-        for line_surface in self.justify_text(self.small_font, "".join(self.description_text), max_width):
-            x_position = 0  # Center align justified block
-            self.text_box.blit(line_surface, (x_position, y_buffer))
-            y_buffer += self.description_text_height
-
-        self.win.blit(self.text_box, (self.text_box_x, self.description_text_y))
+        return rendered_lines
 
     def draw_piece_cost(self):
         cost_x = self.cost_display_x

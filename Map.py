@@ -849,9 +849,11 @@ class Map:
             pass
 
     def spawn_depleted_quarry(self, r, c):
-        self.engine.create_resource(r, c, DepletedQuarry(r, c))
-        self.engine.board[r][c].can_contain_stone = True
-
+        try:
+            self.engine.create_resource(r, c, DepletedQuarry(r, c))
+            self.engine.board[r][c].can_contain_stone = True
+        except IndexError:
+            pass
     def spawn_sunken_quarry(self, r, c):
         self.engine.create_resource(r, c, SunkenQuarry(r, c))
         self.engine.board[r][c].can_contain_stone = True

@@ -222,7 +222,7 @@ START_GAME_SOUNDS = {}
 BOARD_TILES = {'dark': {}, 'light': {}}
 
 # Loops to add lists of numbers to empty asset lists
-for i in range(7):
+for i in range(8):
     ambience.append(i)
 for i in range(6):
     building_spawning.append(i)

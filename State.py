@@ -944,6 +944,7 @@ class SelectStartingPieces(State):
         if self.engine.menus:
             self.engine.close_menus()
         if not self.engine.final_spawn:
+            self.engine.players = {}
             self.revert_to_starting_state(self.engine.first)
         else:
             for x in range(2):

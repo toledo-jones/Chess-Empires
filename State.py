@@ -1589,6 +1589,7 @@ class SelectStartingPieces(State):
     def tab(self):
         if self.engine.menus:
             self.engine.close_menus()
+            return
         if not self.engine.final_spawn:
             self.engine.players = {}
             self.revert_to_starting_state(self.engine.first)

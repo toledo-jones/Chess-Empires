@@ -12,23 +12,24 @@ import pygame
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Uncomment the section below to enable debug
 
-# DEBUG_START = True
-# DISPLAY_STATE_IN_HUD = True
-# BOARD_STARTS_WITH_RESOURCES = False
-# DEBUG_RITUALS = True
-# POP_UPS_ON = False
-# SHOW_STONE = True
+DEBUG_START = True
+DISPLAY_STATE_IN_HUD = False
+BOARD_STARTS_WITH_RESOURCES = False
+DEBUG_RITUALS = True
+POP_UPS_ON = False
+SHOW_STONE = False
 
 # Debug settings
 DEBUG_STARTING_PRAYER = 10
 DEBUG_STARTING_WOOD = 100
 DEBUG_STARTING_GOLD = 100
 DEBUG_STARTING_STONE = 100
-DEBUG_STARTING_PIECES = ['castle', 'king', 'queen', 'prayer_stone']
+DEBUG_STARTING_PIECES = ['castle', 'king', 'pawn', 'pawn', 'pawn', 'builder', 'pikeman']
 
 # Window and board sizes
 MAX_FPS = 120
-VERSION = "playtest alpha 0.01"
+# VERSION = "playtest alpha 0.01"
+VERSION = ""
 NUMBER = ""
 BOARD_HEIGHT_PX = pygame.display.Info().current_h
 SQ_SIZE = BOARD_HEIGHT_PX // 10
@@ -89,7 +90,7 @@ FACTION_NAMES = ['clique', 'coterie', 'cabal', 'bloc', 'camp', 'grouping',
                  'side', 'division', 'wing', 'section', 'countrymen', 'squad', 'faction',
                  'company', 'troupe', 'set', 'army', 'party', 'gang', 'selection', 'crew',
                  'corps', 'lineup', 'sect', 'band', 'color', 'people', 'squadron', 'group',
-                 'allegiance', 'choice']
+                 'allegiance', 'choice', 'entourage', 'aisle', 'allegiance', 'cabinet', 'color', 'creed']
 MONOLITH_RITUALS = ['gold_general',
                     'line_destroy',
                     'smite']
@@ -533,7 +534,7 @@ FORTRESS_OFFSET = (0, -10)
 WALL_OFFSET = (-10, -10)
 PRAYER_RITUAL_SCALE = (round(SQ_SIZE * 1.5), round(SQ_SIZE * 1.5))
 RESOURCES_BUTTON_SCALE = (SIDE_MENU_WIDTH, 2 * SQ_SIZE)
-YES_NO_BUTTON_SCALE = (SQ_SIZE // 3, SQ_SIZE // 3)
+YES_NO_BUTTON_SCALE = (SQ_SIZE // 2, SQ_SIZE // 2)
 CONTEXTUAL_MENU_ICON_DEFAULT_SCALE = (SQ_SIZE // 2, SQ_SIZE // 2)
 PROTECT_SQUARE_SCALE = (SQ_SIZE, SQ_SIZE)
 PROTECT_SQUARE_OFFSET = (SQ_SIZE // 2 - PROTECT_SQUARE_SCALE[0] // 2, SQ_SIZE // 2 - PROTECT_SQUARE_SCALE[1] // 2)

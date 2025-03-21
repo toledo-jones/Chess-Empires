@@ -11,6 +11,7 @@ class Unit:
         self.offset = self.get_sprite_offset()
         self.dragging = False
         self.first_move = True
+        self.rect = pygame.Rect(col*Constant.SQ_SIZE, row*Constant.SQ_SIZE, Constant.SQ_SIZE, Constant.SQ_SIZE)
 
         self.sprites = Constant.W_PIECES | Constant.W_BUILDINGS | Constant.B_PIECES | Constant.B_BUILDINGS
 
@@ -56,6 +57,9 @@ class Unit:
         self.move_square_color = Constant.MOVE_SQUARE_HIGHLIGHT_COLOR
         self.check_color = Constant.CHECK_SQUARE_HIGHLIGHT_COLOR
         self.is_effected_by_jester = True
+
+    def get_rect(self) -> pygame.Surface:
+        return self.rect
 
     def update_praying_squares(self, engine):
         self.praying_squares_list = self.praying_squares(engine)
@@ -187,6 +191,8 @@ class Unit:
     def change_pos(self, row, col):
         self.row = row
         self.col = col
+        self.rect.x = col * Constant.SQ_SIZE
+        self.rect.y = row * Constant.SQ_SIZE
 
     def draw_highlights(self, win):
         if self.unused_piece_highlight:

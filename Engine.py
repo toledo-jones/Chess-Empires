@@ -8,7 +8,7 @@ import pygame
 
 
 class Engine:
-    def __init__(self, window):
+    def __init__(self, window, board=None):
         """Initializes the game engine and sets up game attributes."""
 
         self.running = True
@@ -17,10 +17,11 @@ class Engine:
         # Board Setup
         self.cols = Constant.BOARD_WIDTH_SQ
         self.rows = Constant.BOARD_HEIGHT_SQ
-        self.board = [[Tile(x, y) for y in range(self.cols)] for x in range(self.rows)]
-        self.board_surface = pygame.Surface((self.cols * Constant.SQ_SIZE, self.rows * Constant.SQ_SIZE))
-        self.display_surface = pygame.Surface((self.window.get_width(), self.rows * Constant.SQ_SIZE))
-        self.map = None
+        if not board:
+            self.board = [[Tile(x, y) for y in range(self.cols)] for x in range(self.rows)]
+            self.board_surface = pygame.Surface((self.cols * Constant.SQ_SIZE, self.rows * Constant.SQ_SIZE))
+            self.display_surface = pygame.Surface((self.window.get_width(), self.rows * Constant.SQ_SIZE))
+            self.map = None
 
         # Game State
         self.winner = None
@@ -95,6 +96,9 @@ class Engine:
         """Resets the engine's running state."""
         self.running = False
 
+    def pause(self):
+        self.state.append(Pause(self.display_surface, self))
+
     def draw_display_surface(self):
         offset_y = self.window.get_height() // 2 - self.display_surface.get_height() // 2
         self.window.blit(self.display_surface, (0, offset_y))
@@ -155,7 +159,8 @@ class Engine:
             'destroy_resource': PerformDestroyResource,
             'create_resource' : PerformCreateResource, 'portal': PerformPortal, 'teleport': PerformTeleport,
             'swap'            : PerformSwap, 'line_destroy': PerformLineDestroy, 'protect': PerformProtect,
-            'main menu'       : MainMenu, 'debug': DebugStart, 'ai start spawn': AIStartingSpawn, 'inspector': Inspector
+            'main menu'       : MainMenu, 'debug': DebugStart, 'ai start spawn': AIStartingSpawn, 'inspector': Inspector,
+            'instructions': Instructions, 'pause': Pause
         }
 
     def initialize_resources(self):
@@ -560,6 +565,7 @@ class Engine:
                 piece.actions_remaining = 1
 
     def reset_board(self):
+        self.sounds.play('create_resource')
         for r in range(self.rows):
             for c in range(self.cols):
                 self.board[r][c] = Tile(r, c)

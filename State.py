@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from GameEvent import *
 from Menu import *
 
@@ -76,6 +78,8 @@ class State:
                 self.m()
             elif event.key == pygame.K_c:
                 self.c()
+            elif event.key == pygame.K_ESCAPE:
+                self.esc()
 
     def type_of_move(self, acting_tile, action_tile):
         piece = acting_tile.get_occupying()
@@ -240,6 +244,9 @@ class State:
     def c(self):
         pass
 
+    def esc(self):
+        self.engine.pause()
+
     def mouse_move(self):
         pass
 
@@ -254,92 +261,641 @@ class State:
         self.engine.set_state(new_state)
 
 
+class Settings(State):
+    def __init__(self, win: pygame.Surface, engine: "GameEngine"):
+        """
+        Initializes the Pause state with buttons and UI elements.
+
+        :param win: The game window surface.
+        :param engine: The game engine instance.
+        """
+        super().__init__(win, engine)  # Call parent class initializer
+
+        # Store font color
+        self.color = Constant.turn_to_color[self.engine.turn]
+
+        # Store window dimensions
+        self.window_width = self.win.get_width()
+        self.window_height = self.win.get_height()
+
+        # Set the font size based on a constant square size
+        self.font_size = round(Constant.SQ_SIZE * 1)
+
+        # Load the font from the specified file
+        self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
+
+        # Define button labels
+        buttons = ['back']
+
+        # Create surfaces for each button text
+        self.button_surfaces = [self.font.render(button, True, self.color) for button in buttons]
+
+        # Get button dimensions (assuming all buttons have the same size)
+        self.button_width = self.button_surfaces[0].get_width()
+        self.button_height = self.button_surfaces[0].get_height()
+
+        # Create a highlight rectangle (transparent overlay) for hovering effect
+        self.square = pygame.Surface((self.button_width, self.button_height))
+        self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
+        self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
+
+        # Boolean list to track which button is currently highlighted
+        self.button_highlighted = [False] * len(buttons)
+
+        # List to store button positions for consistent layout
+        self.button_positions = []
+
+        # Compute initial button positions
+        self.compute_button_positions()
+
+    def compute_button_positions(self):
+        """
+        Computes and stores the positions for each button to ensure consistent centering.
+        """
+        # Calculate total height occupied by all buttons (including spacing)
+        total_height = len(self.button_surfaces) * self.button_height + (len(self.button_surfaces) - 1) * 10
+
+        # Determine the starting y-position to center all buttons vertically
+        start_y = (self.window_height - total_height) // 2
+
+        # Compute positions for each button and store them
+        self.button_positions = [
+            ((self.window_width - self.button_width) // 2, start_y + i * (self.button_height + 10))
+            for i in range(len(self.button_surfaces))
+        ]
+
+    def draw(self):
+        """
+        Draws the pause menu, including buttons and their highlights.
+        """
+        # Fill the background with the menu color
+        self.win.fill(Constant.MENU_COLOR)
+
+        # Iterate over each button and draw it at its computed position
+        for i, (button_x, button_y) in enumerate(self.button_positions):
+            # If the button is highlighted, draw the highlight rectangle first
+            if self.button_highlighted[i]:
+                self.win.blit(self.square, (button_x, button_y))
+
+            # Draw the button text on top of the highlight (or directly if not highlighted)
+            self.win.blit(self.button_surfaces[i], (button_x, button_y))
+
+    def mouse_move(self):
+        """
+        Tracks mouse movement, updates button highlight states, and changes the mouse cursor
+        when hovering over a button.
+        """
+        # Get the current mouse position
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        # Flag to track if the cursor is over any button
+        cursor_over_button = False
+
+        # Iterate over all buttons and check if the mouse is hovering over any
+        for i, (button_x, button_y) in enumerate(self.button_positions):
+            # Create a rectangle representing the button's clickable area
+            button_rect = pygame.Rect(button_x, button_y, self.button_width, self.button_height)
+
+            # Update highlight status
+            if button_rect.collidepoint(mouse_x, mouse_y):
+                self.button_highlighted[i] = True
+                cursor_over_button = True  # Set flag if mouse is over a button
+            else:
+                self.button_highlighted[i] = False
+
+        # Change cursor based on whether it is over a button
+        if cursor_over_button:
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)  # Hand cursor for interaction
+        else:
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)  # Default cursor
+
+    def __repr__(self):
+        return 'pause'
+
+    def esc(self):
+        del self.engine.state[-1]
+
+    def left_click(self):
+        """
+        Handles left mouse clicks. If a button is clicked, calls button_selected().
+        """
+        # Get current mouse position
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        # Iterate through all buttons to check if one was clicked
+        for i, (button_x, button_y) in enumerate(self.button_positions):
+            # Create a rectangle representing the button's clickable area
+            button_rect = pygame.Rect(button_x, button_y, self.button_width, self.button_height)
+
+            # Check if mouse is inside button
+            if button_rect.collidepoint(mouse_x, mouse_y):
+                # Call button_selected with the clicked button index
+                self.button_selected(i)
+                # Stop checking once we find a clicked button
+                break
+
+    def button_selected(self, button_index: int):
+        """
+        Handles actions when a button is clicked.
+
+        :param button_index: The index of the clicked button.
+        """
+        # If the "return to game" button was clicked
+        if button_index == 0:
+            # Return to previous state
+            self.esc()
+
+    def enter(self):
+        pass
+
+
+class Pause(State):
+    def __init__(self, win: pygame.Surface, engine: "GameEngine"):
+        """
+        Initializes the Pause state with buttons and UI elements.
+
+        :param win: The game window surface.
+        :param engine: The game engine instance.
+        """
+        super().__init__(win, engine)  # Call parent class initializer
+
+        # Store font color
+        self.color = Constant.turn_to_color[self.engine.turn]
+
+        # Store window dimensions
+        self.window_width = self.win.get_width()
+        self.window_height = self.win.get_height()
+
+        # Set the font size based on a constant square size
+        self.font_size = round(Constant.SQ_SIZE * 1)
+
+        # Load the font from the specified file
+        self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
+
+        # Define button labels
+        buttons = ['return to game', 'how to play', 'reset board', 'settings', 'quit']
+
+        # Create surfaces for each button text
+        self.button_surfaces = [self.font.render(button, True, self.color) for button in buttons]
+
+        # Get button dimensions (assuming all buttons have the same size)
+        self.button_width = self.button_surfaces[0].get_width()
+        self.button_height = self.button_surfaces[0].get_height()
+
+        # Create a highlight rectangle (transparent overlay) for hovering effect
+        self.square = pygame.Surface((self.button_width, self.button_height))
+        self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
+        self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
+
+        # Boolean list to track which button is currently highlighted
+        self.button_highlighted = [False] * len(buttons)
+
+        # List to store button positions for consistent layout
+        self.button_positions = []
+
+        # Compute initial button positions
+        self.compute_button_positions()
+
+    def compute_button_positions(self):
+        """
+        Computes and stores the positions for each button to ensure consistent centering.
+        """
+        # Calculate total height occupied by all buttons (including spacing)
+        total_height = len(self.button_surfaces) * self.button_height + (len(self.button_surfaces) - 1) * 10
+
+        # Determine the starting y-position to center all buttons vertically
+        start_y = (self.window_height - total_height) // 2
+
+        # Compute positions for each button and store them
+        self.button_positions = [
+            ((self.window_width - self.button_width) // 2, start_y + i * (self.button_height + 10))
+            for i in range(len(self.button_surfaces))
+        ]
+
+    def draw(self):
+        """
+        Draws the pause menu, including buttons and their highlights.
+        """
+        # Fill the background with the menu color
+        self.win.fill(Constant.MENU_COLOR)
+
+        # Iterate over each button and draw it at its computed position
+        for i, (button_x, button_y) in enumerate(self.button_positions):
+            # If the button is highlighted, draw the highlight rectangle first
+            if self.button_highlighted[i]:
+                self.win.blit(self.square, (button_x, button_y))
+
+            # Draw the button text on top of the highlight (or directly if not highlighted)
+            self.win.blit(self.button_surfaces[i], (button_x, button_y))
+
+    def mouse_move(self):
+        """
+        Tracks mouse movement, updates button highlight states, and changes the mouse cursor
+        when hovering over a button.
+        """
+        # Get the current mouse position
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        # Flag to track if the cursor is over any button
+        cursor_over_button = False
+
+        # Iterate over all buttons and check if the mouse is hovering over any
+        for i, (button_x, button_y) in enumerate(self.button_positions):
+            # Create a rectangle representing the button's clickable area
+            button_rect = pygame.Rect(button_x, button_y, self.button_width, self.button_height)
+
+            # Update highlight status
+            if button_rect.collidepoint(mouse_x, mouse_y):
+                self.button_highlighted[i] = True
+                cursor_over_button = True  # Set flag if mouse is over a button
+            else:
+                self.button_highlighted[i] = False
+
+        # Change cursor based on whether it is over a button
+        if cursor_over_button:
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)  # Hand cursor for interaction
+        else:
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)  # Default cursor
+
+    def __repr__(self):
+        return 'pause'
+
+    def esc(self):
+        del self.engine.state[-1]
+
+    def left_click(self):
+        """
+        Handles left mouse clicks. If a button is clicked, calls button_selected().
+        """
+        # Get current mouse position
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        # Iterate through all buttons to check if one was clicked
+        for i, (button_x, button_y) in enumerate(self.button_positions):
+            # Create a rectangle representing the button's clickable area
+            button_rect = pygame.Rect(button_x, button_y, self.button_width, self.button_height)
+
+            # Check if mouse is inside button
+            if button_rect.collidepoint(mouse_x, mouse_y):
+                # Call button_selected with the clicked button index
+                self.button_selected(i)
+                # Stop checking once we find a clicked button
+                break
+
+    def button_selected(self, button_index: int):
+        """
+        Handles actions when a button is clicked.
+
+        :param button_index: The index of the clicked button.
+        """
+        # If the "return to game" button was clicked
+        if button_index == 0:
+            # Return to previous state
+            self.esc()
+
+        # If the "How to Play" button was clicked
+        if button_index == 1:
+            # Change the game state to "instructions"
+            self.engine.state.append(Instructions(self.win, self.engine))
+
+        # If the "Reset Board" button was clicked
+        elif button_index == 2:
+            # Reset the game board
+            self.engine.reset_board()
+
+        # If the "Settings" button was clicked
+        elif button_index == 3:
+            # Change the game state to "settings"
+            self.engine.state.append(Settings(self.win, self.engine))
+
+        # If the "Quit" button was clicked
+        elif button_index == 4:
+            # Quit the game
+            pygame.quit()
+            # Exit the program
+            exit()
+
+    def enter(self):
+        pass
+
+
 class MainMenu(State):
     def __init__(self, win, engine, splash_screen):
         super().__init__(win, engine)
+
+        # Menu logo and its position
         self.main_menu_logo = splash_screen.logo_image
         self.logo_position = splash_screen.logo_position
         self.color = Constant.turn_to_color[splash_screen.logo_color]
 
+        # Window dimensions and font settings
         self.window_width = self.win.get_width()
         self.window_height = self.win.get_height()
         self.font_size = round(Constant.SQ_SIZE * 1)
         self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
 
-        single_player_text = " "
-        multiplayer_text = 'start'
-        self.single_player_text_surf = self.font.render(single_player_text, True, self.color)
-        self.multiplayer_text_surf = self.font.render(multiplayer_text, True, self.color)
+        # Button text options
+        buttons = ['play', 'how to play', 'settings', 'quit']
 
-        self.button_width = self.multiplayer_text_surf.get_width()
-        self.button_height = self.multiplayer_text_surf.get_height()
+        # Create surfaces for each button text
+        self.button_surfaces = [self.font.render(button, True, self.color) for button in buttons]
 
+        # Get button dimensions (assuming all buttons have the same size)
+        self.button_width = self.button_surfaces[1].get_width()
+        self.button_height = self.button_surfaces[1].get_height()
+
+        # Create a highlight rectangle (transparent overlay) for hovering effect
         self.square = pygame.Surface((self.button_width, self.button_height))
         self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
-        self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
+        self.square.fill(Constant.MOVE_SQUARE_HIGHLIGHT_COLOR)
 
-        self.single_player_text_highlight = False
-        self.multiplayer_text_highlight = False
+        # Boolean list to track which button is currently highlighted
+        self.button_highlighted = [False] * len(buttons)
 
-        self.single_player_text_display_x = 0
-        self.button_display_y = round(self.window_height * 3 / 4) - self.button_height // 2
+        # List to store button positions for consistent layout
+        self.button_positions = []
 
-        self.multiplayer_text_display_x = self.window_width // 2 - self.button_width // 2
+        # Compute initial button positions
+        self.compute_button_positions()
 
-        self.multiplayer_button_range_x = range(self.multiplayer_text_display_x,
-                                                self.multiplayer_text_display_x + self.button_width)
-        self.single_player_button_range_x = range(self.single_player_text_display_x,
-                                                  self.single_player_text_display_x + self.button_width)
-        self.button_range_y = range(self.button_display_y, self.button_display_y + self.button_height)
+    def compute_button_positions(self):
+        """
+        Calculate the position for each button and store it in the button_positions list.
+        The buttons will be centered vertically and spaced evenly horizontally.
+        """
+
+        # Place logo at top of screen
+        self.logo_position_y = self.window_height // 4
+
+        # Place buttons on the bottom 2/3 of screen
+        self.button_display_y = (2 * self.window_height) // 3 - self.button_height // 2
+
+        # Calculate the total width needed for all buttons
+        total_buttons_width = len(self.button_surfaces) * self.button_width
+
+        # Calculate the starting X position to center buttons horizontally
+        start_x = (self.window_width - total_buttons_width) // 2
+
+        # Calculate each button's position (centered vertically, spaced evenly horizontally)
+        for i, button_surface in enumerate(self.button_surfaces):
+            button_x = start_x + i * (self.button_width)
+            # Horizontal spacing between buttons
+            button_y = self.button_display_y
+            # Keep buttons vertically centered
+            self.button_positions.append((button_x, button_y))
+
+    def draw(self):
+        """
+        Draw the main menu with the logo at the top and buttons below it, highlighting
+        the active button based on the current mouse position.
+        """
+
+        # Fill the background color for the menu
+        self.win.fill(Constant.MENU_COLOR)
+
+        # Draw the menu logo at the top center
+        self.win.blit(self.main_menu_logo, self.logo_position)
+
+        # Draw each button and apply highlight if active
+        for i, (button_x, button_y) in enumerate(self.button_positions):
+
+            # Highlight the button if it's active
+            if self.button_highlighted[i]:
+                self.win.blit(self.square, (button_x, button_y))
+
+            # Calculate the position to center the text on the button
+            text_x = button_x + (self.button_width - self.button_surfaces[i].get_width()) // 2
+            text_y = button_y + (self.button_height - self.button_surfaces[i].get_height()) // 2
+
+            # Draw the button text centered on the button
+            self.win.blit(self.button_surfaces[i], (text_x, text_y))
+
+    def mouse_move(self):
+        """
+        Detect mouse movement to highlight the button under the cursor and update the mouse cursor.
+        """
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        cursor_set = False  # Track if cursor is set to hand
+
+        # Check each button and update its highlight state
+        for i, (button_x, button_y) in enumerate(self.button_positions):
+            if button_x <= mouse_x <= button_x + self.button_width and \
+                    button_y <= mouse_y <= button_y + self.button_height:
+                self.button_highlighted[i] = True
+                if not cursor_set:  # Set cursor to hand if not already set
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+                    cursor_set = True
+            else:
+                self.button_highlighted[i] = False
+
+        if not cursor_set:  # If no button is highlighted, reset to arrow
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
     def __repr__(self):
         return 'main menu'
+
+    def esc(self):
+        pass
 
     def set_splash(self, splash_screen):
         self.main_menu_logo = splash_screen.logo_image
         self.logo_position = splash_screen.logo_position
         self.color = Constant.turn_to_color[splash_screen.logo_color]
 
-    def draw(self):
-        self.win.fill(Constant.MENU_COLOR)
-        self.win.blit(self.main_menu_logo, self.logo_position)
-        if self.single_player_text_highlight:
-            self.win.blit(self.square, (self.single_player_text_display_x, self.button_display_y))
-        elif self.multiplayer_text_highlight:
-            self.win.blit(self.square, (self.multiplayer_text_display_x, self.button_display_y))
-        self.win.blit(self.single_player_text_surf, (self.single_player_text_display_x, self.button_display_y))
-        self.win.blit(self.multiplayer_text_surf, (self.multiplayer_text_display_x, self.button_display_y))
-
     def left_click(self):
-        pos = pygame.mouse.get_pos()
-        if pos[1] in self.button_range_y:
-            # if pos[0] in self.single_player_button_range_x:
-            #     pass
-            #     # Constant.PLAY_AGAINST_AI = True
-            #     # self.engine.set_state('starting')
-            if pos[0] in self.multiplayer_button_range_x:
-                self.engine.create_player('w')
-                self.engine.create_player('b')
-                Constant.PLAY_AGAINST_AI = False
-                self.engine.set_state('starting')
+        """
+        Handle left mouse clicks to select buttons.
+        This method checks which button the user clicked and takes appropriate action.
+        """
+
+        # Get the current mouse position
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        # Iterate over each button's position and check if the mouse click is within its range
+        for i, (button_x, button_y) in enumerate(self.button_positions):
+
+            # Check if the mouse click is within the button's clickable range
+            if button_x <= mouse_x <= button_x + self.button_width and \
+                    button_y <= mouse_y <= button_y + self.button_height:
+
+                # Perform action based on which button was clicked
+                if i == 0:
+                    # Play button
+                    self.engine.create_player('w')
+                    self.engine.create_player('b')
+                    Constant.PLAY_AGAINST_AI = False
+                    self.engine.set_state('starting')
+                elif i == 1:
+                    # How to Play button
+                    self.engine.state.append(Instructions(self.win, self.engine))
+                elif i == 2:
+                    # Settings button
+                    self.engine.state.append(Settings(self.win, self.engine))
+                elif i == 3:
+                    # Quit button
+                    self.engine.set_state('quit')
 
     def enter(self):
         pass
 
+
+class Instructions(State):
+    def __init__(self, win, engine):
+        super().__init__(win, engine)
+
+        # Determine color for menu
+        self.color = Constant.turn_to_color[self.engine.turn]
+
+        # List of images to be shown
+        self.images = Constant.INSTRUCTIONS
+        self.current_image_index = 0  # Track the current image
+
+        # Obtain window height and width
+        self.window_width = self.win.get_width()
+        self.window_height = self.win.get_height()
+
+        # Scale images
+        self.scale_images()
+
+        # Define the button text options
+        buttons = ['<---', 'back', '--->']
+
+        # Set the font size based on a constant square size
+        self.font_size = round(Constant.SQ_SIZE * .8)
+
+        # Load the font from the specified file
+        self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
+
+        # Create surfaces for each button text
+        self.button_surfaces = [self.font.render(button, True, self.color) for button in buttons]
+
+        # Get button dimensions (assuming all buttons have the same size)
+        self.button_width = self.button_surfaces[0].get_width()
+        self.button_height = self.button_surfaces[0].get_height()
+
+        # Create a highlight rectangle (transparent overlay) for hovering effect
+        self.square = pygame.Surface((self.button_width, self.button_height))
+        self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
+        self.square.fill(Constant.MOVE_SQUARE_HIGHLIGHT_COLOR)
+
+        # Boolean list to track which button is currently highlighted
+        self.button_highlighted = [False] * len(buttons)
+
+        # List to store button positions for consistent layout
+        self.button_positions = []
+
+        # Compute initial button positions
+        self.compute_button_positions()
+
+    def compute_button_positions(self):
+        """
+        Calculate the position for each button and store it in the button_positions list.
+        The buttons will be centered and spaced evenly under the image.
+        """
+        # Calculate the vertical starting position for the buttons
+        self.logo_position_y = self.window_height // 4  # Position the logo at the top
+        self.button_display_y = self.window_height // 2 + self.images[self.current_image_index].get_height() // 2
+
+        # Calculate the total width of all the buttons (including spacing)
+        button_spacing = 20  # Spacing between buttons
+        total_buttons_width = len(self.button_surfaces) * self.button_width + (
+                len(self.button_surfaces) - 1) * button_spacing
+
+        # Calculate the starting X position to center the buttons horizontally
+        starting_x = (self.window_width - total_buttons_width) // 2
+
+        # Calculate the position of each button and store in button_positions
+        for i in range(len(self.button_surfaces)):
+            button_x = starting_x + i * (self.button_width + button_spacing)
+            self.button_positions.append((button_x, self.button_display_y))
+
     def mouse_move(self):
-        pos = pygame.mouse.get_pos()
-        if pos[1] in self.button_range_y:
-            # if pos[0] in self.single_player_button_range_x:
-            #     # Disabled
-            #     self.single_player_text_highlight = False
-            if pos[0] in self.multiplayer_button_range_x:
-                self.multiplayer_text_highlight = True
+        """
+        Handle mouse movement and highlight the button under the cursor, changing the cursor accordingly.
+        """
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        cursor_set = False  # Track if cursor is set to hand
+
+        for i, (button_x, button_y) in enumerate(self.button_positions):
+            button_rect = pygame.Rect(button_x, button_y, self.button_width, self.button_height)
+
+            # Highlight the button if the mouse is over it
+            if button_rect.collidepoint(mouse_x, mouse_y):
+                self.button_highlighted[i] = True
+                if not cursor_set:  # Set cursor to hand if not already set
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+                    cursor_set = True
             else:
-                self.single_player_text_highlight = False
-                self.multiplayer_text_highlight = False
-        else:
-            self.single_player_text_highlight = False
-            self.multiplayer_text_highlight = False
+                self.button_highlighted[i] = False
+
+        if not cursor_set:  # If no button is highlighted, reset to arrow
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+
+    def draw(self):
+        """
+        Draw the How to Play screen with the image and buttons, applying the highlight effect for buttons.
+        """
+        # Fill the background color
+        self.win.fill(Constant.MENU_COLOR)
+
+        # Draw the current image at the center of the screen
+        current_image = self.images[self.current_image_index]
+        image_rect = current_image.get_rect(center=(self.window_width // 2, self.window_height // 2))
+        self.win.blit(current_image, image_rect)
+
+        # Draw each button and apply highlight if active
+        for i, (button_x, button_y) in enumerate(self.button_positions):
+            # Draw highlight if the button is active
+            if self.button_highlighted[i]:
+                self.win.blit(self.square, (button_x, button_y))
+
+            # Draw the button text
+            self.win.blit(self.button_surfaces[i], (button_x, button_y))
+
+    def left_click(self):
+        """
+        Handle the left click for navigating through images and the back button.
+        """
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        # Check if any button is clicked
+        for i, (button_x, button_y) in enumerate(self.button_positions):
+            button_rect = pygame.Rect(button_x, button_y, self.button_width, self.button_height)
+
+            if button_rect.collidepoint(mouse_x, mouse_y):
+                if i == 0:  # Left arrow
+                    self.current_image_index = (self.current_image_index - 1) % len(self.images)
+                elif i == 1:  # Back button
+                    self.esc()
+                elif i == 2:  # Right arrow
+                    self.current_image_index = (self.current_image_index + 1) % len(self.images)
+
+    def scale_images(self):
+        """
+        Scale each image in self.images to 2/3 of its original size while preserving the aspect ratio.
+        """
+        scaled_images = {}
+
+        # Loop through each image in the dictionary
+        for key, value in self.images.items():
+            # Get the original dimensions of the image
+            original_width, original_height = value.get_size()
+
+            # Calculate the new dimensions (2/3 of the original size)
+            new_width = self.window_width * 3 // 4
+            new_height = self.window_height * 3 // 4
+
+            # Scale the image while preserving the aspect ratio
+            scaled_image = pygame.transform.scale(value, (new_width, new_height))
+
+            # Store the scaled image
+            scaled_images[key] = scaled_image
+
+        # Update self.images to be the scaled images
+        self.images = scaled_images
+
+    def esc(self):
+        del self.engine.state[-1]
 
 
 class Inspector(State):
@@ -406,6 +962,8 @@ class Playing(State):
             if self.can_select_piece(currently_selected):
                 self.dragging_piece = currently_selected
                 currently_selected.dragging = True
+                print("setting cursor to sizeall")
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_SIZEALL)
                 return self.select_piece(currently_selected)
             else:
                 self.reset_dragging_piece()
@@ -419,6 +977,7 @@ class Playing(State):
                     # If nothing valid is selected, show a popup menu
                     self.engine.reset_selected()  # Reset selected piece
             self.reset_dragging_piece()
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
     def can_swap_to_square(self, previously_selected, row, col):
         if previously_selected is None:
@@ -669,13 +1228,55 @@ class Playing(State):
 
     def mouse_move(self):
         """
-        Handles mouse movement. It processes menu input, checks if the mouse is within
-        the bounds of any active menus, and handles sidebar input.
+        Handles mouse movement. It processes game board input, checks if the mouse is within
+        the bounds of any clickable pieces, and updates the cursor accordingly.
         """
 
-        self.menu_input('mouse_move')  # Process menu input based on mouse movement
-        self.mouse_in_menu_bounds()  # Check if mouse is inside any active menu
-        self.side_bar_input('mouse_move')  # Process sidebar input based on mouse movement
+        # Process menu input (if any)
+        self.menu_input('mouse_move')
+
+        # Check if mouse is inside any active menu or bounds (if applicable)
+        self.mouse_in_menu_bounds()
+
+        # Process sidebar input (if any)
+        self.side_bar_input('mouse_move')
+
+        # Get current mouse x and y coordinates
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        # Check if the mouse is within the board boundaries
+        if 0 <= mouse_x < Constant.BOARD_WIDTH_PX and 0 <= mouse_y < Constant.BOARD_HEIGHT_PX:
+            # Update the cursor based on whether the mouse is hovering over a piece
+            self.update_cursor()
+
+    def update_cursor(self):
+        """
+        Updates the system cursor based on whether the mouse is hovering over
+        a game piece or not.
+        """
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        clickable_piece_hovered = False
+
+        # Loop through all the pieces on the game board
+        for piece in self.engine.players[
+            self.engine.turn].pieces:  # Assume self.pieces is a list of Rect objects or piece objects
+            # Each piece should have a Rect defining its bounds (position, size)
+            piece_rect = piece.get_rect()  # Replace with your actual method to get the piece's Rect
+
+            if piece.can_act():
+                # Check if the mouse is over the piece
+                if piece_rect.collidepoint(mouse_x, mouse_y):
+                    clickable_piece_hovered = True
+                    break  # No need to check further if we found a hovered piece
+
+        if not self.dragging and not self.engine.menus:
+            # If the mouse is hovering over a piece, change the cursor to a hand (clickable)
+            if clickable_piece_hovered:
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+            else:
+                print("setting cursor to arrow")
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
     def draw(self):
         """
@@ -743,7 +1344,7 @@ class SelectStartingPieces(State):
         # Font size and rendering
         self.font_size = round(Constant.SQ_SIZE * 1)
         self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
-        self.description_text = "Select your starting pieces:"
+        self.description_text = "select your starting pieces:"
         self.text_surf = self.font.render(self.description_text, True, Constant.turn_to_color[self.engine.turn])
 
         # Y-buffer for spacing
@@ -769,7 +1370,8 @@ class SelectStartingPieces(State):
         self.instruction_text = [
             ' \'tab\' to go back',
             ' \'space bar\' to confirm selection',
-            ' \'right click\' to view the map'
+            ' \'right click\' to view the map',
+            ' \'right click\' a piece for more information about it',
         ]
         self.instruction_text_surfaces = []
         self.instruction_text_font_size = Constant.SQ_SIZE // 2
@@ -1769,7 +2371,6 @@ class PieceCost(State):
         super().__init__(win, engine)
         menu = Master(self.win, self.engine, Constant.MASTER_COST_LIST)
         self.engine.menus.append(menu)
-
 
     def __repr__(self):
         return 'piece cost screen'

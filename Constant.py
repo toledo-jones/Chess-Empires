@@ -53,7 +53,7 @@ RESOURCE_KEY = {
     'gold_coin'      : 'gold',
     'stone'          : 'stone'
 }
-turn_to_color = {'w': WHITE, 'b': BLACK}
+turn_to_color = {None: BLACK, 'w': WHITE, 'b': BLACK}
 TURNS = {'w': 'b', 'b': 'w'}
 
 # Lists which tell the game which assets to load
@@ -161,6 +161,7 @@ rituals = []
 generate_resources = []
 pray = []
 change_turn = []
+instructions = []
 
 # Moves
 RIGHT = (0, 1)
@@ -219,6 +220,7 @@ GENERATE_RESOURCES_SOUNDS = {}
 PRAY_SOUNDS = {}
 CHANGE_TURN_SOUNDS = {}
 START_GAME_SOUNDS = {}
+INSTRUCTIONS = {}
 BOARD_TILES = {'dark': {}, 'light': {}}
 
 # Loops to add lists of numbers to empty asset lists
@@ -248,6 +250,8 @@ for i in range(8):
     change_turn.append(i)
 for i in range(4):
     start_game.append(i)
+for i in range(5):
+    instructions.append(i)
 
 
 def load_sounds():
@@ -323,6 +327,10 @@ def load_images():
         scale = IMAGES_IMAGE_MODIFY[image]['SCALE']
         IMAGES[image] = pygame.transform.scale(pygame.image.load(os.path.join("files/images", image + ".png")),
                                                (scale[0], scale[1])).convert_alpha()
+    for i in instructions:
+        image = pygame.image.load(os.path.join(f"files/instructions/{i}.png")).convert_alpha()
+        INSTRUCTIONS[i] = image
+
     for resource in resources:
         scale = RESOURCES_IMAGE_MODIFY[resource]['SCALE']
         image = pygame.image.load(os.path.join("files/resources", resource + ".png")).convert_alpha()

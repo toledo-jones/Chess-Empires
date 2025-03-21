@@ -69,7 +69,6 @@ class Menu:
                 self.menu_position_y - self.menu_boundary_buffer <= y <= self.menu_position_y +
                 self.menu_boundary_buffer + self.menu_height):
             return False
-
         return True
 
     def close(self):
@@ -356,24 +355,41 @@ class TraderMenu(Menu):
                     return self.resource_list[x]
 
     def mouse_move(self):
-        pos = pygame.mouse.get_pos()
-        if self.menu_position_x < pos[0] + (self.menu_width // 3):
-            for x in range(len(self.resource_list)):
-                a = x / len(self.resource_list)
-                b = a * self.menu_height
-                c = b + self.menu_position_y
-                d = (x + 1) / len(self.resource_list)
-                e = d * self.menu_height
-                f = e + self.menu_position_y
-                r = range(round(c), round(f))
-                if pos[1] in r:
-                    self.spawn_highlight_list[x] = True
-                    for z in range(len(self.spawn_highlight_list)):
-                        if z is not x:
-                            self.spawn_highlight_list[z] = False
+        """
+        Handles mouse movement to highlight items in the resource list
+        based on the mouse's vertical position within the menu.
+
+        The method checks if the mouse is within the bounds of the menu,
+        and highlights the corresponding item in the resource list if so.
+        """
+        # Get the current mouse position
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        # Check if the mouse is within the horizontal bounds of the menu
+        if self.menu_position_x < mouse_x + (self.menu_width // 3):
+            # Iterate through the resource list to find which item is being hovered over
+            for index in range(len(self.resource_list)):
+                # Calculate the top and bottom y-coordinates of the current menu item
+                item_start_y = (index / len(self.resource_list)) * self.menu_height + self.menu_position_y
+                item_end_y = ((index + 1) / len(self.resource_list)) * self.menu_height + self.menu_position_y
+
+                # Check if the mouse's y-coordinate is within the vertical bounds of the item
+                if round(item_start_y) <= mouse_y <= round(item_end_y):
+                    # Highlight the item at the current index
+                    self.spawn_highlight_list[index] = True
+
+                    # Set cursor to hand
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+
+                    # De-highlight other items in the list
+                    for i in range(len(self.spawn_highlight_list)):
+                        if i != index:
+                            self.spawn_highlight_list[i] = False
         else:
-            for _ in self.spawn_highlight_list:
-                _ = False
+            # If the mouse is outside the menu bounds, remove all highlights
+            self.spawn_highlight_list = [False] * len(self.spawn_highlight_list)
+            # Set cursor to hand
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
     def draw(self):
         self.menu.fill(Constant.MENU_COLOR)
@@ -542,24 +558,41 @@ class StealingMenu(Menu):
         self.engine.state[-1].revert_to_playing_state()
 
     def mouse_move(self):
-        pos = pygame.mouse.get_pos()
-        if self.menu_position_x < pos[0] + (self.menu_width // 3):
-            for x in range(len(self.spawn_list)):
-                a = x / len(self.spawn_list)
-                b = a * self.menu_height
-                c = b + self.menu_position_y
-                d = (x + 1) / len(self.spawn_list)
-                e = d * self.menu_height
-                f = e + self.menu_position_y
-                r = range(round(c), round(f))
-                if pos[1] in r:
-                    self.spawn_highlight_list[x] = True
-                    for z in range(len(self.spawn_highlight_list)):
-                        if z is not x:
-                            self.spawn_highlight_list[z] = False
+        """
+        Handles mouse movement to highlight items in the resource list
+        based on the mouse's vertical position within the menu.
+
+        The method checks if the mouse is within the bounds of the menu,
+        and highlights the corresponding item in the resource list if so.
+        """
+        # Get the current mouse position
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        # Check if the mouse is within the horizontal bounds of the menu
+        if self.menu_position_x < mouse_x + (self.menu_width // 3):
+            # Iterate through the resource list to find which item is being hovered over
+            for index in range(len(self.spawn_list)):
+                # Calculate the top and bottom y-coordinates of the current menu item
+                item_start_y = (index / len(self.spawn_list)) * self.menu_height + self.menu_position_y
+                item_end_y = ((index + 1) / len(self.spawn_list)) * self.menu_height + self.menu_position_y
+
+                # Check if the mouse's y-coordinate is within the vertical bounds of the item
+                if round(item_start_y) <= mouse_y <= round(item_end_y):
+                    # Highlight the item at the current index
+                    self.spawn_highlight_list[index] = True
+
+                    # Set cursor to hand
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+
+                    # De-highlight other items in the list
+                    for i in range(len(self.spawn_highlight_list)):
+                        if i != index:
+                            self.spawn_highlight_list[i] = False
         else:
-            for _ in self.spawn_highlight_list:
-                _ = False
+            # If the mouse is outside the menu bounds, remove all highlights
+            self.spawn_highlight_list = [False] * len(self.spawn_highlight_list)
+            # Set cursor to hand
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
     def draw(self):
         self.menu.fill(Constant.MENU_COLOR)
@@ -641,24 +674,41 @@ class ResourceMenu(Menu):
         self.engine.state[-1].revert_to_playing_state()
 
     def mouse_move(self):
-        pos = pygame.mouse.get_pos()
-        if self.menu_position_x < pos[0] + (self.menu_width // 3):
-            for x in range(len(self.spawn_list)):
-                a = x / len(self.spawn_list)
-                b = a * self.menu_height
-                c = b + self.menu_position_y
-                d = (x + 1) / len(self.spawn_list)
-                e = d * self.menu_height
-                f = e + self.menu_position_y
-                r = range(round(c), round(f))
-                if pos[1] in r:
-                    self.spawn_highlight_list[x] = True
-                    for z in range(len(self.spawn_highlight_list)):
-                        if z is not x:
-                            self.spawn_highlight_list[z] = False
+        """
+        Handles mouse movement to highlight items in the resource list
+        based on the mouse's vertical position within the menu.
+
+        The method checks if the mouse is within the bounds of the menu,
+        and highlights the corresponding item in the resource list if so.
+        """
+        # Get the current mouse position
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        # Check if the mouse is within the horizontal bounds of the menu
+        if self.menu_position_x < mouse_x + (self.menu_width // 3):
+            # Iterate through the resource list to find which item is being hovered over
+            for index in range(len(self.spawn_list)):
+                # Calculate the top and bottom y-coordinates of the current menu item
+                item_start_y = (index / len(self.spawn_list)) * self.menu_height + self.menu_position_y
+                item_end_y = ((index + 1) / len(self.spawn_list)) * self.menu_height + self.menu_position_y
+
+                # Check if the mouse's y-coordinate is within the vertical bounds of the item
+                if round(item_start_y) <= mouse_y <= round(item_end_y):
+                    # Highlight the item at the current index
+                    self.spawn_highlight_list[index] = True
+
+                    # Set cursor to hand
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+
+                    # De-highlight other items in the list
+                    for i in range(len(self.spawn_highlight_list)):
+                        if i != index:
+                            self.spawn_highlight_list[i] = False
         else:
-            for _ in self.spawn_highlight_list:
-                _ = False
+            # If the mouse is outside the menu bounds, remove all highlights
+            self.spawn_highlight_list = [False] * len(self.spawn_highlight_list)
+            # Set cursor to hand
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
     def draw(self):
         self.menu.fill(Constant.MENU_COLOR)
@@ -753,24 +803,41 @@ class SpawningMenu(Menu):
         self.engine.state[-1].revert_to_playing_state()
 
     def mouse_move(self):
-        pos = pygame.mouse.get_pos()
-        if self.menu_position_x < pos[0] + (self.menu_width // 3):
-            for x in range(len(self.spawn_list)):
-                a = x / len(self.spawn_list)
-                b = a * self.menu_height
-                c = b + self.menu_position_y
-                d = (x + 1) / len(self.spawn_list)
-                e = d * self.menu_height
-                f = e + self.menu_position_y
-                r = range(round(c), round(f))
-                if pos[1] in r:
-                    self.spawn_highlight_list[x] = True
-                    for z in range(len(self.spawn_highlight_list)):
-                        if z is not x:
-                            self.spawn_highlight_list[z] = False
+        """
+        Handles mouse movement to highlight items in the resource list
+        based on the mouse's vertical position within the menu.
+
+        The method checks if the mouse is within the bounds of the menu,
+        and highlights the corresponding item in the resource list if so.
+        """
+        # Get the current mouse position
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        # Check if the mouse is within the horizontal bounds of the menu
+        if self.menu_position_x < mouse_x + (self.menu_width // 3):
+            # Iterate through the resource list to find which item is being hovered over
+            for index in range(len(self.spawn_list)):
+                # Calculate the top and bottom y-coordinates of the current menu item
+                item_start_y = (index / len(self.spawn_list)) * self.menu_height + self.menu_position_y
+                item_end_y = ((index + 1) / len(self.spawn_list)) * self.menu_height + self.menu_position_y
+
+                # Check if the mouse's y-coordinate is within the vertical bounds of the item
+                if round(item_start_y) <= mouse_y <= round(item_end_y):
+                    # Highlight the item at the current index
+                    self.spawn_highlight_list[index] = True
+
+                    # Set cursor to hand
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+
+                    # De-highlight other items in the list
+                    for i in range(len(self.spawn_highlight_list)):
+                        if i != index:
+                            self.spawn_highlight_list[i] = False
         else:
-            for _ in self.spawn_highlight_list:
-                _ = False
+            # If the mouse is outside the menu bounds, remove all highlights
+            self.spawn_highlight_list = [False] * len(self.spawn_highlight_list)
+            # Set cursor to hand
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
     def draw(self):
         self.menu.fill(Constant.MENU_COLOR)
@@ -970,14 +1037,28 @@ class KingMenu(Menu):
         self.engine.state[-1].revert_to_playing_state()
 
     def mouse_move(self):
-        pos = pygame.mouse.get_pos()
-        if pos[0] in range(self.menu_position_x, self.menu_position_x + self.menu_width):
-            if pos[1] in range(self.menu_position_y, self.menu_position_y + self.menu_height):
-                self.high_light = True
-            else:
-                self.high_light = False
+        """
+        Handles mouse movement over the menu. It checks if the mouse is within the bounds of the menu
+        and updates the highlight status accordingly. It also sets the mouse cursor to a hand when hovering
+        over the menu and resets it to the default arrow cursor when outside the menu.
+        """
+        # Get the current mouse position
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        # Check if the mouse is within the horizontal bounds of the menu
+        is_within_menu_x = self.menu_position_x <= mouse_x <= self.menu_position_x + self.menu_width
+
+        # Check if the mouse is within the vertical bounds of the menu
+        is_within_menu_y = self.menu_position_y <= mouse_y <= self.menu_position_y + self.menu_height
+
+        if is_within_menu_x and is_within_menu_y:
+            # Highlight the menu and set the cursor to a hand
+            self.high_light = True
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
         else:
+            # Remove highlight and reset cursor to the default arrow
             self.high_light = False
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
     def left_click(self):
         pos = pygame.mouse.get_pos()
@@ -1039,14 +1120,28 @@ class QueenMenu(Menu):
         self.engine.state[-1].revert_to_playing_state()
 
     def mouse_move(self):
-        pos = pygame.mouse.get_pos()
-        if pos[0] in range(self.menu_position_x, self.menu_position_x + self.menu_width):
-            if pos[1] in range(self.menu_position_y, self.menu_position_y + self.menu_height):
-                self.high_light = True
-            else:
-                self.high_light = False
+        """
+        Handles mouse movement over the menu. It checks if the mouse is within the bounds of the menu
+        and updates the highlight status accordingly. It also sets the mouse cursor to a hand when hovering
+        over the menu and resets it to the default arrow cursor when outside the menu.
+        """
+        # Get the current mouse position
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        # Check if the mouse is within the horizontal bounds of the menu
+        is_within_menu_x = self.menu_position_x <= mouse_x <= self.menu_position_x + self.menu_width
+
+        # Check if the mouse is within the vertical bounds of the menu
+        is_within_menu_y = self.menu_position_y <= mouse_y <= self.menu_position_y + self.menu_height
+
+        if is_within_menu_x and is_within_menu_y:
+            # Highlight the menu and set the cursor to a hand
+            self.high_light = True
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
         else:
+            # Remove highlight and reset cursor to the default arrow
             self.high_light = False
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
     def left_click(self):
         pos = pygame.mouse.get_pos()
@@ -1301,7 +1396,6 @@ class PieceDescription(Encyclopedia):
         self.board[row][col].get_occupying().update_move_squares(self.engine)
         self.board[row][col].get_occupying().display_moves = True
 
-    import pygame
 
     def justify_text(self, font, text, max_width, color):
         """ Formats and displays text within a given width using a pygame font.
@@ -1473,17 +1567,35 @@ class CostMenu(Encyclopedia):
         self.highlight.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
 
     def mouse_move(self):
-        pos = pygame.mouse.get_pos()
+        """
+        Handles mouse movement over the menu. It checks if the mouse is over any of the columns
+        and highlights the appropriate column. It also changes the mouse cursor to a hand when hovering
+        over a column and resets it to the default arrow cursor when outside any column area.
+        """
+        # Get the current mouse position
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        # Calculate the initial position for displaying the columns
         column_display_x = self.window_width // 2 - self.width_of_of_all_columns_and_buffers // 2
-        for column in self.column_list:
-            index = self.column_list.index(column)
-            if pos[1] in range(self.column_display_y, self.column_display_y + self.column_height):
-                if pos[0] in range(column_display_x, column_display_x + self.column_width):
-                    self.highlight_list[index] = True
-                else:
-                    self.highlight_list[index] = False
+
+        # Iterate over each column to check if the mouse is hovering over it
+        for index, column in enumerate(self.column_list):
+            # Check if the mouse is within the vertical bounds of the column
+            is_within_column_y = self.column_display_y <= mouse_y <= self.column_display_y + self.column_height
+
+            # Check if the mouse is within the horizontal bounds of the column
+            is_within_column_x = column_display_x <= mouse_x <= column_display_x + self.column_width
+
+            if is_within_column_x and is_within_column_y:
+                # Highlight the column and set the cursor to a hand
+                self.highlight_list[index] = True
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
             else:
+                # Remove highlight and reset cursor to the default arrow
                 self.highlight_list[index] = False
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+
+            # Move the starting position for the next column
             column_display_x += self.column_width + self.x_buffer_between_columns
 
     def left_click(self):
@@ -1957,28 +2069,65 @@ class StartMenu(SideMenu):
             return Constant.BLACK
 
     def mouse_move(self):
-        pos = pygame.mouse.get_pos()
-        if pos[0] > Constant.BOARD_WIDTH_PX:
-            menu_mouse_x_position = pos[0] - Constant.BOARD_WIDTH_PX
+        """
+        Handles mouse movement over the board and the menu area. It highlights the pieces
+        and shows the appropriate cursor when hovering over specific areas of the board or menu.
+        """
+        # Get the current mouse position
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        # Initialize cursor to default
+        cursor_set = False
+
+        # Check if the mouse is within the bounds of the menu (right of the board)
+        if mouse_x > Constant.BOARD_WIDTH_PX:
+            # Calculate the mouse's position relative to the menu
+            menu_mouse_x_position = mouse_x - Constant.BOARD_WIDTH_PX
+
+            # Check if the mouse is over the white piece area
             if menu_mouse_x_position in range(self.boat_display_x, self.boat_display_x + self.w_boat.get_width()):
-                if pos[1] in range(self.w_display_y, self.w_display_y + self.w_boat.get_height()):
+                if mouse_y in range(self.w_display_y, self.w_display_y + self.w_boat.get_height()):
+                    # Highlight white piece if hovering
                     self.w_piece_highlight = True
-                elif pos[1] in range(self.b_display_y, self.b_display_y + self.w_boat.get_height()):
-                    self.b_piece_highlight = True
+                    if not cursor_set:
+                        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+                        cursor_set = True
                 else:
                     self.w_piece_highlight = False
+
+                # Check if the mouse is over the black piece area
+                if mouse_y in range(self.b_display_y, self.b_display_y + self.w_boat.get_height()):
+                    # Highlight black piece if hovering
+                    self.b_piece_highlight = True
+                    if not cursor_set:
+                        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+                        cursor_set = True
+                else:
                     self.b_piece_highlight = False
+
             else:
                 self.w_piece_highlight = False
                 self.b_piece_highlight = False
-            if pos[1] in range(self.r, self.menu_height):
+
+            # Check if the mouse is within the range for the randomize resources button
+            if mouse_y in range(self.r, self.menu_height):
                 self.randomize_resources_highlight = True
+                if not cursor_set:
+                    # Set cursor to hand when hovering over randomize button
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+                    cursor_set = True
             else:
                 self.randomize_resources_highlight = False
+
         else:
+            # Reset highlights when the mouse is not in the menu area
             self.w_piece_highlight = False
             self.b_piece_highlight = False
             self.randomize_resources_highlight = False
+
+        # If no other condition has set the cursor, set it back to default arrow
+        if not cursor_set:
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
 
 class SurrenderMenu(SideMenu):
@@ -2012,24 +2161,48 @@ class SurrenderMenu(SideMenu):
         self.no_square_display_x = self.no_display_x
 
     def mouse_move(self):
-        pos = pygame.mouse.get_pos()
-        if pos[0] > Constant.BOARD_WIDTH_PX:
-            menu_x = pos[0] - Constant.BOARD_WIDTH_PX
-            if pos[1] in range(self.yes_display_y, self.yes_display_y + self.answer_surface_height):
+        """
+        Handles mouse movement over the menu area, highlighting the 'Yes' and 'No' buttons
+        based on the mouse position and updating the highlight state accordingly.
+        It also changes the mouse cursor when hovering over the buttons.
+        """
+        # Get the current mouse position
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        # Initialize cursor state to the default arrow
+        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+
+        # Check if the mouse is within the bounds of the menu (right of the board)
+        if mouse_x > Constant.BOARD_WIDTH_PX:
+            # Calculate the mouse's position relative to the menu
+            menu_x = mouse_x - Constant.BOARD_WIDTH_PX
+
+            # Check if the mouse is over the 'Yes' button
+            if mouse_y in range(self.yes_display_y, self.yes_display_y + self.answer_surface_height):
                 if menu_x in range(self.yes_display_x, self.yes_display_x + self.answer_surface_width):
+                    # Highlight 'Yes' button if hovering
                     self.yes_highlight = True
+                    # Set cursor to hand if hovering over 'Yes'
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
                 else:
                     self.yes_highlight = False
 
-            elif pos[1] in range(self.no_display_y, self.no_display_y + self.answer_surface_height):
+            # Check if the mouse is over the 'No' button
+            elif mouse_y in range(self.no_display_y, self.no_display_y + self.answer_surface_height):
                 if menu_x in range(self.no_display_x, self.no_display_x + self.answer_surface_width):
+                    # Highlight 'No' button if hovering
                     self.no_highlight = True
+                    # Set cursor to hand if hovering over 'No'
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
                 else:
                     self.no_highlight = False
+
             else:
+                # Reset highlights if not hovering over either button
                 self.yes_highlight = False
                 self.no_highlight = False
         else:
+            # Reset highlights when the mouse is not in the menu area
             self.yes_highlight = False
             self.no_highlight = False
 
@@ -2178,13 +2351,24 @@ class Hud(SideMenu):
             self.turn_icon_display_y - self.text_vertical_offset))
 
     def mouse_move(self):
+        """
+        Handles mouse movement over the title bar area. It highlights the title bar based on the
+        mouse position and updates the mouse cursor to a hand when hovering over the title bar.
+        """
+        # Get the current mouse position
         pos = pygame.mouse.get_pos()
+
+        # Check if the mouse is within the board area (right of the board)
         if pos[0] > Constant.BOARD_WIDTH_PX:
-            if 0 < pos[1] < Constant.BOARD_HEIGHT_PX * .25:
+            # Check if the mouse is over the title bar area (top 25% of the screen)
+            if 0 < pos[1] < Constant.BOARD_HEIGHT_PX * 0.25:
                 self.title_bar_highlight = True
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)  # Set cursor to hand when over title bar
             else:
                 self.title_bar_highlight = False
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)  # Reset cursor to arrow when not over title bar
         else:
+            # Reset title bar highlight and cursor if not in the menu area
             self.title_bar_highlight = False
 
     def left_click(self):
@@ -2335,16 +2519,37 @@ class Contextual(Menu):
         self.engine.state[-1].revert_to_playing_state()
 
     def mouse_move(self):
+        """
+        Handles mouse movement over the menu area. It highlights the menu items based on the
+        mouse position and updates the mouse cursor to a hand when hovering over an item.
+        """
+        # Get the current mouse position
         pos = pygame.mouse.get_pos()
+
+        # Check if the mouse is within the menu area
         if self.menu_position_x < pos[0] + (self.menu_width // 3):
+            cursor_set = False  # Flag to track if cursor should be set to hand
+
+            # Loop through each menu item
             for x in range(len(self.menu_list)):
                 y_start = self.menu_position_y + (x * Constant.SQ_SIZE)
                 y_end = y_start + Constant.SQ_SIZE
+
+                # Check if the mouse is over this item
                 if y_start <= pos[1] <= y_end:
                     self.item_highlight_list = [i == x for i in
                                                 range(len(self.menu_list))]  # Update highlights correctly
+                    # Set the cursor to hand when hovering over a menu item
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+                    cursor_set = True  # Set flag to indicate cursor is already set to hand
+
+            # If the cursor is not over any menu item, set it back to the default arrow
+            if not cursor_set:
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
         else:
+            # If the mouse is outside the menu area, reset all highlights and set cursor to arrow
             self.item_highlight_list = [False] * len(self.menu_list)  # Reset highlights
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)  # Reset cursor to default
 
     def draw(self):
         self.menu.fill(Constant.MENU_COLOR)

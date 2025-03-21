@@ -778,6 +778,7 @@ class PortalCapture(GameEvent):
         super().__init__(engine, acting_tile, action_tile)
         self.color = self.engine.turn
         self.moved = self.acting_tile.get_occupying()
+        self.first_move = self.moved.first_move
         self.start = self.moved.row, self.moved.col
         self.end = self.action_tile.get_position()
         self.portal_end = self.action_tile.connected_portal.get_position()
@@ -795,7 +796,7 @@ class PortalCapture(GameEvent):
     def complete(self):
         super().complete()
         self.moved.actions_remaining -= 1
-
+        self.moved.first_move = False
         self.engine.sounds.play('capture')
         self.engine.capture(self.start[0], self.start[1], self.end[0], self.end[1])
         self.engine.swap(self.end[0], self.end[1], self.portal_end[0], self.portal_end[1])
@@ -814,6 +815,7 @@ class PortalCapture(GameEvent):
     def undo(self):
         super().undo()
         self.moved.actions_remaining += 1
+        self.moved.first_move = self.first_move
         if self.deleted_piece:
             self.engine.create_piece(self.portal_end[0], self.portal_end[1], self.deleted_piece)
             self.engine.set_trap(self.portal_end[0], self.portal_end[1], self.trap)

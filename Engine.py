@@ -1238,9 +1238,7 @@ class Engine:
                 piece = self.board[square[0]][square[1]].get_occupying()
                 if piece and piece.is_effected_by_jester:
                     if not piece.can_act():
-                        print(f"{str(piece)} is used so it won't be reset on undo")
                         self.used_and_intercepted_pieces.append(piece)
-                    print(f"{str(piece)} is intercepted")
                     piece.intercepted = True
                     piece.actions_remaining = 0
 
@@ -1471,13 +1469,11 @@ class Engine:
         # Check if the square can be occupied and does not have a quarry
         if not self.can_be_occupied(row, col) or self.has_quarry(row, col):
             self.set_popup_reason('non_occupyable')
-            print("not occupyingable")
             return False
 
         # Check if the square has enough open spaces
         if not self.starting_square_has_enough_open_spaces(row, col):
             self.set_popup_reason('open_spaces')
-            print("Not enough open spaces")
             square_has_enough_spaces = False
 
         # Ensure we only check valid board positions
@@ -1485,7 +1481,6 @@ class Engine:
             for c in range(max(0, col - 3), min(len(self.board[0]), col + 4)):
                 if self.has_castle(r, c):
                     self.set_popup_reason('players_nearby')
-                    print("player nearby")
                     no_players_nearby = False
 
         return no_players_nearby and square_has_enough_spaces

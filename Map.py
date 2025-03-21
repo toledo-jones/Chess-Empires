@@ -162,8 +162,6 @@ def left_and_right_triangle_sections_top():
     # x, y equal max val col, row
     y, x = Constant.board_max_index()
 
-    print(x)
-    print(y)
 
     # Top-left triangle (unchanged)
     for r in range(0, 7):  # Iterate over the rows starting from 0 to 6 (top)

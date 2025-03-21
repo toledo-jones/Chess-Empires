@@ -215,7 +215,6 @@ class MaterialCounter(Behavior):
                         event.undo()
                         if current_evaluation > max_evaluation:
                             max_evaluation = current_evaluation
-                            self.print_diagnostics(engine.turn, possible_moves, piece, move_kind, current_evaluation)
                             best_move = {piece: (move_kind, move)}
             return best_move, max_evaluation
         else:
@@ -232,17 +231,13 @@ class MaterialCounter(Behavior):
                         if change_turn_event:
                             change_turn_event.complete()
                             current_evaluation = self.search(engine, depth - 1, True)[1]
-                            # self.print_diagnostics(engine.turn, possible_moves, piece, move_kind, current_evaluation)
                         else:
                             current_evaluation = self.search(engine, depth-1, False)[1]
-                            # self.print_diagnostics(engine.turn, possible_moves, piece, move_kind, current_evaluation)
                         if change_turn_event:
                             change_turn_event.undo()
                         event.undo()
                         if current_evaluation > min_evaluation:
                             min_evaluation = current_evaluation
-                            print('minimum evaluation')
-                            self.print_diagnostics(engine.turn, possible_moves, piece, move_kind, current_evaluation)
                             best_move = {piece: (move_kind, move)}
             return best_move, min_evaluation
 

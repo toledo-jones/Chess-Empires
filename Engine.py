@@ -1233,14 +1233,16 @@ class Engine:
 
     def intercept_pieces(self):
         interceptors = self.find_interceptors()
-        for i in interceptors:
-            for square in i.interceptor_squares_list:
-                o = self.board[square[0]][square[1]].get_occupying()
-                if o and o.is_effected_by_jester:
-                    o.intercepted = True
-                    if o.actions_remaining == 0:
-                        self.used_and_intercepted_pieces.append(o)
-                    o.actions_remaining = 0
+        for interceptor in interceptors:
+            for square in interceptor.interceptor_squares_list:
+                piece = self.board[square[0]][square[1]].get_occupying()
+                if piece and piece.is_effected_by_jester:
+                    if not piece.can_act():
+                        print(f"{str(piece)} is used so it won't be reset on undo")
+                        self.used_and_intercepted_pieces.append(piece)
+                    print(f"{str(piece)} is intercepted")
+                    piece.intercepted = True
+                    piece.actions_remaining = 0
 
     def reset_intercepted(self):
         for player in self.players:
@@ -1257,6 +1259,7 @@ class Engine:
             if p not in intercepted_pieces_new:
                 if p not in self.used_and_intercepted_pieces:
                     p.intercepted = False
+                    p.unused_piece_highlight = True
                     p.actions_remaining = 1
 
         self.used_and_intercepted_pieces = []

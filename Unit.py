@@ -241,6 +241,7 @@ class Unit:
         if self.actions_remaining == 0:
             self.unused_piece_highlight = False
 
+
     def draw(self, win):
         # Check if the piece is not currently being dragged
         if not self.dragging:

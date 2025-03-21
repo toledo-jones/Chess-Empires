@@ -559,6 +559,7 @@ class Pause(State):
         elif button_index == 2:
             # Reset the game board
             self.engine.reset_board()
+            self.engine.set_state('starting')
 
         # If the "Settings" button was clicked
         elif button_index == 3:
@@ -1287,7 +1288,10 @@ class Playing(State):
 class Starting(State):
     def __init__(self, win, engine, preserve_resources=False):
         super().__init__(win, engine)
+
         # Play button
+        self.engine.final_spawn = False
+        self.engine.players = {}
         self.engine.create_player('w')
         self.engine.create_player('b')
         self.side_bar = StartMenu(win, engine)

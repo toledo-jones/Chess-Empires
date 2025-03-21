@@ -24,7 +24,7 @@ DEBUG_STARTING_PRAYER = 10
 DEBUG_STARTING_WOOD = 100
 DEBUG_STARTING_GOLD = 100
 DEBUG_STARTING_STONE = 100
-DEBUG_STARTING_PIECES = ['castle', 'king', 'pawn', 'pawn', 'pawn', 'builder', 'pikeman']
+DEBUG_STARTING_PIECES = ['castle', 'king', 'duke', 'elephant']
 
 # Window and board sizes
 MAX_FPS = 120
@@ -229,7 +229,7 @@ NOTIFICATIONS = {
     'check'              : ['your king is in check']
 }
 DESCRIPTIONS = {
-    'king'            : ['every player gets one.', 'capture your opponent\'s to win'],
+    'king'            : ['every player gets one.', '\'right click\' to surrender.', 'checkmate your opponent\'s and they will have to surrender'],
     'gold_general'    : ['???'],
     'quarry_1'        : ['can be mined for stone.', 'may cave in and begin to yield less stone.',
                          'eventually becomes depleted if mined after it caves in.'],
@@ -272,7 +272,7 @@ DESCRIPTIONS = {
                          'can capture walls.'],
     'champion'        : ['moves diagonally one square.',
                          'after moving, slides to move orthogonally.'],
-    'assassin'        : ['moves by swapping places with enemy pieces.', 'captures one space in all directions'],
+    'assassin'        : ['\'right click\' to swap places with an enemy piece.', 'captures one space in all directions'],
     'elephant'        : ['leaps over another piece up two and over one.',
                          'if it\'s knight move was unobstructed it can move forward one more square',
                          'can capture walls.'],

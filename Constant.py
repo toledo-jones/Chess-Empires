@@ -250,7 +250,7 @@ for i in range(8):
     change_turn.append(i)
 for i in range(4):
     start_game.append(i)
-for i in range(5):
+for i in range(11):
     instructions.append(i)
 
 

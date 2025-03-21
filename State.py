@@ -720,9 +720,6 @@ class MainMenu(State):
 
                 # Perform action based on which button was clicked
                 if i == 0:
-                    # Play button
-                    self.engine.create_player('w')
-                    self.engine.create_player('b')
                     Constant.PLAY_AGAINST_AI = False
                     self.engine.set_state('starting')
                 elif i == 1:
@@ -1298,6 +1295,9 @@ class Playing(State):
 class Starting(State):
     def __init__(self, win, engine, preserve_resources=False):
         super().__init__(win, engine)
+        # Play button
+        self.engine.create_player('w')
+        self.engine.create_player('b')
         self.side_bar = StartMenu(win, engine)
         if not preserve_resources:
             if Constant.BOARD_STARTS_WITH_RESOURCES:
@@ -1594,74 +1594,6 @@ class AIPlaying(State):
         self.act()
 
 
-class AIStartingSpawn(State):
-    def __init__(self, win, engine):
-        super().__init__(win, engine)
-        self.side_bar = Empty(win, engine)
-        self.first = True
-        self.engine.sounds.play('start_game')
-        self.turn_events = []
-        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                           Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                           Constant.DOWN_LEFT)
-
-    def __repr__(self):
-        return 'start spawn'
-
-    def create_ai_player(self):
-        if not Constant.TURNS[self.engine.turn] in self.engine.players:
-            self.engine.create_ai(Constant.TURNS[self.engine.turn])
-
-        turn_change_event = ChangeTurn(self.engine)
-        turn_change_event.complete()
-        self.turn_events.append(turn_change_event)
-
-        self.engine.spawn_count = 0
-        self.engine.final_spawn = True
-
-        ai = self.engine.players[self.engine.turn]
-        choice = ai.behavior.select_starting_square(self.engine)
-
-        self.engine.spawn_list = ai.behavior.select_starting_pieces()
-        self.engine.spawning = 'castle'
-        self.create_ai_spawn_event(choice[0], choice[1], False)
-        self.engine.spawn_count = 0
-        self.engine.update_spawn_squares()
-        spawn_squares_list = self.engine.get_occupying(choice[0], choice[1]).spawn_squares_list
-        placements = ai.behavior.starting_piece_placements(self.engine.spawn_list, spawn_squares_list)
-        self.engine.update_spawn_squares()
-        for _ in self.engine.spawn_list:
-            self.engine.spawning = self.engine.spawn_list[self.engine.spawn_count]
-            row, col = placements[self.engine.spawn_count][0], placements[self.engine.spawn_count][1]
-            self.create_ai_spawn_event(row, col)
-        self.end_start_spawning()
-
-    def end_start_spawning(self):
-        self.engine.reset_selected()
-        self.engine.reset_piece_actions_remaining()
-        self.engine.spawn_success = False
-        unused_pieces = self.engine.count_unused_pieces()
-        for piece in unused_pieces:
-            piece.unused_piece_highlight = True
-        self.engine.reset_player_actions_remaining(self.engine.turn)
-        self.engine.update_additional_actions()
-        self.engine.update_piece_limit()
-        self.engine.spawn_count = 0
-        new_state = AIPlaying(self.win, self.engine, self.turn_events)
-        self.engine.set_state(new_state)
-        new_state.complete_turn()
-
-    def create_ai_spawn_event(self, row, col, first=True):
-        action_tile = self.engine.board[row][col]
-        acting_tile = self.engine.update_previously_selected()
-        event = StartSpawn(self.engine, acting_tile, action_tile)
-        event.complete()
-        self.turn_events.append(event)
-        self.engine.update_spawn_squares()
-        self.first = first
-        self.engine.spawn_count += 1
-
-
 class StartingSpawn(State):
     def __init__(self, win, engine):
         super().__init__(win, engine)
@@ -1678,6 +1610,7 @@ class StartingSpawn(State):
         new_state.create_ai_player()
 
     def begin_next_player_piece_select(self):
+
         event = ChangeTurn(self.engine)
         event.complete()
         self.engine.events.append(event)

@@ -159,7 +159,7 @@ class Engine:
             'destroy_resource': PerformDestroyResource,
             'create_resource' : PerformCreateResource, 'portal': PerformPortal, 'teleport': PerformTeleport,
             'swap'            : PerformSwap, 'line_destroy': PerformLineDestroy, 'protect': PerformProtect,
-            'main menu'       : MainMenu, 'debug': DebugStart, 'ai start spawn': AIStartingSpawn, 'inspector': Inspector,
+            'main menu'       : MainMenu, 'debug': DebugStart, 'inspector': Inspector,
             'instructions': Instructions, 'pause': Pause
         }
 

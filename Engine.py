@@ -825,13 +825,6 @@ class Engine:
         except IndexError:
             return False
 
-    def has_castle(self, r, c):
-        try:
-            p = self.board[r][c].get_occupying()
-            if isinstance(p, Castle):
-                return True
-        except IndexError:
-            return False
 
     def has_barracks(self, r, c):
         try:
@@ -1468,19 +1461,36 @@ class Engine:
                     rogue_spaces += 1
         return open_spaces >= open_spaces_needed
 
-    def is_legal_starting_square(self, row, col):
+    def is_legal_starting_square(self, row: int, col: int) -> bool:
         no_players_nearby = True
         square_has_enough_spaces = True
+
+        # Check if the square can be occupied and does not have a quarry
         if not self.can_be_occupied(row, col) or self.has_quarry(row, col):
             self.set_popup_reason('non_occupyable')
+            print("not occupyingable")
             return False
+
+        # Check if the square has enough open spaces
         if not self.starting_square_has_enough_open_spaces(row, col):
             self.set_popup_reason('open_spaces')
+            print("Not enough open spaces")
             square_has_enough_spaces = False
-        for r in range(row - 3, row + 4):
-            for c in range(col - 3, col + 4):
+
+        # Ensure we only check valid board positions
+        for r in range(max(0, row - 3), min(len(self.board), row + 4)):
+            for c in range(max(0, col - 3), min(len(self.board[0]), col + 4)):
                 if self.has_castle(r, c):
                     self.set_popup_reason('players_nearby')
+                    print("player nearby")
                     no_players_nearby = False
 
         return no_players_nearby and square_has_enough_spaces
+
+    def has_castle(self, r, c):
+        try:
+            p = self.board[r][c].get_occupying()
+            if isinstance(p, Castle):
+                return True
+        except IndexError:
+            return False

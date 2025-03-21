@@ -12,19 +12,19 @@ import pygame
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Uncomment the section below to enable debug
 
-# DEBUG_START = True
-# DISPLAY_STATE_IN_HUD = False
-# BOARD_STARTS_WITH_RESOURCES = False
-# DEBUG_RITUALS = True
-# POP_UPS_ON = False
-# SHOW_STONE = False
+DEBUG_START = True
+DISPLAY_STATE_IN_HUD = False
+BOARD_STARTS_WITH_RESOURCES = False
+DEBUG_RITUALS = True
+POP_UPS_ON = False
+SHOW_STONE = False
 
 # Debug settings
 DEBUG_STARTING_PRAYER = 30
 DEBUG_STARTING_WOOD = 100
 DEBUG_STARTING_GOLD = 100
 DEBUG_STARTING_STONE = 100
-DEBUG_STARTING_PIECES = ['castle', 'king', 'monolith']
+DEBUG_STARTING_PIECES = ['castle', 'king']
 
 # Window and board sizes
 MAX_FPS = 120

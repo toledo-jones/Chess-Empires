@@ -908,10 +908,8 @@ class Pawn(Piece):
                 r = self.row + direction[0] * distance
                 c = self.col + direction[1] * distance
                 if not engine.tile_in_bounds(r, c):
-                    print("tile not in bounds")
                     break
                 if not self.base_move_criteria(engine, r, c):
-                    print("move criteria not met")
                     break
 
                 else:

@@ -29,7 +29,7 @@ class State:
         try:
             self.dragging_piece.dragging = False
         except AttributeError as e:
-            print(e)
+            pass
         self.dragging_piece = None
         self.dragging = False
 
@@ -49,10 +49,8 @@ class State:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 if self.left_click():
-                    print("Click")
-
+                    pass
                 elif self.drag_piece(event.pos):
-                    print("Dragging")
                     self.dragging = True
 
             elif event.button == 3:
@@ -62,7 +60,6 @@ class State:
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1 and self.dragging:
                 # Otherwise, treat it as a drag-and-drop action
-                print("Dropping")
                 self.drop_piece(event.pos)
                 self.dragging = False
 
@@ -236,7 +233,7 @@ class State:
                 self.engine.events[-1].undo()
                 del self.engine.events[-1]
         except IndexError as e:
-            print(e)
+            pass
 
     def m(self):
         pass
@@ -959,7 +956,6 @@ class Playing(State):
             if self.can_select_piece(currently_selected):
                 self.dragging_piece = currently_selected
                 currently_selected.dragging = True
-                print("setting cursor to sizeall")
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_SIZEALL)
                 return self.select_piece(currently_selected)
             else:
@@ -970,7 +966,6 @@ class Playing(State):
             row, col = Constant.convert_pos(pos)
             if self.dragging:
                 if not self.select(row, col):
-                    print("Nothing valid selected")
                     # If nothing valid is selected, show a popup menu
                     self.engine.reset_selected()  # Reset selected piece
             self.reset_dragging_piece()
@@ -1148,9 +1143,7 @@ class Playing(State):
             results.append(self.side_bar.left_click())
 
         if self.engine.menus:
-            print(self.engine.menus)
             for menu in self.engine.menus:
-                print("clicking into menu")
                 results.append(menu.left_click())
 
         return any(results)  # Returns True if any element in results is True
@@ -1199,7 +1192,7 @@ class Playing(State):
                                     self.engine.menus[-1].left_click()
 
                         except AttributeError as e:
-                            print(f"{e} State.py, Line 615")
+                            pass
 
     def m(self):
         """
@@ -1272,7 +1265,6 @@ class Playing(State):
             if clickable_piece_hovered:
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
             else:
-                print("setting cursor to arrow")
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
     def draw(self):

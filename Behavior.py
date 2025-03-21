@@ -215,7 +215,6 @@ class MaterialCounter(Behavior):
                         event.undo()
                         if current_evaluation > max_evaluation:
                             max_evaluation = current_evaluation
-                            print('max evaluation')
                             self.print_diagnostics(engine.turn, possible_moves, piece, move_kind, current_evaluation)
                             best_move = {piece: (move_kind, move)}
             return best_move, max_evaluation

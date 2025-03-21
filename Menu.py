@@ -425,7 +425,6 @@ class GiveMenu(TraderMenu):
             'stone'    : engine.trade_handler.get_give_conversion('stone', self.player)
         }
         self.trade_arrow = Constant.IMAGES['give']
-        print("Give Menu Created")
         super().__init__(row, col, win, engine, resource_list, self.amounts, self.trade_arrow)
 
     def right_click(self):
@@ -458,7 +457,6 @@ class ReceiveMenu(TraderMenu):
             'stone'    : engine.trade_handler.get_receive_conversion(self.amount_given, 'stone')
         }
         self.trade_arrow = Constant.IMAGES['receive']
-        print("Receive Menu Created")
         super().__init__(row, col, win, engine, resource_list, self.amounts, self.trade_arrow)
 
     def left_click(self):
@@ -2488,7 +2486,6 @@ class Contextual(Menu):
 
     def handle_menu_selection(self, index, item):
         if not self.requirements[item]:
-            print(f"Requirements not met for {item}")
             return False
         try:
             self.updates[item]()
@@ -2499,14 +2496,11 @@ class Contextual(Menu):
                 'steal'   : self.piece.stealing_squares_list,
             }
             if not squares[item]:
-                print(f"Squares list empty for {item}")
                 return False
         except KeyError as e:
-            print(f"{e} for {item}")
+            pass
         except TypeError as e:
-            print(f"{e} for {item}")
-
-        print(f"{item}")
+            pass
 
         return self.contextual_options[item](self.row, self.col)
 
@@ -2531,10 +2525,8 @@ class Contextual(Menu):
             if y_start <= mouse_y <= y_end:
                 self.engine.close_menus()
                 # Click is inside this highlight section
-                print(f"Clicked on menu item {index}: {self.menu_list[index]}")
                 # Perform action for the selected menu item
                 if not self.handle_menu_selection(index, self.menu_list[index]):
-                    print("resetting menus")
                     self.engine.reset_selected()
                     self.engine.close_menus()
                     self.engine.state[-1].reset_dragging_piece()

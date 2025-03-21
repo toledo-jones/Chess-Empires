@@ -35,7 +35,7 @@ class GameEvent:
             player.king.check = False
 
         except Exception as e:
-            print(e)
+            pass
 
     def set_enemy_in_check(self):
         self.engine.update_moves()
@@ -51,7 +51,7 @@ class GameEvent:
             enemy.king.check = False
 
         except Exception as e:
-            print(e)
+            pass
 
     def constrain_check(self):
         """
@@ -985,7 +985,6 @@ class Move(GameEvent):
     def __init__(self, engine, acting_tile, action_tile):
         super().__init__(engine, acting_tile, action_tile)
         self.moved = self.acting_tile.get_occupying()
-        print(f"stored first move as {self.moved.first_move}")
         self.first_move = self.moved.first_move
         self.start = self.moved.row, self.moved.col
         self.end = self.action_tile.get_position()
@@ -1011,8 +1010,6 @@ class Move(GameEvent):
     def undo(self):
         super().undo()
         self.moved.actions_remaining += 1
-        print(f"undoing first move, setting it to {self.first_move}")
-        print(f"Piece moving is f{str(self.moved)}")
         self.moved.first_move = self.first_move
         self.engine.move(self.end[0], self.end[1], self.start[0], self.start[1])
         self.engine.sounds.play('move')
@@ -1035,7 +1032,6 @@ class RitualEvent(GameEvent):
             self.cost_type = self.engine.state[-1].cost_type
         except AttributeError as e:
             self.cost_type = None
-            print(e)
         self.ritual_cost = None
 
         if self.cost_type:
@@ -1088,8 +1084,6 @@ class RitualEvent(GameEvent):
                     self.deleted_monks.append(count[i])
                     self.engine.delete_piece(count[i].row, count[i].col)
                 except IndexError:
-                    print("Index Error, 584 GameEvent.py")
-                    print("Not enough monks to sacrifice")
                     pass
 
 
@@ -1363,14 +1357,9 @@ class Trade(GameEvent):
         self.piece.actions_remaining -= 1
         amount = getattr(self.player, self.give_resource)
 
-        # Debug
-        print(f"Giving {self.give_amount} {self.give_resource} to {self.player}")
-
         setattr(self.player, self.give_resource, amount - self.give_amount)
         amount = getattr(self.player, self.receive_resource)
 
-        # Debug
-        print(f"Receiving {self.receive_amount} {self.receive_resource} from {self.player}")
 
         setattr(self.player, self.receive_resource, amount + self.receive_amount)
         self.engine.trading = []

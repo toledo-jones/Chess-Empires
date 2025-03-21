@@ -1322,7 +1322,6 @@ class Engine:
             return True
 
     def transfer_to_mining_state(self, row, col):
-        print("Transferring to mining state")
         self.update_mining_squares()
         mining_squares = self.board[row][col].get_occupying().mining_squares_list
         allow_mine = False
@@ -1388,7 +1387,6 @@ class Engine:
         # If the player has enough resources, return True, otherwise return False.
         decree_cost = Constant.DECREE_COST
         keys = list(decree_cost.keys())
-        print(f"Checking if player has attribute: {keys[-1]}")
         current_resource = getattr(self.players[self.turn], keys[-1])
         return current_resource >= self.get_decree_cost()
 
@@ -1409,13 +1407,11 @@ class Engine:
         self.state[-1].revert_to_playing_state()
 
     def transfer_to_trading_state(self, row, col):
-        print("Transferring to trader state")
         new_state = Trading(self.state[-1].win, self)
         self.set_state(new_state)
         return self.create_trader_menu(row, col)
 
     def create_trader_menu(self, row, col, set_new_piece_trading=True):
-        print("Creating trader menu")
         player = self.players[self.turn]
         resources = ['wood', 'gold', 'stone']
         key = {'wood': 'log', 'gold': 'gold_coin', 'stone': 'stone'}
@@ -1425,7 +1421,6 @@ class Engine:
                 resource_list.append(key[resource])
         if resource_list:
             if set_new_piece_trading:
-                print("Setting new piece trading")
                 self.piece_trading = self.get_occupying(row, col)
 
             trader_menu = GiveMenu(row, col, self.state[-1].win, self, resource_list)

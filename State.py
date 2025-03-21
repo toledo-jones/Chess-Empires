@@ -402,6 +402,12 @@ class Settings(State):
     def __repr__(self):
         return 'pause'
 
+    def tab(self):
+        del self.engine.state[-1]
+
+    def right_click(self):
+        del self.engine.state[-1]
+
     def esc(self):
         del self.engine.state[-1]
 
@@ -560,6 +566,9 @@ class Pause(State):
 
     def __repr__(self):
         return 'pause'
+
+    def right_click(self):
+        del self.engine.state[-1]
 
     def esc(self):
         del self.engine.state[-1]
@@ -873,6 +882,12 @@ class Instructions(State):
 
         if not cursor_set:  # If no button is highlighted, reset to arrow
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+
+    def right_click(self):
+        del self.engine.state[-1]
+
+    def tab(self):
+        del self.engine.state[-1]
 
     def draw(self):
         """

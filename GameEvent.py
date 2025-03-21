@@ -21,7 +21,7 @@ class GameEvent:
             if not is_protected:
                 return trap
 
-    def determine_check(self):
+    def set_player_in_check(self):
         self.engine.update_moves()
         player = self.engine.players[self.engine.get_turn()]
         enemy = self.engine.players[Constant.TURNS[self.engine.get_turn()]]
@@ -37,14 +37,30 @@ class GameEvent:
         except Exception as e:
             print(e)
 
+    def set_enemy_in_check(self):
+        self.engine.update_moves()
+        player = self.engine.players[self.engine.get_turn()]
+        enemy = self.engine.players[Constant.TURNS[self.engine.get_turn()]]
+        try:
+            for piece in player.pieces:
+                for square in piece.capture_squares_list:
+                    if square == enemy.king.get_position():
+                        enemy.king.check = True
+                        return True
+
+            enemy.king.check = False
+
+        except Exception as e:
+            print(e)
+
     def constrain_check(self):
         """
             Sloppy early implementation of check
             Undo when a move puts our king in check
         """
-        if self.determine_check():
+        if self.set_player_in_check():
             self.engine.events[-1].undo()
-            self.determine_check()
+            self.set_player_in_check()
             del self.engine.events[-1]
 
     def complete(self):
@@ -399,7 +415,7 @@ class ChangeTurn(GameEvent):
         unused_pieces = self.engine.count_unused_pieces()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
-        self.determine_check()
+        self.set_player_in_check()
 
     def undo(self):
         self.engine.sounds.play('change_turn')

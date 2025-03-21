@@ -1068,9 +1068,12 @@ class Engine:
     def add_event(self, event):
         event.complete()
         self.events.append(event)
+
+
         # These game events will be allowed to occur without checking if a player is in check
         if str(event) != 'change turn':
             event.constrain_check()
+            event.set_enemy_in_check()
 
         # Determine if the game is over. This is when the king is captured.
         if self.player_king_does_not_exist():

@@ -835,7 +835,7 @@ class Instructions(State):
 
         # Draw the current image at the center of the screen
         current_image = self.images[self.current_image_index]
-        image_rect = current_image.get_rect(center=(self.window_width // 2, self.window_height // 2))
+        image_rect = current_image.get_rect(centerx=self.window_width // 2, top=Constant.SQ_SIZE)
         self.win.blit(current_image, image_rect)
 
         # Draw each button and apply highlight if active

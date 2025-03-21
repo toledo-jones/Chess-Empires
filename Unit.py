@@ -16,6 +16,7 @@ class Unit:
         self.sprites = Constant.W_PIECES | Constant.W_BUILDINGS | Constant.B_PIECES | Constant.B_BUILDINGS
 
         self.purchasing = False
+        self.performing_ritual = False
         self.mining = False
         self.selected = False
         self.pre_selected = False
@@ -206,6 +207,8 @@ class Unit:
             self.highlight_capture_squares(win)
         elif self.pre_selected:
             self.highlight_self_square(win)
+        elif self.performing_ritual:
+            self.highlight_ritual_squares(win)
         elif self.mining:
             self.highlight_self_square(win)
             self.highlight_mining_squares(win)

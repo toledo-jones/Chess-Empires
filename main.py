@@ -6,9 +6,8 @@ def main():
     pygame.init()
 
     # Initialize the window (fullscreen mode)
-    window = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    window = pygame.display.set_mode((0, 0), pygame.NOFRAME)
     pygame.display.toggle_fullscreen()  # Toggle fullscreen twice to force it on
-    pygame.display.toggle_fullscreen()
 
     import Constant
 

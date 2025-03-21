@@ -1604,11 +1604,6 @@ class StartingSpawn(State):
     def __repr__(self):
         return 'start spawn'
 
-    def begin_ai_starting_spawn(self):
-        new_state = AIStartingSpawn(self.win, self.engine)
-        self.engine.set_state(new_state)
-        new_state.create_ai_player()
-
     def begin_next_player_piece_select(self):
 
         event = ChangeTurn(self.engine)
@@ -2347,6 +2342,7 @@ class Ritual(State):
     def __init__(self, win, engine):
         super().__init__(win, engine)
         self.previously_selected = engine.update_previously_selected()
+        self.previously_selected.performing_ritual = True
         self.cost_type = None
         self.turn = self.engine.turn
         self.player = self.engine.players[self.turn]
@@ -2390,8 +2386,6 @@ class SummonGoldGeneral(Ritual):
 
         super().draw()
         self.side_bar.draw()
-        # Display Gold General at mouse position while mouse is on valid spawn square
-        self.previously_selected.highlight_ritual_squares(self.win)
         self.draw_ritual_at_mouse_position()
 
     def click_valid_square(self, row, col):
@@ -2427,8 +2421,6 @@ class PerformSmite(Ritual):
     def draw(self):
         super().draw()
         self.side_bar.draw()
-        # Display Gold General at mouse position while mouse is on valid spawn square
-        self.previously_selected.highlight_ritual_squares(self.win)
         self.draw_ritual_at_mouse_position()
 
     def smite_ritual_squares(self):
@@ -2510,7 +2502,6 @@ class PerformCreateResource(Ritual):
             for menu in self.engine.menus:
                 menu.draw()
         else:
-            self.previously_selected.highlight_ritual_squares(self.win)
             self.draw_ritual_at_mouse_position()
 
     def mouse_move(self):
@@ -2565,7 +2556,6 @@ class PerformTeleport(Ritual):
     def draw(self):
         super().draw()
         self.side_bar.draw()
-        self.previously_selected.highlight_ritual_squares(self.win)
         self.draw_ritual_at_mouse_position()
         if self.selected:
             self.selected.highlight_self_square(self.win)
@@ -2632,7 +2622,6 @@ class PerformSwap(Ritual):
     def draw(self):
         super().draw()
         self.side_bar.draw()
-        self.previously_selected.highlight_ritual_squares(self.win)
         self.draw_ritual_at_mouse_position()
         if self.first_selected:
             if str(self.first_selected) == 'assassin':
@@ -2688,7 +2677,6 @@ class PerformLineDestroy(Ritual):
         self.left = range(self.row, self.row + 1), range(self.col - 1, -1, -1)
 
         self.selected_range = self.determine_active_line(mouse_row, mouse_col)
-
         self.previously_selected.ritual_squares_list = self.active_line_destroy_ritual_squares(self.selected_range)
 
     def __repr__(self):
@@ -2697,11 +2685,10 @@ class PerformLineDestroy(Ritual):
     def draw(self):
         super().draw()
         self.side_bar.draw()
-        self.previously_selected.highlight_ritual_squares(self.win)
         self.draw_ritual_at_mouse_position()
 
     def determine_active_line(self, row, col):
-        if Constant.tile_in_bounds(row, col):
+        if self.engine.tile_in_bounds(row, col):
             if row in self.up[0] and col == self.col:
                 return self.up
             if row in self.down[0] and col == self.col:
@@ -2735,7 +2722,6 @@ class PerformLineDestroy(Ritual):
             action_tile = self.engine.board[row][col]
             event = LineDestroy(self.engine, acting_tile, action_tile)
             self.engine.add_event(event)
-            return True
             if self.engine.enemy_player_king_does_not_exist():
                 new_state = Winner(self.win, self.engine)
                 self.engine.set_state(new_state)
@@ -2773,7 +2759,6 @@ class PerformProtect(Ritual):
     def draw(self):
         super().draw()
         self.side_bar.draw()
-        self.previously_selected.highlight_ritual_squares(self.win)
         self.draw_ritual_at_mouse_position()
 
     def left_click(self):
@@ -2819,7 +2804,6 @@ class PerformPortal(Ritual):
     def draw(self):
         super().draw()
         self.side_bar.draw()
-        self.previously_selected.highlight_ritual_squares(self.win)
         self.draw_ritual_at_mouse_position()
         if self.selected:
             self.selected.draw_portal_image(self.win)

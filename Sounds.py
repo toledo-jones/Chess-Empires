@@ -33,7 +33,8 @@ class Sounds:
                        }
 
     def play(self, sound_effect):
-        i = random.randint(0, len(self.SOUNDS[sound_effect]) - 1)
-        self.SOUNDS[sound_effect][i].set_volume(self.volume)
-        self.SOUNDS[sound_effect][i].play()
+        if Constant.SOUND_EFFECTS_ON:
+            i = random.randint(0, len(self.SOUNDS[sound_effect]) - 1)
+            self.SOUNDS[sound_effect][i].set_volume(self.volume)
+            self.SOUNDS[sound_effect][i].play()
 

@@ -5,6 +5,7 @@ Contains unchanging lists of data for use in game
 
 import os
 import random
+import json
 
 # Default Start
 DEBUG_START = False
@@ -250,7 +251,7 @@ for i in range(8):
     change_turn.append(i)
 for i in range(4):
     start_game.append(i)
-for i in range(11):
+for i in range(14):
     instructions.append(i)
 
 
@@ -315,11 +316,38 @@ def load_sounds():
                 os.path.join("files/sounds/rituals", filename + '.wav'))
 
 
-def load_music():
-    i = random.randint(0, len(ambience))
-    filename = str(0) + str(i)
-    pygame.mixer.music.load(os.path.join("files/music/ambience", filename + '.wav'))
-    pygame.mixer.music.play()
+def load_settings():
+    global MUSIC_ON
+    global SOUND_EFFECTS_ON
+    try:
+        with open("settings.json", "r") as f:
+            settings = json.load(f)
+            # Load the flags from the file
+            MUSIC_ON = settings.get("MUSIC_ON", True)  # Default to True if not set
+            SOUND_EFFECTS_ON = settings.get("SOUND_EFFECTS_ON", True)  # Default to True if not set
+    except FileNotFoundError:
+        # If the file doesn't exist, initialize with defaults
+        MUSIC_ON = True
+        SOUND_EFFECTS_ON = True
+
+
+def save_settings():
+    settings = {
+        "MUSIC_ON"        : MUSIC_ON,
+        "SOUND_EFFECTS_ON": SOUND_EFFECTS_ON
+    }
+    with open("settings.json", "w") as f:
+        json.dump(settings, f)
+
+
+def load_music(play_music: bool):
+    if play_music:
+        i = random.randint(0, len(ambience))
+        filename = str(0) + str(i)
+        pygame.mixer.music.load(os.path.join("files/music/ambience", filename + '.wav'))
+        pygame.mixer.music.play()
+    else:
+        pygame.mixer.music.stop()
 
 
 def load_images():

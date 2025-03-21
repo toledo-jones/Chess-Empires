@@ -282,14 +282,20 @@ class Settings(State):
         self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
 
         # Define button labels
-        buttons = ['back']
+        buttons = ['music:', 'sounds:', 'back']
+
+        # Define flags for buttons on and off
+        flags = ['off', 'on']
 
         # Create surfaces for each button text
         self.button_surfaces = [self.font.render(button, True, self.color) for button in buttons]
 
+        # Create surfaces for each button text
+        self.flag_surfaces = [self.font.render(flag, True, self.color) for flag in flags]
+
         # Get button dimensions (assuming all buttons have the same size)
-        self.button_width = self.button_surfaces[0].get_width()
-        self.button_height = self.button_surfaces[0].get_height()
+        self.button_width = self.button_surfaces[1].get_width()
+        self.button_height = self.button_surfaces[1].get_height()
 
         # Create a highlight rectangle (transparent overlay) for hovering effect
         self.square = pygame.Surface((self.button_width, self.button_height))
@@ -302,8 +308,31 @@ class Settings(State):
         # List to store button positions for consistent layout
         self.button_positions = []
 
+        # List for which flags are on or off
+        self.current_flags = [int(Constant.MUSIC_ON), int(Constant.SOUND_EFFECTS_ON)]
+
+        # List to store flag positions for consistent layout
+        self.flag_positions = []
+
         # Compute initial button positions
         self.compute_button_positions()
+
+        # Compute initial flag positions
+        self.compute_flag_positions()
+
+    def compute_flag_positions(self):
+        """
+        Computes and stores the positions for each flag next to the corresponding button.
+        """
+        # Set an offset to position the flag to the right of the button
+        flag_offset = Constant.SQ_SIZE
+
+        # Compute positions for music and sound flags
+        for i in range(2):  # Only for 'music:' and 'sounds:' buttons
+            button_x, button_y = self.button_positions[i]  # Get button position
+            flag_x = button_x + self.button_width + flag_offset  # Position flag to the right
+            flag_y = button_y + (self.button_height - self.flag_surfaces[0].get_height()) // 2  # Align vertically
+            self.flag_positions.append((flag_x, flag_y))
 
     def compute_button_positions(self):
         """
@@ -323,7 +352,7 @@ class Settings(State):
 
     def draw(self):
         """
-        Draws the pause menu, including buttons and their highlights.
+        Draws the settings menu, including buttons, highlights, and flags.
         """
         # Fill the background with the menu color
         self.win.fill(Constant.MENU_COLOR)
@@ -334,8 +363,12 @@ class Settings(State):
             if self.button_highlighted[i]:
                 self.win.blit(self.square, (button_x, button_y))
 
-            # Draw the button text on top of the highlight (or directly if not highlighted)
+            # Draw the button text
             self.win.blit(self.button_surfaces[i], (button_x, button_y))
+
+        # Draw flags next to music and sounds buttons
+        for i in range(2):  # Only for 'music:' and 'sounds:' buttons
+            self.win.blit(self.flag_surfaces[self.current_flags[i]], self.flag_positions[i])
 
     def mouse_move(self):
         """
@@ -397,8 +430,19 @@ class Settings(State):
 
         :param button_index: The index of the clicked button.
         """
-        # If the "return to game" button was clicked
+        # If the "music" button was clicked
         if button_index == 0:
+            Constant.MUSIC_ON = not Constant.MUSIC_ON
+            self.current_flags[0] = int(Constant.MUSIC_ON)
+            Constant.load_music(Constant.MUSIC_ON)
+
+        # If the "sounds" button was clicked
+        elif button_index == 1:
+            Constant.SOUND_EFFECTS_ON = not Constant.SOUND_EFFECTS_ON
+            self.current_flags[1] = int(Constant.SOUND_EFFECTS_ON)
+
+        # If the "back" button was clicked
+        elif button_index == 2:
             # Return to previous state
             self.esc()
 
@@ -568,6 +612,7 @@ class Pause(State):
 
         # If the "Quit" button was clicked
         elif button_index == 4:
+            Constant.save_settings()
             # Quit the game
             pygame.quit()
             # Exit the program
@@ -727,8 +772,11 @@ class MainMenu(State):
                     # Settings button
                     self.engine.state.append(Settings(self.win, self.engine))
                 elif i == 3:
-                    # Quit button
-                    self.engine.set_state('quit')
+                    Constant.save_settings()
+                    # Quit the game
+                    pygame.quit()
+                    # Exit the program
+                    exit()
 
     def enter(self):
         pass

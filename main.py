@@ -31,11 +31,13 @@ def main():
     splash_screen = SplashScreen(engine.display_surface)
     splash_screen.display()
 
+    Constant.load_settings()
+
     # Load images required for the game (pieces, board, etc.)\
     Constant.load_images()
 
     # Load background music
-    Constant.load_music()
+    Constant.load_music(Constant.MUSIC_ON)
 
     # Load sound effects (clicks, moves, etc.)
     Constant.load_sounds()
@@ -104,10 +106,11 @@ def main():
 
             # Handle other events (music end, etc.)
             elif event.type == MUSIC_END:
-                Constant.load_music()  # Reload music when it ends
+                Constant.load_music(Constant.MUSIC_ON)  # Reload music when it ends
 
             # Exit game
             elif event.type == pygame.QUIT:
+                Constant.save_settings()
                 pygame.quit()
                 sys.exit()
 

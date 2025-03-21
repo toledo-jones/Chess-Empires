@@ -24,7 +24,7 @@ DEBUG_STARTING_PRAYER = 30
 DEBUG_STARTING_WOOD = 100
 DEBUG_STARTING_GOLD = 100
 DEBUG_STARTING_STONE = 100
-DEBUG_STARTING_PIECES = ['castle', 'king', 'duke', 'jester']
+DEBUG_STARTING_PIECES = ['castle', 'king', 'queen', 'monolith']
 
 # Window and board sizes
 MAX_FPS = 120
@@ -67,6 +67,7 @@ QUARRY_COSTS_ACTION = False
 QUARRY_COSTS_RESOURCE = False
 TRAP_COSTS_ACTION = False
 TURN_CHANGE_AFTER_START_SPAWN = True
+
 
 # Lists
 SELECTABLE_STARTING_PIECES = ['pawn', 'ferz', 'rogue_pawn', 'builder']

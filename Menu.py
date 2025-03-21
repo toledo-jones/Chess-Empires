@@ -1071,86 +1071,153 @@ class KingMenu(Menu):
 
 class QueenMenu(Menu):
     def __init__(self, row, col, win, engine):
-        super().__init__(win, engine)
+        """
+        Initializes the QueenMenu with position, font, and various attributes.
+
+        :param row: The row where the menu will be displayed.
+        :param col: The column where the menu will be displayed.
+        :param win: The surface where the menu will be drawn.
+        :param engine: The game engine handling the game state and logic.
+        """
+        super().__init__(win, engine)  # Call parent constructor
+
+        # Menu position and size
         self.row = row
         self.col = col
-        self.font_size = Constant.SQ_SIZE // 2
+        self.font_size = Constant.SQ_SIZE // 2  # Font size based on square size
         self.font = pygame.font.Font(os.path.join("files/fonts", "font.ttf"), self.font_size)
-        self.color = Constant.turn_to_color[self.engine.turn]
+        self.color = Constant.turn_to_color[self.engine.turn]  # Color based on the current turn
+
+        # Spacing and sizing constants
         self.vertical_buffer_between_pieces = Constant.SQ_SIZE // 6
         self.menu_width = 2 * Constant.CONTEXTUAL_MENU_ICON_DEFAULT_SCALE[1]
         self.menu_height = Constant.SQ_SIZE
-        self.initial_menu_position = (self.col * Constant.SQ_SIZE + Constant.SQ_SIZE // 2, self.row * Constant.SQ_SIZE
-                                      + Constant.SQ_SIZE // 2)
+
+        # Initial position of the menu
+        self.initial_menu_position = (
+            self.col * Constant.SQ_SIZE + Constant.SQ_SIZE // 2,
+            self.row * Constant.SQ_SIZE + Constant.SQ_SIZE // 2
+        )
+
+        # Boundary buffers for menu
         self.menu_boundary_buffer_y = self.menu_height + self.menu_boundary_buffer
         self.menu_boundary_buffer_x = self.menu_width + self.menu_boundary_buffer
+
+        # Correct the menu position based on boundaries
         self.menu_position_x, self.menu_position_y = self.correct_menu_boundary()
+
+        # Set image string based on rituals being banned or not
         if self.engine.rituals_banned:
-            self.image_string = self.engine.turn + '_decree_u'
+            self.image_string = f"{self.engine.turn}_decree_u"
         else:
-            self.image_string = self.engine.turn + '_decree'
+            self.image_string = f"{self.engine.turn}_decree"
+
+        # Load the image for the menu
         self.IMAGE = Constant.IMAGES[self.image_string]
+
+        # Decree cost and related UI elements
         self.cost = self.engine.get_decree_cost()
         self.cost_text_surface = self.font.render(str(self.cost), True, self.color)
-        self.cost_display_x = Constant.SQ_SIZE // 2 + self.vertical_buffer_between_pieces
-        self.cost_display_y = 3 * self.vertical_buffer_between_pieces
-        self.gold_icon_display_x = self.vertical_buffer_between_pieces
-        self.gold_icon_display_y = 4 * self.vertical_buffer_between_pieces
+
+        # Calculate the central position for the UI elements (cost and gold icon)
+        center_x = self.menu_width // 2  # Central X position of the menu
+        horizontal_buffer = self.vertical_buffer_between_pieces
+
+        # Adjust X positions to place elements side by side
+        self.cost_display_x = center_x - (self.cost_text_surface.get_width() // 2)  # Center the cost text
+        self.gold_icon_display_x = self.cost_display_x + self.cost_text_surface.get_width() + horizontal_buffer  # Place gold icon next to cost
+
+        # Set vertical positioning (center both vertically in the menu)
+        self.cost_display_y = self.menu_height // 2 - self.cost_text_surface.get_height() // 2  # Vertically center the cost text
+        self.gold_icon_display_y = self.cost_display_y  # Align the gold icon with the cost text vertically
+
+        # Debug: print the positions to ensure they are correct
+        print(f"Cost Text Position: ({self.cost_display_x}, {self.cost_display_y})")
+        print(f"Gold Icon Position: ({self.gold_icon_display_x}, {self.gold_icon_display_y})")
+
+        # Determine the resource icon (e.g., gold)
         self.resource_icon = self.determine_resource_icon()
+
+        # Menu surface (for drawing the menu)
         self.menu = pygame.Surface((self.menu_width, self.menu_height))
+
+        # Highlight surface for hover effect
         self.square = pygame.Surface((self.menu_width, self.menu_height))
-        self.high_light = False
+        self.high_light = False  # Track whether the menu is highlighted
 
     def draw(self):
-        self.menu.fill(Constant.MENU_COLOR)
-        # fill menu with art and logic
+        """
+        Draws the QueenMenu on the screen, including the background, resource icon, cost, and image.
+
+        :return: The menu's position (x, y) on the screen.
+        """
+        self.menu.fill(Constant.MENU_COLOR)  # Fill the menu with a color
+
+        # Apply highlight if needed
         if self.high_light:
             self.menu.blit(self.square, (0, 0))
+
+        # Set transparency and fill the highlight with color
         self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
         self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
-        self.menu.blit(self.resource_icon, (self.gold_icon_display_x, self.gold_icon_display_y))
-        self.menu.blit(self.cost_text_surface, (self.cost_display_x, self.cost_display_y))
-        self.menu.blit(self.IMAGE, (0, 0))
+
+        # Now draw the elements
+        self.menu.blit(self.resource_icon, (self.gold_icon_display_x, self.gold_icon_display_y))  # Draw gold icon
+        self.menu.blit(self.cost_text_surface, (self.cost_display_x, self.cost_display_y))  # Draw cost text
+        self.menu.blit(self.IMAGE, (0, 0))  # Draw the image (menu background or image)
+        # Finally, blit the menu to the window
         self.win.blit(self.menu, (self.menu_position_x, self.menu_position_y))
+
         return self.menu_position_x, self.menu_position_y
 
     def right_click(self):
+        """
+        Handles the right-click event, which reverts to the playing state.
+        """
         self.engine.state[-1].revert_to_playing_state()
 
     def mouse_move(self):
         """
-        Handles mouse movement over the menu. It checks if the mouse is within the bounds of the menu
-        and updates the highlight status accordingly. It also sets the mouse cursor to a hand when hovering
-        over the menu and resets it to the default arrow cursor when outside the menu.
+        Handles mouse movement over the menu. Updates highlight status and changes the cursor
+        based on whether the mouse is over the menu.
         """
         # Get the current mouse position
         mouse_x, mouse_y = pygame.mouse.get_pos()
 
-        # Check if the mouse is within the horizontal bounds of the menu
+        # Check if the mouse is within the bounds of the menu
         is_within_menu_x = self.menu_position_x <= mouse_x <= self.menu_position_x + self.menu_width
-
-        # Check if the mouse is within the vertical bounds of the menu
         is_within_menu_y = self.menu_position_y <= mouse_y <= self.menu_position_y + self.menu_height
 
         if is_within_menu_x and is_within_menu_y:
-            # Highlight the menu and set the cursor to a hand
+            # Highlight the menu and change the cursor to a hand
             self.high_light = True
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
         else:
-            # Remove highlight and reset cursor to the default arrow
+            # Remove highlight and reset cursor to default
             self.high_light = False
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
     def left_click(self):
+        """
+        Handles the left-click event. If the click is within the bounds of the menu, it will
+        trigger a decree action; otherwise, it will revert to the playing state.
+
+        :return: True if the decree action was performed, else None.
+        """
         pos = pygame.mouse.get_pos()
+
+        # Check if the click is within the bounds of the menu
         if pos[0] in range(self.menu_position_x, self.menu_position_x + self.menu_width):
             if pos[1] in range(self.menu_position_y, self.menu_position_y + self.menu_height):
+                # If the engine can perform a decree, execute it
                 if self.engine.can_decree(self.row, self.col):
                     self.engine.decree(self.row, self.col)
                     return True
             else:
+                # Revert to the playing state if click is outside of menu
                 return self.engine.state[-1].revert_to_playing_state()
         else:
+            # Revert to the playing state if click is outside of menu
             return self.engine.state[-1].revert_to_playing_state()
 
 
@@ -2586,13 +2653,13 @@ class Contextual(Menu):
 
             if item == 'queen':
                 resource = get_decree_resource_sprite()
-                resource_x = (self.menu_width // 2 - resource.get_width()) // 2
+                resource_x = (self.menu_width // 6)
                 resource_y = self.menu.get_height() * 1 // 3  # Center in the bottom third of the menu
                 self.menu.blit(resource, (resource_x, resource_y))
                 # Position the cost text to the right of the icon
-                cost_x = resource_x + resource.get_width() + self.menu_width // 5  # 10px padding to the right
+                cost_x = resource_x + resource.get_width() * 3 // 4
                 cost_y = resource_y + (
-                        resource.get_height() - self.cost_text_surface.get_height()) // 2  # Center vertically
+                        resource.get_height() - self.cost_text_surface.get_height()) * 3 // 4  # Center vertically
                 if not self.engine.can_decree(self.row, self.col):
                     color = Constant.RED
                 else:

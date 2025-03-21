@@ -303,6 +303,9 @@ class Engine:
         if not self.players[self.turn].can_act():
             return False
 
+        if self.rituals_banned:
+            return False
+
         if not cost:
             return True
 

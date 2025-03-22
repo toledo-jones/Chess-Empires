@@ -313,7 +313,7 @@ DESCRIPTIONS = {
                          'can move through one piece and capture a piece behind it.'],
     'trapper'         : ['moves two spaces orthogonally on it\'s first move.', '\'right click\' to spawn traps.',
                          'traps destroy an enemy piece that lands on them.',
-                         'captures one space diagonally.'],
+                         'captures one space diagonally.', 'can move through and land on forest tiles.'],
     'magician'        : ['moves one space in every direction.', '\'right click\' to cast rituals for a gold cost'],
     'cavalry'         : ['leaps over another piece up two and over one for it\'s first move.',
                          'moves one space orthogonally after it\'s first move.', '\'right click\' to harvest resources.']

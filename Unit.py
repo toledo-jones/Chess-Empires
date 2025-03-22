@@ -11,7 +11,7 @@ class Unit:
         self.offset = self.get_sprite_offset()
         self.dragging = False
         self.first_move = True
-        self.rect = pygame.Rect(col*Constant.SQ_SIZE, row*Constant.SQ_SIZE, Constant.SQ_SIZE, Constant.SQ_SIZE)
+        self.rect = pygame.Rect(col * Constant.SQ_SIZE, row * Constant.SQ_SIZE, Constant.SQ_SIZE, Constant.SQ_SIZE)
 
         self.sprites = Constant.W_PIECES | Constant.W_BUILDINGS | Constant.B_PIECES | Constant.B_BUILDINGS
 
@@ -97,9 +97,9 @@ class Unit:
 
     def possible_moves(self):
         return {
-            'spawn': self.spawn_squares_list, 'move': self.move_squares_list, 'mine': self.mining_squares_list,
-            'steal': self.stealing_squares_list, 'pray': self.praying_squares_list,
-            'capture': self.capture_squares_list, 'ritual': self.ritual_squares_list,
+            'spawn'   : self.spawn_squares_list, 'move': self.move_squares_list, 'mine': self.mining_squares_list,
+            'steal'   : self.stealing_squares_list, 'pray': self.praying_squares_list,
+            'capture' : self.capture_squares_list, 'ritual': self.ritual_squares_list,
             'persuade': self.persuader_squares_list
         }
 
@@ -241,7 +241,6 @@ class Unit:
         if self.actions_remaining == 0:
             self.unused_piece_highlight = False
 
-
     def draw(self, win):
         # Check if the piece is not currently being dragged
         if not self.dragging:
@@ -266,12 +265,11 @@ class Unit:
     def draw_self_highlight(self, win, color):
         self.square_fill(color)
         win.blit(self.square, (self.col * Constant.SQ_SIZE, self.row * Constant.SQ_SIZE))
+
     def draw_squares_in_list(self, win, square_list, color):
         self.square_fill(color)
         for square in square_list:
             win.blit(self.square, (square[1] * Constant.SQ_SIZE, square[0] * Constant.SQ_SIZE))
-
-
 
     def highlight_self_square_unused(self, win):
         win.blit(Constant.IMAGES['sparkle'], (self.col * Constant.SQ_SIZE, self.row * Constant.SQ_SIZE))
@@ -1279,13 +1277,13 @@ class Ram(Piece):
                            Constant.TWO_DOWN_LEFT, Constant.TWO_DOWN_RIGHT)
         self.is_cavalry = True
         self.extra_move_directions = {
-            Constant.TWO_UP_RIGHT: Constant.UP_RIGHT,
-            Constant.TWO_UP_LEFT: Constant.UP_LEFT,
-            Constant.TWO_RIGHT_UP: Constant.UP_RIGHT,
+            Constant.TWO_UP_RIGHT  : Constant.UP_RIGHT,
+            Constant.TWO_UP_LEFT   : Constant.UP_LEFT,
+            Constant.TWO_RIGHT_UP  : Constant.UP_RIGHT,
             Constant.TWO_RIGHT_DOWN: Constant.DOWN_RIGHT,
-            Constant.TWO_LEFT_UP: Constant.UP_LEFT,
-            Constant.TWO_LEFT_DOWN: Constant.DOWN_LEFT,
-            Constant.TWO_DOWN_LEFT: Constant.DOWN_LEFT,
+            Constant.TWO_LEFT_UP   : Constant.UP_LEFT,
+            Constant.TWO_LEFT_DOWN : Constant.DOWN_LEFT,
+            Constant.TWO_DOWN_LEFT : Constant.DOWN_LEFT,
             Constant.TWO_DOWN_RIGHT: Constant.DOWN_RIGHT,
         }
 
@@ -1336,14 +1334,14 @@ class Elephant(Piece):
             Constant.TWO_UP_LEFT, Constant.TWO_LEFT_UP, Constant.TWO_DOWN_LEFT, Constant.TWO_LEFT_DOWN)
 
         self.directions_to_extra_moves = {
-            Constant.TWO_UP_RIGHT: Constant.UP,
-            Constant.TWO_RIGHT_UP: Constant.RIGHT,
+            Constant.TWO_UP_RIGHT  : Constant.UP,
+            Constant.TWO_RIGHT_UP  : Constant.RIGHT,
             Constant.TWO_DOWN_RIGHT: Constant.DOWN,
             Constant.TWO_RIGHT_DOWN: Constant.RIGHT,
-            Constant.TWO_UP_LEFT: Constant.UP,
-            Constant.TWO_LEFT_UP: Constant.LEFT,
-            Constant.TWO_DOWN_LEFT: Constant.DOWN,
-            Constant.TWO_LEFT_DOWN: Constant.LEFT
+            Constant.TWO_UP_LEFT   : Constant.UP,
+            Constant.TWO_LEFT_UP   : Constant.LEFT,
+            Constant.TWO_DOWN_LEFT : Constant.DOWN,
+            Constant.TWO_LEFT_DOWN : Constant.LEFT
         }
         self.distance = 1
         self.is_cavalry = True
@@ -1614,14 +1612,14 @@ class Unicorn(Piece):
 
         self.cardinal_directions = (Constant.THREE_RIGHT, Constant.THREE_DOWN, Constant.THREE_UP, Constant.THREE_LEFT)
         self.knight_directions_to_extra_moves = {
-            Constant.TWO_UP_RIGHT: Constant.TWO_RIGHT_UP,
-            Constant.TWO_RIGHT_UP: Constant.TWO_UP_RIGHT,
+            Constant.TWO_UP_RIGHT  : Constant.TWO_RIGHT_UP,
+            Constant.TWO_RIGHT_UP  : Constant.TWO_UP_RIGHT,
             Constant.TWO_DOWN_RIGHT: Constant.TWO_RIGHT_DOWN,
             Constant.TWO_RIGHT_DOWN: Constant.TWO_DOWN_RIGHT,
-            Constant.TWO_UP_LEFT: Constant.TWO_LEFT_UP,
-            Constant.TWO_LEFT_UP: Constant.TWO_UP_LEFT,
-            Constant.TWO_DOWN_LEFT: Constant.TWO_LEFT_DOWN,
-            Constant.TWO_LEFT_DOWN: Constant.TWO_DOWN_LEFT
+            Constant.TWO_UP_LEFT   : Constant.TWO_LEFT_UP,
+            Constant.TWO_LEFT_UP   : Constant.TWO_UP_LEFT,
+            Constant.TWO_DOWN_LEFT : Constant.TWO_LEFT_DOWN,
+            Constant.TWO_LEFT_DOWN : Constant.TWO_DOWN_LEFT
         }
         self.distance = 1
 
@@ -1685,10 +1683,10 @@ class Champion(Piece):
                                    Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
                                    Constant.DOWN_LEFT)
         self.extra_move_directions = {
-            Constant.UP_RIGHT: (Constant.UP, Constant.RIGHT),
-            Constant.UP_LEFT: (Constant.UP, Constant.LEFT),
+            Constant.UP_RIGHT  : (Constant.UP, Constant.RIGHT),
+            Constant.UP_LEFT   : (Constant.UP, Constant.LEFT),
             Constant.DOWN_RIGHT: (Constant.DOWN, Constant.RIGHT),
-            Constant.DOWN_LEFT: (Constant.DOWN, Constant.LEFT),
+            Constant.DOWN_LEFT : (Constant.DOWN, Constant.LEFT),
         }
         self.contextual_options = ['pray']
 
@@ -1760,14 +1758,14 @@ class Oxen(Piece):
         self.is_cavalry = True
 
         self.extra_move_directions = {
-            Constant.TWO_UP_RIGHT: Constant.UP,
-            Constant.TWO_RIGHT_UP: Constant.RIGHT,
+            Constant.TWO_UP_RIGHT  : Constant.UP,
+            Constant.TWO_RIGHT_UP  : Constant.RIGHT,
             Constant.TWO_DOWN_RIGHT: Constant.DOWN,
             Constant.TWO_RIGHT_DOWN: Constant.RIGHT,
-            Constant.TWO_UP_LEFT: Constant.UP,
-            Constant.TWO_LEFT_UP: Constant.LEFT,
-            Constant.TWO_DOWN_LEFT: Constant.DOWN,
-            Constant.TWO_LEFT_DOWN: Constant.LEFT
+            Constant.TWO_UP_LEFT   : Constant.UP,
+            Constant.TWO_LEFT_UP   : Constant.LEFT,
+            Constant.TWO_DOWN_LEFT : Constant.DOWN,
+            Constant.TWO_LEFT_DOWN : Constant.LEFT
         }
 
         self.distance = Constant.BOARD_WIDTH_SQ
@@ -1969,7 +1967,7 @@ class Trapper(Piece):
     def base_spawn_criteria(self, engine, row, col):
         if engine.tile_in_bounds(row, col):
             return not engine.has_trap(row, col) and not engine.board[row][col].is_protected_by_opposite_color(
-                self.color)
+                    self.color)
 
     def spawn_squares(self, engine):
         squares = []

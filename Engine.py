@@ -1266,7 +1266,8 @@ class Engine:
             if p not in intercepted_pieces_new:
                 if p not in self.used_and_intercepted_pieces:
                     p.intercepted = False
-                    p.unused_piece_highlight = True
+                    if p.get_color() == self.turn:
+                        p.unused_piece_highlight = True
                     p.actions_remaining = 1
 
         self.used_and_intercepted_pieces = []

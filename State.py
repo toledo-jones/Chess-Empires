@@ -224,14 +224,7 @@ class State:
             self.engine.reset_selected()
             self.revert_to_playing_state()
         try:
-            if isinstance(self.engine.events[-1], AITurn):
-                for _ in range(2):
-                    self.engine.events[-1].undo()
-                    del self.engine.events[-1]
-            else:
-                self.engine.close_menus()
-                self.engine.events[-1].undo()
-                del self.engine.events[-1]
+            self.engine.undo_last_event()
         except IndexError as e:
             pass
 

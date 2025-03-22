@@ -25,33 +25,43 @@ class GameEvent:
         self.engine.update_moves()
         player = self.engine.players[self.engine.get_turn()]
         enemy = self.engine.players[Constant.TURNS[self.engine.get_turn()]]
+
         try:
             for piece in enemy.pieces:
-                for square in piece.capture_squares_list:
-                    if square == player.king.get_position():
-                        player.king.check = True
-                        return True
+                if piece.intercepted:
+                    continue  # Skip intercepted pieces
 
-            player.king.check = False
+                if player.king.get_position() in piece.capture_squares_list:
+                    player.king.check = True
+                    return True  # King is in check, exit early
+
+            player.king.check = False  # If no enemy piece puts king in check, set to False
+            return False
 
         except Exception as e:
-            pass
+            print(f"Error in set_player_in_check: {e}")  # Log the error instead of silently passing
+            return False  # Safe fallback return
 
     def set_enemy_in_check(self):
         self.engine.update_moves()
         player = self.engine.players[self.engine.get_turn()]
         enemy = self.engine.players[Constant.TURNS[self.engine.get_turn()]]
+
         try:
             for piece in player.pieces:
-                for square in piece.capture_squares_list:
-                    if square == enemy.king.get_position():
-                        enemy.king.check = True
-                        return True
+                if piece.intercepted:
+                    continue  # Skip intercepted pieces
 
-            enemy.king.check = False
+                if enemy.king.get_position() in piece.capture_squares_list:
+                    enemy.king.check = True
+                    return True  # Enemy king is in check, exit early
+
+            enemy.king.check = False  # If no piece puts king in check, set to False
+            return False
 
         except Exception as e:
-            pass
+            print(f"Error in set_enemy_in_check: {e}")  # Log the error for debugging
+            return False  # Safe fallback return
 
     def constrain_check(self):
         """

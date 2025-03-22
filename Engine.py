@@ -160,7 +160,7 @@ class Engine:
             'create_resource' : PerformCreateResource, 'portal': PerformPortal, 'teleport': PerformTeleport,
             'swap'            : PerformSwap, 'line_destroy': PerformLineDestroy, 'protect': PerformProtect,
             'main menu'       : MainMenu, 'debug': DebugStart, 'inspector': Inspector,
-            'instructions': Instructions, 'pause': Pause
+            'instructions'    : Instructions, 'pause': Pause
         }
 
     def initialize_resources(self):
@@ -828,7 +828,6 @@ class Engine:
         except IndexError:
             return False
 
-
     def has_barracks(self, r, c):
         try:
             p = self.board[r][c].get_occupying()
@@ -1062,10 +1061,17 @@ class Engine:
     def set_winner(self):
         self.winner = self.turn
 
+    def undo_last_event(self):
+        self.close_menus()
+        event = self.events[-1]
+        event.undo()
+        event.set_player_in_check()
+        del self.events[-1]
+
+
     def add_event(self, event):
         event.complete()
         self.events.append(event)
-
 
         # These game events will be allowed to occur without checking if a player is in check
         if str(event) != 'change turn':

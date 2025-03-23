@@ -13,10 +13,10 @@ class State:
         self.mouse_start_pos = None
         self.dragging_piece = None
         self.spawnTable = (
-            Constant.W_BUILDINGS
-            | Constant.W_PIECES
-            | Constant.B_BUILDINGS
-            | Constant.B_PIECES
+                Constant.W_BUILDINGS
+                | Constant.W_PIECES
+                | Constant.B_BUILDINGS
+                | Constant.B_PIECES
         )
 
     def draw_piece_at_mouse_cursor(self, pos, piece):
@@ -207,8 +207,8 @@ class State:
         player = self.engine.players[self.engine.turn]
 
         number_of_actions_if_player_has_done_nothing = (
-            player.total_additional_actions_this_turn
-            + Constant.DEFAULT_ACTIONS_REMAINING
+                player.total_additional_actions_this_turn
+                + Constant.DEFAULT_ACTIONS_REMAINING
         )
         if number_of_actions_if_player_has_done_nothing > player.actions_remaining:
             self.engine.change_turn()
@@ -280,7 +280,7 @@ class Settings(State):
 
         # Load the font from the specified file
         self.font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.font_size
+                os.path.join("files/fonts", "font.ttf"), self.font_size
         )
 
         # Define button labels
@@ -337,11 +337,11 @@ class Settings(State):
         for i in range(2):  # Only for 'music:' and 'sounds:' buttons
             button_x, button_y = self.button_positions[i]  # Get button position
             flag_x = (
-                button_x + self.button_width + flag_offset
+                    button_x + self.button_width + flag_offset
             )  # Position flag to the right
             flag_y = (
-                button_y
-                + (self.button_height - self.flag_surfaces[0].get_height()) // 2
+                    button_y
+                    + (self.button_height - self.flag_surfaces[0].get_height()) // 2
             )  # Align vertically
             self.flag_positions.append((flag_x, flag_y))
 
@@ -351,8 +351,8 @@ class Settings(State):
         """
         # Calculate total height occupied by all buttons (including spacing)
         total_height = (
-            len(self.button_surfaces) * self.button_height
-            + (len(self.button_surfaces) - 1) * 10
+                len(self.button_surfaces) * self.button_height
+                + (len(self.button_surfaces) - 1) * 10
         )
 
         # Determine the starting y-position to center all buttons vertically
@@ -386,7 +386,7 @@ class Settings(State):
         # Draw flags next to music and sounds buttons
         for i in range(2):  # Only for 'music:' and 'sounds:' buttons
             self.win.blit(
-                self.flag_surfaces[self.current_flags[i]], self.flag_positions[i]
+                    self.flag_surfaces[self.current_flags[i]], self.flag_positions[i]
             )
 
     def mouse_move(self):
@@ -404,7 +404,7 @@ class Settings(State):
         for i, (button_x, button_y) in enumerate(self.button_positions):
             # Create a rectangle representing the button's clickable area
             button_rect = pygame.Rect(
-                button_x, button_y, self.button_width, self.button_height
+                    button_x, button_y, self.button_width, self.button_height
             )
 
             # Update highlight status
@@ -417,7 +417,7 @@ class Settings(State):
         # Change cursor based on whether it is over a button
         if cursor_over_button:
             pygame.mouse.set_cursor(
-                pygame.SYSTEM_CURSOR_HAND
+                    pygame.SYSTEM_CURSOR_HAND
             )  # Hand cursor for interaction
         else:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)  # Default cursor
@@ -445,7 +445,7 @@ class Settings(State):
         for i, (button_x, button_y) in enumerate(self.button_positions):
             # Create a rectangle representing the button's clickable area
             button_rect = pygame.Rect(
-                button_x, button_y, self.button_width, self.button_height
+                    button_x, button_y, self.button_width, self.button_height
             )
 
             # Check if mouse is inside button
@@ -503,7 +503,7 @@ class Pause(State):
 
         # Load the font from the specified file
         self.font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.font_size
+                os.path.join("files/fonts", "font.ttf"), self.font_size
         )
 
         # Define button labels
@@ -538,8 +538,8 @@ class Pause(State):
         """
         # Calculate total height occupied by all buttons (including spacing)
         total_height = (
-            len(self.button_surfaces) * self.button_height
-            + (len(self.button_surfaces) - 1) * 10
+                len(self.button_surfaces) * self.button_height
+                + (len(self.button_surfaces) - 1) * 10
         )
 
         # Determine the starting y-position to center all buttons vertically
@@ -585,7 +585,7 @@ class Pause(State):
         for i, (button_x, button_y) in enumerate(self.button_positions):
             # Create a rectangle representing the button's clickable area
             button_rect = pygame.Rect(
-                button_x, button_y, self.button_width, self.button_height
+                    button_x, button_y, self.button_width, self.button_height
             )
 
             # Update highlight status
@@ -598,7 +598,7 @@ class Pause(State):
         # Change cursor based on whether it is over a button
         if cursor_over_button:
             pygame.mouse.set_cursor(
-                pygame.SYSTEM_CURSOR_HAND
+                    pygame.SYSTEM_CURSOR_HAND
             )  # Hand cursor for interaction
         else:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)  # Default cursor
@@ -623,7 +623,7 @@ class Pause(State):
         for i, (button_x, button_y) in enumerate(self.button_positions):
             # Create a rectangle representing the button's clickable area
             button_rect = pygame.Rect(
-                button_x, button_y, self.button_width, self.button_height
+                    button_x, button_y, self.button_width, self.button_height
             )
 
             # Check if mouse is inside button
@@ -686,7 +686,7 @@ class MainMenu(State):
         self.window_height = self.win.get_height()
         self.font_size = round(Constant.SQ_SIZE * 1)
         self.font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.font_size
+                os.path.join("files/fonts", "font.ttf"), self.font_size
         )
 
         # Button text options
@@ -762,12 +762,12 @@ class MainMenu(State):
 
             # Calculate the position to center the text on the button
             text_x = (
-                button_x
-                + (self.button_width - self.button_surfaces[i].get_width()) // 2
+                    button_x
+                    + (self.button_width - self.button_surfaces[i].get_width()) // 2
             )
             text_y = (
-                button_y
-                + (self.button_height - self.button_surfaces[i].get_height()) // 2
+                    button_y
+                    + (self.button_height - self.button_surfaces[i].get_height()) // 2
             )
 
             # Draw the button text centered on the button
@@ -783,8 +783,8 @@ class MainMenu(State):
         # Check each button and update its highlight state
         for i, (button_x, button_y) in enumerate(self.button_positions):
             if (
-                button_x <= mouse_x <= button_x + self.button_width
-                and button_y <= mouse_y <= button_y + self.button_height
+                    button_x <= mouse_x <= button_x + self.button_width
+                    and button_y <= mouse_y <= button_y + self.button_height
             ):
                 self.button_highlighted[i] = True
                 if not cursor_set:  # Set cursor to hand if not already set
@@ -821,8 +821,8 @@ class MainMenu(State):
 
             # Check if the mouse click is within the button's clickable range
             if (
-                button_x <= mouse_x <= button_x + self.button_width
-                and button_y <= mouse_y <= button_y + self.button_height
+                    button_x <= mouse_x <= button_x + self.button_width
+                    and button_y <= mouse_y <= button_y + self.button_height
             ):
 
                 # Perform action based on which button was clicked
@@ -872,7 +872,7 @@ class Instructions(State):
 
         # Load the font from the specified file
         self.font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.font_size
+                os.path.join("files/fonts", "font.ttf"), self.font_size
         )
 
         # Create surfaces for each button text
@@ -906,15 +906,15 @@ class Instructions(State):
         # Calculate the vertical starting position for the buttons
         self.logo_position_y = self.window_height // 4  # Position the logo at the top
         self.button_display_y = (
-            self.window_height // 2
-            + self.images[self.current_image_index].get_height() // 2
+                self.window_height // 2
+                + self.images[self.current_image_index].get_height() // 2
         )
 
         # Calculate the total width of all the buttons (including spacing)
         button_spacing = 20  # Spacing between buttons
         total_buttons_width = (
-            len(self.button_surfaces) * self.button_width
-            + (len(self.button_surfaces) - 1) * button_spacing
+                len(self.button_surfaces) * self.button_width
+                + (len(self.button_surfaces) - 1) * button_spacing
         )
 
         # Calculate the starting X position to center the buttons horizontally
@@ -934,7 +934,7 @@ class Instructions(State):
 
         for i, (button_x, button_y) in enumerate(self.button_positions):
             button_rect = pygame.Rect(
-                button_x, button_y, self.button_width, self.button_height
+                    button_x, button_y, self.button_width, self.button_height
             )
 
             # Highlight the button if the mouse is over it
@@ -965,7 +965,7 @@ class Instructions(State):
         # Draw the current image at the center of the screen
         current_image = self.images[self.current_image_index]
         image_rect = current_image.get_rect(
-            centerx=self.window_width // 2, top=Constant.SQ_SIZE
+                centerx=self.window_width // 2, top=Constant.SQ_SIZE
         )
         self.win.blit(current_image, image_rect)
 
@@ -987,19 +987,19 @@ class Instructions(State):
         # Check if any button is clicked
         for i, (button_x, button_y) in enumerate(self.button_positions):
             button_rect = pygame.Rect(
-                button_x, button_y, self.button_width, self.button_height
+                    button_x, button_y, self.button_width, self.button_height
             )
 
             if button_rect.collidepoint(mouse_x, mouse_y):
                 if i == 0:  # Left arrow
                     self.current_image_index = (self.current_image_index - 1) % len(
-                        self.images
+                            self.images
                     )
                 elif i == 1:  # Back button
                     self.esc()
                 elif i == 2:  # Right arrow
                     self.current_image_index = (self.current_image_index + 1) % len(
-                        self.images
+                            self.images
                     )
 
     def scale_images(self):
@@ -1066,7 +1066,7 @@ class Inspector(State):
             if self.can_inspect_piece(self.engine.get_occupying(row, col)):
                 self.engine.reset_selected()
                 self.side_bar = PieceInspector(
-                    self.win, self.engine, self.engine.get_occupying(row, col)
+                        self.win, self.engine, self.engine.get_occupying(row, col)
                 )
                 self.select(row, col)
             else:
@@ -1132,15 +1132,15 @@ class Playing(State):
         if previously_selected.actions_remaining == 0:  # No actions left to move
             return False
         if not self.engine.player_can_do_action(
-            self.engine.turn
+                self.engine.turn
         ):  # Check if the player can perform an action
             return False
         if (
-            row,
-            col,
+                row,
+                col,
         ) not in previously_selected.move_squares_list:  # Target square not in move list
             self.engine.set_popup_reason(
-                "invalid_move"
+                    "invalid_move"
             )  # Set error message for invalid move
             return False
         if self.engine.get_occupying(row, col) is not None:  # Square already occupied
@@ -1155,20 +1155,20 @@ class Playing(State):
         if self.dragging:
             return False
         if not isinstance(
-            currently_selected, Piece
+                currently_selected, Piece
         ):  # The selected object is not a piece
             return False
         if (
-            self.engine.turn != currently_selected.color
+                self.engine.turn != currently_selected.color
         ):  # The piece does not belong to the current player
             return False
         if not currently_selected.can_act():  # No actions left for the piece
             self.engine.set_popup_reason(
-                "piece_action"
+                    "piece_action"
             )  # Set reason for piece not being able to be selected
             return False
         if not self.engine.player_can_do_action(
-            self.engine.turn
+                self.engine.turn
         ):  # Player can't perform actions
             return False
         return True  # The piece can be selected
@@ -1183,17 +1183,17 @@ class Playing(State):
         if previously_selected.actions_remaining == 0:  # No actions left to capture
             return False
         if not self.engine.player_can_do_action(
-            self.engine.turn
+                self.engine.turn
         ):  # Check if the player can perform an action
             return False
         if (
-            row,
-            col,
+                row,
+                col,
         ) not in previously_selected.capture_squares_list:  # Target square not in capture list
             return False
         if (
-            currently_selected is None
-            or currently_selected.get_color() == previously_selected.get_color()
+                currently_selected is None
+                or currently_selected.get_color() == previously_selected.get_color()
         ):
             # No piece to capture or the piece is of the same color
             return False
@@ -1277,10 +1277,10 @@ class Playing(State):
         acting_tile = self.engine.board[prev_row][prev_col]
         action_tile = self.engine.board[row][col]
         capture = self.type_of_capture(
-            acting_tile, action_tile
+                acting_tile, action_tile
         )  # Get the type of capture
         event = capture(
-            self.engine, acting_tile, action_tile
+                self.engine, acting_tile, action_tile
         )  # Create the capture event
         self.engine.add_event(event)  # Add event to engine
         self.engine.reset_selected()  # Reset selected piece
@@ -1321,10 +1321,10 @@ class Playing(State):
         """
         row, col = Constant.convert_pos(pygame.mouse.get_pos())  # Get mouse position
         currently_selected = self.engine.get_occupying(
-            row, col
+                row, col
         )  # Get the piece under the mouse
         if self.can_inspect_piece(
-            currently_selected
+                currently_selected
         ):  # Check if the piece can be inspected
             # Create and switch to the Inspector state
             new_state = Inspector(self.win, self.engine, currently_selected)
@@ -1344,28 +1344,28 @@ class Playing(State):
                 self.engine.reset_selected()
             else:
                 row, col = Constant.convert_pos(
-                    pygame.mouse.get_pos()
+                        pygame.mouse.get_pos()
                 )  # Get mouse position
                 self.engine.reset_selected()  # Reset selected piece
                 piece = self.engine.get_occupying(
-                    row, col
+                        row, col
                 )  # Get the piece under the mouse
                 if (
-                    piece and piece.color == self.engine.turn
+                        piece and piece.color == self.engine.turn
                 ):  # Ensure the piece belongs to the current player
                     if not piece.right_click(
-                        self.engine
+                            self.engine
                     ):  # Perform right-click action for the piece
                         # If the right-click doesn't result in an action, show a popup menu
                         self.engine.create_popup_menu(
-                            row, col, self.engine.popup_reason
+                                row, col, self.engine.popup_reason
                         )
                         self.revert_to_playing_state()  # Revert to the 'playing' state
                     else:
                         try:
                             # Create ability menu for pieces with more than 1 ability
                             self.engine.create_contextual_menu(
-                                row, col, self.win, piece.contextual_options
+                                    row, col, self.win, piece.contextual_options
                             )
 
                             # Immediately click into the menu if there is only one option
@@ -1418,8 +1418,8 @@ class Playing(State):
 
         # Check if the mouse is within the board boundaries
         if (
-            0 <= mouse_x < Constant.BOARD_WIDTH_PX
-            and 0 <= mouse_y < Constant.BOARD_HEIGHT_PX
+                0 <= mouse_x < Constant.BOARD_WIDTH_PX
+                and 0 <= mouse_y < Constant.BOARD_HEIGHT_PX
         ):
             # Update the cursor based on whether the mouse is hovering over a piece
             self.update_cursor()
@@ -1530,11 +1530,11 @@ class SelectStartingPieces(State):
         # Font size and rendering
         self.font_size = round(Constant.SQ_SIZE * 1)
         self.font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.font_size
+                os.path.join("files/fonts", "font.ttf"), self.font_size
         )
         self.description_text = "select your starting pieces:"
         self.text_surf = self.font.render(
-            self.description_text, True, Constant.turn_to_color[self.engine.turn]
+                self.description_text, True, Constant.turn_to_color[self.engine.turn]
         )
 
         # Y-buffer for spacing
@@ -1542,7 +1542,7 @@ class SelectStartingPieces(State):
 
         # Calculate initial positions and spacing
         self.initial_x = round(2.5 * self.window_width) // len(
-            Constant.SELECTABLE_STARTING_PIECES
+                Constant.SELECTABLE_STARTING_PIECES
         )
         self.x_buffer = self.initial_x
         self.piece_spacing = round(Constant.SQ_SIZE * 1.5)
@@ -1570,11 +1570,11 @@ class SelectStartingPieces(State):
         self.instruction_text_surfaces = []
         self.instruction_text_font_size = Constant.SQ_SIZE // 2
         self.instruction_text_font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.instruction_text_font_size
+                os.path.join("files/fonts", "font.ttf"), self.instruction_text_font_size
         )
         for line in self.instruction_text:
             l = self.instruction_text_font.render(
-                line, True, Constant.turn_to_color[self.engine.turn]
+                    line, True, Constant.turn_to_color[self.engine.turn]
             )
             self.instruction_text_surfaces.append(l)
 
@@ -1647,10 +1647,10 @@ class SelectStartingPieces(State):
             for c in range(self.cols):
                 piece_position = (c * self.piece_spacing + self.initial_x, initial_y)
                 if pos[0] in range(
-                    piece_position[0], piece_position[0] + Constant.SQ_SIZE
+                        piece_position[0], piece_position[0] + Constant.SQ_SIZE
                 ):
                     if pos[1] in range(
-                        piece_position[1], piece_position[1] + Constant.SQ_SIZE
+                            piece_position[1], piece_position[1] + Constant.SQ_SIZE
                     ):
                         piece_selected = (r, c)
             initial_y += y_buffer * 2
@@ -1666,10 +1666,10 @@ class SelectStartingPieces(State):
             for c in range(self.cols):
                 piece_position = (c * self.piece_spacing + self.initial_x, initial_y)
                 if pos[0] in range(
-                    piece_position[0], piece_position[0] + Constant.SQ_SIZE
+                        piece_position[0], piece_position[0] + Constant.SQ_SIZE
                 ):
                     if pos[1] in range(
-                        piece_position[1], piece_position[1] + Constant.SQ_SIZE
+                            piece_position[1], piece_position[1] + Constant.SQ_SIZE
                     ):
                         self.selection_matrix[r][c][1] = True
                     else:
@@ -1700,20 +1700,20 @@ class SelectStartingPieces(State):
             initial_y = self.initial_y
 
             for x in range(
-                Constant.NUMBER_OF_STARTING_PIECES + Constant.NUMBER_OF_BONUS_PIECES
+                    Constant.NUMBER_OF_STARTING_PIECES + Constant.NUMBER_OF_BONUS_PIECES
             ):
                 if x < Constant.NUMBER_OF_STARTING_PIECES:
                     for p in Constant.SELECTABLE_STARTING_PIECES:
                         piece = self.engine.turn + "_" + p
                         self.win.blit(
-                            self.pieces[self.engine.turn][piece], (x_buffer, initial_y)
+                                self.pieces[self.engine.turn][piece], (x_buffer, initial_y)
                         )
                         x_buffer += piece_spacing
                 else:
                     for p in Constant.BONUS_STARTING_PIECES:
                         piece = self.engine.turn + "_" + p
                         self.win.blit(
-                            self.pieces[self.engine.turn][piece], (x_buffer, initial_y)
+                                self.pieces[self.engine.turn][piece], (x_buffer, initial_y)
                         )
                         x_buffer += piece_spacing
 
@@ -1749,9 +1749,9 @@ class SelectStartingPieces(State):
                     spawn_list.append(self.selection_matrix[r][c][0])
         spawn_list.append(Constant.STARTING_PIECES[-1])
         if len(spawn_list) == (
-            Constant.NUMBER_OF_STARTING_PIECES
-            + len(Constant.STARTING_PIECES)
-            + Constant.NUMBER_OF_BONUS_PIECES
+                Constant.NUMBER_OF_STARTING_PIECES
+                + len(Constant.STARTING_PIECES)
+                + Constant.NUMBER_OF_BONUS_PIECES
         ):
             self.engine.transfer_to_starting_spawn(spawn_list)
 
@@ -1769,46 +1769,6 @@ class SelectStartingPieces(State):
             for x in range(2):
                 self.engine.events[-1].undo()
                 del self.engine.events[-1]
-
-
-class AIPlaying(State):
-    def __init__(self, win, engine, turn_events=None):
-        super().__init__(win, engine)
-        if turn_events is None:
-            self.turn_events = []
-        else:
-            self.turn_events = turn_events
-        self.ai = self.engine.players[self.engine.turn]
-
-    def __repr__(self):
-        return "ai playing"
-
-    def complete_turn(self):
-        if not self.act():
-            self.change_turn()
-            event = AITurn(self.engine, self.turn_events)
-            self.engine.add_event(event)
-            self.revert_to_playing_state()
-
-    def change_turn(self):
-        event = ChangeTurn(self.engine)
-        self.engine.add_event(event)
-        self.engine.players[self.engine.turn].begin_turn(self)
-
-    def make_move(self, event):
-        self.turn_events.append(event)
-        event.complete()
-
-    def act(self):
-        desired_action = self.ai.get_desired_action(self.engine)
-        event = self.ai.fulfill_move_parameters(self.engine, desired_action[0])
-        if event is not None:
-            self.make_move(event)
-
-        if self.ai.actions_remaining == 0:
-            return False
-
-        self.act()
 
 
 class StartingSpawn(State):
@@ -1898,9 +1858,7 @@ class StartingSpawn(State):
             self.engine.spawning = self.engine.spawn_list[self.engine.spawn_count]
             self.engine.update_spawn_squares()
         except IndexError:
-            if Constant.PLAY_AGAINST_AI:
-                self.begin_ai_starting_spawn()
-            elif self.engine.final_spawn:
+            if self.engine.final_spawn:
                 self.end_start_spawning()
             else:
                 self.begin_next_player_piece_select()
@@ -1937,18 +1895,18 @@ class StartingSpawn(State):
             return
         pos = pygame.mouse.get_pos()
         spawnTable = (
-            Constant.W_BUILDINGS
-            | Constant.W_PIECES
-            | Constant.B_BUILDINGS
-            | Constant.B_PIECES
+                Constant.W_BUILDINGS
+                | Constant.W_PIECES
+                | Constant.B_BUILDINGS
+                | Constant.B_PIECES
         )
         displayPosX = pos[0] - Constant.SQ_SIZE // 2
         displayPosY = pos[1] - Constant.SQ_SIZE // 2
         if Constant.pos_in_bounds(pos):
             try:
                 self.win.blit(
-                    spawnTable[(self.engine.turn + "_" + self.engine.spawning)],
-                    (displayPosX, displayPosY),
+                        spawnTable[(self.engine.turn + "_" + self.engine.spawning)],
+                        (displayPosX, displayPosY),
                 )
             except TypeError:
                 pass
@@ -2035,17 +1993,17 @@ class Mining(State):
             row, col = Constant.convert_pos(pos)
             if (row, col) in self.prev.mining_squares_list:
                 if (
-                    self.engine.has_quarry(row, col)
-                    or self.engine.has_gold(row, col)
-                    or self.engine.has_sunken_quarry(row, col)
-                    or self.engine.is_empty(row, col)
+                        self.engine.has_quarry(row, col)
+                        or self.engine.has_gold(row, col)
+                        or self.engine.has_sunken_quarry(row, col)
+                        or self.engine.is_empty(row, col)
                 ):
                     self.win.blit(
-                        Constant.IMAGES["pickaxe"], (display_pos_x, display_pos_y)
+                            Constant.IMAGES["pickaxe"], (display_pos_x, display_pos_y)
                     )
                 elif self.engine.has_wood(row, col):
                     self.win.blit(
-                        Constant.IMAGES["axe"], (display_pos_x, display_pos_y)
+                            Constant.IMAGES["axe"], (display_pos_x, display_pos_y)
                     )
 
     def left_click(self):
@@ -2110,7 +2068,7 @@ class Persuading(State):
             row, col = Constant.convert_pos(pos)
             if (row, col) in self.prev.persuader_squares_list:
                 self.win.blit(
-                    Constant.IMAGES["persuade"], (display_pos_x, display_pos_y)
+                        Constant.IMAGES["persuade"], (display_pos_x, display_pos_y)
                 )
 
     def left_click(self):
@@ -2206,7 +2164,7 @@ class Stealing(State):
                 results.append(True)  # Return true if a valid square is clicked
             else:
                 results.append(
-                    self.revert_to_playing_state()
+                        self.revert_to_playing_state()
                 )  # Return to playing state if stealing is ongoing
         return any(results)
 
@@ -2249,9 +2207,9 @@ class PreBuilding(State):
             self.previously_selected_piece.col,
         )
         self.engine.menus.append(
-            self.engine.MENUS[self.menu_queue](
-                row, col, self.win, self.engine, self.previously_selected_piece
-            )
+                self.engine.MENUS[self.menu_queue](
+                        row, col, self.win, self.engine, self.previously_selected_piece
+                )
         )
 
     def can_select_piece(self, row, col):
@@ -2276,10 +2234,10 @@ class PreBuilding(State):
             row, col = Constant.convert_pos(pos)
             if not self.engine.menus:
                 if (row, col) in self.previously_selected_piece.spawn_squares(
-                    self.engine
+                        self.engine
                 ):
                     self.win.blit(
-                        Constant.IMAGES["hammer"], (display_pos_x, display_pos_y)
+                            Constant.IMAGES["hammer"], (display_pos_x, display_pos_y)
                     )
 
     def left_click(self):
@@ -2384,7 +2342,7 @@ class Praying(State):
             if self.engine.has_prayable_building(row, col):
                 if self.engine.get_occupying(row, col).color == self.engine.turn:
                     self.win.blit(
-                        Constant.IMAGES["prayer"], (display_pos_x, display_pos_y)
+                            Constant.IMAGES["prayer"], (display_pos_x, display_pos_y)
                     )
 
     def left_click(self):
@@ -2444,14 +2402,14 @@ class Spawning(State):
             try:
                 if self.engine.spawning == "quarry_1":
                     self.win.blit(
-                        Constant.IMAGES["pickaxe"], (displayPosX, displayPosY)
+                            Constant.IMAGES["pickaxe"], (displayPosX, displayPosY)
                     )
                 else:
                     self.win.blit(
-                        self.spawnTable[
-                            (self.engine.turn + "_" + self.engine.spawning)
-                        ],
-                        (displayPosX, displayPosY),
+                            self.spawnTable[
+                                (self.engine.turn + "_" + self.engine.spawning)
+                            ],
+                            (displayPosX, displayPosY),
                     )
             except TypeError:
                 pass
@@ -2493,11 +2451,11 @@ class Winner(State):
         super().__init__(win, engine)
         self.font_size = round(Constant.SQ_SIZE * 2)
         self.font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.font_size
+                os.path.join("files/fonts", "font.ttf"), self.font_size
         )
         self.key = {"w": "White Won!", "b": "Black Won!"}
         self.text_surf = self.font.render(
-            self.key[self.engine.turn], True, Constant.turn_to_color[self.engine.turn]
+                self.key[self.engine.turn], True, Constant.turn_to_color[self.engine.turn]
         )
         self.window_width = pygame.display.Info().current_w
         self.window_height = pygame.display.Info().current_h
@@ -2956,10 +2914,10 @@ class PerformLineDestroy(Ritual):
         mouse_row, mouse_col = Constant.convert_pos(pygame.mouse.get_pos())
         self.up = range(self.row - 1, -1, -1), range(self.col, self.col + 1)
         self.down = range(self.row + 1, Constant.BOARD_HEIGHT_SQ), range(
-            self.col, self.col + 1
+                self.col, self.col + 1
         )
         self.right = range(self.row, self.row + 1), range(
-            self.col + 1, Constant.BOARD_WIDTH_SQ
+                self.col + 1, Constant.BOARD_WIDTH_SQ
         )
         self.left = range(self.row, self.row + 1), range(self.col - 1, -1, -1)
 
@@ -3000,7 +2958,7 @@ class PerformLineDestroy(Ritual):
             for r in selected_range[0]:
                 for c in selected_range[1]:
                     if self.engine.board[r][c].is_protected_by_opposite_color(
-                        self.engine.turn
+                            self.engine.turn
                     ):
                         break
                     else:

@@ -226,7 +226,7 @@ class Mine(GameEvent):
         self.miner.actions_remaining += 1
         row = self.mined.row
         col = self.mined.col
-        self.mined.unharvest(self.harvest_yield)
+        self.mined.undo_harvest(self.harvest_yield)
         self.engine.players[self.engine.turn].un_mine(
             str(self.mined), self.harvest_yield
         )
@@ -1725,7 +1725,7 @@ class Protect(RitualEvent):
     def undo(self):
         super().undo()
 
-        self.engine.board[self.row][self.col].unprotect()
+        self.engine.board[self.row][self.col].remove_protection()
         self.engine.protected_tiles.remove(self.engine.board[self.row][self.col])
         if self.replace_protect:
             self.action_tile.replace_values(self.protect_information)
@@ -1769,11 +1769,11 @@ class Portal(RitualEvent):
 
     def undo(self):
         super().undo()
-        self.engine.board[self.row][self.col].delete_portal()
+        self.engine.board[self.row][self.col].remove_portal()
         if self.first_saved_portal:
             portal = self.first_saved_portal
             self.engine.board[self.row][self.col].create_portal(portal[0], portal[1])
-        self.engine.board[self.dest_row][self.dest_col].delete_portal()
+        self.engine.board[self.dest_row][self.dest_col].remove_portal()
         if self.second_saved_portal:
             portal = self.second_saved_portal
             self.engine.board[self.dest_row][self.dest_col].create_portal(

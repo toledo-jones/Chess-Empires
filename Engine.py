@@ -1,5 +1,5 @@
 from Map import *
-from Player import Player, AI
+from Player import Player
 from Sounds import *
 from State import *
 from Tile import *
@@ -206,7 +206,6 @@ class Engine:
         """Returns a dictionary of game states."""
         return {
             "playing": Playing,
-            "ai playing": AIPlaying,
             "mining": Mining,
             "spawning": Spawning,
             "starting": Starting,
@@ -377,9 +376,6 @@ class Engine:
 
         return resource_count
 
-    def create_ai(self, color):
-        player = AI(color)
-        self.players[color] = player
 
     def create_player(self, color):
         #
@@ -618,7 +614,7 @@ class Engine:
 
     def untick_protected_tiles(self, protected_tiles):
         for tile in protected_tiles:
-            tile.untick_protect_timer(self, tile.protected_by)
+            tile.un_tick_protect_timer(self, tile.protected_by)
 
     def generate_stealing_offsets(self, stealing_key):
         variance_list = [

@@ -383,6 +383,7 @@ class Building(Unit):
         self.can_be_persuaded = False
         self.is_effected_by_jester = False
         self.contextual_options = ["build"]
+        self.yield_when_prayed = 0
 
     def base_spawn_criteria(self, engine, row, col):
         if engine.tile_in_bounds(row, col):

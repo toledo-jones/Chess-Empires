@@ -15,7 +15,6 @@ class SplashScreen:
         self,
         window: pygame.Surface,
         logo_size: tuple = (400, 400),
-        display_time: float = 2.0,
     ):
         """
         Creates a splash screen object
@@ -49,6 +48,3 @@ class SplashScreen:
 
         self.window.blit(self.logo_image, self.logo_position)
         pygame.display.update()
-
-        # Wait for the splash screen to display for the specified time
-        time.sleep(self.DISPLAY_TIME)

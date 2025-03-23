@@ -32,19 +32,19 @@ class Player:
         pass
 
     def steal(self, kind, value):
-        if kind == 'wood':
+        if kind == "wood":
             self.wood += value
-        elif kind == 'gold':
+        elif kind == "gold":
             self.gold += value
-        elif kind == 'stone':
+        elif kind == "stone":
             self.stone += value
 
     def invert_steal(self, kind, value):
-        if kind == 'wood':
+        if kind == "wood":
             self.wood -= value
-        elif kind == 'gold':
+        elif kind == "gold":
             self.gold -= value
-        elif kind == 'stone':
+        elif kind == "stone":
             self.stone -= value
 
     def mine(self, resource, harvest):
@@ -58,10 +58,10 @@ class Player:
         setattr(self, player_resource, current_resource - harvest)
 
     def pray(self, building, additional_prayer):
-        self.prayer += (building.yield_when_prayed + additional_prayer)
+        self.prayer += building.yield_when_prayed + additional_prayer
 
     def un_pray(self, building, additional_prayer):
-        self.prayer -= (building.yield_when_prayed + additional_prayer)
+        self.prayer -= building.yield_when_prayed + additional_prayer
 
     def reset_prayer(self):
         if Constant.DEBUG_START:
@@ -89,14 +89,14 @@ class Player:
         self.prayer = prayer
 
     def purchase(self, cost):
-        self.wood -= cost['log']
-        self.gold -= cost['gold']
-        self.stone -= cost['stone']
+        self.wood -= cost["log"]
+        self.gold -= cost["gold"]
+        self.stone -= cost["stone"]
 
     def un_purchase(self, cost):
-        self.wood += cost['log']
-        self.gold += cost['gold']
-        self.stone += cost['stone']
+        self.wood += cost["log"]
+        self.gold += cost["gold"]
+        self.stone += cost["stone"]
 
     def get_current_population(self):
         count = 0
@@ -111,7 +111,9 @@ class Player:
         population = self.get_current_population()
         if Constant.PIECE_POPULATION[piece] + population <= self.piece_limit:
             return True
-        elif Constant.ADDITIONAL_PIECE_LIMIT[piece] + self.piece_limit > self.piece_limit:
+        elif (
+            Constant.ADDITIONAL_PIECE_LIMIT[piece] + self.piece_limit > self.piece_limit
+        ):
             return True
         elif Constant.PIECE_POPULATION[piece] == 0:
             return True
@@ -160,14 +162,14 @@ class Player:
 class AI(Player):
     def __init__(self, color):
         super().__init__(color)
-        self.BEHAVIORS = {'material': MaterialCounter}
+        self.BEHAVIORS = {"material": MaterialCounter}
 
         rand = random.choice(list(self.BEHAVIORS))
 
         self.behavior = self.BEHAVIORS[rand]()
 
     def begin_turn(self, engine):
-        engine.set_state('ai playing')
+        engine.set_state("ai playing")
         engine.state[-1].complete_turn()
 
     def update_all_possible_moves(self, engine):
@@ -181,8 +183,9 @@ class AI(Player):
         row, col = move[1]
         action_tile = engine.board[row][col]
         acting_tile = engine.board[piece.row][piece.col]
-        return self.behavior.fulfill_move_parameters[move_kind](engine, acting_tile, action_tile)
+        return self.behavior.fulfill_move_parameters[move_kind](
+            engine, acting_tile, action_tile
+        )
 
     def get_desired_action(self, engine):
         return self.behavior.desired_action(engine)
-

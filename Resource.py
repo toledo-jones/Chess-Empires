@@ -3,7 +3,6 @@ import pygame
 import Constant
 
 
-
 class Resource:
     def __init__(self, row, col, owner=None):
         self.row = row
@@ -15,7 +14,9 @@ class Resource:
             self.remaining = self.get_total_yield()
             self.harvest_yield_variance = []
             self.harvest_yield_variance.append(self.get_harvest_yield_variance())
-            self.harvest_history = -1   # index of all times this resource has been harvested.
+            self.harvest_history = (
+                -1
+            )  # index of all times this resource has been harvested.
         if self.sprite_offset is None:
             self.sprite_offset = self.get_resource_offset()
 
@@ -49,7 +50,7 @@ class Resource:
 
     def get_resource_offset(self):
         # Retrieve the size of the resource image as a tuple (width, height)
-        image_size = Constant.RESOURCES_IMAGE_MODIFY[str(self)]['SCALE']
+        image_size = Constant.RESOURCES_IMAGE_MODIFY[str(self)]["SCALE"]
 
         # Get the size of the square where the image will be placed
         square_size = Constant.SQ_SIZE
@@ -96,7 +97,7 @@ class Resource:
 
 class Gold(Resource):
     def __repr__(self):
-        return 'gold_tile' + "_" + str(self.get_sprite_id())
+        return "gold_tile" + "_" + str(self.get_sprite_id())
 
     def __init__(self, row, col, owner=None):
         self.sprite_id = 1
@@ -108,7 +109,7 @@ class Gold(Resource):
 
 class Wood(Resource):
     def __repr__(self):
-        return 'tree_tile' + "_" + str(self.get_sprite_id())
+        return "tree_tile" + "_" + str(self.get_sprite_id())
 
     def __init__(self, row, col, owner=None):
         sprite_id = random.randint(1, 8)
@@ -121,7 +122,7 @@ class Wood(Resource):
 
 class Quarry(Resource):
     def __repr__(self):
-        return 'quarry' + "_" + str(self.get_sprite_id())
+        return "quarry" + "_" + str(self.get_sprite_id())
 
     def __init__(self, row, col, owner=None):
         self.sprite_id = 1
@@ -133,7 +134,7 @@ class Quarry(Resource):
 
 class SunkenQuarry(Resource):
     def __repr__(self):
-        return 'sunken_quarry' + "_" + str(self.get_sprite_id())
+        return "sunken_quarry" + "_" + str(self.get_sprite_id())
 
     def __init__(self, row, col, owner=None):
         self.sprite_id = 1
@@ -145,7 +146,7 @@ class SunkenQuarry(Resource):
 
 class DepletedQuarry(Resource):
     def __repr__(self):
-        return 'depleted_quarry' + "_" + str(self.get_sprite_id())
+        return "depleted_quarry" + "_" + str(self.get_sprite_id())
 
     def __init__(self, row, col, owner=None):
         self.sprite_id = 1
@@ -153,4 +154,3 @@ class DepletedQuarry(Resource):
 
     def get_sprite_id(self):
         return self.sprite_id
-

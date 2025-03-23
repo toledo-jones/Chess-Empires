@@ -20,8 +20,8 @@ class Tile:
         self.protected_image = None
         self.protect_timer = 0
         self.portal_image = None
-        self.protect_image_offset = Constant.IMAGES_IMAGE_MODIFY['w_protect']['OFFSET']
-        self.portal_image_offset = Constant.IMAGES_IMAGE_MODIFY['w_portal']['OFFSET']
+        self.protect_image_offset = Constant.IMAGES_IMAGE_MODIFY["w_protect"]["OFFSET"]
+        self.portal_image_offset = Constant.IMAGES_IMAGE_MODIFY["w_portal"]["OFFSET"]
         self.protected_by = None
 
         self.trap = None
@@ -61,13 +61,17 @@ class Tile:
         win.blit(self.portal_image, (x, y))
 
     def replace_values(self, protect_values):
-        self.protected_image = protect_values['image']
-        self.protected_by = protect_values['color']
-        self.protect_timer = protect_values['timer']
+        self.protected_image = protect_values["image"]
+        self.protected_by = protect_values["color"]
+        self.protect_timer = protect_values["timer"]
         self.protected = True
 
     def get_protect_values(self):
-        return {'image': self.protected_image, 'color': self.protected_by, 'timer': self.protect_timer}
+        return {
+            "image": self.protected_image,
+            "color": self.protected_by,
+            "timer": self.protect_timer,
+        }
 
     def draw_protected_image(self, win):
         x = (self.col * Constant.SQ_SIZE) + self.protect_image_offset[0]
@@ -162,4 +166,3 @@ class Tile:
 
         if self.has_occupying():
             self.occupying.draw(win)
-

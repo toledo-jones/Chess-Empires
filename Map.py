@@ -162,10 +162,11 @@ def left_and_right_triangle_sections_top():
     # x, y equal max val col, row
     y, x = Constant.board_max_index()
 
-
     # Top-left triangle (unchanged)
     for r in range(0, 7):  # Iterate over the rows starting from 0 to 6 (top)
-        for c in range(0, 7 - r):  # Left triangle: columns from 0 to (7 - r) for each row
+        for c in range(
+            0, 7 - r
+        ):  # Left triangle: columns from 0 to (7 - r) for each row
             left_triangle.append((r, c))
 
     # Top-right triangle (cleaner and more efficient version)
@@ -261,7 +262,11 @@ def bottom_pyramid_squares():
     for r in range(y, height_of_pyramid, -1):
         for c in range(0, x + 1):
             # Check conditions to determine whether to append the square
-            if r == y or (r == y - 1 and 0 < c <= x - 1) or (r == y - 2 and 1 < c <= x - 2):
+            if (
+                r == y
+                or (r == y - 1 and 0 < c <= x - 1)
+                or (r == y - 2 and 1 < c <= x - 2)
+            ):
                 squares.append((r, c))
 
     return squares
@@ -448,7 +453,9 @@ def find_center(squares: list[tuple[int, int]]) -> tuple[int, int]:
         tuple[float, float]: The center coordinates as (avg_r, avg_c).
     """
     if not squares:
-        raise ValueError("You must pass a list of square tuples [(row, col)] to Map.find_center")
+        raise ValueError(
+            "You must pass a list of square tuples [(row, col)] to Map.find_center"
+        )
 
     total_r = sum(r for r, c in squares)
     total_c = sum(c for r, c in squares)
@@ -463,22 +470,40 @@ class Map:
         self.w_starting_squares, self.b_starting_squares = starting_squares()
         self.default_start_squares = starting_squares()
         self.starting_squares = self.w_starting_squares + self.b_starting_squares
-        self.top_left, self.top_right, self.bottom_left, self.bottom_right = quarter_squares()
-        self.quarters = [self.top_left, self.top_right, self.bottom_left, self.bottom_right]
+        self.top_left, self.top_right, self.bottom_left, self.bottom_right = (
+            quarter_squares()
+        )
+        self.quarters = [
+            self.top_left,
+            self.top_right,
+            self.bottom_left,
+            self.bottom_right,
+        ]
         self.center_squares_list = center_squares()
         self.edge_squares = edge_squares()
-        self.left_triangle_bottom, self.right_triangle_bottom = left_and_right_triangle_sections_bot()
-        self.left_triangle_top, self.right_triangle_top = left_and_right_triangle_sections_top()
+        self.left_triangle_bottom, self.right_triangle_bottom = (
+            left_and_right_triangle_sections_bot()
+        )
+        self.left_triangle_top, self.right_triangle_top = (
+            left_and_right_triangle_sections_top()
+        )
         self.triangle_sections = [self.left_triangle_bottom, self.right_triangle_bottom]
         self.all_triangle_sections = [
             self.left_triangle_top,
             self.left_triangle_bottom,
             self.right_triangle_top,
-            self.right_triangle_bottom
+            self.right_triangle_bottom,
         ]
         self.directions = (
-            Constant.UP, Constant.RIGHT, Constant.LEFT, Constant.DOWN, Constant.UP_RIGHT, Constant.DOWN_RIGHT,
-            Constant.UP_LEFT, Constant.DOWN_LEFT)
+            Constant.UP,
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.DOWN_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_LEFT,
+        )
         self.PIECE_COSTS = {}
 
     def set_decree_cost(self, resource_count):
@@ -493,16 +518,17 @@ class Map:
         decree_cost = round(10 * math.log10(x + 7))
         Constant.DECREE_INCREMENT = round(decree_cost / 3)
 
-        if resource == 'quarry':
-            resource = 'stone'
+        if resource == "quarry":
+            resource = "stone"
         # Return the decree cost as a dictionary, using the resource name as the key
         return {resource: decree_cost}
 
     import random
 
     def place_trees_around_point(
-            self, center: tuple[int, int],
-            radius: int,
+        self,
+        center: tuple[int, int],
+        radius: int,
     ):
         """
         Places trees around a central point in a somewhat random but controlled pattern.
@@ -520,7 +546,7 @@ class Map:
         center_r, center_c = center
         placed_trees = set()
         cols, rows = Constant.board_max_index()
-        tree_count = (radius * radius)
+        tree_count = radius * radius
 
         while len(placed_trees) < tree_count:
             # Generate random offsets within the given radius
@@ -544,7 +570,9 @@ class Map:
         total_resources = sum(resource_count.values())
 
         # Calculate points per resource
-        points_per_resource = self.calculate_points_per_resource(resource_count, total_resources)
+        points_per_resource = self.calculate_points_per_resource(
+            resource_count, total_resources
+        )
 
         # Set Decree Cost
         Constant.DECREE_COST = self.set_decree_cost(resource_count)
@@ -559,8 +587,8 @@ class Map:
         points_per_resource = {}
 
         for resource, count in resource_count.items():
-            if resource == 'quarry':
-                resource = 'stone'
+            if resource == "quarry":
+                resource = "stone"
             try:
                 # Player can only ever hope to achieve 1/3 of available resources
                 # count * 1/12
@@ -570,8 +598,8 @@ class Map:
 
             total_points_possible = points * round(count)
             points_per_resource[resource] = {
-                "points"   : points,
-                "available": total_points_possible
+                "points": points,
+                "available": total_points_possible,
             }
 
         return points_per_resource
@@ -584,18 +612,20 @@ class Map:
             points_to_fill = Constant.PIECE_POINT_VALUES[piece]
 
             # Assign random weights for resources
-            wood_points, stone_points, gold_points = self.assign_resource_random_weights(points_to_fill)
+            wood_points, stone_points, gold_points = (
+                self.assign_resource_random_weights(points_to_fill)
+            )
 
             # Calculate resource costs based on available points
             wood_cost, stone_cost, gold_cost = self.calculate_resource_costs(
-                    wood_points, stone_points, gold_points, points_per_resource
+                wood_points, stone_points, gold_points, points_per_resource
             )
 
             # Assign costs to the piece
             self.PIECE_COSTS[piece] = {
-                'log'  : wood_cost,
-                'stone': stone_cost,
-                'gold' : gold_cost
+                "log": wood_cost,
+                "stone": stone_cost,
+                "gold": gold_cost,
             }
 
         Constant.PIECE_COSTS = self.PIECE_COSTS
@@ -603,8 +633,7 @@ class Map:
     import random
 
     def assign_resource_random_weights(
-            self,
-            points_to_fill: int
+        self, points_to_fill: int
     ) -> tuple[int, int, int]:
         """
         Assigns random weighted values to wood, stone, and gold while ensuring the total
@@ -657,11 +686,13 @@ class Map:
         # Return the assigned point values for wood, stone, and gold
         return wood_points, stone_points, gold_points
 
-    def calculate_resource_costs(self, wood_points, stone_points, gold_points, points_per_resource):
+    def calculate_resource_costs(
+        self, wood_points, stone_points, gold_points, points_per_resource
+    ):
         try:
-            wood_cost = round(wood_points / points_per_resource['wood']['points'])
-            stone_cost = round(stone_points / points_per_resource['stone']['points'])
-            gold_cost = round(gold_points / points_per_resource['gold']['points'])
+            wood_cost = round(wood_points / points_per_resource["wood"]["points"])
+            stone_cost = round(stone_points / points_per_resource["stone"]["points"])
+            gold_cost = round(gold_points / points_per_resource["gold"]["points"])
         except ZeroDivisionError:
             wood_cost, stone_cost, gold_cost = 0, 0, 0
 
@@ -713,7 +744,10 @@ class Map:
                     self.spawn_wood(r, c)
 
     def spawn_wood_nearby_pattern(self, row, col):
-        patterns = self.spawn_wood_clover, self.spawn_wood_line,
+        patterns = (
+            self.spawn_wood_clover,
+            self.spawn_wood_line,
+        )
         distance = random.randint(1, 3)
         choice = random.choice(patterns)
         choice(row, col, distance)
@@ -745,7 +779,9 @@ class Map:
 
         # Pass 2: Ensure Minimum Quarries
         while len(quarry_positions) < min_quarries:
-            row, col = random.randint(0, self.engine.rows - 1), random.randint(0, self.engine.cols - 1)
+            row, col = random.randint(0, self.engine.rows - 1), random.randint(
+                0, self.engine.cols - 1
+            )
 
             # Check the 3x3 region around this tile
             neighbors = [
@@ -759,11 +795,7 @@ class Map:
                 self.engine.board[row][col].can_contain_quarry = True
                 quarry_positions.add((row, col))
 
-    def clear_nearby_resources(
-            self,
-            center: tuple[int, int],
-            radius: int
-    ) -> None:
+    def clear_nearby_resources(self, center: tuple[int, int], radius: int) -> None:
         """
         Clears nearby resources within a specified radius from a central point on the board.
 
@@ -805,7 +837,7 @@ class Map:
 
         # Randomly select 'iterations' number of sequential columns to delete
         start_idx = random.randint(0, len(column_sequence) - iterations)
-        columns_to_delete = column_sequence[start_idx:start_idx + iterations]
+        columns_to_delete = column_sequence[start_idx : start_idx + iterations]
 
         # Delete resources in the selected columns sequentially
         for col in columns_to_delete:
@@ -852,6 +884,7 @@ class Map:
             self.engine.board[r][c].can_contain_stone = True
         except IndexError:
             pass
+
     def spawn_sunken_quarry(self, r, c):
         self.engine.create_resource(r, c, SunkenQuarry(r, c))
         self.engine.board[r][c].can_contain_stone = True
@@ -884,7 +917,7 @@ class Map:
 class Debug(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.set_piece_values(resource_count={'wood': 0, 'stone': 0, 'gold': 0})
+        self.set_piece_values(resource_count={"wood": 0, "stone": 0, "gold": 0})
 
 
 class OctoBalanced(Map):
@@ -1119,7 +1152,11 @@ class Minimal(Map):
 
         self.generate_wood(self.b_starting_squares)
         self.generate_wood(self.w_starting_squares)
-        choices = [self.spawn_quarry, self.spawn_sunken_quarry, self.spawn_depleted_quarry]
+        choices = [
+            self.spawn_quarry,
+            self.spawn_sunken_quarry,
+            self.spawn_depleted_quarry,
+        ]
         for square in self.edge_squares:
             rand = self.get_random()
             if rand > 98:
@@ -1162,14 +1199,20 @@ class GoldForest(Map):
     # Helper functions to define map sections like `center_squares` and `top_right_squares`
     def center_squares(self):
         # Example function to return the center section of the map
-        center_section = [(x, y) for x in range(self.map_height // 2 - 2, self.map_height // 2 + 3)
-                          for y in range(self.map_width // 2 - 2, self.map_width // 2 + 3)]
+        center_section = [
+            (x, y)
+            for x in range(self.map_height // 2 - 2, self.map_height // 2 + 3)
+            for y in range(self.map_width // 2 - 2, self.map_width // 2 + 3)
+        ]
         return center_section
 
     def top_right_squares(self):
         # Example function to return squares in the top-right corner
-        top_right_section = [(x, y) for x in range(self.map_height // 2, self.map_height - 1)
-                             for y in range(0, self.map_width // 2)]
+        top_right_section = [
+            (x, y)
+            for x in range(self.map_height // 2, self.map_height - 1)
+            for y in range(0, self.map_width // 2)
+        ]
         return top_right_section
 
 
@@ -1192,7 +1235,11 @@ class WoodlandQuarries(Map):
                     self.spawn_wood(row, col)
 
         # Spawn quarries along the edges
-        choices = [self.spawn_quarry, self.spawn_sunken_quarry, self.spawn_depleted_quarry]
+        choices = [
+            self.spawn_quarry,
+            self.spawn_sunken_quarry,
+            self.spawn_depleted_quarry,
+        ]
         for square in self.edge_squares:
             rand = self.get_random()
             if rand > 90:  # 10% chance to spawn a quarry
@@ -1444,9 +1491,19 @@ class TopBottomModified(Map):
     def __init__(self, engine):
         super().__init__(engine)
         self.side_squares = top_and_bottom_squares()  # Adjusted to use top and bottom
-        self.halfs = left_right_squares()  # These could be adjusted based on how you want them to behave
-        self.directions = [Constant.UP, Constant.RIGHT, Constant.DOWN, Constant.LEFT, Constant.UP_RIGHT,
-                           Constant.UP_LEFT, Constant.DOWN_RIGHT, Constant.DOWN_LEFT]
+        self.halfs = (
+            left_right_squares()
+        )  # These could be adjusted based on how you want them to behave
+        self.directions = [
+            Constant.UP,
+            Constant.RIGHT,
+            Constant.DOWN,
+            Constant.LEFT,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        ]
 
     def generate_resources(self):
         super().generate_resources()
@@ -1474,7 +1531,9 @@ class TopBottomModified(Map):
             for direction in self.directions:
                 r += direction[0]
                 c += direction[1]
-                if isinstance(self.engine.get_resource(r, c), Wood) or not self.engine.get_resource(r, c):
+                if isinstance(
+                    self.engine.get_resource(r, c), Wood
+                ) or not self.engine.get_resource(r, c):
                     self.spawn_gold(r, c)
                     break
 
@@ -1498,8 +1557,16 @@ class LeftRightModified(Map):
         super().__init__(engine)
         self.side_squares = left_right_squares()
         self.halfs = top_and_bottom_squares()
-        self.directions = [Constant.UP, Constant.RIGHT, Constant.DOWN, Constant.LEFT, Constant.UP_RIGHT,
-                           Constant.UP_LEFT, Constant.DOWN_RIGHT, Constant.DOWN_LEFT]
+        self.directions = [
+            Constant.UP,
+            Constant.RIGHT,
+            Constant.DOWN,
+            Constant.LEFT,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        ]
 
     def generate_resources(self):
         super().generate_resources()
@@ -1536,8 +1603,16 @@ class LeftRight(Map):
         super().__init__(engine)
         self.side_squares = left_right_squares()
         self.halfs = top_and_bottom_squares()
-        self.directions = [Constant.UP, Constant.RIGHT, Constant.DOWN, Constant.LEFT, Constant.UP_RIGHT,
-                           Constant.UP_LEFT, Constant.DOWN_RIGHT, Constant.DOWN_LEFT]
+        self.directions = [
+            Constant.UP,
+            Constant.RIGHT,
+            Constant.DOWN,
+            Constant.LEFT,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        ]
 
     def generate_resources(self):
         super().generate_resources()
@@ -1588,9 +1663,22 @@ class CenterCircleA(Map):
     def __init__(self, engine):
         super().__init__(engine)
         self.circle_center_squares = center_circle_squares()
-        self.directions = [Constant.UP, Constant.RIGHT, Constant.DOWN, Constant.LEFT, Constant.UP_RIGHT,
-                           Constant.UP_LEFT, Constant.DOWN_RIGHT, Constant.DOWN_LEFT]
-        self.choices = [self.spawn_sunken_quarry, self.spawn_quarry, self.spawn_depleted_quarry, self.spawn_wood]
+        self.directions = [
+            Constant.UP,
+            Constant.RIGHT,
+            Constant.DOWN,
+            Constant.LEFT,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        ]
+        self.choices = [
+            self.spawn_sunken_quarry,
+            self.spawn_quarry,
+            self.spawn_depleted_quarry,
+            self.spawn_wood,
+        ]
 
     def generate_resources(self):
         for square in self.circle_center_squares:
@@ -1612,9 +1700,22 @@ class CenterCircleB(Map):
     def __init__(self, engine):
         super().__init__(engine)
         self.circle_center_squares = center_circle_squares()
-        self.directions = [Constant.UP, Constant.RIGHT, Constant.DOWN, Constant.LEFT, Constant.UP_RIGHT,
-                           Constant.UP_LEFT, Constant.DOWN_RIGHT, Constant.DOWN_LEFT]
-        self.choices = [self.spawn_sunken_quarry, self.spawn_quarry, self.spawn_depleted_quarry, self.spawn_wood]
+        self.directions = [
+            Constant.UP,
+            Constant.RIGHT,
+            Constant.DOWN,
+            Constant.LEFT,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        ]
+        self.choices = [
+            self.spawn_sunken_quarry,
+            self.spawn_quarry,
+            self.spawn_depleted_quarry,
+            self.spawn_wood,
+        ]
 
     def generate_resources(self):
         for square in self.circle_center_squares:
@@ -1637,8 +1738,16 @@ class FourCorners(Map):
         super().__init__(engine)
         self.player_wood = 9
         self.triangle_sections = self.quarter_triangle_sections_d()
-        self.directions = [Constant.UP, Constant.RIGHT, Constant.DOWN, Constant.LEFT, Constant.UP_RIGHT,
-                           Constant.UP_LEFT, Constant.DOWN_RIGHT, Constant.DOWN_LEFT]
+        self.directions = [
+            Constant.UP,
+            Constant.RIGHT,
+            Constant.DOWN,
+            Constant.LEFT,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        ]
         self.choices = [self.spawn_depleted_quarry, self.spawn_quarry, self.spawn_wood]
 
     def quarter_triangle_sections_d(self):
@@ -1734,7 +1843,11 @@ class GoldCornersB(Map):
 class GoldCornersA(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.choices = [self.spawn_wood, self.spawn_quarry, self.spawn_wood_nearby_pattern]
+        self.choices = [
+            self.spawn_wood,
+            self.spawn_quarry,
+            self.spawn_wood_nearby_pattern,
+        ]
 
     def generate_resources(self):
         rand = random.randint(0, 1)
@@ -1760,14 +1873,16 @@ class GoldCornersA(Map):
 class EnclosedForest(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.choices = [self.default_start_squares, ]
+        self.choices = [
+            self.default_start_squares,
+        ]
 
     def generate_resources(self):
         super().generate_resources()
         for section in self.all_triangle_sections:
             for square in section:
                 rng = random.uniform(0, 1)
-                if rng > .4:
+                if rng > 0.4:
                     r, c = square[0], square[1]
                     self.spawn_wood(r, c)
 

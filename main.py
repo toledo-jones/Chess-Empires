@@ -18,7 +18,9 @@ def main():
 
     # Define a custom event to signal when the music ends
     MUSIC_END = pygame.USEREVENT + 1
-    pygame.mixer.music.set_endevent(MUSIC_END)  # Set the event that triggers when music finishes
+    pygame.mixer.music.set_endevent(
+        MUSIC_END
+    )  # Set the event that triggers when music finishes
 
     # Initialize the game clock to manage frame rate
     clock = pygame.time.Clock()
@@ -28,6 +30,7 @@ def main():
 
     # Create and display the splash screen
     from Splash import SplashScreen
+
     splash_screen = SplashScreen(engine.display_surface)
     splash_screen.display()
 
@@ -51,7 +54,9 @@ def main():
 
     # Set the game window's title and icon
     pygame.display.set_caption("Chess Empires")
-    pygame.display.set_icon(Constant.IMAGES['icon'])  # Set the window icon from loaded images
+    pygame.display.set_icon(
+        Constant.IMAGES["icon"]
+    )  # Set the window icon from loaded images
 
     # Main game loop
     while engine.running:
@@ -59,10 +64,7 @@ def main():
         current_state = engine.state[-1]
 
         # Initialize a dictionary to track last input times for each event type
-        last_input_time = {
-            'mouse_click': 0,
-            'key_press'  : 0
-        }
+        last_input_time = {"mouse_click": 0, "key_press": 0}
 
         # Define the cooldown period (in seconds) between repeated inputs
         input_cooldown = 0.05  # 200 milliseconds for mouse clicks and key presses
@@ -76,11 +78,11 @@ def main():
                 # Check if the button is left or right mouse button
                 if event.button == 1 or event.button == 3:
                     # Check if enough time has passed since the last click
-                    if current_time - last_input_time['mouse_click'] >= input_cooldown:
+                    if current_time - last_input_time["mouse_click"] >= input_cooldown:
                         # Handle the mouse click event
                         current_state.handle_input(event)
                         # Update last input time for mouse click
-                        last_input_time['mouse_click'] = current_time
+                        last_input_time["mouse_click"] = current_time
 
             # Handle mouse release
             elif event.type == pygame.MOUSEBUTTONUP:
@@ -92,12 +94,12 @@ def main():
             # Handle key press (KEYDOWN)
             elif event.type == pygame.KEYDOWN:
                 # Check if enough time has passed since the last key press
-                if current_time - last_input_time['key_press'] >= input_cooldown:
+                if current_time - last_input_time["key_press"] >= input_cooldown:
                     # Handle the key press event
                     current_state.handle_input(event)
 
                     # Update last input time for key press
-                    last_input_time['key_press'] = current_time
+                    last_input_time["key_press"] = current_time
 
             # Handle Mouse Motion
             elif event.type == pygame.MOUSEMOTION:

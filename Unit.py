@@ -11,9 +11,19 @@ class Unit:
         self.offset = self.get_sprite_offset()
         self.dragging = False
         self.first_move = True
-        self.rect = pygame.Rect(col * Constant.SQ_SIZE, row * Constant.SQ_SIZE, Constant.SQ_SIZE, Constant.SQ_SIZE)
+        self.rect = pygame.Rect(
+            col * Constant.SQ_SIZE,
+            row * Constant.SQ_SIZE,
+            Constant.SQ_SIZE,
+            Constant.SQ_SIZE,
+        )
 
-        self.sprites = Constant.W_PIECES | Constant.W_BUILDINGS | Constant.B_PIECES | Constant.B_BUILDINGS
+        self.sprites = (
+            Constant.W_PIECES
+            | Constant.W_BUILDINGS
+            | Constant.B_PIECES
+            | Constant.B_BUILDINGS
+        )
 
         self.purchasing = False
         self.performing_ritual = False
@@ -52,7 +62,9 @@ class Unit:
         self.persuader_squares_list = []
         self.swap_squares_list = []
 
-        self.square = pygame.Surface((Constant.SQ_SIZE, Constant.SQ_SIZE), pygame.SRCALPHA)
+        self.square = pygame.Surface(
+            (Constant.SQ_SIZE, Constant.SQ_SIZE), pygame.SRCALPHA
+        )
         self.self_selected_square_color = Constant.SELF_SQUARE_HIGHLIGHT_COLOR
         self.unused_square_color = Constant.UNUSED_PIECE_HIGHLIGHT_COLOR
         self.move_square_color = Constant.MOVE_SQUARE_HIGHLIGHT_COLOR
@@ -97,17 +109,23 @@ class Unit:
 
     def possible_moves(self):
         return {
-            'spawn'   : self.spawn_squares_list, 'move': self.move_squares_list, 'mine': self.mining_squares_list,
-            'steal'   : self.stealing_squares_list, 'pray': self.praying_squares_list,
-            'capture' : self.capture_squares_list, 'ritual': self.ritual_squares_list,
-            'persuade': self.persuader_squares_list
+            "spawn": self.spawn_squares_list,
+            "move": self.move_squares_list,
+            "mine": self.mining_squares_list,
+            "steal": self.stealing_squares_list,
+            "pray": self.praying_squares_list,
+            "capture": self.capture_squares_list,
+            "ritual": self.ritual_squares_list,
+            "persuade": self.persuader_squares_list,
         }
 
     def can_capture(self, r, c, engine):
         capture_tile = None
         if engine.tile_in_bounds(r, c):
             capture_tile = engine.board[r][c].get_occupying()
-        valid_square = isinstance(capture_tile, Piece) or isinstance(capture_tile, Building)
+        valid_square = isinstance(capture_tile, Piece) or isinstance(
+            capture_tile, Building
+        )
         if not valid_square:
             return False
         if self.is_rogue:
@@ -124,7 +142,9 @@ class Unit:
                 if not engine.board[r][c].is_protected():
                     return True
                 else:
-                    if not engine.board[r][c].is_protected_by_opposite_color(self.color):
+                    if not engine.board[r][c].is_protected_by_opposite_color(
+                        self.color
+                    ):
                         return True
 
     def cavalry_can_capture(self, r, c, engine, capture_tile):
@@ -133,7 +153,9 @@ class Unit:
                 if not engine.board[r][c].is_protected():
                     return True
                 else:
-                    if not engine.board[r][c].is_protected_by_opposite_color(self.color):
+                    if not engine.board[r][c].is_protected_by_opposite_color(
+                        self.color
+                    ):
                         return True
 
     def rogue_can_capture(self, r, c, engine, capture_tile):
@@ -143,7 +165,9 @@ class Unit:
                     if not engine.board[r][c].is_protected():
                         return True
                     else:
-                        if not engine.board[r][c].is_protected_by_opposite_color(self.color):
+                        if not engine.board[r][c].is_protected_by_opposite_color(
+                            self.color
+                        ):
                             return True
 
     def default_can_capture(self, r, c, engine, capture_tile):
@@ -153,7 +177,9 @@ class Unit:
                     if not engine.board[r][c].is_protected():
                         return True
                     else:
-                        if not engine.board[r][c].is_protected_by_opposite_color(self.color):
+                        if not engine.board[r][c].is_protected_by_opposite_color(
+                            self.color
+                        ):
                             return True
 
     def persuader_squares(self, engine):
@@ -264,15 +290,23 @@ class Unit:
 
     def draw_self_highlight(self, win, color):
         self.square_fill(color)
-        win.blit(self.square, (self.col * Constant.SQ_SIZE, self.row * Constant.SQ_SIZE))
+        win.blit(
+            self.square, (self.col * Constant.SQ_SIZE, self.row * Constant.SQ_SIZE)
+        )
 
     def draw_squares_in_list(self, win, square_list, color):
         self.square_fill(color)
         for square in square_list:
-            win.blit(self.square, (square[1] * Constant.SQ_SIZE, square[0] * Constant.SQ_SIZE))
+            win.blit(
+                self.square,
+                (square[1] * Constant.SQ_SIZE, square[0] * Constant.SQ_SIZE),
+            )
 
     def highlight_self_square_unused(self, win):
-        win.blit(Constant.IMAGES['sparkle'], (self.col * Constant.SQ_SIZE, self.row * Constant.SQ_SIZE))
+        win.blit(
+            Constant.IMAGES["sparkle"],
+            (self.col * Constant.SQ_SIZE, self.row * Constant.SQ_SIZE),
+        )
 
     def highlight_self_square(self, win):
         self.draw_self_highlight(win, self.self_selected_square_color)
@@ -281,10 +315,14 @@ class Unit:
         self.draw_squares_in_list(win, self.spawn_squares_list, self.move_square_color)
 
     def highlight_stealing_squares(self, win):
-        self.draw_squares_in_list(win, self.stealing_squares_list, self.move_square_color)
+        self.draw_squares_in_list(
+            win, self.stealing_squares_list, self.move_square_color
+        )
 
     def highlight_praying_squares(self, win):
-        self.draw_squares_in_list(win, self.praying_squares_list, self.move_square_color)
+        self.draw_squares_in_list(
+            win, self.praying_squares_list, self.move_square_color
+        )
 
     def highlight_mining_squares(self, win):
         self.draw_squares_in_list(win, self.mining_squares_list, self.move_square_color)
@@ -296,13 +334,17 @@ class Unit:
         self.draw_squares_in_list(win, self.ritual_squares_list, self.move_square_color)
 
     def highlight_capture_squares(self, win):
-        self.draw_squares_in_list(win, self.capture_squares_list, self.move_square_color)
+        self.draw_squares_in_list(
+            win, self.capture_squares_list, self.move_square_color
+        )
 
     def highlight_swap_squares(self, win):
         self.draw_squares_in_list(win, self.swap_squares_list, self.move_square_color)
 
     def highlight_persuader_squares(self, win):
-        self.draw_squares_in_list(win, self.persuader_squares_list, self.move_square_color)
+        self.draw_squares_in_list(
+            win, self.persuader_squares_list, self.move_square_color
+        )
 
     def get_additional_piece_limit(self):
         return self.additional_piece_limit
@@ -319,7 +361,7 @@ class Unit:
         #     z = random.randint(Constant.SQ_SIZE // -10, Constant.SQ_SIZE // 10)
         #     return r, z
         # else:
-        return Constant.PIECE_IMAGE_MODIFY[str(self)]['OFFSET']
+        return Constant.PIECE_IMAGE_MODIFY[str(self)]["OFFSET"]
 
     def get_color(self):
         return self.color
@@ -339,14 +381,14 @@ class Building(Unit):
         super().__init__(row, col, color)
         self.can_be_persuaded = False
         self.is_effected_by_jester = False
-        self.contextual_options = ['build']
+        self.contextual_options = ["build"]
 
     def base_spawn_criteria(self, engine, row, col):
         if engine.tile_in_bounds(row, col):
             return not engine.board[row][col].is_protected_by_opposite_color(self.color)
 
     def get_unit_kind(self):
-        return 'building'
+        return "building"
 
     def right_click(self, engine):
         return True
@@ -357,7 +399,7 @@ class Piece(Unit):
         super().__init__(row, col, color)
 
     def get_unit_kind(self):
-        return 'piece'
+        return "piece"
 
     def general_move_criteria(self, engine, r, c):
         if engine.can_be_occupied_by_gold_general(r, c):
@@ -383,15 +425,22 @@ class Piece(Unit):
 
 class King(Piece):
     def __repr__(self):
-        return 'king'
+        return "king"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
         self.check = False
-        self.move_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                                Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                                Constant.DOWN_LEFT)
-        self.contextual_options = ['king']
+        self.move_directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
+        self.contextual_options = ["king"]
 
     def capture_squares(self, engine):
         squares = []
@@ -417,15 +466,22 @@ class King(Piece):
 
 class Queen(Piece):
     def __repr__(self):
-        return 'queen'
+        return "queen"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                           Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                           Constant.DOWN_LEFT)
+        self.directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
         self.distance = Constant.BOARD_WIDTH_SQ
-        self.contextual_options = ['queen']
+        self.contextual_options = ["queen"]
 
     def capture_squares(self, engine):
         squares = []
@@ -465,15 +521,22 @@ class Queen(Piece):
 
 class Duke(Piece):
     def __repr__(self):
-        return 'duke'
+        return "duke"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                           Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                           Constant.DOWN_LEFT)
+        self.directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
         self.distance = Constant.BOARD_WIDTH_SQ
-        self.contextual_options = ['pray']
+        self.contextual_options = ["pray"]
 
     def praying_squares(self, engine):
         moves = []
@@ -525,13 +588,20 @@ class Duke(Piece):
 
 class FireSpinner(Piece):
     def __repr__(self):
-        return 'fire_spinner'
+        return "fire_spinner"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
         self.knight_directions = (
-            Constant.TWO_UP_RIGHT, Constant.TWO_RIGHT_UP, Constant.TWO_DOWN_RIGHT, Constant.TWO_RIGHT_DOWN,
-            Constant.TWO_UP_LEFT, Constant.TWO_LEFT_UP, Constant.TWO_DOWN_LEFT, Constant.TWO_LEFT_DOWN)
+            Constant.TWO_UP_RIGHT,
+            Constant.TWO_RIGHT_UP,
+            Constant.TWO_DOWN_RIGHT,
+            Constant.TWO_RIGHT_DOWN,
+            Constant.TWO_UP_LEFT,
+            Constant.TWO_LEFT_UP,
+            Constant.TWO_DOWN_LEFT,
+            Constant.TWO_LEFT_DOWN,
+        )
         self.depth = 3
 
     def move_squares(self, engine):
@@ -575,14 +645,21 @@ class FireSpinner(Piece):
 
 class Lion(Piece):
     def __repr__(self):
-        return 'lion'
+        return "lion"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
         self.directions = (Constant.UP, Constant.RIGHT, Constant.DOWN, Constant.LEFT)
         self.knight_directions = (
-            Constant.TWO_UP_RIGHT, Constant.TWO_RIGHT_UP, Constant.TWO_DOWN_RIGHT, Constant.TWO_RIGHT_DOWN,
-            Constant.TWO_UP_LEFT, Constant.TWO_LEFT_UP, Constant.TWO_DOWN_LEFT, Constant.TWO_LEFT_DOWN)
+            Constant.TWO_UP_RIGHT,
+            Constant.TWO_RIGHT_UP,
+            Constant.TWO_DOWN_RIGHT,
+            Constant.TWO_RIGHT_DOWN,
+            Constant.TWO_UP_LEFT,
+            Constant.TWO_LEFT_UP,
+            Constant.TWO_DOWN_LEFT,
+            Constant.TWO_LEFT_DOWN,
+        )
         self.distance = Constant.BOARD_WIDTH_SQ
 
     def capture_squares(self, engine):
@@ -632,16 +709,23 @@ class Lion(Piece):
 
 class Rook(Piece):
     def __repr__(self):
-        return 'rook'
+        return "rook"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
         self.directions = (Constant.UP, Constant.RIGHT, Constant.DOWN, Constant.LEFT)
-        self.praying_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                                   Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                                   Constant.DOWN_LEFT)
+        self.praying_directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
         self.distance = Constant.BOARD_WIDTH_SQ
-        self.contextual_options = ['pray']
+        self.contextual_options = ["pray"]
 
     def praying_squares(self, engine):
         moves = []
@@ -694,11 +778,16 @@ class Rook(Piece):
 
 class Acrobat(Piece):
     def __repr__(self):
-        return 'acrobat'
+        return "acrobat"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.directions = (Constant.UP_LEFT, Constant.DOWN_RIGHT, Constant.DOWN_LEFT, Constant.UP_RIGHT)
+        self.directions = (
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+            Constant.UP_RIGHT,
+        )
         self.distance = Constant.BOARD_WIDTH_SQ
         self.leaped_square = None
 
@@ -756,16 +845,28 @@ class Acrobat(Piece):
 
 class Bishop(Piece):
     def __repr__(self):
-        return 'bishop'
+        return "bishop"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.directions = (Constant.UP_LEFT, Constant.DOWN_RIGHT, Constant.DOWN_LEFT, Constant.UP_RIGHT)
-        self.praying_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                                   Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                                   Constant.DOWN_LEFT)
+        self.directions = (
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+            Constant.UP_RIGHT,
+        )
+        self.praying_directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
         self.distance = Constant.BOARD_WIDTH_SQ
-        self.contextual_options = ['pray']
+        self.contextual_options = ["pray"]
 
     def praying_squares(self, engine):
         moves = []
@@ -818,13 +919,20 @@ class Bishop(Piece):
 
 class Knight(Piece):
     def __repr__(self):
-        return 'knight'
+        return "knight"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
         self.directions = (
-            Constant.TWO_UP_RIGHT, Constant.TWO_RIGHT_UP, Constant.TWO_DOWN_RIGHT, Constant.TWO_RIGHT_DOWN,
-            Constant.TWO_UP_LEFT, Constant.TWO_LEFT_UP, Constant.TWO_DOWN_LEFT, Constant.TWO_LEFT_DOWN)
+            Constant.TWO_UP_RIGHT,
+            Constant.TWO_RIGHT_UP,
+            Constant.TWO_DOWN_RIGHT,
+            Constant.TWO_RIGHT_DOWN,
+            Constant.TWO_UP_LEFT,
+            Constant.TWO_LEFT_UP,
+            Constant.TWO_DOWN_LEFT,
+            Constant.TWO_LEFT_DOWN,
+        )
         self.distance = 1
         self.is_cavalry = True
 
@@ -853,19 +961,35 @@ class Knight(Piece):
 
 class Pawn(Piece):
     def __repr__(self):
-        return 'pawn'
+        return "pawn"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.mining_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                                  Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                                  Constant.DOWN_LEFT)
-        self.move_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN)
-        self.capture_directions = (Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                                   Constant.DOWN_LEFT)
+        self.mining_directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
+        self.move_directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+        )
+        self.capture_directions = (
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
         self.move_distance = 3
         self.capture_distance = 1
-        self.contextual_options = ['mine']
+        self.contextual_options = ["mine"]
 
     def mining_squares(self, engine):
         mining_squares = []
@@ -922,17 +1046,24 @@ class Pawn(Piece):
 
 class RogueRook(Piece):
     def __repr__(self):
-        return 'rogue_rook'
+        return "rogue_rook"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
         self.directions = (Constant.UP, Constant.RIGHT, Constant.DOWN, Constant.LEFT)
         self.distance = Constant.BOARD_WIDTH_SQ
-        self.stealing_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                                    Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                                    Constant.DOWN_LEFT)
+        self.stealing_directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
         self.is_rogue = True
-        self.contextual_options = ['steal']
+        self.contextual_options = ["steal"]
 
     def capture_squares(self, engine):
         squares = []
@@ -983,18 +1114,30 @@ class RogueRook(Piece):
 
 class RogueBishop(Piece):
     def __repr__(self):
-        return 'rogue_bishop'
+        return "rogue_bishop"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.stealing_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                                    Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                                    Constant.DOWN_LEFT)
-        self.directions = (Constant.UP_LEFT, Constant.DOWN_RIGHT, Constant.DOWN_LEFT, Constant.UP_RIGHT)
+        self.stealing_directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
+        self.directions = (
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+            Constant.UP_RIGHT,
+        )
 
         self.distance = Constant.BOARD_WIDTH_SQ
         self.is_rogue = True
-        self.contextual_options = ['steal']
+        self.contextual_options = ["steal"]
 
     def capture_squares(self, engine):
         squares = []
@@ -1046,20 +1189,34 @@ class RogueBishop(Piece):
 
 class RogueKnight(Piece):
     def __repr__(self):
-        return 'rogue_knight'
+        return "rogue_knight"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
         self.directions = (
-            Constant.TWO_UP_RIGHT, Constant.TWO_RIGHT_UP, Constant.TWO_DOWN_RIGHT, Constant.TWO_RIGHT_DOWN,
-            Constant.TWO_UP_LEFT, Constant.TWO_LEFT_UP, Constant.TWO_DOWN_LEFT, Constant.TWO_LEFT_DOWN)
-        self.stealing_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                                    Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                                    Constant.DOWN_LEFT)
+            Constant.TWO_UP_RIGHT,
+            Constant.TWO_RIGHT_UP,
+            Constant.TWO_DOWN_RIGHT,
+            Constant.TWO_RIGHT_DOWN,
+            Constant.TWO_UP_LEFT,
+            Constant.TWO_LEFT_UP,
+            Constant.TWO_DOWN_LEFT,
+            Constant.TWO_LEFT_DOWN,
+        )
+        self.stealing_directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
         self.distance = 1
         self.is_rogue = True
         self.is_cavalry = True
-        self.contextual_options = ['steal']
+        self.contextual_options = ["steal"]
 
     def stealing_squares(self, engine):
         squares = []
@@ -1100,22 +1257,45 @@ class RogueKnight(Piece):
 
 class RoguePawn(Piece):
     def __repr__(self):
-        return 'rogue_pawn'
+        return "rogue_pawn"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.mining_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                                  Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                                  Constant.DOWN_LEFT)
-        self.move_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN)
-        self.capture_directions = (Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                                   Constant.DOWN_LEFT)
-        self.stealing_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                                    Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                                    Constant.DOWN_LEFT)
+        self.mining_directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
+        self.move_directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+        )
+        self.capture_directions = (
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
+        self.stealing_directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
         self.move_distance = 3
         self.capture_distance = 1
-        self.contextual_options = ['mine', 'steal']
+        self.contextual_options = ["mine", "steal"]
         self.is_rogue = True
 
     def mining_squares(self, engine):
@@ -1184,15 +1364,22 @@ class RoguePawn(Piece):
 
 class Magician(Piece):
     def __repr__(self):
-        return 'magician'
+        return "magician"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                           Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                           Constant.DOWN_LEFT)
+        self.directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
         self.distance = 1
-        self.contextual_options = ['ritual']
+        self.contextual_options = ["ritual"]
 
     def right_click(self, engine):
         return True
@@ -1211,15 +1398,22 @@ class Magician(Piece):
 
 class Monk(Piece):
     def __repr__(self):
-        return 'monk'
+        return "monk"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                           Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                           Constant.DOWN_LEFT)
+        self.directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
         self.distance = 1
-        self.contextual_options = ['build', 'pray']
+        self.contextual_options = ["build", "pray"]
 
     def right_click(self, engine):
         return True
@@ -1237,8 +1431,11 @@ class Monk(Piece):
 
     def base_spawn_criteria(self, engine, row, col):
         if engine.tile_in_bounds(row, col):
-            return engine.has_none_occupying(row, col) and not engine.has_portal(row, col) and not engine.has_trap(row,
-                                                                                                                   col)
+            return (
+                engine.has_none_occupying(row, col)
+                and not engine.has_portal(row, col)
+                and not engine.has_trap(row, col)
+            )
 
     def spawn_squares(self, engine):
         spawn_squares = []
@@ -1249,7 +1446,10 @@ class Monk(Piece):
             r = self.row - direction[0]
             c = self.col - direction[1]
             if self.base_spawn_criteria(engine, r, c):
-                if engine.has_no_resource(r, c, ) or engine.has_depleted_quarry(r, c):
+                if engine.has_no_resource(
+                    r,
+                    c,
+                ) or engine.has_depleted_quarry(r, c):
                     spawn_squares.append((r, c))
         return spawn_squares
 
@@ -1268,22 +1468,29 @@ class Monk(Piece):
 
 class Ram(Piece):
     def __repr__(self):
-        return 'ram'
+        return "ram"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.directions = (Constant.TWO_UP_RIGHT, Constant.TWO_UP_LEFT, Constant.TWO_RIGHT_UP,
-                           Constant.TWO_RIGHT_DOWN, Constant.TWO_LEFT_UP, Constant.TWO_LEFT_DOWN,
-                           Constant.TWO_DOWN_LEFT, Constant.TWO_DOWN_RIGHT)
+        self.directions = (
+            Constant.TWO_UP_RIGHT,
+            Constant.TWO_UP_LEFT,
+            Constant.TWO_RIGHT_UP,
+            Constant.TWO_RIGHT_DOWN,
+            Constant.TWO_LEFT_UP,
+            Constant.TWO_LEFT_DOWN,
+            Constant.TWO_DOWN_LEFT,
+            Constant.TWO_DOWN_RIGHT,
+        )
         self.is_cavalry = True
         self.extra_move_directions = {
-            Constant.TWO_UP_RIGHT  : Constant.UP_RIGHT,
-            Constant.TWO_UP_LEFT   : Constant.UP_LEFT,
-            Constant.TWO_RIGHT_UP  : Constant.UP_RIGHT,
+            Constant.TWO_UP_RIGHT: Constant.UP_RIGHT,
+            Constant.TWO_UP_LEFT: Constant.UP_LEFT,
+            Constant.TWO_RIGHT_UP: Constant.UP_RIGHT,
             Constant.TWO_RIGHT_DOWN: Constant.DOWN_RIGHT,
-            Constant.TWO_LEFT_UP   : Constant.UP_LEFT,
-            Constant.TWO_LEFT_DOWN : Constant.DOWN_LEFT,
-            Constant.TWO_DOWN_LEFT : Constant.DOWN_LEFT,
+            Constant.TWO_LEFT_UP: Constant.UP_LEFT,
+            Constant.TWO_LEFT_DOWN: Constant.DOWN_LEFT,
+            Constant.TWO_DOWN_LEFT: Constant.DOWN_LEFT,
             Constant.TWO_DOWN_RIGHT: Constant.DOWN_RIGHT,
         }
 
@@ -1325,23 +1532,30 @@ class Ram(Piece):
 
 class Elephant(Piece):
     def __repr__(self):
-        return 'elephant'
+        return "elephant"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
         self.directions = (
-            Constant.TWO_UP_RIGHT, Constant.TWO_RIGHT_UP, Constant.TWO_DOWN_RIGHT, Constant.TWO_RIGHT_DOWN,
-            Constant.TWO_UP_LEFT, Constant.TWO_LEFT_UP, Constant.TWO_DOWN_LEFT, Constant.TWO_LEFT_DOWN)
+            Constant.TWO_UP_RIGHT,
+            Constant.TWO_RIGHT_UP,
+            Constant.TWO_DOWN_RIGHT,
+            Constant.TWO_RIGHT_DOWN,
+            Constant.TWO_UP_LEFT,
+            Constant.TWO_LEFT_UP,
+            Constant.TWO_DOWN_LEFT,
+            Constant.TWO_LEFT_DOWN,
+        )
 
         self.directions_to_extra_moves = {
-            Constant.TWO_UP_RIGHT  : Constant.UP,
-            Constant.TWO_RIGHT_UP  : Constant.RIGHT,
+            Constant.TWO_UP_RIGHT: Constant.UP,
+            Constant.TWO_RIGHT_UP: Constant.RIGHT,
             Constant.TWO_DOWN_RIGHT: Constant.DOWN,
             Constant.TWO_RIGHT_DOWN: Constant.RIGHT,
-            Constant.TWO_UP_LEFT   : Constant.UP,
-            Constant.TWO_LEFT_UP   : Constant.LEFT,
-            Constant.TWO_DOWN_LEFT : Constant.DOWN,
-            Constant.TWO_LEFT_DOWN : Constant.LEFT
+            Constant.TWO_UP_LEFT: Constant.UP,
+            Constant.TWO_LEFT_UP: Constant.LEFT,
+            Constant.TWO_DOWN_LEFT: Constant.DOWN,
+            Constant.TWO_LEFT_DOWN: Constant.LEFT,
         }
         self.distance = 1
         self.is_cavalry = True
@@ -1382,15 +1596,22 @@ class Elephant(Piece):
 
 class Assassin(Piece):
     def __repr__(self):
-        return 'assassin'
+        return "assassin"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                           Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                           Constant.DOWN_LEFT)
+        self.directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
         self.distance = Constant.BOARD_WIDTH_SQ
-        self.contextual_options = ['ritual']
+        self.contextual_options = ["ritual"]
 
     def capture_squares(self, engine):
         squares = []
@@ -1404,13 +1625,20 @@ class Assassin(Piece):
 
 class Jester(Piece):
     def __repr__(self):
-        return 'jester'
+        return "jester"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                           Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                           Constant.DOWN_LEFT)
+        self.directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
         self.distance = Constant.BOARD_WIDTH_SQ
 
     def move_squares(self, engine):
@@ -1441,14 +1669,26 @@ class Jester(Piece):
 
 class Doe(Piece):
     def __repr__(self):
-        return 'doe'
+        return "doe"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
         self.knight_directions = (
-            Constant.TWO_UP_RIGHT, Constant.TWO_RIGHT_UP, Constant.TWO_DOWN_RIGHT, Constant.TWO_RIGHT_DOWN,
-            Constant.TWO_UP_LEFT, Constant.TWO_LEFT_UP, Constant.TWO_DOWN_LEFT, Constant.TWO_LEFT_DOWN)
-        self.bishop_directions = (Constant.UP_LEFT, Constant.UP_RIGHT, Constant.DOWN_RIGHT, Constant.DOWN_LEFT)
+            Constant.TWO_UP_RIGHT,
+            Constant.TWO_RIGHT_UP,
+            Constant.TWO_DOWN_RIGHT,
+            Constant.TWO_RIGHT_DOWN,
+            Constant.TWO_UP_LEFT,
+            Constant.TWO_LEFT_UP,
+            Constant.TWO_DOWN_LEFT,
+            Constant.TWO_LEFT_DOWN,
+        )
+        self.bishop_directions = (
+            Constant.UP_LEFT,
+            Constant.UP_RIGHT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
         self.distance = Constant.BOARD_WIDTH_SQ
         self.is_cavalry = True
 
@@ -1500,13 +1740,20 @@ class Doe(Piece):
 
 class Pikeman(Piece):
     def __repr__(self):
-        return 'pikeman'
+        return "pikeman"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                           Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                           Constant.DOWN_LEFT)
+        self.directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
         self.distance = 1
         self.is_cavalry = True
 
@@ -1535,19 +1782,33 @@ class Pikeman(Piece):
 
 class Builder(Piece):
     def __repr__(self):
-        return 'builder'
+        return "builder"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
 
-        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                           Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                           Constant.DOWN_LEFT)
-        self.mining_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                                  Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                                  Constant.DOWN_LEFT)
+        self.directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
+        self.mining_directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
         self.distance = 1
-        self.contextual_options = ['build', 'mine']
+        self.contextual_options = ["build", "mine"]
 
     def mining_squares(self, engine):
         mining_squares = []
@@ -1578,8 +1839,11 @@ class Builder(Piece):
 
     def base_spawn_criteria(self, engine, row, col):
         if engine.tile_in_bounds(row, col):
-            return engine.has_none_occupying(row, col) and not engine.has_portal(row, col) and not engine.has_trap(row,
-                                                                                                                   col)
+            return (
+                engine.has_none_occupying(row, col)
+                and not engine.has_portal(row, col)
+                and not engine.has_trap(row, col)
+            )
 
     def spawn_squares(self, engine):
 
@@ -1591,7 +1855,10 @@ class Builder(Piece):
             r = self.row - direction[0]
             c = self.col - direction[1]
             if self.base_spawn_criteria(engine, r, c):
-                if engine.has_no_resource(r, c, ) or engine.has_depleted_quarry(r, c):
+                if engine.has_no_resource(
+                    r,
+                    c,
+                ) or engine.has_depleted_quarry(r, c):
                     spawn_squares.append((r, c))
         return spawn_squares
 
@@ -1601,25 +1868,37 @@ class Builder(Piece):
 
 class Unicorn(Piece):
     def __repr__(self):
-        return 'unicorn'
+        return "unicorn"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
         self.is_cavalry = True
         self.knight_directions = (
-            Constant.TWO_UP_RIGHT, Constant.TWO_RIGHT_UP, Constant.TWO_DOWN_RIGHT, Constant.TWO_RIGHT_DOWN,
-            Constant.TWO_UP_LEFT, Constant.TWO_LEFT_UP, Constant.TWO_DOWN_LEFT, Constant.TWO_LEFT_DOWN)
+            Constant.TWO_UP_RIGHT,
+            Constant.TWO_RIGHT_UP,
+            Constant.TWO_DOWN_RIGHT,
+            Constant.TWO_RIGHT_DOWN,
+            Constant.TWO_UP_LEFT,
+            Constant.TWO_LEFT_UP,
+            Constant.TWO_DOWN_LEFT,
+            Constant.TWO_LEFT_DOWN,
+        )
 
-        self.cardinal_directions = (Constant.THREE_RIGHT, Constant.THREE_DOWN, Constant.THREE_UP, Constant.THREE_LEFT)
+        self.cardinal_directions = (
+            Constant.THREE_RIGHT,
+            Constant.THREE_DOWN,
+            Constant.THREE_UP,
+            Constant.THREE_LEFT,
+        )
         self.knight_directions_to_extra_moves = {
-            Constant.TWO_UP_RIGHT  : Constant.TWO_RIGHT_UP,
-            Constant.TWO_RIGHT_UP  : Constant.TWO_UP_RIGHT,
+            Constant.TWO_UP_RIGHT: Constant.TWO_RIGHT_UP,
+            Constant.TWO_RIGHT_UP: Constant.TWO_UP_RIGHT,
             Constant.TWO_DOWN_RIGHT: Constant.TWO_RIGHT_DOWN,
             Constant.TWO_RIGHT_DOWN: Constant.TWO_DOWN_RIGHT,
-            Constant.TWO_UP_LEFT   : Constant.TWO_LEFT_UP,
-            Constant.TWO_LEFT_UP   : Constant.TWO_UP_LEFT,
-            Constant.TWO_DOWN_LEFT : Constant.TWO_LEFT_DOWN,
-            Constant.TWO_LEFT_DOWN : Constant.TWO_DOWN_LEFT
+            Constant.TWO_UP_LEFT: Constant.TWO_LEFT_UP,
+            Constant.TWO_LEFT_UP: Constant.TWO_UP_LEFT,
+            Constant.TWO_DOWN_LEFT: Constant.TWO_LEFT_DOWN,
+            Constant.TWO_LEFT_DOWN: Constant.TWO_DOWN_LEFT,
         }
         self.distance = 1
 
@@ -1673,22 +1952,33 @@ class Unicorn(Piece):
 
 class Champion(Piece):
     def __repr__(self):
-        return 'champion'
+        return "champion"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.directions = (Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                           Constant.DOWN_LEFT)
-        self.praying_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                                   Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                                   Constant.DOWN_LEFT)
+        self.directions = (
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
+        self.praying_directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
         self.extra_move_directions = {
-            Constant.UP_RIGHT  : (Constant.UP, Constant.RIGHT),
-            Constant.UP_LEFT   : (Constant.UP, Constant.LEFT),
+            Constant.UP_RIGHT: (Constant.UP, Constant.RIGHT),
+            Constant.UP_LEFT: (Constant.UP, Constant.LEFT),
             Constant.DOWN_RIGHT: (Constant.DOWN, Constant.RIGHT),
-            Constant.DOWN_LEFT : (Constant.DOWN, Constant.LEFT),
+            Constant.DOWN_LEFT: (Constant.DOWN, Constant.LEFT),
         }
-        self.contextual_options = ['pray']
+        self.contextual_options = ["pray"]
 
         self.distance = Constant.BOARD_WIDTH_SQ
 
@@ -1748,24 +2038,31 @@ class Champion(Piece):
 
 class Oxen(Piece):
     def __repr__(self):
-        return 'oxen'
+        return "oxen"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
         self.directions = (
-            Constant.TWO_UP_RIGHT, Constant.TWO_RIGHT_UP, Constant.TWO_DOWN_RIGHT, Constant.TWO_RIGHT_DOWN,
-            Constant.TWO_UP_LEFT, Constant.TWO_LEFT_UP, Constant.TWO_DOWN_LEFT, Constant.TWO_LEFT_DOWN)
+            Constant.TWO_UP_RIGHT,
+            Constant.TWO_RIGHT_UP,
+            Constant.TWO_DOWN_RIGHT,
+            Constant.TWO_RIGHT_DOWN,
+            Constant.TWO_UP_LEFT,
+            Constant.TWO_LEFT_UP,
+            Constant.TWO_DOWN_LEFT,
+            Constant.TWO_LEFT_DOWN,
+        )
         self.is_cavalry = True
 
         self.extra_move_directions = {
-            Constant.TWO_UP_RIGHT  : Constant.UP,
-            Constant.TWO_RIGHT_UP  : Constant.RIGHT,
+            Constant.TWO_UP_RIGHT: Constant.UP,
+            Constant.TWO_RIGHT_UP: Constant.RIGHT,
             Constant.TWO_DOWN_RIGHT: Constant.DOWN,
             Constant.TWO_RIGHT_DOWN: Constant.RIGHT,
-            Constant.TWO_UP_LEFT   : Constant.UP,
-            Constant.TWO_LEFT_UP   : Constant.LEFT,
-            Constant.TWO_DOWN_LEFT : Constant.DOWN,
-            Constant.TWO_LEFT_DOWN : Constant.LEFT
+            Constant.TWO_UP_LEFT: Constant.UP,
+            Constant.TWO_LEFT_UP: Constant.LEFT,
+            Constant.TWO_DOWN_LEFT: Constant.DOWN,
+            Constant.TWO_LEFT_DOWN: Constant.LEFT,
         }
 
         self.distance = Constant.BOARD_WIDTH_SQ
@@ -1810,15 +2107,22 @@ class Oxen(Piece):
 
 class Persuader(Piece):
     def __repr__(self):
-        return 'persuader'
+        return "persuader"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                           Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                           Constant.DOWN_LEFT)
+        self.directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
         self.distance = Constant.BOARD_WIDTH_SQ
-        self.contextual_options = ['persuade']
+        self.contextual_options = ["persuade"]
 
     def persuader_squares(self, engine):
         squares = []
@@ -1853,16 +2157,31 @@ class Persuader(Piece):
 
 class GoldGeneral(Piece):
     def __repr__(self):
-        return 'gold_general'
+        return "gold_general"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                           Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                           Constant.DOWN_LEFT)
+        self.directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
         self.distance = Constant.BOARD_WIDTH_SQ
-        self.praying_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                                   Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT, Constant.DOWN_LEFT)
+        self.praying_directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
         self.is_general = True
         self.can_be_persuaded = False
 
@@ -1915,23 +2234,46 @@ class GoldGeneral(Piece):
 
 class Trapper(Piece):
     def __repr__(self):
-        return 'trapper'
+        return "trapper"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.trapping_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                                    Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                                    Constant.DOWN_LEFT)
-        self.move_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN)
-        self.capture_directions = (Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                                   Constant.DOWN_LEFT)
+        self.trapping_directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
+        self.move_directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+        )
+        self.capture_directions = (
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
         self.move_distance = 3
         self.capture_distance = 1
         self.is_rogue = True
-        self.contextual_options = ['build', 'steal']
-        self.stealing_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                                    Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                                    Constant.DOWN_LEFT)
+        self.contextual_options = ["build", "steal"]
+        self.stealing_directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
 
     def capture_squares(self, engine):
         squares = []
@@ -1966,8 +2308,9 @@ class Trapper(Piece):
 
     def base_spawn_criteria(self, engine, row, col):
         if engine.tile_in_bounds(row, col):
-            return not engine.has_trap(row, col) and not engine.board[row][col].is_protected_by_opposite_color(
-                    self.color)
+            return not engine.has_trap(row, col) and not engine.board[row][
+                col
+            ].is_protected_by_opposite_color(self.color)
 
     def spawn_squares(self, engine):
         squares = []
@@ -2008,14 +2351,21 @@ class Trapper(Piece):
 
 class Trader(Piece):
     def __repr__(self):
-        return 'trader'
+        return "trader"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                           Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                           Constant.DOWN_LEFT)
-        self.contextual_options = ['trade']
+        self.directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
+        self.contextual_options = ["trade"]
 
     def move_squares(self, engine):
         squares = []
@@ -2034,13 +2384,20 @@ class Trader(Piece):
 
 class Stable(Building):
     def __repr__(self):
-        return 'stable'
+        return "stable"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                           Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                           Constant.DOWN_LEFT)
+        self.directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
         self.distance = 1
         self.additional_actions = Constant.STABLE_ADDITIONAL_ACTIONS
 
@@ -2063,13 +2420,20 @@ class Stable(Building):
 
 class Barracks(Building):
     def __repr__(self):
-        return 'barracks'
+        return "barracks"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                           Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                           Constant.DOWN_LEFT)
+        self.directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
         self.distance = 1
         self.additional_actions = Constant.BARRACKS_ADDITIONAL_ACTIONS
 
@@ -2093,27 +2457,34 @@ class Barracks(Building):
 
 class Castle(Building):
     def __repr__(self):
-        return 'castle'
+        return "castle"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                           Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                           Constant.DOWN_LEFT)
+        self.directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
         self.distance = 1
         self.additional_actions = Constant.CASTLE_ADDITIONAL_ACTIONS
 
     def spawn_squares(self, engine):
         spawn_squares = []
 
-        if not str(engine.state[-1]) == 'start spawn':
+        if not str(engine.state[-1]) == "start spawn":
             if not self.can_spawn(engine):
                 return spawn_squares
 
         for direction in self.directions:
             r = self.row - direction[0]
             c = self.col - direction[1]
-            if engine.spawning == 'rogue_pawn' or engine.spawning == 'trapper':
+            if engine.spawning == "rogue_pawn" or engine.spawning == "trapper":
                 if engine.can_be_occupied_by_rogue(r, c):
                     spawn_squares.append((r, c))
             elif self.base_spawn_criteria(engine, r, c):
@@ -2127,13 +2498,20 @@ class Castle(Building):
 
 class Circus(Building):
     def __repr__(self):
-        return 'circus'
+        return "circus"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                           Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                           Constant.DOWN_LEFT)
+        self.directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
         self.distance = 1
         self.additional_actions = Constant.CIRCUS_ADDITIONAL_ACTIONS
 
@@ -2157,13 +2535,20 @@ class Circus(Building):
 
 class Fortress(Building):
     def __repr__(self):
-        return 'fortress'
+        return "fortress"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                           Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                           Constant.DOWN_LEFT)
+        self.directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
         self.distance = 1
         self.additional_actions = Constant.FORTRESS_ADDITIONAL_ACTIONS
 
@@ -2187,7 +2572,7 @@ class Fortress(Building):
 
 class PrayerStone(Building):
     def __repr__(self):
-        return 'prayer_stone'
+        return "prayer_stone"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
@@ -2197,7 +2582,7 @@ class PrayerStone(Building):
         self.yield_when_prayed = Constant.PRAYER_STONE_YIELD
         self.is_effected_by_jester = False
         self.additional_actions = Constant.PRAYER_STONE_ADDITIONAL_ACTIONS
-        self.contextual_options = ['ritual']
+        self.contextual_options = ["ritual"]
 
     def right_click(self, engine):
         return True
@@ -2205,18 +2590,26 @@ class PrayerStone(Building):
 
 class Monolith(Building):
     def __repr__(self):
-        return 'monolith'
+        return "monolith"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.directions = (Constant.UP, Constant.RIGHT, Constant.LEFT, Constant.DOWN,
-                           Constant.UP_LEFT, Constant.DOWN_LEFT, Constant.DOWN_RIGHT, Constant.UP_RIGHT)
+        self.directions = (
+            Constant.UP,
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.DOWN,
+            Constant.UP_LEFT,
+            Constant.DOWN_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.UP_RIGHT,
+        )
         self.distance = 2
         self.remaining = 0
         self.yield_when_prayed = Constant.MONOLITH_YIELD
         self.is_effected_by_jester = False
         self.additional_actions = Constant.MONOLITH_ADDITIONAL_ACTIONS
-        self.contextual_options = ['ritual']
+        self.contextual_options = ["ritual"]
 
     def gold_general_ritual_squares(self, engine):
         ritual_squares = []
@@ -2236,19 +2629,35 @@ class Monolith(Building):
 
 class Ferz(Piece):
     def __repr__(self):
-        return 'ferz'
+        return "ferz"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
-        self.mining_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                                  Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                                  Constant.DOWN_LEFT)
-        self.capture_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN)
-        self.move_directions = (Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                                Constant.DOWN_LEFT)
+        self.mining_directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
+        self.capture_directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+        )
+        self.move_directions = (
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
         self.move_distance = 3
         self.capture_distance = 1
-        self.contextual_options = ['mine']
+        self.contextual_options = ["mine"]
 
     def mining_squares(self, engine):
         mining_squares = []
@@ -2303,19 +2712,43 @@ class Ferz(Piece):
 
 class Cavalry(Piece):
     def __repr__(self):
-        return 'cavalry'
+        return "cavalry"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
         self.directions = (
-            Constant.TWO_UP_RIGHT, Constant.TWO_RIGHT_UP, Constant.TWO_DOWN_RIGHT, Constant.TWO_RIGHT_DOWN,
-            Constant.TWO_UP_LEFT, Constant.TWO_LEFT_UP, Constant.TWO_DOWN_LEFT, Constant.TWO_LEFT_DOWN)
-        self.mining_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN,
-                                  Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_RIGHT,
-                                  Constant.DOWN_LEFT)
-        self.move_directions = (Constant.RIGHT, Constant.LEFT, Constant.UP, Constant.DOWN)
-        self.capture_directions = (Constant.UP_RIGHT, Constant.UP_LEFT, Constant.DOWN_LEFT, Constant.DOWN_RIGHT)
-        self.contextual_options = ['mine']
+            Constant.TWO_UP_RIGHT,
+            Constant.TWO_RIGHT_UP,
+            Constant.TWO_DOWN_RIGHT,
+            Constant.TWO_RIGHT_DOWN,
+            Constant.TWO_UP_LEFT,
+            Constant.TWO_LEFT_UP,
+            Constant.TWO_DOWN_LEFT,
+            Constant.TWO_LEFT_DOWN,
+        )
+        self.mining_directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
+        self.move_directions = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+        )
+        self.capture_directions = (
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_LEFT,
+            Constant.DOWN_RIGHT,
+        )
+        self.contextual_options = ["mine"]
         self.move_distance = 2
         self.distance = 1
 
@@ -2393,7 +2826,7 @@ class Cavalry(Piece):
 
 class Trap(Building):
     def __repr__(self):
-        return 'trap'
+        return "trap"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)
@@ -2404,7 +2837,7 @@ class Trap(Building):
 
 class Wall(Building):
     def __repr__(self):
-        return 'wall'
+        return "wall"
 
     def __init__(self, row, col, color):
         super().__init__(row, col, color)

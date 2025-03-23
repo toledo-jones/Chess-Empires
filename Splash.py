@@ -7,14 +7,15 @@ import typing
 
 class SplashScreen:
     # Constants for splash screen
-    LOGO_COLORS = {0: 'w', 1: 'b'}
+    LOGO_COLORS = {0: "w", 1: "b"}
     LOGO_FOLDER = "files/images"
     DISPLAY_TIME = 2.0  # Time  for splash screen to show
 
     def __init__(
-            self,
-            window: pygame.Surface,
-            logo_size: tuple = (400, 400), display_time: float = 2.0
+        self,
+        window: pygame.Surface,
+        logo_size: tuple = (400, 400),
+        display_time: float = 2.0,
     ):
         """
         Creates a splash screen object
@@ -28,7 +29,7 @@ class SplashScreen:
         # Calculate the position of the logo (centered)
         self.logo_position = (
             self.window.get_width() // 2 - self.logo_size[0] // 2,
-            self.window.get_height() // 3 - self.logo_size[1] // 2
+            self.window.get_height() // 3 - self.logo_size[1] // 2,
         )
 
     def load_logo(self) -> pygame.Surface:

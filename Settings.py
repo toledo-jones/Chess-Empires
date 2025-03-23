@@ -12,12 +12,12 @@ import pygame
 """ """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" ""
 # Uncomment the section below to enable debug
 
-DEBUG_START = True
-DISPLAY_STATE_IN_HUD = False
-BOARD_STARTS_WITH_RESOURCES = False
-DEBUG_RITUALS = True
-POP_UPS_ON = False
-SHOW_STONE = False
+# DEBUG_START = True
+# DISPLAY_STATE_IN_HUD = False
+# BOARD_STARTS_WITH_RESOURCES = False
+# DEBUG_RITUALS = True
+# POP_UPS_ON = False
+# SHOW_STONE = False
 
 # Debug settings
 DEBUG_STARTING_PRAYER = 200

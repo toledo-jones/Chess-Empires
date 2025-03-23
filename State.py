@@ -18,6 +18,7 @@ class State:
                 | Constant.B_BUILDINGS
                 | Constant.B_PIECES
         )
+        self.paper_texture = Constant.IMAGES["paper"]
 
     def draw_piece_at_mouse_cursor(self, pos, piece):
         """
@@ -29,6 +30,31 @@ class State:
 
     def __repr__(self):
         raise NotImplementedError("Subclasses must implement __repr__ ")
+
+    def draw_paper_texture(self, surface: pygame.Surface) -> None:
+        """
+        Draws a texture onto the provided Pygame Surface at coordinates (0, 0),
+        using alpha blending with multiplication mode.
+
+        :param surface: The Pygame Surface object to draw onto.
+        """
+        surface.blit(self.paper_texture, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+
+    def scale_paper_texture(self, surface: pygame.Surface) -> pygame.Surface:
+        """
+        Scales a given surface to match the size of self.paper_texture.
+
+        :param surface: The Pygame Surface object to be scaled.
+        :return: A new Pygame Surface object that is a scaled version of the input.
+        """
+        width = surface.get_width()
+        height = surface.get_height()
+
+        # Scale the surface
+        scaled_image = pygame.transform.scale(self.paper_texture, (width, height))
+
+        # Convert to proper alpha format if needed
+        return scaled_image
 
     def reset_dragging_piece(self):
         try:
@@ -268,6 +294,9 @@ class Settings(State):
         """
         super().__init__(win, engine)  # Call parent class initializer
 
+        # Scale paper texture to size of window
+        self.paper_texture = self.scale_paper_texture(self.win)
+
         # Store font color
         self.color = Constant.turn_to_color[self.engine.turn]
 
@@ -373,6 +402,9 @@ class Settings(State):
         """
         # Fill the background with the menu color
         self.win.fill(Constant.MENU_COLOR)
+
+        # Draw paper texture blended with background
+        self.draw_paper_texture(self.win)
 
         # Iterate over each button and draw it at its computed position
         for i, (button_x, button_y) in enumerate(self.button_positions):
@@ -491,6 +523,9 @@ class Pause(State):
         """
         super().__init__(win, engine)  # Call parent class initializer
 
+        # Scale paper texture
+        self.paper_texture = self.scale_paper_texture(self.win)
+
         # Store font color
         self.color = Constant.turn_to_color[self.engine.turn]
 
@@ -560,6 +595,9 @@ class Pause(State):
         """
         # Fill the background with the menu color
         self.win.fill(Constant.MENU_COLOR)
+
+        # Draw paper texture blended with background
+        self.draw_paper_texture(self.win)
 
         # Iterate over each button and draw it at its computed position
         for i, (button_x, button_y) in enumerate(self.button_positions):
@@ -675,6 +713,8 @@ class Pause(State):
 class MainMenu(State):
     def __init__(self, win, engine, splash_screen):
         super().__init__(win, engine)
+        # Paper texture
+        self.paper_texture = self.scale_paper_texture(self.win)
 
         # Menu logo and its position
         self.main_menu_logo = splash_screen.logo_image
@@ -749,6 +789,9 @@ class MainMenu(State):
 
         # Fill the background color for the menu
         self.win.fill(Constant.MENU_COLOR)
+
+        # Draw paper texture
+        self.draw_paper_texture(self.win)
 
         # Draw the menu logo at the top center
         self.win.blit(self.main_menu_logo, self.logo_position)
@@ -849,6 +892,9 @@ class MainMenu(State):
 class Instructions(State):
     def __init__(self, win, engine):
         super().__init__(win, engine)
+
+        # Scale paper texture
+        self.paper_texture = self.scale_paper_texture(self.win)
 
         # Determine color for menu
         self.color = Constant.turn_to_color[self.engine.turn]
@@ -961,6 +1007,9 @@ class Instructions(State):
         """
         # Fill the background color
         self.win.fill(Constant.MENU_COLOR)
+
+        # Draw paper texture blended with background
+        self.draw_paper_texture(self.win)
 
         # Draw the current image at the center of the screen
         current_image = self.images[self.current_image_index]
@@ -1516,6 +1565,9 @@ class SelectStartingPieces(State):
         # Initialize the base class
         super().__init__(win, engine)
 
+        # Scale paper texture
+        self.paper_texture = self.scale_paper_texture(self.win)
+
         # Set up initial attributes
         self.draw_map = False
         self.pieces = {
@@ -1627,6 +1679,7 @@ class SelectStartingPieces(State):
 
         if not piece_selected or self.draw_map:
             self.draw_map = self.flip_draw_map()
+            self.side_bar = Empty(self.win, self.engine)
             return
 
         if not self.draw_map:
@@ -1692,7 +1745,8 @@ class SelectStartingPieces(State):
                 return
         if not self.draw_map:
             self.win.fill(Constant.MENU_COLOR)
-
+            # Draw paper texture blended with background
+            self.draw_paper_texture(self.win)
             y_buffer = self.y_buffer
             initial_x = self.initial_x
             x_buffer = self.initial_x
@@ -1739,6 +1793,7 @@ class SelectStartingPieces(State):
                 y_buffer += self.instruction_text_height
         else:
             super().draw()
+            self.side_bar.draw()
 
     def enter(self):
         spawn_list = []

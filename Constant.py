@@ -215,6 +215,7 @@ images = [
     "give",
     "receive",
     "sparkle",
+    "paper"
 ]
 music = ["music"]
 resources = [
@@ -322,6 +323,7 @@ PRAY_SOUNDS = {}
 CHANGE_TURN_SOUNDS = {}
 START_GAME_SOUNDS = {}
 INSTRUCTIONS = {}
+PAPER_TEXTURE = None
 BOARD_TILES = {"dark": {}, "light": {}}
 
 # Loops to add lists of numbers to empty asset lists

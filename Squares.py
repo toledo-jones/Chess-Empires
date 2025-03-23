@@ -143,17 +143,12 @@ def quarter_triangle_a():
 
 
 def quarter_triangle_b():
-    bottom_left = []
     bottom_right = []
     top_left = []
     top_right = []
     # x, y equal max val col, row
     x, y = Constant.board_max_index()
 
-    # for r in range(6, y + 1):
-    #     for c in range(0, r - 2):
-    #         bottom_left.append((r, c))
-    #
     for r in range(6, y + 1):
         for c in range(x, x - (r - 2), -1):
             bottom_right.append((r, c))
@@ -166,13 +161,12 @@ def quarter_triangle_b():
         for c in range(x, x - (6 - r), -1):
             top_right.append((r, c))
 
-    return bottom_left, bottom_right, top_left, top_right
+    return bottom_right, top_left, top_right
 
 
 def quarter_triangle_c():
     bottom_left = []
     bottom_right = []
-    top_left = []
     top_right = []
     # x, y equal max val col, row
     x, y = Constant.board_max_index()
@@ -185,20 +179,15 @@ def quarter_triangle_c():
         for c in range(x, x - (r - 2), -1):
             bottom_right.append((r, c))
 
-    # for r in range(0, 6):
-    #     for c in range(6-r, -1, -1):
-    #         top_left.append((r, c))
-
     for r in range(0, 6):
         for c in range(x, x - (6 - r), -1):
             top_right.append((r, c))
 
-    return bottom_left, bottom_right, top_left, top_right
+    return bottom_left, bottom_right, top_right
 
 
 def quarter_triangle_d():
     bottom_left = []
-    bottom_right = []
     top_left = []
     top_right = []
     # x, y equal max val col, row
@@ -208,10 +197,6 @@ def quarter_triangle_d():
         for c in range(0, r - 2):
             bottom_left.append((r, c))
 
-    # for r in range(6, y + 1):
-    #     for c in range(x, x - (r - 2), -1):
-    #         bottom_right.append((r, c))
-
     for r in range(0, 5):
         for c in range(5 - r, -1, -1):
             top_left.append((r, c))
@@ -220,7 +205,7 @@ def quarter_triangle_d():
         for c in range(x, x - (5 - r), -1):
             top_right.append((r, c))
 
-    return bottom_left, bottom_right, top_left, top_right
+    return bottom_left, top_left, top_right
 
 
 def left_and_right_triangle_top():

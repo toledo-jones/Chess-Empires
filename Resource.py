@@ -25,7 +25,7 @@ class Resource:
         self.owner: Optional[str] = owner
 
         # Sprite offset for rendering
-        self.sprite_offset: Optional[int] = None
+        self.sprite_offset: Optional[Tuple[int, int]] = None
 
         # Determine resource key based on predefined constants
         self.key: Optional[str] = Constant.RESOURCE_YIELD_KEY.get(str(self))

@@ -1,13 +1,14 @@
 from __future__ import annotations
 
-from chess_empires.game.entities.sprite import Sprite
-import typing
 import pygame
-from chess_empires.utilities.singleton import Singleton
-from chess_empires import config
-from utilities.sprite_paths import SpriteFactory
+import typing
 from pathlib import Path
+
+from chess_empires import config
+from chess_empires.game.entities.sprite import Sprite
+from chess_empires.utilities.singleton import Singleton
 from game.db import Render, Input
+from utilities.sprite_paths import SpriteFactory
 
 if typing.TYPE_CHECKING:
     from chess_empires.game.event_manager import EventManager

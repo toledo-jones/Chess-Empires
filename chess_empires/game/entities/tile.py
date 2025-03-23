@@ -1,6 +1,7 @@
 from __future__ import annotations
-import random
+
 import pygame
+import random
 import typing
 
 if typing.TYPE_CHECKING:

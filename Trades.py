@@ -53,10 +53,10 @@ class Trades:
         for resource in self.resources:
             conversions[resource] = (
                 random.uniform(
-                        self.give_lower_bound, self.give_upper_bound
+                    self.give_lower_bound, self.give_upper_bound
                 ),  # Give conversion rate
                 random.uniform(
-                        self.receive_lower_bound, self.give_upper_bound
+                    self.receive_lower_bound, self.give_upper_bound
                 ),  # Receive conversion rate
             )
 

@@ -24,7 +24,7 @@ DEBUG_STARTING_PRAYER = 200
 DEBUG_STARTING_WOOD = 100
 DEBUG_STARTING_GOLD = 100
 DEBUG_STARTING_STONE = 100
-DEBUG_STARTING_PIECES = ["castle", "king", "prayer_stone", 'assassin', 'jester' ]
+DEBUG_STARTING_PIECES = ["castle", "king", "prayer_stone", "assassin", "jester"]
 
 # Window and board sizes
 MAX_FPS = 120
@@ -782,7 +782,7 @@ IMAGES_IMAGE_MODIFY = {
     "b_portal": {"SCALE": PROTECT_SQUARE_SCALE, "OFFSET": PROTECT_SQUARE_OFFSET},
     "steal": {"SCALE": PICKAXE_SCALE, "OFFSET": (0, 0)},
     "sparkle": {"SCALE": DEFAULT_PIECE_SCALE, "OFFSET:": (0, 0)},
-    "paper": {"SCALE": (8000, 5422), "OFFSET": (0,0)}
+    "paper": {"SCALE": (8000, 5422), "OFFSET": (0, 0)},
 }
 RESOURCES_IMAGE_MODIFY = {
     "gold_tile_1": {"SCALE": GOLD_SCALE, "OFFSET": GOLD_OFFSET},

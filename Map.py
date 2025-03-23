@@ -64,9 +64,9 @@ class Map:
         return {resource: decree_cost}
 
     def place_trees_around_point(
-            self,
-            center: tuple[int, int],
-            radius: int,
+        self,
+        center: tuple[int, int],
+        radius: int,
     ):
         """
         Places trees around a central point in a somewhat random but controlled pattern.
@@ -106,7 +106,7 @@ class Map:
 
         # Calculate points per resource
         points_per_resource = self.calculate_points_per_resource(
-                resource_count, total_resources
+            resource_count, total_resources
         )
 
         # Set Decree Cost
@@ -133,7 +133,7 @@ class Map:
 
             total_points_possible = points * round(count)
             points_per_resource[resource] = {
-                "points"   : points,
+                "points": points,
                 "available": total_points_possible,
             }
 
@@ -153,20 +153,20 @@ class Map:
 
             # Calculate resource costs based on available points
             wood_cost, stone_cost, gold_cost = self.calculate_resource_costs(
-                    wood_points, stone_points, gold_points, points_per_resource
+                wood_points, stone_points, gold_points, points_per_resource
             )
 
             # Assign costs to the piece
             self.PIECE_COSTS[piece] = {
-                "log"  : wood_cost,
+                "log": wood_cost,
                 "stone": stone_cost,
-                "gold" : gold_cost,
+                "gold": gold_cost,
             }
 
         Constant.PIECE_COSTS = self.PIECE_COSTS
 
     def assign_resource_random_weights(
-            self, points_to_fill: int
+        self, points_to_fill: int
     ) -> tuple[int, int, int]:
         """
         Assigns random weighted values to wood, stone, and gold while ensuring the total
@@ -220,7 +220,7 @@ class Map:
         return wood_points, stone_points, gold_points
 
     def calculate_resource_costs(
-            self, wood_points, stone_points, gold_points, points_per_resource
+        self, wood_points, stone_points, gold_points, points_per_resource
     ):
         try:
             wood_cost = round(wood_points / points_per_resource["wood"]["points"])
@@ -311,7 +311,7 @@ class Map:
         # Pass 2: Ensure Minimum Quarries
         while len(quarry_positions) < min_quarries:
             row, col = random.randint(0, self.engine.rows - 1), random.randint(
-                    0, self.engine.cols - 1
+                0, self.engine.cols - 1
             )
 
             # Check the 3x3 region around this tile
@@ -368,7 +368,7 @@ class Map:
 
         # Randomly select 'iterations' number of sequential columns to delete
         start_idx = random.randint(0, len(column_sequence) - iterations)
-        columns_to_delete = column_sequence[start_idx: start_idx + iterations]
+        columns_to_delete = column_sequence[start_idx : start_idx + iterations]
 
         # Delete resources in the selected columns sequentially
         for col in columns_to_delete:
@@ -1063,7 +1063,7 @@ class TopBottomModified(Map):
                 r += direction[0]
                 c += direction[1]
                 if isinstance(
-                        self.engine.get_resource(r, c), Wood
+                    self.engine.get_resource(r, c), Wood
                 ) or not self.engine.get_resource(r, c):
                     self.spawn_gold(r, c)
                     break

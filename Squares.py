@@ -86,9 +86,6 @@ def big_center() -> List[Tuple[int, int]]:
     return squares  # Return the list of coordinates
 
 
-
-
-
 def center() -> List[Tuple[int, int]]:
     """
     Returns the coordinates of the 2x2 center square area on the board.

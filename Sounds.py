@@ -28,19 +28,19 @@ class Sounds:
 
         # Map sound effects to actions for easy lookup
         self.SOUNDS = {
-            "spawn_building" : self.BUILDING_SPAWNING_SOUNDS,
-            "capture"        : self.CAPTURE_SOUNDS,
-            "mine_stone"     : self.HARVESTING_ROCK_SOUNDS,
-            "mine_gold"      : self.HARVESTING_ROCK_SOUNDS,
-            "mine_wood"      : self.HARVESTING_WOOD_SOUNDS,
-            "move"           : self.MOVE_SOUNDS,
-            "spawn_piece"    : self.PIECE_SPAWNING_SOUNDS,
-            "purchase"       : self.PURCHASE_SOUNDS,
-            "ritual"         : self.PRAYER_RITUAL_SOUNDS,
+            "spawn_building": self.BUILDING_SPAWNING_SOUNDS,
+            "capture": self.CAPTURE_SOUNDS,
+            "mine_stone": self.HARVESTING_ROCK_SOUNDS,
+            "mine_gold": self.HARVESTING_ROCK_SOUNDS,
+            "mine_wood": self.HARVESTING_WOOD_SOUNDS,
+            "move": self.MOVE_SOUNDS,
+            "spawn_piece": self.PIECE_SPAWNING_SOUNDS,
+            "purchase": self.PURCHASE_SOUNDS,
+            "ritual": self.PRAYER_RITUAL_SOUNDS,
             "create_resource": self.GENERATE_RESOURCES_SOUNDS,
-            "pray"           : self.PRAY_SOUNDS,
-            "change_turn"    : self.CHANGE_TURN_SOUNDS,
-            "start_game"     : self.START_GAME_SOUNDS,
+            "pray": self.PRAY_SOUNDS,
+            "change_turn": self.CHANGE_TURN_SOUNDS,
+            "start_game": self.START_GAME_SOUNDS,
         }
 
     def play(self, sound_effect: str) -> None:

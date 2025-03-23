@@ -215,7 +215,7 @@ images = [
     "give",
     "receive",
     "sparkle",
-    "paper"
+    "paper",
 ]
 music = ["music"]
 resources = [

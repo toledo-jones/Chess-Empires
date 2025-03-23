@@ -1,4 +1,3 @@
-import Constant
 from GameEvent import *
 
 

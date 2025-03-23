@@ -1,8 +1,8 @@
-import pygame
-import random
 import os
+import random
 import time
-import typing
+
+import pygame
 
 
 class SplashScreen:

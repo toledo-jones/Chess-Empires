@@ -1,5 +1,5 @@
 import random
-import pygame
+
 import Constant
 
 
@@ -45,8 +45,6 @@ class Resource:
         variation = random.randint(variance[0], variance[1])
         total += variation
         return total
-
-    import random
 
     def get_resource_offset(self):
         # Retrieve the size of the resource image as a tuple (width, height)

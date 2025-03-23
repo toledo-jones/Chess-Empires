@@ -1,11 +1,6 @@
-"""
-Constant.py
-Contains unchanging lists of data for use in game
-"""
-
+import json
 import os
 import random
-import json
 
 # Default Start
 DEBUG_START = False

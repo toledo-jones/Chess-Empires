@@ -1,4 +1,5 @@
 import math
+
 from Resource import *
 
 
@@ -523,8 +524,6 @@ class Map:
         # Return the decree cost as a dictionary, using the resource name as the key
         return {resource: decree_cost}
 
-    import random
-
     def place_trees_around_point(
         self,
         center: tuple[int, int],
@@ -629,8 +628,6 @@ class Map:
             }
 
         Constant.PIECE_COSTS = self.PIECE_COSTS
-
-    import random
 
     def assign_resource_random_weights(
         self, points_to_fill: int
@@ -751,8 +748,6 @@ class Map:
         distance = random.randint(1, 3)
         choice = random.choice(patterns)
         choice(row, col, distance)
-
-    import random
 
     def generate_stone(self, min_quarries=11):
         quarry_positions = set()

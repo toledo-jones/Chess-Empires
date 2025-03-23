@@ -1,5 +1,6 @@
-import Constant
 import random
+
+import Constant
 
 
 class Tile:

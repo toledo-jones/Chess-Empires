@@ -1,10 +1,9 @@
+from Map import *
 from Player import Player, AI
+from Sounds import *
 from State import *
 from Tile import *
-from Map import *
 from Trades import *
-from Sounds import *
-import pygame
 
 
 class Engine:

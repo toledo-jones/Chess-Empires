@@ -1,6 +1,6 @@
-from Unit import *
 from Resource import *
 from Tile import Tile
+from Unit import *
 
 
 class GameEvent:

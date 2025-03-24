@@ -701,6 +701,8 @@ class Engine:
                 piece.praying_building = False
                 piece.display_moves = False
                 piece.performing_ritual = False
+                piece.dragging = False
+
 
     def reset_piece_limit(self, color):
         self.players[color].piece_limit = Constant.DEFAULT_PIECE_LIMIT

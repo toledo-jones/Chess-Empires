@@ -13,7 +13,7 @@ import pygame
 # Uncomment the section below to enable debug
 
 # DEBUG_START = True
-# DISPLAY_STATE_IN_HUD = False
+# DISPLAY_STATE_IN_HUD = True
 # BOARD_STARTS_WITH_RESOURCES = False
 # DEBUG_RITUALS = True
 # POP_UPS_ON = False

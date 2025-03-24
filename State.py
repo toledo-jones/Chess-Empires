@@ -276,6 +276,7 @@ class State:
         It resets the engine flags, selected state, and closes any active menus before
         transitioning to the 'Playing' state.
         """
+        self.dragging = False
 
         # Reset any flags and selections that are active during other states
         self.engine.reset_flags()  # Resets any flags related to current actions
@@ -336,9 +337,14 @@ class State:
     def draw(self):
         """
         Super method of draw, can be overridden by subclasses.
-        Draws the board by default
+        Only clears the screen with the fill color and then draws the board. Override this method to add additional
+        draw
+        steps.
         """
+        # Clear the frame with the menu color
         self.win.fill(Constant.MENU_COLOR)
+
+        # Draw the board from engine onto the window
         self.engine.draw(self.win)
 
     def enter(self):
@@ -2343,7 +2349,6 @@ class SelectStartingPieces(State):
 
         # if we are dragging update selection for drags
         if self.dragging:
-            print("Updating drag selection")
             self.update_drag_selection()
 
         # Loop through the selection matrix to highlight the piece under the cursor
@@ -2769,8 +2774,6 @@ class StartingSpawn(State):
     def mouse_move(self):
         """
         Handles mouse movement events.
-
-        :return: None
         """
         # Handle menu input for mouse movement
         self.menu_input("mouse_move")
@@ -2781,62 +2784,114 @@ class StartingSpawn(State):
     def enter(self):
         """
         Handles the enter key press event.
-
-        :return: None
+        Override the default implementation here to prevent the state from changing.
         """
         pass
 
     def tab(self):
         """
         Handles the tab key press event by performing a right-click action.
-
-        :return: None
         """
         self.right_click()
 
 
 class DebugStart(StartingSpawn):
-    def __init__(self, win, engine):
+    """
+    Represents the debug starting state where players begin spawning their pieces with debug settings.
+    """
+
+    def __init__(self, win: pygame.Surface, engine: "Engine"):
+        """
+        Initializes the DebugStart state.
+
+        :param win: The game window surface.
+        :param engine: The game engine instance.
+        """
+        # Call the parent class initializer
         super().__init__(win, engine)
+
+        # Initialize the sidebar with an empty state
         self.side_bar = Empty(win, engine)
+
+        # Set the first flag to True
         self.first = True
+
+        # Play the start game sound
         self.engine.sounds.play("start_game")
+
+        # Set the spawn list to debug starting pieces
         self.spawn_list = Constant.DEBUG_STARTING_PIECES
         self.engine.spawn_list = Constant.DEBUG_STARTING_PIECES
+
+        # Set the initial spawning piece
         self.engine.spawning = self.spawn_list[0]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the DebugStart state.
+
+        :return: A string representing the DebugStart state.
+        """
         return "start spawn"
 
     def begin_next_player_start_spawn(self):
+        """
+        Begins the piece selection process for the next player.
+        """
+        # Create and complete a ChangeTurn event
         event = ChangeTurn(self.engine)
         event.complete()
+
+        # Append the event to the engine's event list
         self.engine.events.append(event)
+
+        # Reset spawn count and set final spawn flag to True
         self.engine.spawn_count = 0
         self.engine.final_spawn = True
+
+        # Create a new DebugStart state and set it in the engine
         new_state = DebugStart(self.win, self.engine)
         self.engine.set_state(new_state)
 
     def end_start_spawning(self):
+        """
+        Ends the starting spawning phase and transitions to the playing state.
+        """
+        # Call the parent class's end_start_spawning method
         super().end_start_spawning()
+
+        # Set debug resources for each player
         for p in self.engine.players:
             player = self.engine.players[p]
             player.wood = Constant.DEBUG_STARTING_WOOD
             player.gold = Constant.DEBUG_STARTING_GOLD
             player.stone = Constant.DEBUG_STARTING_STONE
             player.prayer = Constant.DEBUG_STARTING_PRAYER
+
+        # Revert to the playing state
         super().revert_to_playing_state()
 
     def left_click(self):
+        """
+        Handles the left-click action to spawn a piece or interact with the menu.
+        """
+        # Get the valid position of the mouse click
         row, col = self.get_valid_position
+
+        # Update the previously selected piece
         previously_selected = self.engine.update_previously_selected()
+
+        # Handle spawning if a piece was previously selected
         if previously_selected is not None:
             previously_selected.update_spawn_squares(self.engine)
             if (row, col) in previously_selected.spawn_squares_list:
                 self.create_spawn_event(row, col, False)
         else:
+            # Handle spawning if no piece was previously selected
             if self.engine.is_legal_starting_square(row, col):
                 self.create_spawn_event(row, col)
+
+        # Update the spawning piece or end spawning if all pieces are placed
         try:
             self.engine.spawning = self.engine.spawn_list[self.engine.spawn_count]
         except IndexError:
@@ -2846,43 +2901,77 @@ class DebugStart(StartingSpawn):
                 self.engine.create_player(Constant.TURNS[self.engine.turn])
                 self.begin_next_player_start_spawn()
 
-
 class Mining(State):
-    def __init__(self, win, engine):
-        super().__init__(win, engine)
-        self.prev = engine.update_previously_selected()
+    """
+    Represents the mining state where players can mine resources on the board.
+    """
 
-    def __repr__(self):
+    def __init__(self, win: pygame.Surface, engine: "Engine"):
+        """
+        Initializes the Mining state.
+
+        :param win: The game window surface.
+        :param engine: The game engine instance.
+        """
+        # Call the parent class initializer
+        super().__init__(win, engine)
+
+        # Update the previously selected piece
+        self.previously_selected: Unit = engine.update_previously_selected()
+
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the Mining state.
+
+        :return: A string representing the Mining state.
+        """
         return "mining"
 
     def draw(self):
+        """
+        Draws the mining state, including the HUD and any active menus.
+        """
+        # Call the parent class's draw method
         super().draw()
+
+        # Draw the HUD
         side_bar = Hud(self.win, self.engine)
         side_bar.draw()
+
+        # Get the current mouse position
         pos = pygame.mouse.get_pos()
         display_pos_x = pos[0] - Constant.SQ_SIZE // 2
         display_pos_y = pos[1] - Constant.SQ_SIZE // 2
+
+        # Check if the mouse position is within bounds
         if Constant.pos_in_bounds(pos):
             row, col = Constant.convert_pos(pos)
-            if (row, col) in self.prev.mining_squares_list:
-                if (
-                        self.engine.has_quarry(row, col)
-                        or self.engine.has_gold(row, col)
-                        or self.engine.has_sunken_quarry(row, col)
-                        or self.engine.is_empty(row, col)
-                ):
-                    self.win.blit(
-                        Constant.IMAGES["pickaxe"], (display_pos_x, display_pos_y)
-                    )
-                elif self.engine.has_wood(row, col):
-                    self.win.blit(
-                        Constant.IMAGES["axe"], (display_pos_x, display_pos_y)
-                    )
 
-    def left_click(self):
+            # Check if the position is in the mining squares list
+            if (row, col) in self.previously_selected.mining_squares_list:
+                if (
+                    self.engine.has_quarry(row, col)
+                    or self.engine.has_gold(row, col)
+                    or self.engine.has_sunken_quarry(row, col)
+                    or self.engine.is_empty(row, col)
+                ):
+                    # Draw the pickaxe image
+                    self.win.blit(Constant.IMAGES["pickaxe"], (display_pos_x, display_pos_y))
+                elif self.engine.has_wood(row, col):
+                    # Draw the axe image
+                    self.win.blit(Constant.IMAGES["axe"], (display_pos_x, display_pos_y))
+
+    def left_click(self) -> bool:
+        """
+        Handles the left-click action to select a mining square.
+
+        :return: True if a square is successfully selected, otherwise False.
+        """
+        # Get the current mouse position
         pos = pygame.mouse.get_pos()
         row, col = Constant.convert_pos(pos)
-        # try:
+
+        # Select the square and handle the result
         if self.select(row, col):
             return True
         else:
@@ -2892,62 +2981,125 @@ class Mining(State):
             return False
 
     def right_click(self):
+        """
+        Handles the right-click action to reset the selected piece and return to the playing state.
+        """
+        # Reset the selected piece and menus
         self.engine.reset_selected()
         self.engine.menus = []
+
+        # Set the state to Playing
         state = Playing(self.win, self.engine)
         self.engine.set_state(state)
 
     def mouse_move(self):
+        """
+        Handles mouse movement events.
+        """
         pass
 
-    def select(self, row, col):
-        # try:
-        if self.prev is not None:
+    def select(self, row: int, col: int):
+        """
+        Selects a mining square and creates the appropriate event.
+
+        :param row: The row index of the selected square.
+        :param col: The column index of the selected square.
+        """
+        # Check if there is a previously selected piece
+        if self.previously_selected is not None:
+            # Check if the tile is within bounds
             if Constant.tile_in_bounds(row, col):
-                mining_squares = self.prev.mining_squares_list
+                mining_squares = self.previously_selected.mining_squares_list
+
+                # Check if the selected square is in the mining squares list
                 if (row, col) in mining_squares:
-                    acting_tile = self.engine.board[self.prev.row][self.prev.col]
+                    acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
                     action_tile = self.engine.board[row][col]
+
+                    # Create the appropriate event based on the resource
                     if action_tile.get_resource():
+                        # Action tile has a resource, so mine it.
                         event = Mine(self.engine, acting_tile, action_tile)
                     else:
+                        # Action tile does not have a resource, so spawn a quarry there.
                         self.engine.spawning = "quarry_1"
                         event = SpawnResource(self.engine, acting_tile, action_tile)
+
+                    # Add the event to the engine and reset the selected piece
                     self.engine.add_event(event)
                     new_state = Playing(self.win, self.engine)
                     self.engine.reset_selected()
                     self.engine.set_state(new_state)
 
     def tab(self):
+        """
+        Handles the tab key press event to revert to the playing state.
+        """
         self.revert_to_playing_state()
 
-
 class Persuading(State):
-    def __init__(self, win, engine):
-        super().__init__(win, engine)
-        self.prev = engine.update_previously_selected()
+    """
+    Represents the persuading state where players can persuade other pieces on the board.
+    """
 
-    def __repr__(self):
-        return "mining"
+    def __init__(self, win: pygame.Surface, engine: "Engine"):
+        """
+        Initializes the Persuading state.
+
+        :param win: The game window surface.
+        :param engine: The game engine instance.
+        """
+        # Call the parent class initializer
+        super().__init__(win, engine)
+
+        # Update the previously selected piece
+        self.previously_selected: Unit = engine.update_previously_selected()
+
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the Persuading state.
+
+        :return: A string representing the Persuading state.
+        """
+        return "persuading"
 
     def draw(self):
+        """
+        Draws the persuading state, including the HUD and any active menus.
+        """
+        # Call the parent class's draw method
         super().draw()
+
+        # Draw the HUD
         side_bar = Hud(self.win, self.engine)
         side_bar.draw()
+
+        # Get the current mouse position
         pos = pygame.mouse.get_pos()
         display_pos_x = pos[0] - Constant.SQ_SIZE // 2
         display_pos_y = pos[1] - Constant.SQ_SIZE // 2
+
+        # Check if the mouse position is within bounds
         if Constant.pos_in_bounds(pos):
             row, col = Constant.convert_pos(pos)
-            if (row, col) in self.prev.persuader_squares_list:
+
+            # Check if the position is in the persuader squares list
+            if (row, col) in self.previously_selected.persuader_squares_list:
                 self.win.blit(
                     Constant.IMAGES["persuade"], (display_pos_x, display_pos_y)
                 )
 
-    def left_click(self):
+    def left_click(self) -> bool:
+        """
+        Handles the left-click action to select a persuading square.
+
+        :return: True if a square is successfully selected, otherwise False.
+        """
+        # Get the current mouse position
         pos = pygame.mouse.get_pos()
         row, col = Constant.convert_pos(pos)
-        # try:
+
+        # Select the square and handle the result
         if self.select(row, col):
             return True
         else:
@@ -2957,26 +3109,54 @@ class Persuading(State):
             return False
 
     def right_click(self):
+        """
+        Handles the right-click action to reset the selected piece and return to the playing state.
+        """
+        # Reset the selected piece and menus
         self.engine.reset_selected()
         self.engine.menus = []
+
+        # Set the state to Playing
         state = Playing(self.win, self.engine)
         self.engine.set_state(state)
 
-    def select(self, row, col):
-        if self.prev is not None:
+    def select(self, row: int, col: int) -> bool:
+        """
+        Selects a persuading square and creates the appropriate event.
+
+        :param row: The row index of the selected square.
+        :param col: The column index of the selected square.
+        :return: True if the selection is successful, otherwise False.
+        """
+        # Check if there is a previously selected piece
+        if self.previously_selected is not None:
+            # Check if the tile is within bounds
             if Constant.tile_in_bounds(row, col):
-                persuader_squares = self.prev.persuader_squares_list
+                persuader_squares = self.previously_selected.persuader_squares_list
+
+                # Check if the selected square is in the persuader squares list
                 if (row, col) in persuader_squares:
-                    acting_tile = self.engine.board[self.prev.row][self.prev.col]
+
+                    # The tile which the persuader is on
+                    acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+
+                    # The tile containing the piece to be persuaded
                     action_tile = self.engine.board[row][col]
+
                     event = Persuade(self.engine, acting_tile, action_tile)
                     self.engine.add_event(event)
+
+                    # Check if the enemy player's king does not exist
                     if self.engine.enemy_player_king_does_not_exist():
                         new_state = Winner(self.win, self.engine)
                         self.engine.set_state(new_state)
                         return True
+        return False
 
     def tab(self):
+        """
+        Handles the tab key press event to revert to the playing state.
+        """
         self.revert_to_playing_state()
 
 
@@ -3063,31 +3243,73 @@ class Stealing(State):
 
 
 class PreBuilding(State):
-    def __init__(self, win, engine):
+    """
+    Represents the pre-building state where players can prepare to build structures on the board.
+    """
+
+    def __init__(self, win: pygame.Surface, engine: "Engine"):
+        """
+        Initializes the PreBuilding state.
+
+        :param win: The game window surface.
+        :param engine: The game engine instance.
+        """
+        # Call the parent class initializer
         super().__init__(win, engine)
+
+        # Initialize the sidebar with a HUD
         self.side_bar = Hud(self.win, self.engine)
+
+        # Update the previously selected piece
         self.previously_selected_piece = self.engine.update_previously_selected()
+
+        # Initialize menu queue and spawning piece
         self.menu_queue = None
         self.spawning_piece = None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the PreBuilding state.
+
+        :return: A string representing the PreBuilding state.
+        """
         return "pre-building"
 
-    def add_menu_to_menu_queue(self, menu):
+    def add_menu_to_menu_queue(self, menu: str):
+        """
+        Adds a menu to the menu queue and appends it to the engine's menus.
+
+        :param menu: The menu to be added to the queue.
+        """
+        # Set the menu queue
         self.menu_queue = menu
+
+        # Get the row and column of the previously selected piece
         row, col = (
             self.previously_selected_piece.row,
             self.previously_selected_piece.col,
         )
+
+        # Append the menu to the engine's menus
         self.engine.menus.append(
             self.engine.MENUS[self.menu_queue](
                 row, col, self.win, self.engine, self.previously_selected_piece
             )
         )
 
-    def can_select_piece(self, row, col):
+    def can_select_piece(self, row: int, col: int) -> bool:
+        """
+        Checks if a piece can be selected based on its position.
+
+        :param row: The row index of the piece.
+        :param col: The column index of the piece.
+        :return: True if the piece can be selected, otherwise False.
+        """
+        # Get the currently selected piece
         currently_selected = self.engine.get_occupying(row, col)
+
         try:
+            # Check if the piece belongs to the current player and has remaining actions
             if self.engine.turn == currently_selected.color:
                 if currently_selected.actions_remaining > 0:
                     if self.engine.player_can_do_action(self.engine.turn):
@@ -3095,47 +3317,47 @@ class PreBuilding(State):
         except AttributeError:
             pass
 
+        return False
+
     def draw(self):
+        """
+        Draws the pre-building state, including the HUD and any active menus.
+        """
+        # Call the parent class's draw method
         super().draw()
+
+        # Draw each menu if any are open
         for menu in self.engine.menus:
             menu.draw()
-        self.side_bar.draw()
-        pos = pygame.mouse.get_pos()
-        display_pos_x = pos[0] - Constant.SQ_SIZE // 2
-        display_pos_y = pos[1] - Constant.SQ_SIZE // 2
-        if Constant.pos_in_bounds(pos):
-            row, col = Constant.convert_pos(pos)
-            if not self.engine.menus:
-                if (row, col) in self.previously_selected_piece.spawn_squares(
-                        self.engine
-                ):
-                    self.win.blit(
-                        Constant.IMAGES["hammer"], (display_pos_x, display_pos_y)
-                    )
 
-    def left_click(self):
+        # Draw the sidebar
+        self.side_bar.draw()
+
+    def left_click(self) -> bool:
+        """
+        Handles the left-click action to interact with menus or select a piece.
+
+        :return: True if an action is successfully performed, otherwise False.
+        """
+        # Get the current mouse position
         row, col = Constant.convert_pos(pygame.mouse.get_pos())
+
+        # Handle menu input if applicable
         if self.engine.menus:
             for menu in self.engine.menus:
                 return menu.left_click()
-
-            if self.engine.spawning is not None:
-                new_state = Spawning(self.win, self.engine)
-                self.engine.set_state(new_state)
-                return True
-        else:
-            self.engine.reset_selected()
-            new_state = Playing(self.win, self.engine)
-            self.engine.set_state(new_state)
-            return False
+        return False
 
     def right_click(self):
-        self.engine.reset_selected()
-        self.engine.menus = []
-        state = Playing(self.win, self.engine)
-        self.engine.set_state(state)
-
+        """
+        Handles the right-click event to return to the playing state.
+        """
+        self.revert_to_playing_state()
     def mouse_move(self):
+        """
+        Handles mouse movement events.
+        """
+        # Handle menu input for mouse movement
         if self.engine.menus:
             for menu in self.engine.menus:
                 menu.mouse_move()
@@ -3145,14 +3367,20 @@ class PreBuilding(State):
                     state = Playing(self.win, self.engine)
                     self.engine.set_state(state)
 
-    def click_square_in_spawn_squares(self, row, col):
-        if (row, col) in self.previously_selected_piece.spawn_squares(self.engine):
-            return True
+    def click_square_in_spawn_squares(self, row: int, col: int) -> bool:
+        """
+        Checks if a square is within the spawn squares of the previously selected piece.
 
-    def select(self, row, col):
-        return True
+        :param row: The row index of the square.
+        :param col: The column index of the square.
+        :return: True if the square is within the spawn squares, otherwise False.
+        """
+        return (row, col) in self.previously_selected_piece.spawn_squares(self.engine)
 
     def tab(self):
+        """
+        Handles the tab key press event to revert to the playing state.
+        """
         self.revert_to_playing_state()
 
 

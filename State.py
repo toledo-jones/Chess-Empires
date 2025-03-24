@@ -1,24 +1,156 @@
 from __future__ import annotations
 
+from typing import Callable
+
 from GameEvent import *
 from Menu import *
 
 
+def can_inspect_piece(currently_selected: "Unit") -> bool:
+    """
+    Checks if a piece can be inspected based on the currently selected piece.
+    :param currently_selected: The currently selected piece.
+    :return: (bool) if the piece can be inspected.
+    """
+    return currently_selected is not None
+
+
+def exit_game():
+    """
+    Calls the Engine's exit_game function to properly terminate the game.
+    """
+    # Import at module level with a new name
+    from Engine import exit_game as engine_exit_game
+
+    # Call the actual exit function from the engine
+    engine_exit_game()
+
+
+def _determine_special_move_type(
+    acting_tile: "Tile", action_tile: "Tile", default_type: type
+) -> type:
+    """
+    Determines whether a move involves a portal, a trap, or is a normal move.
+
+    :param acting_tile: The tile from which the action originates.
+    :param action_tile: The tile on which the action is performed.
+    :param default_type: The default move type if no special condition applies.
+    :return: The appropriate move type (portal, trap, or default).
+    """
+
+    # Retrieve the piece from the acting tile
+    piece: Unit = acting_tile.get_occupying()
+
+    # Check if the action tile contains a portal
+    if action_tile.portal:
+        return (
+            PortalMove
+            if default_type == Move
+            else (PortalCapture if default_type == Capture else PortalSpawn)
+        )
+
+    # Check if the action tile contains a trap
+    if action_tile.trap:
+        # Determine if the trap is neutralized by a protective piece of the same color
+        if not action_tile.is_protected_by_same_color(piece.color):
+            return (
+                TrapMove
+                if default_type == Move
+                else (TrapCapture if default_type == Capture else TrapSpawn)
+            )
+
+    # Return the default move type if no special conditions apply
+    return default_type
+
+
+def type_of_capture(acting_tile: "Tile", action_tile: "Tile") -> type:
+    """
+    Determines the type of capture based on the presence of traps or portals.
+
+    :param acting_tile: The tile from which the capture originates.
+    :param action_tile: The tile on which the capture is performed.
+    :return: The type of capture (TrapCapture, PortalCapture, or Capture).
+    """
+    return _determine_special_move_type(acting_tile, action_tile, Capture)
+
+
+def type_of_spawn(
+    acting_tile: "Tile", action_tile: "Tile", spawning: str = None
+) -> type:
+    """
+    Determines the type of spawn based on the presence of traps or portals.
+
+    :param spawning: string of spawning piece
+    :param acting_tile: The tile from which the spawn originates.
+    :param action_tile: The tile on which the spawn is performed.
+    :return: The type of spawn (SpawnTrap, TrapSpawn, PortalSpawn, or Spawn).
+    """
+
+    # If the engine is currently spawning a trap, return the corresponding spawn type
+    if spawning == "trap":
+        return SpawnTrap
+
+    return _determine_special_move_type(acting_tile, action_tile, Spawn)
+
+
+def same_piece_selected(previously_selected: Unit, row: int, col: int) -> bool:
+    """
+    Checks if the same piece is selected again.
+    Returns True if the same piece is selected, False otherwise.
+    :param: previously_selected: The piece that was previously selected.
+    :param: row: The row index of the selected piece.
+    :param: col: The column index of the selected piece.
+    :return (bool) if the piece is selected again.
+    """
+    # No piece selected
+    if previously_selected is None:
+        return False
+
+    # Check if the positions match
+    return previously_selected.get_position() == (row, col)
+
+
 class State:
-    def __init__(self, win, engine):
-        self.win = win
-        self.engine = engine
-        self.side_bar = None
-        self.dragging = False
-        self.mouse_start_pos = None
-        self.dragging_piece = None
-        self.spawnTable = (
+    """
+    Represents the game state, handling interactions, rendering, and game logic.
+    """
+
+    def __init__(self, win: pygame.Surface, engine: "Engine"):
+        """
+        Initializes the State object with essential game components.
+
+        :param win: The game window surface where everything is drawn.
+        :param engine: The game engine managing game logic and events.
+        """
+
+        # The game window surface where all visuals are rendered
+        self.win: pygame.Surface = win
+
+        # The game engine responsible for handling game logic and events
+        self.engine: "Engine" = engine
+
+        # Sidebar element, initially set to None
+        self.side_bar: "Optional[SideMenu]" = None
+
+        # Boolean flag indicating whether an object is currently being dragged
+        self.dragging: bool = False
+
+        # Stores the initial mouse position when dragging starts
+        self.mouse_start_pos: tuple[int, int] | None = None
+
+        # Stores the game piece currently being dragged, initially None
+        self.dragging_piece: "Optional[Unit]" = None
+
+        # Dictionary of spawn-able objects, mapping string keys to their respective images
+        self.spawnTable: dict[str, pygame.Surface] = (
             Constant.W_BUILDINGS
             | Constant.W_PIECES
             | Constant.B_BUILDINGS
             | Constant.B_PIECES
         )
-        self.paper_texture = Constant.IMAGES["paper"]
+
+        # Background paper texture used in the game interface
+        self.paper_texture: pygame.Surface = Constant.IMAGES["paper"]
 
     def draw_piece_at_mouse_cursor(self, pos, piece):
         """
@@ -56,117 +188,85 @@ class State:
         # Convert to proper alpha format if needed
         return scaled_image
 
-    def reset_dragging_piece(self):
+    def reset_dragging_piece(self) -> bool:
+        """
+        Resets the dragging piece to its original position if it was being dragged.
+        :return: (bool) True if the dragging piece was reset, False otherwise.
+        """
+        # Attempt to set dragging piece dragging bool to false.
         try:
             self.dragging_piece.dragging = False
-        except AttributeError as e:
-            pass
+        except AttributeError:
+            return False
+
+        # Reset the dragging piece.
         self.dragging_piece = None
         self.dragging = False
+        return True
 
-    def handle_input(self, event):
+    def handle_input(self, event: pygame.event.Event):
         """
-        Handles input events including mouse clicks, dragging, and key presses.
+        Processes input events including mouse clicks, dragging, and key presses.
 
-        - Left click (MOUSEBUTTONDOWN with button 1) starts selection or dragging.
-        - Mouse movement (MOUSEMOTION) updates dragging or handles hover effects.
-        - Left click release (MOUSEBUTTONUP with button 1) determines if it was a click or a drag-and-drop action.
-        - Right click (MOUSEBUTTONDOWN with button 3) triggers the right-click function.
-        - Key presses (KEYDOWN) trigger specific functions.
+        :param event: The pygame event object containing input details.
         """
-
-        CLICK_THRESHOLD = 5  # Movement threshold to differentiate click vs. drag
-
+        # Handle mouse button press events
         if event.type == pygame.MOUSEBUTTONDOWN:
+            # Check if the left mouse button (button 1) is pressed
             if event.button == 1:
+                # Attempt left-click action, if successful, do nothing further
                 if self.left_click():
                     pass
+                # Otherwise, attempt to start dragging a piece
                 elif self.drag_piece(event.pos):
                     self.dragging = True
 
+            # Check if the right mouse button (button 3) is pressed
             elif event.button == 3:
                 # Trigger right-click functionality
                 self.right_click()
 
+        # Handle mouse button release events
         elif event.type == pygame.MOUSEBUTTONUP:
+            # Check if the left mouse button (button 1) is released
             if event.button == 1 and self.dragging:
-                # Otherwise, treat it as a drag-and-drop action
+                # Perform drop action for dragged piece
                 self.drop_piece(event.pos)
+                # Reset dragging state
                 self.dragging = False
 
+        # Handle mouse movement events
         elif event.type == pygame.MOUSEMOTION:
+            # Update the game based on mouse movement (e.g., hover effects)
             self.mouse_move()
 
+        # Handle key press events
         elif event.type == pygame.KEYDOWN:
+            # Check if the Tab key is pressed
             if event.key == pygame.K_TAB:
                 self.tab()
+            # Check if the Enter or Space key is pressed
             elif event.key in (pygame.K_RETURN, pygame.K_SPACE):
                 self.enter()
+            # Check if the 'M' key is pressed
             elif event.key == pygame.K_m:
                 self.m()
+            # Check if the 'C' key is pressed
             elif event.key == pygame.K_c:
                 self.c()
+            # Check if the Escape key is pressed
             elif event.key == pygame.K_ESCAPE:
                 self.esc()
 
-    def type_of_move(self, acting_tile, action_tile):
-        piece = acting_tile.get_occupying()
-        has_portal = False
-        if action_tile.portal:
-            has_portal = True
-        has_trap = False
-        if action_tile.trap:
-            has_trap = True
-            if action_tile.is_protected_by_same_color(piece.color):
-                has_trap = False
-        if has_trap:
-            if action_tile.trap.color != piece.color:
-                return TrapMove
-        if has_portal:
-            return PortalMove
+    def type_of_move(self, acting_tile: "Tile", action_tile: "Tile") -> type:
+        """
+        Determines the type of move based on the presence of traps or portals.
 
-        return Move
-
-    def can_inspect_piece(self, currently_selected):
-        return currently_selected is not None
-
-    def type_of_capture(self, acting_tile, action_tile):
-        piece = acting_tile.get_occupying()
-        has_portal = False
-        if action_tile.portal:
-            has_portal = True
-        has_trap = False
-        if action_tile.trap:
-            has_trap = True
-            if action_tile.is_protected_by_same_color(piece.color):
-                has_trap = False
-        if has_trap:
-            if action_tile.trap.color != piece.color:
-                return TrapCapture
-        if has_portal:
-            return PortalCapture
-        return Capture
-
-    def type_of_spawn(self, acting_tile, action_tile):
-        piece = acting_tile.get_occupying()
-        has_portal = False
-        if action_tile.portal:
-            has_portal = True
-        has_trap = False
-
-        if action_tile.trap:
-            has_trap = True
-            if action_tile.is_protected_by_same_color(piece.color):
-                has_trap = False
-        if self.engine.spawning == "trap":
-            return SpawnTrap
-        if has_trap:
-            if action_tile.trap.color != piece.color:
-                return TrapSpawn
-        if has_portal:
-            return PortalSpawn
-
-        return Spawn
+        :param acting_tile: The tile from which the move originates.
+        :param action_tile: The tile on which the move is performed.
+        :return: The type of move (TrapMove, PortalMove, or Move).
+        """
+        return _determine_special_move_type(acting_tile, action_tile, Move)
 
     def revert_to_playing_state(self):
         """
@@ -205,87 +305,162 @@ class State:
                     # Revert the game to the default 'playing' state
                     return self.revert_to_playing_state()
 
-    def side_bar_input(self, input_type):
+    def side_bar_input(self, input_type: str) -> bool:
+        """
+        Processes input events for the sidebar, if it is active.
+        :param input_type: (str) The type of input event to process.
+        :return: (bool) True if the input was processed, False otherwise.
+        """
+        # Check if the sidebar exists
         if self.side_bar:
+            # Get the function to call based on the input type
             function = getattr(self.side_bar, input_type)
-            function()
-            return True
+            # Call the function and return the result
+            return function()
 
-    def menu_input(self, input_type):
+    def menu_input(self, input_type: str) -> bool:
+        """
+        Processes input events for the active menu, if one is open.
+        :param input_type: (str) The type of input event to process.
+        :return: (bool) True if the input was processed, False otherwise.
+        """
+        # Check if there are active menus
         if self.engine.menus:
+            # Loop through each active menu
             for menu in self.engine.menus:
-                function = getattr(menu, input_type)
-                function()
-            return True
+                # Get the function to call based on the input type
+                function: callable = getattr(menu, input_type)
+                # Call the function and return the result
+                return function()
 
     def draw(self):
-        #
-        #   Default: draw the engine and fill the window background
-        #
+        """
+        Super method of draw, can be overridden by subclasses.
+        Draws the board by default
+        """
         self.win.fill(Constant.MENU_COLOR)
         self.engine.draw(self.win)
 
     def enter(self):
-        #
-        #   By default enter will change turn if the player has performed an action that turn.
-        #
+        """
+        Super method of enter, can be overridden by subclasses.
+        By default, sets state to playing and attempts to change the turn
+        """
+        # Set state to playing
         self.revert_to_playing_state()
+        # Get player object
         player = self.engine.players[self.engine.turn]
-
+        # Check if the player has any actions remaining
         number_of_actions_if_player_has_done_nothing = (
             player.total_additional_actions_this_turn
             + Constant.DEFAULT_ACTIONS_REMAINING
         )
+        # Force the player to use their actions if they have any before changing turn
         if number_of_actions_if_player_has_done_nothing > player.actions_remaining:
             self.engine.change_turn()
+            return True
 
-    def drag_piece(self, pos):
+    def drag_piece(self, pos: Tuple[int, int]):
+        """
+        Super method of drag piece, can be overridden by subclasses.
+        By default, do nothing.
+        :param pos: mouse position at current drag frame
+        """
         pass
 
-    def drop_piece(self, pos):
+    def drop_piece(self, pos: Tuple[int, int]):
+        """
+        Super method of drop piece, can be overridden by subclasses.
+        By default, do nothing.
+        :param pos: mouse position at drop frame
+        """
         pass
 
     def right_click(self):
-        #
-        #   Implement a right click function in a state to change the default functionality
-        #
+        """
+        Super method of right click, can be overridden by subclasses.
+        By default, do nothing.
+        """
         pass
 
-    def tab(self):
+    def tab(self) -> bool:
+        """
+        Super method of tab, can be overridden by subclasses.
+        By default, attempt to undo the last move.
+        :return: (bool) True if the undo was successful, False otherwise.
+        """
+
+        # Get the previously selected piece.
         prev = self.engine.update_previously_selected()
+        # If prev exists, reset selected and revert to playing state.
         if prev is not None:
             self.engine.reset_selected()
             self.revert_to_playing_state()
+
+        # Attempt to undo the last move.
         try:
-            self.engine.undo_last_event()
-        except IndexError as e:
-            pass
+            return self.engine.undo_last_event()
+        except IndexError:
+            return False
 
     def m(self):
+        """
+        Super method of 'm' key press, can be overridden by subclasses.
+        By default, do nothing.
+        """
         pass
 
     def c(self):
+        """
+        Super method of 'c' key press, can be overridden by subclasses.
+        By default, do nothing.
+        """
         pass
 
     def esc(self):
         self.engine.pause()
 
     def mouse_move(self):
+        """
+        Super method of mouse move, can be overridden by subclasses.
+        By default, do nothing.
+        """
         pass
 
     def left_click(self):
+        """
+        Super method of left click, can be overridden by subclasses.
+        By default, do nothing.
+        """
         pass
 
-    def revert_to_starting_state(self, first=False):
+    def revert_to_starting_state(self, first: bool = False):
+        """
+        Revert game state to Starting state, before a player has chosen their color.
+        :param first: Flag to indicate if it is the first turn of the game. This is used in StartingSpawn.
+        """
+        # Create new state object
         new_state = Starting(self.win, self.engine, True)
+
+        # Reset spawning flag
         self.engine.spawning = None
+
+        # If first is True, set the engine's first flag to True
         if first:
             self.engine.first = first
+
+        # Set engine state to new state
         self.engine.set_state(new_state)
+
+    def remove_top_state(self):
+        """
+        Remove the top state from the engine's state stack.
+        """
+        del self.engine.state[-1]
 
 
 class Settings(State):
-    def __init__(self, win: pygame.Surface, engine: "GameEngine"):
+    def __init__(self, win: pygame.Surface, engine: "Engine"):
         """
         Initializes the Pause state with buttons and UI elements.
 
@@ -454,17 +629,36 @@ class Settings(State):
         else:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)  # Default cursor
 
-    def __repr__(self):
-        return "pause"
+    def __repr__(self) -> str:
+        """
+        Return a string representation of the class.
+        :return: A string representing the class.
+        """
+        return "settings"
+
+    def enter(self):
+        """
+        Override default enter method to do nothing.
+        """
+        pass
 
     def tab(self):
-        del self.engine.state[-1]
+        """
+        Simulate the 'tab' key action.
+        """
+        self.remove_top_state()
 
     def right_click(self):
-        del self.engine.state[-1]
+        """
+        Simulate a right-click action.
+        """
+        self.remove_top_state()
 
     def esc(self):
-        del self.engine.state[-1]
+        """
+        Simulate the 'esc' key action.
+        """
+        self.remove_top_state()
 
     def left_click(self):
         """
@@ -509,12 +703,9 @@ class Settings(State):
             # Return to previous state
             self.esc()
 
-    def enter(self):
-        pass
-
 
 class Pause(State):
-    def __init__(self, win: pygame.Surface, engine: "GameEngine"):
+    def __init__(self, win: pygame.Surface, engine: "Engine"):
         """
         Initializes the Pause state with buttons and UI elements.
 
@@ -641,14 +832,36 @@ class Pause(State):
         else:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)  # Default cursor
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """
+        Return a string representation of the class.
+        :return: A string representing the class.
+        """
         return "pause"
 
+    def enter(self):
+        """
+        Override default enter method to do nothing.
+        """
+        pass
+
+    def tab(self):
+        """
+        Simulate the 'tab' key action.
+        """
+        self.remove_top_state()
+
     def right_click(self):
-        del self.engine.state[-1]
+        """
+        Simulate a right-click action.
+        """
+        self.remove_top_state()
 
     def esc(self):
-        del self.engine.state[-1]
+        """
+        Simulate the 'esc' key action.
+        """
+        self.remove_top_state()
 
     def left_click(self):
         """
@@ -700,14 +913,7 @@ class Pause(State):
 
         # If the "Quit" button was clicked
         elif button_index == 4:
-            Constant.save_settings()
-            # Quit the game
-            pygame.quit()
-            # Exit the program
-            exit()
-
-    def enter(self):
-        pass
+            exit_game()
 
 
 class MainMenu(State):
@@ -720,6 +926,8 @@ class MainMenu(State):
         self.main_menu_logo = splash_screen.logo_image
         self.logo_position = splash_screen.logo_position
         self.color = Constant.turn_to_color[splash_screen.logo_color]
+        self.logo_position_y = None
+        self.button_display_y = None
 
         # Window dimensions and font settings
         self.window_width = self.win.get_width()
@@ -755,6 +963,46 @@ class MainMenu(State):
         # Compute initial button positions
         self.compute_button_positions()
 
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the state.
+
+        :return: The name of the state as a string.
+        """
+
+        # The string representation of this state, indicating it's the main menu
+        return "main menu"
+
+    def esc(self):
+        """
+        Handles the escape key press.
+        This method is currently unimplemented but can be overridden in subclasses.
+        """
+        pass
+
+    def enter(self):
+        """
+        Handles the enter key press.
+        This method is currently unimplemented but can be overridden in subclasses.
+        """
+        pass
+
+    def set_splash(self, splash_screen: "SplashScreen"):
+        """
+        Sets the splash screen properties, including the logo image, position, and color.
+
+        :param splash_screen: The splash screen containing logo details.
+        """
+
+        # Assign the splash screen's logo image to the main menu logo
+        self.main_menu_logo = splash_screen.logo_image
+
+        # Set the logo position based on the splash screen settings
+        self.logo_position = splash_screen.logo_position
+
+        # Convert the splash screen's logo color to the appropriate in-game color
+        self.color = Constant.turn_to_color[splash_screen.logo_color]
+
     def compute_button_positions(self):
         """
         Calculate the position for each button and store it in the button_positions list.
@@ -775,7 +1023,7 @@ class MainMenu(State):
 
         # Calculate each button's position (centered vertically, spaced evenly horizontally)
         for i, button_surface in enumerate(self.button_surfaces):
-            button_x = start_x + i * (self.button_width)
+            button_x = start_x + i * self.button_width
             # Horizontal spacing between buttons
             button_y = self.button_display_y
             # Keep buttons vertically centered
@@ -821,7 +1069,8 @@ class MainMenu(State):
         Detect mouse movement to highlight the button under the cursor and update the mouse cursor.
         """
         mouse_x, mouse_y = pygame.mouse.get_pos()
-        cursor_set = False  # Track if cursor is set to hand
+        # Track if cursor is set to hand
+        cursor_set = False
 
         # Check each button and update its highlight state
         for i, (button_x, button_y) in enumerate(self.button_positions):
@@ -830,25 +1079,16 @@ class MainMenu(State):
                 and button_y <= mouse_y <= button_y + self.button_height
             ):
                 self.button_highlighted[i] = True
-                if not cursor_set:  # Set cursor to hand if not already set
+                if not cursor_set:
+                    # Set cursor to hand if not already set
                     pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
                     cursor_set = True
             else:
                 self.button_highlighted[i] = False
 
-        if not cursor_set:  # If no button is highlighted, reset to arrow
+        if not cursor_set:
+            # If no button is highlighted, reset to arrow
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
-
-    def __repr__(self):
-        return "main menu"
-
-    def esc(self):
-        pass
-
-    def set_splash(self, splash_screen):
-        self.main_menu_logo = splash_screen.logo_image
-        self.logo_position = splash_screen.logo_position
-        self.color = Constant.turn_to_color[splash_screen.logo_color]
 
     def left_click(self):
         """
@@ -879,14 +1119,7 @@ class MainMenu(State):
                     # Settings button
                     self.engine.state.append(Settings(self.win, self.engine))
                 elif i == 3:
-                    Constant.save_settings()
-                    # Quit the game
-                    pygame.quit()
-                    # Exit the program
-                    exit()
-
-    def enter(self):
-        pass
+                    exit_game()
 
 
 class Instructions(State):
@@ -898,6 +1131,10 @@ class Instructions(State):
 
         # Determine color for menu
         self.color = Constant.turn_to_color[self.engine.turn]
+
+        # Initialize variables for logo and button positions
+        self.logo_position_y = None
+        self.button_display_y = None
 
         # List of images to be shown
         self.images = Constant.INSTRUCTIONS
@@ -995,11 +1232,36 @@ class Instructions(State):
         if not cursor_set:  # If no button is highlighted, reset to arrow
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
-    def right_click(self):
-        del self.engine.state[-1]
+    def __repr__(self) -> str:
+        """
+        Return a string representation of the class.
+        :return: A string representing the class.
+        """
+        return "instructions"
+
+    def enter(self):
+        """
+        Override default enter method to do nothing.
+        """
+        pass
 
     def tab(self):
-        del self.engine.state[-1]
+        """
+        Simulate the 'tab' key action.
+        """
+        self.remove_top_state()
+
+    def right_click(self):
+        """
+        Simulate a right-click action.
+        """
+        self.remove_top_state()
+
+    def esc(self):
+        """
+        Simulate the 'esc' key action.
+        """
+        self.remove_top_state()
 
     def draw(self):
         """
@@ -1075,190 +1337,370 @@ class Instructions(State):
         # Update self.images to be the scaled images
         self.images = scaled_images
 
-    def esc(self):
-        del self.engine.state[-1]
-
 
 class Inspector(State):
-    def __init__(self, win, engine, currently_selected):
+    """
+    Represents the Inspector state, which allows players to inspect pieces on the board.
+
+    This state enables selecting a piece, viewing its possible moves, and switching back to
+    the main game state when necessary.
+    """
+
+    def __init__(self, win: pygame.Surface, engine: "Engine", currently_selected: Unit):
+        """
+        Initializes the Inspector state.
+
+        :param win: The game window surface.
+        :param engine: The game engine handling state and logic.
+        :param currently_selected: The piece that is currently being inspected.
+        """
+
+        # Initialize the base State class
         super().__init__(win, engine)
+
+        # Store the currently selected piece
         self.currently_selected = currently_selected
+
+        # Initialize the sidebar for displaying piece information
         self.side_bar = PieceInspector(win, engine, currently_selected)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of this state.
+
+        :return: The name of this state as a string.
+        """
+
+        # Identifies this state as the "inspector" state
         return "inspector"
 
     def draw(self):
+        """
+        Draws the inspector state, including the main game and sidebar elements.
+        """
+
+        # Draw the base state (such as the board)
         super().draw()
+
+        # Draw the sidebar displaying information about the inspected piece
         self.side_bar.draw()
 
     def left_click(self):
+        """
+        Handles left-click input by reverting to the playing state.
+
+        :return: The result of reverting to the playing state.
+        """
+
+        # Exit the inspector state and return to normal gameplay
         return self.revert_to_playing_state()
 
-    def select(self, row, col):
+    def select(self, row: int, col: int):
+        """
+        Selects a new piece to inspect.
+
+        :param row: The row index of the selected piece.
+        :param col: The column index of the selected piece.
+        """
+
+        # Retrieve the piece at the specified board position
         self.currently_selected = self.engine.get_occupying(row, col)
+
+        # Update available moves for the new selection
         self.engine.update_moves()
+
+        # Enable move display for the currently selected piece
         self.currently_selected.display_moves = True
 
     def tab(self):
+        """
+        Handles the Tab key press by reverting to the playing state.
+        """
+
+        # Exit the inspector state and return to normal gameplay
         self.revert_to_playing_state()
 
     def right_click(self):
+        """
+        Handles right-click input by reverting to the playing state.
+        """
+
+        # Exit the inspector state and return to normal gameplay
         self.revert_to_playing_state()
 
-    def get_piece_inspected(self):
+    def get_piece_inspected(self) -> Unit:
+        """
+        Retrieves the currently inspected piece.
+
+        :return: The piece currently being inspected.
+        """
+
+        # Return the piece currently selected in the inspector
         return self.currently_selected
 
     def m(self):
+        """
+        Handles the 'M' key press, allowing the player to switch to another piece for inspection.
+
+        If the player clicks on a different piece, the inspector updates. If the same piece is
+        selected, or if an un-inspect-able area is clicked, the game reverts to the playing state.
+        """
+
+        # Get the row and column based on the current mouse position
         row, col = Constant.convert_pos(pygame.mouse.get_pos())
-        if self.engine.get_occupying(row, col) is not self.currently_selected:
-            if self.can_inspect_piece(self.engine.get_occupying(row, col)):
+
+        # Retrieve the piece at the specified board position
+        selected_piece = self.engine.get_occupying(row, col)
+
+        # If the selected piece is not already being inspected
+        if selected_piece is not self.currently_selected:
+            # Check if the piece can be inspected
+            if can_inspect_piece(selected_piece):
+                # Reset the currently selected piece in the engine
                 self.engine.reset_selected()
-                self.side_bar = PieceInspector(
-                    self.win, self.engine, self.engine.get_occupying(row, col)
-                )
+
+                # Update the sidebar with the new piece's information
+                self.side_bar = PieceInspector(self.win, self.engine, selected_piece)
+
+                # Update the currently selected piece
                 self.select(row, col)
             else:
+                # If the piece is not inspect-able, revert to normal gameplay
                 self.revert_to_playing_state()
         else:
+            # If the player selects the same piece again, revert to normal gameplay
             self.revert_to_playing_state()
 
     def mouse_move(self):
+        """
+        Handles mouse movement within the inspector state.
+        This method is currently unimplemented but can be overridden in subclasses.
+        """
         pass
 
 
 class Playing(State):
-    def __init__(self, win, engine):
-        # Initialize the 'Playing' state with the given window and engine.
+    """
+    Represents the main game-playing state where players can move pieces, interact with the board,
+    and access in-game menus.
+    """
+
+    def __init__(self, win: pygame.Surface, engine: "Engine"):
+        """
+        Initializes the 'Playing' state.
+
+        :param win: The game window surface.
+        :param engine: The game engine handling state and logic.
+        """
+
+        # Initialize the base State class
         super().__init__(win, engine)
-        self.side_bar = Hud(win, engine)  # Create the HUD (side bar) for this states
+
+        # Create the HUD (side bar) for this state
+        self.side_bar = Hud(win, engine)
+
+        # Store contextual menu information if applicable
         self.contextual = None
 
-    def __repr__(self):
-        # Representation of the 'Playing' state, useful for debugging.
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of this state.
+
+        :return: The name of this state as a string.
+        """
+
+        # Identifies this state as the "playing" state
         return "playing"
 
-    def drag_piece(self, pos):
+    def drag_piece(self, pos: Tuple[int, int]) -> bool:
+        """
+        Initiates the dragging of a game piece if conditions are met.
+
+        :param pos: The position (x, y) of the mouse click.
+        :return: True if a piece is successfully selected for dragging, False otherwise.
+        """
+
+        # Prevent piece movement if menus are open
         if not self.engine.menus:
+            # Convert pixel position to board coordinates
             row, col = Constant.convert_pos(pos)
+
+            # Retrieve the piece at the selected board position
             currently_selected = self.engine.get_occupying(row, col)
+
+            # Check if the piece can be selected for dragging
             if self.can_select_piece(currently_selected):
+                # Store the piece being dragged
                 self.dragging_piece = currently_selected
+
+                # Set the piece to dragging mode
                 currently_selected.dragging = True
+
+                # Change the mouse cursor to indicate dragging
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_SIZEALL)
+
+                # Select the piece and return success
                 return self.select_piece(currently_selected)
+
             else:
+                # If the piece cannot be selected, reset dragging state
                 self.reset_dragging_piece()
 
-    def drop_piece(self, pos):
+        return False  # Dragging did not occur
+
+    def drop_piece(self, pos: Tuple[int, int]):
+        """
+        Handles the dropping of a dragged piece onto a new board position.
+
+        :param pos: The position (x, y) where the piece is dropped.
+        """
+
+        # Prevent piece dropping if menus are open
         if not self.engine.menus:
+            # Convert pixel position to board coordinates
             row, col = Constant.convert_pos(pos)
+
+            # Ensure a piece was being dragged
             if self.dragging:
+                # Attempt to select the new position
                 if not self.select(row, col):
-                    # If nothing valid is selected, show a popup menu
-                    self.engine.reset_selected()  # Reset selected piece
+                    # If no valid selection, reset the selected piece
+                    self.engine.reset_selected()
+
+            # Reset dragging state
             self.reset_dragging_piece()
+
+            # Restore the mouse cursor to default
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
-    def can_swap_to_square(self, previously_selected, row, col):
-        if previously_selected is None:
+    def can_swap_to_square(
+        self, previously_selected: Optional["Piece"], row: int, col: int
+    ) -> bool:
+        """
+        Checks if the previously selected piece can swap to the target square.
+
+        :param previously_selected: The piece that was previously selected.
+        :param row: The target row to move to.
+        :param col: The target column to move to.
+        :return: True if the piece can swap to the target square, False otherwise.
+        """
+
+        # If no piece is selected or the piece cannot act, the move is invalid
+        if not previously_selected or not previously_selected.can_act():
             return False
-        if not previously_selected.can_act():
-            return False
+
+        # If the player cannot perform an action, the move is invalid
         if not self.engine.player_can_do_action(self.engine.turn):
             return False
+
+        # If the target square is not in the swap list of the selected piece, return False
         if (row, col) not in previously_selected.swap_squares_list:
             return False
+
+        # The piece can swap to the target square
         return True
 
-    def can_move_to_square(self, previously_selected, row, col):
+    def can_move_to_square(
+        self, previously_selected: Optional["Piece"], row: int, col: int
+    ) -> bool:
         """
         Checks if the previously selected piece can move to the specified square.
-        Returns True if the move is valid, False otherwise.
-        """
-        if previously_selected is None:  # No piece selected, can't move
-            return False
-        if previously_selected.actions_remaining == 0:  # No actions left to move
-            return False
-        if not self.engine.player_can_do_action(
-            self.engine.turn
-        ):  # Check if the player can perform an action
-            return False
-        if (
-            row,
-            col,
-        ) not in previously_selected.move_squares_list:  # Target square not in move list
-            self.engine.set_popup_reason(
-                "invalid_move"
-            )  # Set error message for invalid move
-            return False
-        if self.engine.get_occupying(row, col) is not None:  # Square already occupied
-            return False
-        return True  # All checks passed, the move is valid
 
-    def can_select_piece(self, currently_selected):
+        :param previously_selected: The piece that was previously selected.
+        :param row: The target row to move to.
+        :param col: The target column to move to.
+        :return: True if the move is valid, False otherwise.
+        """
+
+        # If no piece is selected or the piece has no actions left, the move is invalid
+        if not previously_selected or previously_selected.actions_remaining == 0:
+            return False
+
+        # If the player cannot perform an action, the move is invalid
+        if not self.engine.player_can_do_action(self.engine.turn):
+            return False
+
+        # If the target square is not in the piece's move list, the move is invalid
+        if (row, col) not in previously_selected.move_squares_list:
+            return False
+
+        # If the square is already occupied, the move is invalid
+        if self.engine.get_occupying(row, col) is not None:
+            return False
+
+        # The move is valid
+        return True
+
+    def can_select_piece(self, currently_selected: Optional["Piece"]) -> bool:
         """
         Checks if a piece can be selected based on its properties and the current game state.
-        Returns True if the piece can be selected, False otherwise.
+
+        :param currently_selected: The piece being considered for selection.
+        :return: True if the piece can be selected, False otherwise.
         """
+
+        # If dragging is in progress, pieces cannot be selected
         if self.dragging:
             return False
-        if not isinstance(
-            currently_selected, Piece
-        ):  # The selected object is not a piece
-            return False
-        if (
-            self.engine.turn != currently_selected.color
-        ):  # The piece does not belong to the current player
-            return False
-        if not currently_selected.can_act():  # No actions left for the piece
-            self.engine.set_popup_reason(
-                "piece_action"
-            )  # Set reason for piece not being able to be selected
-            return False
-        if not self.engine.player_can_do_action(
-            self.engine.turn
-        ):  # Player can't perform actions
-            return False
-        return True  # The piece can be selected
 
-    def can_capture_piece(self, previously_selected, row, col, currently_selected):
+        # Ensure that the selected object is indeed a piece
+        if not isinstance(currently_selected, Piece):
+            return False
+
+        # Ensure the piece belongs to the current player
+        if self.engine.turn != currently_selected.color:
+            return False
+
+        # Ensure the piece can still act (i.e., has actions remaining)
+        if not currently_selected.can_act():
+            self.engine.set_popup_reason("piece_action")
+            return False
+
+        # Ensure the player can perform an action
+        if not self.engine.player_can_do_action(self.engine.turn):
+            return False
+
+        # The move is valid
+        return True
+
+    def can_capture_piece(
+        self,
+        previously_selected: Optional["Piece"],
+        row: int,
+        col: int,
+        currently_selected: Optional["Piece"],
+    ) -> bool:
         """
         Checks if the previously selected piece can capture the piece on the target square.
-        Returns True if the capture is valid, False otherwise.
+
+        :param previously_selected: The piece that was previously selected for capturing.
+        :param row: The target row to capture a piece from.
+        :param col: The target column to capture a piece from.
+        :param currently_selected: The piece currently occupying the target square.
+        :return: True if the capture is valid, False otherwise.
         """
-        if previously_selected is None:  # No piece selected to capture with
+
+        # If no piece is selected or the piece has no actions left, the capture is invalid
+        if not previously_selected or previously_selected.actions_remaining == 0:
             return False
-        if previously_selected.actions_remaining == 0:  # No actions left to capture
+
+        # If the player cannot perform an action, the capture is invalid
+        if not self.engine.player_can_do_action(self.engine.turn):
             return False
-        if not self.engine.player_can_do_action(
-            self.engine.turn
-        ):  # Check if the player can perform an action
+
+        # If the target square is not in the piece's capture list, the capture is invalid
+        if (row, col) not in previously_selected.capture_squares_list:
             return False
-        if (
-            row,
-            col,
-        ) not in previously_selected.capture_squares_list:  # Target square not in capture list
-            return False
+
+        # If no piece is present or the piece is of the same color, the capture is invalid
         if (
             currently_selected is None
             or currently_selected.get_color() == previously_selected.get_color()
         ):
-            # No piece to capture or the piece is of the same color
             return False
-        return True  # The capture is valid
 
-    def same_piece_selected(self, previously_selected, row, col):
-        """
-        Checks if the same piece is selected again.
-        Returns True if the same piece is selected, False otherwise.
-        """
-        if previously_selected is None:  # No piece selected
-            return False
-        return previously_selected.get_position() == (
-            row,
-            col,
-        )  # Check if the positions match
+        # The capture is valid
+        return True
 
     def select(self, row: int, col: int) -> bool:
         """
@@ -1272,77 +1714,99 @@ class Playing(State):
         # Check if the piece can move to the new square
         if self.can_move_to_square(previously_selected, row, col):
             self.perform_move(previously_selected, row, col)
-            return True  # Move successful
+            return True
 
         if self.can_swap_to_square(previously_selected, row, col):
             self.perform_swap(previously_selected, row, col)
             return True
 
         # Check if the same piece is selected again (deselect it)
-        if self.same_piece_selected(previously_selected, row, col):
+        if same_piece_selected(previously_selected, row, col):
             self.engine.reset_selected()
-            return True  # Deselect the piece
+            return True
 
         # Check if a new piece can be selected
         if self.can_select_piece(currently_selected):
             self.select_piece(currently_selected)
-            return True  # Piece selected
+            return True
 
         # Check if the piece can capture another piece
         if self.can_capture_piece(previously_selected, row, col, currently_selected):
             self.perform_capture(previously_selected, row, col)
-            return True  # Capture successful
+            return True
 
-        return False  # No valid action
+        return False
 
-    def perform_move(self, previously_selected, row, col):
+    def _perform_action(
+        self,
+        previously_selected: "Piece",
+        row: int,
+        col: int,
+        action_type: Callable[["Tile", "Tile"], type],
+    ):
+        """
+        General method to perform an action (move, swap, capture) by creating an event and updating the game state.
+
+        :param previously_selected: The piece being moved, swapped, or captured.
+        :param row: The target row to perform the action on.
+        :param col: The target column to perform the action on.
+        :param action_type: The type of action (Move, Swap, Capture).
+        """
+        # Get the previous position of the selected piece
+        prev_position = previously_selected.get_position()
+
+        # Get the acting tile based on the piece's previous position
+        acting_tile = self.engine.board[prev_position[0]][prev_position[1]]
+
+        # Get the action tile at the specified row and column
+        action_tile = self.engine.board[row][col]
+
+        # Determine the action type (Move, Swap, Capture)
+        action_class = action_type(acting_tile, action_tile)
+
+        # Create the event based on the action type
+        event = action_class(self.engine, acting_tile, action_tile)
+
+        # Add the created event to the engine to update the game state
+        self.engine.add_event(event)
+
+        # Reset the selected piece after the action is performed
+        self.engine.reset_selected()
+
+    def perform_move(self, previously_selected: "Piece", row: int, col: int):
         """
         Performs the move action by creating an event and updating the game state.
-        """
-        prev_position = previously_selected.get_position()
-        acting_tile = self.engine.board[prev_position[0]][prev_position[1]]
-        action_tile = self.engine.board[row][col]
-        move = self.type_of_move(acting_tile, action_tile)  # Get the type of move
-        event = move(self.engine, acting_tile, action_tile)  # Create the move event
-        self.engine.add_event(event)  # Add event to engine
-        self.engine.reset_selected()  # Reset selected piece
 
-    def perform_swap(self, previously_selected, row, col):
+        :param previously_selected: The piece being moved.
+        :param row: The target row for the move.
+        :param col: The target column for the move.
         """
-        Performs the move action by creating an event and updating the game state.
-        """
-        prev_position = previously_selected.get_position()
-        acting_tile = self.engine.board[prev_position[0]][prev_position[1]]
-        action_tile = self.engine.board[row][col]
-        event = Swap(self.engine, acting_tile, action_tile)  # Create the move event
-        self.engine.add_event(event)  # Add event to engine
-        self.engine.reset_selected()  # Reset selected piece
+        # Call the general perform action method with the appropriate action type (Move)
+        self._perform_action(previously_selected, row, col, self.type_of_move)
 
-    def perform_capture(self, previously_selected, row, col):
+    def perform_capture(self, previously_selected: "Piece", row: int, col: int):
         """
         Performs the capture action by creating an event and updating the game state.
-        """
-        prev_row, prev_col = previously_selected.get_position()
-        acting_tile = self.engine.board[prev_row][prev_col]
-        action_tile = self.engine.board[row][col]
-        capture = self.type_of_capture(
-            acting_tile, action_tile
-        )  # Get the type of capture
-        event = capture(
-            self.engine, acting_tile, action_tile
-        )  # Create the capture event
-        self.engine.add_event(event)  # Add event to engine
-        self.engine.reset_selected()  # Reset selected piece
 
-    def select_piece(self, currently_selected):
+        :param previously_selected: The piece performing the capture.
+        :param row: The target row for the capture.
+        :param col: The target column for the capture.
         """
-        Selects the piece and updates the game state.
+        # Call the general perform action method with the appropriate action type (Capture)
+        self._perform_action(previously_selected, row, col, type_of_capture)
+
+    def select_piece(self, currently_selected: Unit) -> bool:
+        """
+        Selects a new piece to move or interact with.
+        :param currently_selected: Unit which will be set to selected
+        :return: (bool) True if the piece is successfully selected, False otherwise.
         """
         # Update the available moves for the piece
         self.engine.update_moves()
 
         # Reset any previously selected piece
         self.engine.reset_selected()
+
         # Mark the piece as selected
         currently_selected.selected = True
         return True
@@ -1351,79 +1815,91 @@ class Playing(State):
         """
         Handles the left click action, including selecting pieces and interacting with menus.
         Executes all left click actions and returns True if any return True.
+
+        :return: True if any left click action returns True, otherwise False.
         """
+        # Initialize results list to store the outcomes of left click actions
         results = []
 
+        # Handle left click action for the sidebar if it exists
         if self.side_bar:
             results.append(self.side_bar.left_click())
 
+        # Handle left click action for each menu if menus exist
         if self.engine.menus:
             for menu in self.engine.menus:
                 results.append(menu.left_click())
 
-        return any(results)  # Returns True if any element in results is True
+        # Return True if any element in results is True
+        return any(results)
 
     def inspect_piece(self):
         """
-        Handles the inspection of a piece when a special action is performed (e.g., by pressing a key or
-        right-clicking).
+        Handles the inspection of a piece when a special action is performed (e.g., by pressing a key or right-clicking).
         """
-        row, col = Constant.convert_pos(pygame.mouse.get_pos())  # Get mouse position
-        currently_selected = self.engine.get_occupying(
-            row, col
-        )  # Get the piece under the mouse
-        if self.can_inspect_piece(
-            currently_selected
-        ):  # Check if the piece can be inspected
+        # Get the mouse position and convert it to board coordinates
+        row, col = Constant.convert_pos(pygame.mouse.get_pos())
+
+        # Get the piece under the mouse
+        currently_selected = self.engine.get_occupying(row, col)
+
+        # Check if the piece can be inspected
+        if can_inspect_piece(currently_selected):
             # Create and switch to the Inspector state
             new_state = Inspector(self.win, self.engine, currently_selected)
-            new_state.select(row, col)  # Select the piece in the Inspector state
-            self.engine.set_state(new_state)  # Switch to the new state
+            # Select the piece in the Inspector state
+            new_state.select(row, col)
+            # Switch to the new state
+            self.engine.set_state(new_state)
 
     def right_click(self):
         """
         Handles the right-click action, including interacting with menus and pieces.
         """
+        # Handle right-click action for each menu if menus exist
         if self.engine.menus:
             for menu in self.engine.menus:
-                menu.right_click()  # Handle menu interaction
-        else:
-            if self.dragging:
-                self.reset_dragging_piece()
-                self.engine.reset_selected()
+                menu.right_click()
+            return
+
+        # Reset dragging piece and selected piece if dragging
+        if self.dragging:
+            self.reset_dragging_piece()
+            self.engine.reset_selected()
+            return
+
+        # Get the mouse position and convert it to board coordinates
+        row, col = Constant.convert_pos(pygame.mouse.get_pos())
+
+        # Reset selected piece
+        self.engine.reset_selected()
+
+        # Get the piece under the mouse
+        piece = self.engine.get_occupying(row, col)
+
+        # Ensure the piece belongs to the current player
+        if piece and piece.color == self.engine.turn:
+            # Perform right-click action for the piece
+            if not piece.right_click(self.engine):
+                # If the right-click doesn't result in an action, show a popup menu
+                self.engine.create_popup_menu(row, col, self.engine.popup_reason)
+                # Revert to the 'playing' state
+                self.revert_to_playing_state()
             else:
-                row, col = Constant.convert_pos(
-                    pygame.mouse.get_pos()
-                )  # Get mouse position
-                self.engine.reset_selected()  # Reset selected piece
-                piece = self.engine.get_occupying(
-                    row, col
-                )  # Get the piece under the mouse
-                if (
-                    piece and piece.color == self.engine.turn
-                ):  # Ensure the piece belongs to the current player
-                    if not piece.right_click(
-                        self.engine
-                    ):  # Perform right-click action for the piece
-                        # If the right-click doesn't result in an action, show a popup menu
-                        self.engine.create_popup_menu(
-                            row, col, self.engine.popup_reason
-                        )
-                        self.revert_to_playing_state()  # Revert to the 'playing' state
-                    else:
-                        try:
-                            # Create ability menu for pieces with more than 1 ability
-                            self.engine.create_contextual_menu(
-                                row, col, self.win, piece.contextual_options
-                            )
+                try:
+                    # Create ability menu for pieces with more than 1 ability
+                    self.engine.create_contextual_menu(
+                        row, col, self.win, piece.contextual_options
+                    )
 
-                            # Immediately click into the menu if there is only one option
-                            if len(piece.contextual_options) == 1:
-                                if str(piece) not in ["queen", "king"]:
-                                    self.engine.menus[-1].left_click()
-
-                        except AttributeError as e:
-                            pass
+                    # Immediately click into the menu if there is only one option
+                    if len(piece.contextual_options) == 1 and str(piece) not in [
+                        "queen",
+                        "king",
+                    ]:
+                        self.engine.menus[-1].left_click()
+                except AttributeError:
+                    pass
 
     def m(self):
         """
@@ -1437,7 +1913,8 @@ class Playing(State):
         currently_selected = self.engine.get_occupying(row, col)
 
         # Check if the piece can be inspected (based on certain conditions)
-        if self.can_inspect_piece(currently_selected):
+        if can_inspect_piece(currently_selected):
+
             # Create a new Inspector state and pass the piece to inspect
             new_state = Inspector(self.win, self.engine, currently_selected)
 
@@ -1475,30 +1952,28 @@ class Playing(State):
 
     def update_cursor(self):
         """
-        Updates the system cursor based on whether the mouse is hovering over
-        a game piece or not.
+        Updates the system cursor based on whether the mouse is hovering over a game piece or not.
         """
+        # Get the current mouse position
         mouse_x, mouse_y = pygame.mouse.get_pos()
 
+        # Initialize flag to track if a clickable piece is hovered
         clickable_piece_hovered = False
 
         # Loop through all the pieces on the game board
-        for piece in self.engine.players[
-            self.engine.turn
-        ].pieces:  # Assume self.pieces is a list of Rect objects or piece objects
-            # Each piece should have a Rect defining its bounds (position, size)
-            piece_rect = (
-                piece.get_rect()
-            )  # Replace with your actual method to get the piece's Rect
+        for piece in self.engine.players[self.engine.turn].pieces:
+            # Get the piece's bounding rectangle
+            piece_rect = piece.get_rect()
 
+            # Check if the piece can act
             if piece.can_act():
                 # Check if the mouse is over the piece
                 if piece_rect.collidepoint(mouse_x, mouse_y):
                     clickable_piece_hovered = True
                     break  # No need to check further if we found a hovered piece
 
+        # Update the cursor based on whether a piece is hovered
         if not self.dragging and not self.engine.menus:
-            # If the mouse is hovering over a piece, change the cursor to a hand (clickable)
             if clickable_piece_hovered:
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
             else:
@@ -1508,12 +1983,20 @@ class Playing(State):
         """
         Draws the game board, menus, and the sidebar on the window.
         """
-        super().draw()  # Call the parent class's draw method (draw the base game state)
-        for menu in self.engine.menus:
-            menu.draw()  # Draw each menu if any are open
-        self.side_bar.draw()  # Draw the sidebar
+        # Call the parent class's draw method (draw the base game state)
+        super().draw()
 
+        # Draw each menu if any are open
+        for menu in self.engine.menus:
+            menu.draw()
+
+        # Draw the sidebar
+        self.side_bar.draw()
+
+        # Get the current mouse position
         pos = pygame.mouse.get_pos()
+
+        # Draw the piece at the mouse cursor if dragging
         if self.dragging:
             try:
                 self.draw_piece_at_mouse_cursor(pos, self.dragging_piece)
@@ -1522,46 +2005,114 @@ class Playing(State):
 
 
 class Starting(State):
-    def __init__(self, win, engine, preserve_resources=False):
+    """
+    Represents the starting state of the game where players are initialized and resources are set up.
+    """
+
+    def __init__(
+        self, win: pygame.Surface, engine: "Engine", preserve_resources: bool = False
+    ):
+        """
+        Initializes the Starting state.
+
+        :param win: The game window surface.
+        :param engine: The game engine instance.
+        :param preserve_resources: Flag to indicate if resources should be preserved.
+        """
+        # Call the parent class initializer
         super().__init__(win, engine)
 
-        # Play button
+        # Set the final spawn flag to False
         self.engine.final_spawn = False
+
+        # Initialize the players dictionary
         self.engine.players = {}
+
+        # Create the white player
         self.engine.create_player("w")
+
+        # Create the black player
         self.engine.create_player("b")
+
+        # Initialize the sidebar with the StartMenu
         self.side_bar = StartMenu(win, engine)
+
+        # If resources should not be preserved
         if not preserve_resources:
+            # If the board starts with resources, initialize them
             if Constant.BOARD_STARTS_WITH_RESOURCES:
                 self.engine.starting_resources()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the Starting state.
+
+        :return: A string representing the Starting state.
+        """
         return "starting"
 
     def left_click(self):
+        """
+        Handles the left-click action.
+
+        :return: The result of the sidebar's left-click action.
+        """
+        # Delegate the left-click action to the sidebar
         return self.side_bar.left_click()
 
     def c(self):
+        """
+        Handles the 'c' key press action.
+        """
+        # Transfer to the piece cost screen
         self.engine.transfer_to_piece_cost_screen()
 
     def mouse_move(self):
+        """
+        Handles the mouse move action.
+        """
+        # Delegate the mouse move action to the sidebar
         self.side_bar.mouse_move()
 
     def tab(self):
+        """
+        Handles the 'tab' key press action.
+        """
+        # Reset the game board
         self.engine.reset_board()
+
+        # Set the state to the main menu
         self.engine.set_state("main menu")
 
     def draw(self):
+        """
+        Draws the game state.
+        """
+        # Call the parent class's draw method
         super().draw()
+
+        # Draw the sidebar
         self.side_bar.draw()
 
     def enter(self):
+        """
+        Handles the enter action.
+        """
         pass
 
 
 class SelectStartingPieces(State):
+    """
+    Represents the state where players select their starting pieces.
+    """
 
-    def __init__(self, win, engine):
+    def __init__(self, win: pygame.Surface, engine: "Engine"):
+        """
+        Initializes the SelectStartingPieces state.
+
+        :param win: The game window surface.
+        :param engine: The game engine instance.
+        """
         # Initialize the base class
         super().__init__(win, engine)
 
@@ -1575,11 +2126,11 @@ class SelectStartingPieces(State):
             "b": Constant.B_PIECES | Constant.B_BUILDINGS,
         }
 
-        # Window dimensions
+        # Get window dimensions
         self.window_width = pygame.display.Info().current_w
         self.window_height = pygame.display.Info().current_h
 
-        # Font size and rendering
+        # Set font size and render description text
         self.font_size = round(Constant.SQ_SIZE * 1)
         self.font = pygame.font.Font(
             os.path.join("files/fonts", "font.ttf"), self.font_size
@@ -1589,7 +2140,7 @@ class SelectStartingPieces(State):
             self.description_text, True, Constant.turn_to_color[self.engine.turn]
         )
 
-        # Y-buffer for spacing
+        # Set Y-buffer for spacing
         self.y_buffer = round(Constant.SQ_SIZE * 0.55)
 
         # Calculate initial positions and spacing
@@ -1609,10 +2160,10 @@ class SelectStartingPieces(State):
 
         # Initialize the selection matrix (3D list to track piece status)
         self.selection_matrix = [
-            [[0 for y in range(3)] for x in range(self.cols)] for _ in range(self.rows)
+            [[0 for _ in range(3)] for _ in range(self.cols)] for _ in range(self.rows)
         ]
 
-        # Instruction text and surfaces
+        # Set instruction text and surfaces
         self.instruction_text = [
             " 'tab' to go back",
             " 'space bar' to confirm selection",
@@ -1655,33 +2206,96 @@ class SelectStartingPieces(State):
         self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
         self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the SelectStartingPieces state.
+
+        :return: A string representing the SelectStartingPieces state.
+        """
         return "select starting pieces"
 
-    def select_piece(self, piece_selected):
+    def drag_piece(self, pos: Tuple[int, int]) -> bool:
+        """
+        Initiates the dragging of a game piece if conditions are met.
+
+        :param pos: The position (x, y) of the mouse click.
+        :return: True if a piece is successfully selected for dragging, False otherwise.
+        """
+        return True
+
+    def start_drag_selection(self):
+        """
+        Starts the drag selection process.
+        """
+        self.dragging = True
+
+    def update_drag_selection(self):
+        """
+        Updates the selection during the drag process.
+        """
+        if self.dragging:
+            piece_selected = self.piece_selected()
+            if piece_selected:
+                self.select_piece(piece_selected)
+
+    def end_drag_selection(self):
+        """
+        Ends the drag selection process.
+        """
+        self.dragging = False
+
+    def select_piece(self, piece_selected: Tuple[int, int]):
+        """
+        Selects a piece from the selection matrix.
+
+        :param piece_selected: A tuple containing the row and column of the selected piece.
+        """
+        # Extract row and column from the selected piece
         r, c = piece_selected[0], piece_selected[1]
+
+        # Deselect any previously selected piece in the same row
         for col in range(self.cols):
             if self.selection_matrix[r][col][2]:
                 self.selection_matrix[r][col][2] = False
+
+        # Mark the new piece as selected
         self.selection_matrix[r][c][2] = True
 
-    def left_click(self):
+    def left_click(self) -> bool:
+        """
+        Handles the left-click action to select a piece.
+
+        :return: True if a piece is successfully selected, otherwise False.
+        """
+        # Get the selected piece based on the current mouse position
         piece_selected = self.piece_selected()
+
+        # If a piece is selected, mark it as selected
         if piece_selected:
             self.select_piece(piece_selected)
-            return True
+            return False
+
+        return False
 
     def right_click(self):
+        """
+        Handles the right-click action to view the map or piece information.
+        """
+        # Close any open menus if they exist
         if self.engine.menus:
             self.engine.close_menus()
             return
+
+        # Get the selected piece based on the current mouse position
         piece_selected = self.piece_selected()
 
+        # Toggle map drawing if no piece is selected or the map is already being drawn
         if not piece_selected or self.draw_map:
             self.draw_map = self.flip_draw_map()
             self.side_bar = Empty(self.win, self.engine)
             return
 
+        # Show piece information if a piece is selected
         if not self.draw_map:
             try:
                 row, col = piece_selected
@@ -1691,11 +2305,18 @@ class SelectStartingPieces(State):
             menu = PieceDescription(self.win, self.engine, piece)
             self.engine.menus.append(menu)
 
-    def piece_selected(self):
+    def piece_selected(self) -> Optional[Tuple[int, int]]:
+        """
+        Determines which piece is selected based on the current mouse position.
+
+        :return: A tuple containing the row and column of the selected piece, or None if no piece is selected.
+        """
         piece_selected = None
         pos = pygame.mouse.get_pos()
         y_buffer = self.y_buffer
         initial_y = self.initial_y
+
+        # Loop through the selection matrix to find the selected piece
         for r in range(self.rows):
             for c in range(self.cols):
                 piece_position = (c * self.piece_spacing + self.initial_x, initial_y)
@@ -1710,11 +2331,23 @@ class SelectStartingPieces(State):
 
         return piece_selected
 
-    def mouse_move(self):
+    def mouse_move(self) -> Optional[Tuple[int, int]]:
+        """
+        Handles mouse movement to highlight pieces under the cursor.
+
+        :return: A tuple containing the row and column of the highlighted piece, or None if no piece is highlighted.
+        """
         piece_selected = None
         pos = pygame.mouse.get_pos()
         y_buffer = self.y_buffer
         initial_y = self.initial_y
+
+        # if we are dragging update selection for drags
+        if self.dragging:
+            print("Updating drag selection")
+            self.update_drag_selection()
+
+        # Loop through the selection matrix to highlight the piece under the cursor
         for r in range(self.rows):
             for c in range(self.cols):
                 piece_position = (c * self.piece_spacing + self.initial_x, initial_y)
@@ -1733,26 +2366,45 @@ class SelectStartingPieces(State):
 
         return piece_selected
 
-    def convert_pos(self, pos):
+    def convert_pos(self, pos: Tuple[int, int]) -> Tuple[int, int]:
+        """
+        Converts a screen position to a grid position.
+
+        :param pos: A tuple containing the x and y coordinates of the screen position.
+        :return: A tuple containing the row and column of the grid position.
+        """
         row = pos[1] // self.piece_spacing - self.y_buffer
         col = pos[0] // (self.piece_spacing + self.initial_x)
         return row, col
 
     def draw(self):
+        """
+        Draws the selection screen for starting pieces or the map if toggled.
+
+        If menus are open, it draws the menus. Otherwise, it draws the selection screen
+        with the available pieces and highlights the selected ones.
+        """
         if self.engine.menus:
+            # Draw each open menu
             for menu in self.engine.menus:
                 menu.draw()
-                return
+            return
+
         if not self.draw_map:
+            # Fill the window with the menu color
             self.win.fill(Constant.MENU_COLOR)
+
             # Draw paper texture blended with background
             self.draw_paper_texture(self.win)
+
+            # Initialize spacing variables
             y_buffer = self.y_buffer
             initial_x = self.initial_x
             x_buffer = self.initial_x
             piece_spacing = self.piece_spacing
             initial_y = self.initial_y
 
+            # Draw selectable and bonus pieces
             for x in range(
                 Constant.NUMBER_OF_STARTING_PIECES + Constant.NUMBER_OF_BONUS_PIECES
             ):
@@ -1774,7 +2426,10 @@ class SelectStartingPieces(State):
                 x_buffer = initial_x
                 initial_y += y_buffer * 2
 
+            # Reset initial_y for drawing selection matrix
             initial_y = self.initial_y
+
+            # Draw selection matrix highlights
             for r in range(self.rows):
                 for c in range(self.cols):
                     position = (c * self.piece_spacing + self.initial_x, initial_y)
@@ -1782,9 +2437,9 @@ class SelectStartingPieces(State):
                         self.win.blit(self.square, position)
                     if self.selection_matrix[r][c][2]:
                         self.win.blit(self.square, position)
-
                 initial_y += y_buffer * 2
 
+            # Draw instruction text
             self.win.blit(self.text_surf, (20, 0))
             y_buffer = self.initial_y
             for line in self.instruction_text_surfaces:
@@ -1792,12 +2447,17 @@ class SelectStartingPieces(State):
                 self.win.blit(line, (description_text_x, y_buffer))
                 y_buffer += self.instruction_text_height
         else:
+            # Draw the map and sidebar
             super().draw()
             self.side_bar.draw()
 
     def enter(self):
-        spawn_list = []
-        spawn_list.append(Constant.STARTING_PIECES[0])
+        """
+        Handles the enter action to confirm the selection of starting pieces.
+
+        It collects the selected pieces and transfers to the starting spawn state if the selection is valid.
+        """
+        spawn_list = [Constant.STARTING_PIECES[0]]
         for r in range(self.rows):
             for c in range(self.cols):
                 if self.selection_matrix[r][c][2]:
@@ -1810,18 +2470,29 @@ class SelectStartingPieces(State):
         ):
             self.engine.transfer_to_starting_spawn(spawn_list)
 
-    def flip_draw_map(self):
+    def flip_draw_map(self) -> bool:
+        """
+        Toggles the draw_map flag.
+
+        :return: The new state of the draw_map flag.
+        """
         return not self.draw_map
 
     def tab(self):
+        """
+        Handles the 'tab' key press action to revert to the previous state or close menus.
+
+        If menus are open, it closes them. Otherwise, it reverts to the starting state or undoes the last events.
+        """
         if self.engine.menus:
             self.engine.close_menus()
             return
+
         if not self.engine.final_spawn:
             self.engine.players = {}
             self.revert_to_starting_state(self.engine.first)
         else:
-            for x in range(2):
+            for _ in range(2):
                 self.engine.events[-1].undo()
                 del self.engine.events[-1]
 
@@ -2477,7 +3148,7 @@ class Spawning(State):
         if (row, col) in previousP.spawn_squares_list:
             acting_tile = self.engine.board[previousP.row][previousP.col]
             action_tile = self.engine.board[row][col]
-            spawn = self.type_of_spawn(acting_tile, action_tile)
+            spawn = type_of_spawn(acting_tile, action_tile, self.engine.spawning)
             event = spawn(self.engine, acting_tile, action_tile)
             self.engine.add_event(event)
             state = Playing(self.win, self.engine)
@@ -2617,6 +3288,7 @@ class Ritual(State):
     def __init__(self, win, engine):
         super().__init__(win, engine)
         self.previously_selected = engine.update_previously_selected()
+        self.engine.reset_selected()
         self.previously_selected.performing_ritual = True
         self.cost_type = None
         self.turn = self.engine.turn
@@ -2905,6 +3577,7 @@ class PerformSwap(Ritual):
         self.previously_selected.ritual_squares_list = self.swap_ritual_squares()
         if str(self.previously_selected) == "assassin":
             self.first_selected = self.previously_selected
+            self.first_selected.casting = True
             self.previously_selected.ritual_squares_list = self.swap_ritual_squares()
 
     def __repr__(self):
@@ -2917,7 +3590,6 @@ class PerformSwap(Ritual):
         if self.first_selected:
             if str(self.first_selected) == "assassin":
                 return
-            self.first_selected.highlight_self_square(self.win)
 
     def swap_criteria(self, piece):
         if not isinstance(piece, King):
@@ -2941,6 +3613,7 @@ class PerformSwap(Ritual):
         row, col = Constant.convert_pos(pygame.mouse.get_pos())
         if self.click_valid_square(row, col) and self.first_selected is None:
             self.first_selected = self.engine.get_occupying(row, col)
+            self.first_selected.casting = True
             self.previously_selected.ritual_squares_list = self.swap_ritual_squares()
         elif self.click_valid_square(row, col) and self.first_selected:
             self.second_selected = self.engine.get_occupying(row, col)

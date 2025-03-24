@@ -1,9 +1,23 @@
+import sys
+
 from Map import *
 from Player import Player
 from Sounds import *
 from State import *
 from Tile import *
 from Trades import *
+
+
+def exit_game() -> Never:
+    """
+    Exits the game.
+    """
+    # Save settings to file
+    Constant.save_settings()
+    # Quit the game
+    pygame.quit()
+    # Exit the program
+    sys.exit()
 
 
 class Engine:
@@ -1205,7 +1219,9 @@ class Engine:
         event = self.events[-1]
         event.undo()
         event.set_player_in_check()
+        event.set_enemy_in_check()
         del self.events[-1]
+        return True
 
     def add_event(self, event):
         event.complete()
@@ -1587,20 +1603,9 @@ class Engine:
             return True
         return False
 
-    def create_queen_menu(self, row, col):
-        queen_menu = QueenMenu(row, col, self.state[-1].win, self)
-        self.menus.append(queen_menu)
-        return True
-
     def create_contextual_menu(self, row, col, win, menu_list):
         menu = Contextual(row, col, win, self, menu_list)
         self.menus.append(menu)
-        return True
-
-    def create_king_menu(self, row, col):
-        king_menu = KingMenu(row, col, self.state[-1].win, self)
-        self.menus.append(king_menu)
-        self.update_spawn_squares()
         return True
 
     def create_popup_menu(self, row, col, messages=None):

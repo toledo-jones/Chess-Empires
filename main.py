@@ -112,9 +112,9 @@ def main():
 
             # Exit game
             elif event.type == pygame.QUIT:
-                Constant.save_settings()
-                pygame.quit()
-                sys.exit()
+                from Engine import exit_game
+
+                exit_game()
 
         # Reset frame counter if needed (depending on how your game loop is structured)
         # For example, you could reset the counter after a certain number of frames or just let it loop.

@@ -242,8 +242,6 @@ class Unit:
         elif self.praying:
             self.highlight_self_square(win)
             self.highlight_praying_squares(win)
-        elif self.casting:
-            self.highlight_self_square(win)
         elif self.mining_stealing:
             self.highlight_self_square(win)
             self.highlight_stealing_squares(win)
@@ -267,6 +265,8 @@ class Unit:
             self.highlight_self_square_check(win)
         if self.actions_remaining == 0:
             self.unused_piece_highlight = False
+        if self.casting:
+            self.highlight_self_square(win)
 
     def draw(self, win):
         # Check if the piece is not currently being dragged

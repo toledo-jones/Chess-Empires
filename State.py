@@ -3168,26 +3168,48 @@ class Persuading(State):
 
 
 class Stealing(State):
-    def __init__(self, win, engine):
-        super().__init__(win, engine)
-        self.previously_selected = engine.update_previously_selected()
-        self.side_bar = Hud(self.win, self.engine)
-        # Row, Col of Stolen FROM piece
-        self.row = None
-        self.col = None
+    """
+    Represents the stealing state in the game. This state handles user interactions
+    related to stealing mechanics, including selecting valid tiles, processing menu interactions,
+    and reverting to the playing state when needed.
 
-    def __repr__(self):
+    :param win: The game window where rendering occurs.
+    :param engine: The game engine managing the state and logic.
+    """
+
+    def __init__(self, win: pygame.Surface, engine: Engine):
+        super().__init__(win, engine)
+
+        # Updates the previously selected tile in the game
+        self.previously_selected: Tile = engine.update_previously_selected()
+
+        # HUD sidebar for displaying additional information
+        self.side_bar: Hud = Hud(self.win, self.engine)
+
+        # Coordinates of the tile being stolen from
+        self.row: int | None = None
+        self.col: int | None = None
+
+    def __repr__(self) -> str:
         return "stealing"
 
     def draw(self):
+        """
+        Draws the game state, including menus, HUD, and steal icon if applicable.
+        """
         super().draw()
-        pos = pygame.mouse.get_pos()
-        display_pos_x = pos[0] - Constant.SQ_SIZE // 2
-        display_pos_y = pos[1] - Constant.SQ_SIZE // 2
+        pos: tuple[int, int] = pygame.mouse.get_pos()
+        display_pos_x: int = pos[0] - Constant.SQ_SIZE // 2
+        display_pos_y: int = pos[1] - Constant.SQ_SIZE // 2
+
         self.side_bar.draw()
+
+        # Draw menus if they exist
         if self.engine.menus:
             for menu in self.engine.menus:
                 menu.draw()
+
+        # Draw the steal icon if hovering over a valid square
         elif Constant.pos_in_bounds(pos):
             row, col = Constant.convert_pos(pos)
             if (row, col) in self.previously_selected.stealing_squares_list:
@@ -3200,43 +3222,54 @@ class Stealing(State):
 
         :return: True if an action was performed, otherwise False.
         """
-
         row, col = Constant.convert_pos(pygame.mouse.get_pos())
 
-        # Process menu interactions first
+        # If a menu is open, process menu clicks
         if self.engine.menus:
             return any(menu.left_click() for menu in self.engine.menus)
 
-        # Handle stealing mechanic
+        # If stealing is in progress, execute the steal action
         if self.engine.stealing:
             self.engine.close_menus()
-            action_tile = self.engine.board[self.row][self.col]
-            acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
-            event = Steal(self.engine, acting_tile, action_tile)
+            action_tile: Tile = self.engine.board[self.row][self.col]
+            acting_tile: Tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+            event: Steal = Steal(self.engine, acting_tile, action_tile)
             self.engine.add_event(event)
             self.engine.stealing = None
             return self.revert_to_playing_state()
 
-        # If stealing is not in progress, check for valid tile selection
+        # Check if the clicked square is a valid stealing target
         if self.click_valid_square(row, col):
             self.row, self.col = row, col
             self.engine.menus.append(StealingMenu(row, col, self.win, self.engine))
             return True
 
-            # Default case: return to playing state if no other action occurred
+        # Default case: return to playing state if no action occurred
         return self.revert_to_playing_state()
 
-    def click_valid_square(self, row, col):
-        if (row, col) in self.previously_selected.stealing_squares_list:
-            return True
+    def click_valid_square(self, row: int, col: int) -> bool:
+        """
+        Checks whether the given row and column correspond to a valid square for stealing.
+
+        :param row: The row index of the clicked square.
+        :param col: The column index of the clicked square.
+        :return: True if the square is valid for stealing, False otherwise.
+        """
+        return (row, col) in self.previously_selected.stealing_squares_list
 
     def right_click(self):
+        """
+        Handles right-click interactions, resetting selections and returning to the playing state.
+        """
         self.engine.reset_selected()
-        self.engine.menus = []
-        state = Playing(self.win, self.engine)
-        self.engine.set_state(state)
+        self.engine.menus.clear()
+        self.engine.set_state(Playing(self.win, self.engine))
 
     def mouse_move(self):
+        """
+        Handles mouse movement, ensuring menus are properly updated and closing them
+        if the mouse moves out of bounds.
+        """
         if self.engine.menus:
             for menu in self.engine.menus:
                 menu.mouse_move()
@@ -3244,6 +3277,9 @@ class Stealing(State):
                     self.revert_to_playing_state()
 
     def tab(self):
+        """
+        Handles the tab key press, returning to the playing state.
+        """
         self.revert_to_playing_state()
 
 

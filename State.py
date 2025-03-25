@@ -148,7 +148,7 @@ class State:
         self.dragging_piece: Optional[Unit] = None
 
         # Dictionary of spawn-able objects, mapping string keys to their respective images
-        self.spawnTable: dict[str, pygame.Surface] = (
+        self.spawn_table: dict[str, pygame.Surface] = (
             Constant.W_BUILDINGS
             | Constant.W_PIECES
             | Constant.B_BUILDINGS
@@ -162,7 +162,7 @@ class State:
         """
         Draws a piece at the mouse cursor position, centering it properly.
         """
-        piece_image = self.spawnTable[(self.engine.turn + "_" + str(piece))]
+        piece_image = self.spawn_table[(self.engine.turn + "_" + str(piece))]
         piece_rect = piece_image.get_rect(center=pos)
         self.win.blit(piece_image, piece_rect.topleft)
 
@@ -711,7 +711,7 @@ class Settings(State):
 
 
 class Pause(State):
-    def __init__(self, win: pygame.Surface, engine: "Engine"):
+    def __init__(self, win: pygame.Surface, engine: Engine):
         """
         Initializes the Pause state with buttons and UI elements.
 
@@ -1359,7 +1359,7 @@ class Inspector(State):
     the main game state when necessary.
     """
 
-    def __init__(self, win: pygame.Surface, engine: "Engine", currently_selected: Unit):
+    def __init__(self, win: pygame.Surface, engine: Engine, currently_selected: Unit):
         """
         Initializes the Inspector state.
 
@@ -1498,7 +1498,7 @@ class Playing(State):
     and access in-game menus.
     """
 
-    def __init__(self, win: pygame.Surface, engine: "Engine"):
+    def __init__(self, win: pygame.Surface, engine: Engine):
         """
         Initializes the 'Playing' state.
 
@@ -1615,7 +1615,7 @@ class Playing(State):
         return True
 
     def can_move_to_square(
-        self, previously_selected: Optional["Piece"], row: int, col: int
+        self, previously_selected: Optional[Piece], row: int, col: int
     ) -> bool:
         """
         Checks if the previously selected piece can move to the specified square.
@@ -1645,7 +1645,7 @@ class Playing(State):
         # The move is valid
         return True
 
-    def can_select_piece(self, currently_selected: Optional["Piece"]) -> bool:
+    def can_select_piece(self, currently_selected: Optional[Piece]) -> bool:
         """
         Checks if a piece can be selected based on its properties and the current game state.
 
@@ -1679,10 +1679,10 @@ class Playing(State):
 
     def can_capture_piece(
         self,
-        previously_selected: Optional["Piece"],
+        previously_selected: Optional[Piece],
         row: int,
         col: int,
-        currently_selected: Optional["Piece"],
+        currently_selected: Optional[Piece],
     ) -> bool:
         """
         Checks if the previously selected piece can capture the piece on the target square.
@@ -1749,10 +1749,10 @@ class Playing(State):
 
     def _perform_action(
         self,
-        previously_selected: "Piece",
+        previously_selected: Piece,
         row: int,
         col: int,
-        action_type: Callable[["Tile", "Tile"], type],
+        action_type: Callable[[Tile, Tile], type],
     ):
         """
         General method to perform an action (move, swap, capture) by creating an event and updating the game state.
@@ -1783,7 +1783,7 @@ class Playing(State):
         # Reset the selected piece after the action is performed
         self.engine.reset_selected()
 
-    def perform_move(self, previously_selected: "Piece", row: int, col: int):
+    def perform_move(self, previously_selected: Piece, row: int, col: int):
         """
         Performs the move action by creating an event and updating the game state.
 
@@ -1794,7 +1794,7 @@ class Playing(State):
         # Call the general perform action method with the appropriate action type (Move)
         self._perform_action(previously_selected, row, col, type_of_move)
 
-    def perform_capture(self, previously_selected: "Piece", row: int, col: int):
+    def perform_capture(self, previously_selected: Piece, row: int, col: int):
         """
         Performs the capture action by creating an event and updating the game state.
 
@@ -2020,7 +2020,7 @@ class Starting(State):
     """
 
     def __init__(
-        self, win: pygame.Surface, engine: "Engine", preserve_resources: bool = False
+        self, win: pygame.Surface, engine: Engine, preserve_resources: bool = False
     ):
         """
         Initializes the Starting state.
@@ -2519,7 +2519,7 @@ class StartingSpawn(State):
     Represents the state where players begin spawning their pieces at the start of the game.
     """
 
-    def __init__(self, win: pygame.Surface, engine: "Engine"):
+    def __init__(self, win: pygame.Surface, engine: Engine):
         """
         Initializes the StartingSpawn state.
 
@@ -2782,7 +2782,7 @@ class StartingSpawn(State):
             try:
                 # Draw the piece being dragged at the calculated position
                 self.win.blit(
-                    self.spawnTable[(self.engine.turn + "_" + self.engine.spawning)],
+                    self.spawn_table[(self.engine.turn + "_" + self.engine.spawning)],
                     (displayPosX, displayPosY),
                 )
             except TypeError:
@@ -3062,7 +3062,7 @@ class Persuading(State):
     Represents the persuading state where players can persuade other pieces on the board.
     """
 
-    def __init__(self, win: pygame.Surface, engine: "Engine"):
+    def __init__(self, win: pygame.Surface, engine: Engine):
         """
         Initializes the Persuading state.
 
@@ -3303,7 +3303,7 @@ class PreBuilding(State):
     Represents the pre-building state where players can prepare to build structures on the board.
     """
 
-    def __init__(self, win: pygame.Surface, engine: "Engine"):
+    def __init__(self, win: pygame.Surface, engine: Engine):
         """
         Initializes the PreBuilding state.
 
@@ -3441,7 +3441,7 @@ class Trading(State):
     Represents the trading state where players can trade resources on the board.
     """
 
-    def __init__(self, win: pygame.Surface, engine: "Engine"):
+    def __init__(self, win: pygame.Surface, engine: Engine):
         """
         Initializes the Trading state.
 
@@ -3527,7 +3527,7 @@ class Praying(State):
     Represents the praying state where players can perform prayer actions on the board.
     """
 
-    def __init__(self, win: pygame.Surface, engine: "Engine"):
+    def __init__(self, win: pygame.Surface, engine: Engine):
         """
         Initializes the Praying state.
 
@@ -3658,7 +3658,7 @@ class Spawning(State):
     Represents the spawning state where players can spawn pieces on the board.
     """
 
-    def __init__(self, win: pygame.Surface, engine: "Engine"):
+    def __init__(self, win: pygame.Surface, engine: Engine):
         """
         Initializes the Spawning state.
 
@@ -3704,7 +3704,7 @@ class Spawning(State):
                     )
                 else:
                     self.win.blit(
-                        self.spawnTable[
+                        self.spawn_table[
                             (self.engine.turn + "_" + self.engine.spawning)
                         ],
                         (displayPosX, displayPosY),
@@ -3771,7 +3771,7 @@ class Winner(State):
     Represents the winner state where the game displays the winning message.
     """
 
-    def __init__(self, win: pygame.Surface, engine: "Engine"):
+    def __init__(self, win: pygame.Surface, engine: Engine):
         """
         Initializes the Winner state.
 
@@ -3889,7 +3889,7 @@ class Surrender(State):
     Represents the surrender state where players can choose to surrender the game.
     """
 
-    def __init__(self, win: pygame.Surface, engine: "Engine"):
+    def __init__(self, win: pygame.Surface, engine: Engine):
         """
         Initializes the Surrender state.
 
@@ -3961,7 +3961,7 @@ class PieceCost(State):
     """
 
     def __init__(
-        self, win: pygame.Surface, engine: "Engine", current_state: State = None
+        self, win: pygame.Surface, engine: Engine, current_state: State = None
     ):
         """
         Initializes the PieceCost state.
@@ -4059,7 +4059,7 @@ class Ritual(State):
     Represents the ritual state where players can perform rituals on the board.
     """
 
-    def __init__(self, win: pygame.Surface, engine: "Engine"):
+    def __init__(self, win: pygame.Surface, engine: Engine):
         """
         Initializes the Ritual state.
 
@@ -4152,7 +4152,7 @@ class SummonGoldGeneral(Ritual):
     Represents the state where players can summon a Gold General on the board.
     """
 
-    def __init__(self, win: pygame.Surface, engine: "Engine"):
+    def __init__(self, win: pygame.Surface, engine: Engine):
         """
         Initializes the SummonGoldGeneral state.
 
@@ -4239,7 +4239,7 @@ class PerformSmite(Ritual):
     Represents the state where players can perform a smite ritual on the board.
     """
 
-    def __init__(self, win: pygame.Surface, engine: "Engine"):
+    def __init__(self, win: pygame.Surface, engine: Engine):
         """
         Initializes the PerformSmite state.
 
@@ -4331,7 +4331,7 @@ class PerformDestroyResource(Ritual):
     Represents the state where players can perform a destroy resource ritual on the board.
     """
 
-    def __init__(self, win: pygame.Surface, engine: "Engine"):
+    def __init__(self, win: pygame.Surface, engine: Engine):
         """
         Initializes the PerformDestroyResource state.
 
@@ -4428,7 +4428,7 @@ class PerformCreateResource(Ritual):
     Represents the state where players can perform the ritual which creates a resource on the board.
     """
 
-    def __init__(self, win: pygame.Surface, engine: "Engine"):
+    def __init__(self, win: pygame.Surface, engine: Engine):
         """
         Initializes the PerformCreateResource state.
 

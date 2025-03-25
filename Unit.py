@@ -99,6 +99,9 @@ class Unit:
     def update_capture_squares(self, engine):
         self.capture_squares_list = self.capture_squares(engine)
 
+    def gold_general_ritual_squares(self, engine):
+        return []
+
     def update_spawn_squares(self, engine):
         self.spawn_squares_list = self.spawn_squares(engine)
 

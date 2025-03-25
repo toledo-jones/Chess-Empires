@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import typing
-from typing import Callable
+from typing import Callable, Union
 
 if typing.TYPE_CHECKING:
     from Engine import Engine
@@ -10,15 +10,6 @@ if typing.TYPE_CHECKING:
 
 from GameEvent import *
 from Menu import *
-
-
-def can_inspect_piece(currently_selected: "Unit") -> bool:
-    """
-    Checks if a piece can be inspected based on the currently selected piece.
-    :param currently_selected: The currently selected piece.
-    :return: (bool) if the piece can be inspected.
-    """
-    return currently_selected is not None
 
 
 def exit_game():
@@ -33,7 +24,7 @@ def exit_game():
 
 
 def _determine_special_move_type(
-        acting_tile: "Tile", action_tile: "Tile", default_type: type
+    acting_tile: Tile, action_tile: Tile, default_type: type
 ) -> type:
     """
     Determines whether a move involves a portal, a trap, or is a normal move.
@@ -69,7 +60,7 @@ def _determine_special_move_type(
     return default_type
 
 
-def type_of_capture(acting_tile: "Tile", action_tile: "Tile") -> type:
+def type_of_capture(acting_tile: Tile, action_tile: Tile) -> type:
     """
     Determines the type of capture based on the presence of traps or portals.
 
@@ -80,9 +71,7 @@ def type_of_capture(acting_tile: "Tile", action_tile: "Tile") -> type:
     return _determine_special_move_type(acting_tile, action_tile, Capture)
 
 
-def type_of_spawn(
-        acting_tile: "Tile", action_tile: "Tile", spawning: str = None
-) -> type:
+def type_of_spawn(acting_tile: Tile, action_tile: Tile, spawning: str = None) -> type:
     """
     Determines the type of spawn based on the presence of traps or portals.
 
@@ -106,7 +95,7 @@ def same_piece_selected(previously_selected: Unit, row: int, col: int) -> bool:
     :param: previously_selected: The piece that was previously selected.
     :param: row: The row index of the selected piece.
     :param: col: The column index of the selected piece.
-    :return (bool) if the piece is selected again.
+    :return: (bool) if the piece is selected again.
     """
     # No piece selected
     if previously_selected is None:
@@ -116,12 +105,23 @@ def same_piece_selected(previously_selected: Unit, row: int, col: int) -> bool:
     return previously_selected.get_position() == (row, col)
 
 
+def type_of_move(acting_tile: Tile, action_tile: Tile) -> type:
+    """
+    Determines the type of move based on the presence of traps or portals.
+
+    :param acting_tile: The tile from which the move originates.
+    :param action_tile: The tile on which the move is performed.
+    :return: The type of move (TrapMove, PortalMove, or Move).
+    """
+    return _determine_special_move_type(acting_tile, action_tile, Move)
+
+
 class State:
     """
     Represents the game state, handling interactions, rendering, and game logic.
     """
 
-    def __init__(self, win: pygame.Surface, engine: "Engine"):
+    def __init__(self, win: pygame.Surface, engine: Engine):
         """
         Initializes the State object with essential game components.
 
@@ -133,10 +133,10 @@ class State:
         self.win: pygame.Surface = win
 
         # The game engine responsible for handling game logic and events
-        self.engine: "Engine" = engine
+        self.engine: Engine = engine
 
         # Sidebar element, initially set to None
-        self.side_bar: "Optional[SideMenu]" = None
+        self.side_bar: Optional[SideMenu] = None
 
         # Boolean flag indicating whether an object is currently being dragged
         self.dragging: bool = False
@@ -145,14 +145,14 @@ class State:
         self.mouse_start_pos: tuple[int, int] | None = None
 
         # Stores the game piece currently being dragged, initially None
-        self.dragging_piece: "Optional[Unit]" = None
+        self.dragging_piece: Optional[Unit] = None
 
         # Dictionary of spawn-able objects, mapping string keys to their respective images
         self.spawnTable: dict[str, pygame.Surface] = (
-                Constant.W_BUILDINGS
-                | Constant.W_PIECES
-                | Constant.B_BUILDINGS
-                | Constant.B_PIECES
+            Constant.W_BUILDINGS
+            | Constant.W_PIECES
+            | Constant.B_BUILDINGS
+            | Constant.B_PIECES
         )
 
         # Background paper texture used in the game interface
@@ -220,7 +220,7 @@ class State:
         if event.type == pygame.MOUSEBUTTONDOWN:
             # Check if the left mouse button (button 1) is pressed
             if event.button == 1:
-                # Attempt left-click action, if successful, do nothing further
+                # Attempt a left-click action, if successful, do nothing further
                 if self.left_click():
                     pass
                 # Otherwise, attempt to start dragging a piece
@@ -263,16 +263,6 @@ class State:
             # Check if the Escape key is pressed
             elif event.key == pygame.K_ESCAPE:
                 self.esc()
-
-    def type_of_move(self, acting_tile: "Tile", action_tile: "Tile") -> type:
-        """
-        Determines the type of move based on the presence of traps or portals.
-
-        :param acting_tile: The tile from which the move originates.
-        :param action_tile: The tile on which the move is performed.
-        :return: The type of move (TrapMove, PortalMove, or Move).
-        """
-        return _determine_special_move_type(acting_tile, action_tile, Move)
 
     def revert_to_playing_state(self) -> False:
         """
@@ -368,8 +358,8 @@ class State:
         player = self.engine.players[self.engine.turn]
         # Check if the player has any actions remaining
         number_of_actions_if_player_has_done_nothing = (
-                player.total_additional_actions_this_turn
-                + Constant.DEFAULT_ACTIONS_REMAINING
+            player.total_additional_actions_this_turn
+            + Constant.DEFAULT_ACTIONS_REMAINING
         )
         # Force the player to use their actions if they have any before changing turn
         if number_of_actions_if_player_has_done_nothing > player.actions_remaining:
@@ -476,7 +466,7 @@ class State:
 
 
 class Settings(State):
-    def __init__(self, win: pygame.Surface, engine: "Engine"):
+    def __init__(self, win: pygame.Surface, engine: Engine):
         """
         Initializes the Pause state with buttons and UI elements.
 
@@ -500,7 +490,7 @@ class Settings(State):
 
         # Load the font from the specified file
         self.font: pygame.font = pygame.font.Font(
-                os.path.join("files/fonts", "font.ttf"), self.font_size
+            os.path.join("files/fonts", "font.ttf"), self.font_size
         )
 
         # Define button labels
@@ -557,11 +547,11 @@ class Settings(State):
         for i in range(2):  # Only for 'music:' and 'sounds:' buttons
             button_x, button_y = self.button_positions[i]  # Get button position
             flag_x = (
-                    button_x + self.button_width + flag_offset
+                button_x + self.button_width + flag_offset
             )  # Position flag to the right
             flag_y = (
-                    button_y
-                    + (self.button_height - self.flag_surfaces[0].get_height()) // 2
+                button_y
+                + (self.button_height - self.flag_surfaces[0].get_height()) // 2
             )  # Align vertically
             self.flag_positions.append((flag_x, flag_y))
 
@@ -571,8 +561,8 @@ class Settings(State):
         """
         # Calculate total height occupied by all buttons (including spacing)
         total_height: int = (
-                len(self.button_surfaces) * self.button_height
-                + (len(self.button_surfaces) - 1) * 10
+            len(self.button_surfaces) * self.button_height
+            + (len(self.button_surfaces) - 1) * 10
         )
 
         # Determine the starting y-position to center all buttons vertically
@@ -609,7 +599,7 @@ class Settings(State):
         # Draw flags next to music and sounds buttons
         for i in range(2):  # Only for 'music:' and 'sounds:' buttons
             self.win.blit(
-                    self.flag_surfaces[self.current_flags[i]], self.flag_positions[i]
+                self.flag_surfaces[self.current_flags[i]], self.flag_positions[i]
             )
 
     def mouse_move(self):
@@ -627,7 +617,7 @@ class Settings(State):
         for i, (button_x, button_y) in enumerate(self.button_positions):
             # Create a rectangle representing the button's clickable area
             button_rect = pygame.Rect(
-                    button_x, button_y, self.button_width, self.button_height
+                button_x, button_y, self.button_width, self.button_height
             )
 
             # Update highlight status
@@ -640,7 +630,7 @@ class Settings(State):
         # Change cursor based on whether it is over a button
         if cursor_over_button:
             pygame.mouse.set_cursor(
-                    pygame.SYSTEM_CURSOR_HAND
+                pygame.SYSTEM_CURSOR_HAND
             )  # Hand cursor for interaction
         else:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)  # Default cursor
@@ -687,7 +677,7 @@ class Settings(State):
         for i, (button_x, button_y) in enumerate(self.button_positions):
             # Create a rectangle representing the button's clickable area
             button_rect = pygame.Rect(
-                    button_x, button_y, self.button_width, self.button_height
+                button_x, button_y, self.button_width, self.button_height
             )
 
             # Check if mouse is inside button
@@ -745,11 +735,17 @@ class Pause(State):
 
         # Load the font from the specified file
         self.font: pygame.font = pygame.font.Font(
-                os.path.join("files/fonts", "font.ttf"), self.font_size
+            os.path.join("files/fonts", "font.ttf"), self.font_size
         )
 
         # Define button labels
-        buttons: list[str] = ["return to game", "how to play", "reset board", "settings", "quit"]
+        buttons: list[str] = [
+            "return to game",
+            "how to play",
+            "reset board",
+            "settings",
+            "quit",
+        ]
 
         # Create surfaces for each button text
         self.button_surfaces: list[pygame.Surface] = [
@@ -780,8 +776,8 @@ class Pause(State):
         """
         # Calculate total height occupied by all buttons (including spacing)
         total_height: int = (
-                len(self.button_surfaces) * self.button_height
-                + (len(self.button_surfaces) - 1) * 10
+            len(self.button_surfaces) * self.button_height
+            + (len(self.button_surfaces) - 1) * 10
         )
 
         # Determine the starting y-position to center all buttons vertically
@@ -830,7 +826,7 @@ class Pause(State):
         for i, (button_x, button_y) in enumerate(self.button_positions):
             # Create a rectangle representing the button's clickable area
             button_rect: pygame.Rect = pygame.Rect(
-                    button_x, button_y, self.button_width, self.button_height
+                button_x, button_y, self.button_width, self.button_height
             )
 
             # Update highlight status
@@ -845,7 +841,7 @@ class Pause(State):
         # Change cursor based on whether it is over a button
         if cursor_over_button:
             pygame.mouse.set_cursor(
-                    pygame.SYSTEM_CURSOR_HAND
+                pygame.SYSTEM_CURSOR_HAND
             )  # Hand cursor for interaction
         else:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)  # Default cursor
@@ -892,7 +888,7 @@ class Pause(State):
         for i, (button_x, button_y) in enumerate(self.button_positions):
             # Create a rectangle representing the button's clickable area
             button_rect = pygame.Rect(
-                    button_x, button_y, self.button_width, self.button_height
+                button_x, button_y, self.button_width, self.button_height
             )
 
             # Check if mouse is inside button
@@ -942,7 +938,7 @@ class MainMenu(State):
 
         # Menu logo and its position
         self.main_menu_logo: pygame.Surface = splash_screen.logo_image
-        self.logo_position: Tuple[int, int]  = splash_screen.logo_position
+        self.logo_position: Tuple[int, int] = splash_screen.logo_position
         self.color: str = Constant.turn_to_color[splash_screen.logo_color]
         self.logo_position_y: Optional[int] = None
         self.button_display_y: Optional[int] = None
@@ -952,7 +948,7 @@ class MainMenu(State):
         self.window_height: int = self.win.get_height()
         self.font_size: int = round(Constant.SQ_SIZE * 1)
         self.font: pygame.font = pygame.font.Font(
-                os.path.join("files/fonts", "font.ttf"), self.font_size
+            os.path.join("files/fonts", "font.ttf"), self.font_size
         )
 
         # Button text options
@@ -1031,7 +1027,9 @@ class MainMenu(State):
         self.logo_position_y: int = self.window_height // 4
 
         # Place buttons on the bottom 2/3 of screen
-        self.button_display_y: int = (2 * self.window_height) // 3 - self.button_height // 2
+        self.button_display_y: int = (
+            2 * self.window_height
+        ) // 3 - self.button_height // 2
 
         # Calculate the total width needed for all buttons
         total_buttons_width = len(self.button_surfaces) * self.button_width
@@ -1071,12 +1069,12 @@ class MainMenu(State):
 
             # Calculate the position to center the text on the button
             text_x = (
-                    button_x
-                    + (self.button_width - self.button_surfaces[i].get_width()) // 2
+                button_x
+                + (self.button_width - self.button_surfaces[i].get_width()) // 2
             )
             text_y = (
-                    button_y
-                    + (self.button_height - self.button_surfaces[i].get_height()) // 2
+                button_y
+                + (self.button_height - self.button_surfaces[i].get_height()) // 2
             )
 
             # Draw the button text centered on the button
@@ -1093,8 +1091,8 @@ class MainMenu(State):
         # Check each button and update its highlight state
         for i, (button_x, button_y) in enumerate(self.button_positions):
             if (
-                    button_x <= mouse_x <= button_x + self.button_width
-                    and button_y <= mouse_y <= button_y + self.button_height
+                button_x <= mouse_x <= button_x + self.button_width
+                and button_y <= mouse_y <= button_y + self.button_height
             ):
                 self.button_highlighted[i] = True
                 if not cursor_set:
@@ -1122,8 +1120,8 @@ class MainMenu(State):
 
             # Check if the mouse click is within the button's clickable range
             if (
-                    button_x <= mouse_x <= button_x + self.button_width
-                    and button_y <= mouse_y <= button_y + self.button_height
+                button_x <= mouse_x <= button_x + self.button_width
+                and button_y <= mouse_y <= button_y + self.button_height
             ):
 
                 # Perform action based on which button was clicked
@@ -1173,7 +1171,7 @@ class Instructions(State):
 
         # Load the font from the specified file
         self.font = pygame.font.Font(
-                os.path.join("files/fonts", "font.ttf"), self.font_size
+            os.path.join("files/fonts", "font.ttf"), self.font_size
         )
 
         # Create surfaces for each button text
@@ -1207,15 +1205,15 @@ class Instructions(State):
         # Calculate the vertical starting position for the buttons
         self.logo_position_y = self.window_height // 4  # Position the logo at the top
         self.button_display_y = (
-                self.window_height // 2
-                + self.images[self.current_image_index].get_height() // 2
+            self.window_height // 2
+            + self.images[self.current_image_index].get_height() // 2
         )
 
         # Calculate the total width of all the buttons (including spacing)
         button_spacing = 20  # Spacing between buttons
         total_buttons_width = (
-                len(self.button_surfaces) * self.button_width
-                + (len(self.button_surfaces) - 1) * button_spacing
+            len(self.button_surfaces) * self.button_width
+            + (len(self.button_surfaces) - 1) * button_spacing
         )
 
         # Calculate the starting X position to center the buttons horizontally
@@ -1235,7 +1233,7 @@ class Instructions(State):
 
         for i, (button_x, button_y) in enumerate(self.button_positions):
             button_rect = pygame.Rect(
-                    button_x, button_y, self.button_width, self.button_height
+                button_x, button_y, self.button_width, self.button_height
             )
 
             # Highlight the button if the mouse is over it
@@ -1294,7 +1292,7 @@ class Instructions(State):
         # Draw the current image at the center of the screen
         current_image = self.images[self.current_image_index]
         image_rect = current_image.get_rect(
-                centerx=self.window_width // 2, top=Constant.SQ_SIZE
+            centerx=self.window_width // 2, top=Constant.SQ_SIZE
         )
         self.win.blit(current_image, image_rect)
 
@@ -1316,32 +1314,29 @@ class Instructions(State):
         # Check if any button is clicked
         for i, (button_x, button_y) in enumerate(self.button_positions):
             button_rect = pygame.Rect(
-                    button_x, button_y, self.button_width, self.button_height
+                button_x, button_y, self.button_width, self.button_height
             )
 
             if button_rect.collidepoint(mouse_x, mouse_y):
                 if i == 0:  # Left arrow
                     self.current_image_index = (self.current_image_index - 1) % len(
-                            self.images
+                        self.images
                     )
                 elif i == 1:  # Back button
                     self.esc()
                 elif i == 2:  # Right arrow
                     self.current_image_index = (self.current_image_index + 1) % len(
-                            self.images
+                        self.images
                     )
 
     def scale_images(self):
         """
-        Scale each image in self.images to 2/3 of its original size while preserving the aspect ratio.
+        Scale each image to 2/3 of its original size while preserving the aspect ratio.
         """
         scaled_images = {}
 
         # Loop through each image in the dictionary
         for key, value in self.images.items():
-            # Get the original dimensions of the image
-            original_width, original_height = value.get_size()
-
             # Calculate the new dimensions (2/3 of the original size)
             new_width = self.window_width * 3 // 4
             new_height = self.window_height * 3 // 4
@@ -1473,7 +1468,7 @@ class Inspector(State):
         # If the selected piece is not already being inspected
         if selected_piece is not self.currently_selected:
             # Check if the piece can be inspected
-            if can_inspect_piece(selected_piece):
+            if selected_piece is not None:
                 # Reset the currently selected piece in the engine
                 self.engine.reset_selected()
 
@@ -1514,7 +1509,7 @@ class Playing(State):
         # Initialize the base State class
         super().__init__(win, engine)
 
-        # Create the HUD (side bar) for this state
+        # Create the sidebar for this state
         self.side_bar = Hud(win, engine)
 
         # Store contextual menu information if applicable
@@ -1564,7 +1559,8 @@ class Playing(State):
                 # If the piece cannot be selected, reset dragging state
                 self.reset_dragging_piece()
 
-        return False  # Dragging did not occur
+        # Dragging did not occur
+        return False
 
     def drop_piece(self, pos: Tuple[int, int]):
         """
@@ -1592,7 +1588,7 @@ class Playing(State):
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
     def can_swap_to_square(
-            self, previously_selected: Optional["Piece"], row: int, col: int
+        self, previously_selected: Optional[Piece], row: int, col: int
     ) -> bool:
         """
         Checks if the previously selected piece can swap to the target square.
@@ -1619,7 +1615,7 @@ class Playing(State):
         return True
 
     def can_move_to_square(
-            self, previously_selected: Optional["Piece"], row: int, col: int
+        self, previously_selected: Optional["Piece"], row: int, col: int
     ) -> bool:
         """
         Checks if the previously selected piece can move to the specified square.
@@ -1682,11 +1678,11 @@ class Playing(State):
         return True
 
     def can_capture_piece(
-            self,
-            previously_selected: Optional["Piece"],
-            row: int,
-            col: int,
-            currently_selected: Optional["Piece"],
+        self,
+        previously_selected: Optional["Piece"],
+        row: int,
+        col: int,
+        currently_selected: Optional["Piece"],
     ) -> bool:
         """
         Checks if the previously selected piece can capture the piece on the target square.
@@ -1712,8 +1708,8 @@ class Playing(State):
 
         # If no piece is present or the piece is of the same color, the capture is invalid
         if (
-                currently_selected is None
-                or currently_selected.get_color() == previously_selected.get_color()
+            currently_selected is None
+            or currently_selected.get_color() == previously_selected.get_color()
         ):
             return False
 
@@ -1734,10 +1730,6 @@ class Playing(State):
             self.perform_move(previously_selected, row, col)
             return True
 
-        if self.can_swap_to_square(previously_selected, row, col):
-            self.perform_swap(previously_selected, row, col)
-            return True
-
         # Check if the same piece is selected again (deselect it)
         if same_piece_selected(previously_selected, row, col):
             self.engine.reset_selected()
@@ -1756,11 +1748,11 @@ class Playing(State):
         return False
 
     def _perform_action(
-            self,
-            previously_selected: "Piece",
-            row: int,
-            col: int,
-            action_type: Callable[["Tile", "Tile"], type],
+        self,
+        previously_selected: "Piece",
+        row: int,
+        col: int,
+        action_type: Callable[["Tile", "Tile"], type],
     ):
         """
         General method to perform an action (move, swap, capture) by creating an event and updating the game state.
@@ -1800,7 +1792,7 @@ class Playing(State):
         :param col: The target column for the move.
         """
         # Call the general perform action method with the appropriate action type (Move)
-        self._perform_action(previously_selected, row, col, self.type_of_move)
+        self._perform_action(previously_selected, row, col, type_of_move)
 
     def perform_capture(self, previously_selected: "Piece", row: int, col: int):
         """
@@ -1853,7 +1845,8 @@ class Playing(State):
 
     def inspect_piece(self):
         """
-        Handles the inspection of a piece when a special action is performed (e.g., by pressing a key or right-clicking).
+        Handles the inspection of a piece when a special action is performed (e.g., by pressing a key or
+        right-clicking).
         """
         # Get the mouse position and convert it to board coordinates
         row, col = Constant.convert_pos(pygame.mouse.get_pos())
@@ -1862,7 +1855,7 @@ class Playing(State):
         currently_selected = self.engine.get_occupying(row, col)
 
         # Check if the piece can be inspected
-        if can_inspect_piece(currently_selected):
+        if currently_selected is not None:
             # Create and switch to the Inspector state
             new_state = Inspector(self.win, self.engine, currently_selected)
             # Select the piece in the Inspector state
@@ -1907,7 +1900,7 @@ class Playing(State):
                 try:
                     # Create ability menu for pieces with more than 1 ability
                     self.engine.create_contextual_menu(
-                            row, col, self.win, piece.contextual_options
+                        row, col, self.win, piece.contextual_options
                     )
 
                     # Immediately click into the menu if there is only one option
@@ -1931,7 +1924,7 @@ class Playing(State):
         currently_selected = self.engine.get_occupying(row, col)
 
         # Check if the piece can be inspected (based on certain conditions)
-        if can_inspect_piece(currently_selected):
+        if currently_selected is not None:
             # Create a new Inspector state and pass the piece to inspect
             new_state = Inspector(self.win, self.engine, currently_selected)
 
@@ -1961,8 +1954,8 @@ class Playing(State):
 
         # Check if the mouse is within the board boundaries
         if (
-                0 <= mouse_x < Constant.BOARD_WIDTH_PX
-                and 0 <= mouse_y < Constant.BOARD_HEIGHT_PX
+            0 <= mouse_x < Constant.BOARD_WIDTH_PX
+            and 0 <= mouse_y < Constant.BOARD_HEIGHT_PX
         ):
             # Update the cursor based on whether the mouse is hovering over a piece
             self.update_cursor()
@@ -2027,7 +2020,7 @@ class Starting(State):
     """
 
     def __init__(
-            self, win: pygame.Surface, engine: "Engine", preserve_resources: bool = False
+        self, win: pygame.Surface, engine: "Engine", preserve_resources: bool = False
     ):
         """
         Initializes the Starting state.
@@ -2123,7 +2116,7 @@ class SelectStartingPieces(State):
     Represents the state where players select their starting pieces.
     """
 
-    def __init__(self, win: pygame.Surface, engine: "Engine"):
+    def __init__(self, win: pygame.Surface, engine: Engine):
         """
         Initializes the SelectStartingPieces state.
 
@@ -2134,72 +2127,78 @@ class SelectStartingPieces(State):
         super().__init__(win, engine)
 
         # Scale paper texture
-        self.paper_texture = self.scale_paper_texture(self.win)
+        self.paper_texture: pygame.Surface = self.scale_paper_texture(self.win)
 
         # Set up initial attributes
-        self.draw_map = False
-        self.pieces = {
+        self.draw_map: bool = False
+        self.pieces: dict[str, dict] = {
             "w": Constant.W_PIECES | Constant.W_BUILDINGS,
             "b": Constant.B_PIECES | Constant.B_BUILDINGS,
         }
 
         # Get window dimensions
-        self.window_width = pygame.display.Info().current_w
-        self.window_height = pygame.display.Info().current_h
+        self.window_width: int = pygame.display.Info().current_w
+        self.window_height: int = pygame.display.Info().current_h
 
         # Set font size and render description text
-        self.font_size = round(Constant.SQ_SIZE * 1)
-        self.font = pygame.font.Font(
-                os.path.join("files/fonts", "font.ttf"), self.font_size
+        self.font_size: int = round(Constant.SQ_SIZE * 1)
+        self.font: pygame.font.Font = pygame.font.Font(
+            os.path.join("files/fonts", "font.ttf"), self.font_size
         )
-        self.description_text = "select your starting pieces:"
-        self.text_surf = self.font.render(
-                self.description_text, True, Constant.turn_to_color[self.engine.turn]
+        self.description_text: str = "select your starting pieces:"
+        self.text_surf: pygame.Surface = self.font.render(
+            self.description_text, True, Constant.turn_to_color[self.engine.turn]
         )
 
         # Set Y-buffer for spacing
-        self.y_buffer = round(Constant.SQ_SIZE * 0.55)
+        self.y_buffer: int = round(Constant.SQ_SIZE * 0.55)
 
         # Calculate initial positions and spacing
-        self.initial_x = round(2.5 * self.window_width) // len(
-                Constant.SELECTABLE_STARTING_PIECES
+        self.initial_x: int = round(2.5 * self.window_width) // len(
+            Constant.SELECTABLE_STARTING_PIECES
         )
-        self.x_buffer = self.initial_x
-        self.piece_spacing = round(Constant.SQ_SIZE * 1.5)
+        self.x_buffer: int = self.initial_x
+        self.piece_spacing: int = round(Constant.SQ_SIZE * 1.5)
 
         # Calculate total height of the grid and starting Y position
-        total_height_of_grid = self.y_buffer * 2 * Constant.NUMBER_OF_STARTING_PIECES
-        self.initial_y = (self.window_height - total_height_of_grid) // 2
+        total_height_of_grid: int = (
+            self.y_buffer * 2 * Constant.NUMBER_OF_STARTING_PIECES
+        )
+        self.initial_y: int = (self.window_height - total_height_of_grid) // 2
 
         # Define grid dimensions
-        self.cols = len(Constant.SELECTABLE_STARTING_PIECES)
-        self.rows = Constant.NUMBER_OF_STARTING_PIECES + Constant.NUMBER_OF_BONUS_PIECES
+        self.cols: int = len(Constant.SELECTABLE_STARTING_PIECES)
+        self.rows: int = (
+            Constant.NUMBER_OF_STARTING_PIECES + Constant.NUMBER_OF_BONUS_PIECES
+        )
 
         # Initialize the selection matrix (3D list to track piece status)
-        self.selection_matrix = [
+        self.selection_matrix: list[list[list[Union[str, int, bool]]]] = [
             [[0 for _ in range(3)] for _ in range(self.cols)] for _ in range(self.rows)
         ]
 
         # Set instruction text and surfaces
-        self.instruction_text = [
+        self.instruction_text: list[str] = [
             " 'tab' to go back",
             " 'space bar' to confirm selection",
             " 'right click' to view the map",
             " 'right click' a piece for more information about it",
         ]
-        self.instruction_text_surfaces = []
-        self.instruction_text_font_size = Constant.SQ_SIZE // 2
-        self.instruction_text_font = pygame.font.Font(
-                os.path.join("files/fonts", "font.ttf"), self.instruction_text_font_size
+        self.instruction_text_surfaces: list[pygame.Surface] = []
+        self.instruction_text_font_size: int = Constant.SQ_SIZE // 2
+        self.instruction_text_font: pygame.font.Font = pygame.font.Font(
+            os.path.join("files/fonts", "font.ttf"), self.instruction_text_font_size
         )
         for line in self.instruction_text:
-            l = self.instruction_text_font.render(
-                    line, True, Constant.turn_to_color[self.engine.turn]
+            l: pygame.Surface = self.instruction_text_font.render(
+                line, True, Constant.turn_to_color[self.engine.turn]
             )
             self.instruction_text_surfaces.append(l)
 
         # Get the height of the instruction text for layout purposes
-        self.instruction_text_height = self.instruction_text_surfaces[0].get_height()
+        self.instruction_text_height: int = self.instruction_text_surfaces[
+            0
+        ].get_height()
 
         # Assign pieces to the selection matrix
         for r in range(self.rows):
@@ -2219,7 +2218,9 @@ class SelectStartingPieces(State):
                 self.selection_matrix[r][c][2] = False  # SELECTED
 
         # Create a surface for highlighting unused pieces
-        self.square = pygame.Surface((Constant.SQ_SIZE, Constant.SQ_SIZE))
+        self.square: pygame.Surface = pygame.Surface(
+            (Constant.SQ_SIZE, Constant.SQ_SIZE)
+        )
         self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
         self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
 
@@ -2312,14 +2313,14 @@ class SelectStartingPieces(State):
             self.side_bar = Empty(self.win, self.engine)
             return
 
-        # Show piece information if a piece is selected
+        # Display piece information if a piece is selected
         if not self.draw_map:
             try:
                 row, col = piece_selected
             except TypeError:
                 return
             piece = self.selection_matrix[row][col][0]
-            menu = PieceDescription(self.win, self.engine, piece)
+            menu: Menu = PieceDescription(self.win, self.engine, piece)
             self.engine.menus.append(menu)
 
     def piece_selected(self) -> Optional[Tuple[int, int]]:
@@ -2338,10 +2339,10 @@ class SelectStartingPieces(State):
             for c in range(self.cols):
                 piece_position = (c * self.piece_spacing + self.initial_x, initial_y)
                 if pos[0] in range(
-                        piece_position[0], piece_position[0] + Constant.SQ_SIZE
+                    piece_position[0], piece_position[0] + Constant.SQ_SIZE
                 ):
                     if pos[1] in range(
-                            piece_position[1], piece_position[1] + Constant.SQ_SIZE
+                        piece_position[1], piece_position[1] + Constant.SQ_SIZE
                     ):
                         piece_selected = (r, c)
             initial_y += y_buffer * 2
@@ -2368,10 +2369,10 @@ class SelectStartingPieces(State):
             for c in range(self.cols):
                 piece_position = (c * self.piece_spacing + self.initial_x, initial_y)
                 if pos[0] in range(
-                        piece_position[0], piece_position[0] + Constant.SQ_SIZE
+                    piece_position[0], piece_position[0] + Constant.SQ_SIZE
                 ):
                     if pos[1] in range(
-                            piece_position[1], piece_position[1] + Constant.SQ_SIZE
+                        piece_position[1], piece_position[1] + Constant.SQ_SIZE
                     ):
                         self.selection_matrix[r][c][1] = True
                     else:
@@ -2422,20 +2423,20 @@ class SelectStartingPieces(State):
 
             # Draw selectable and bonus pieces
             for x in range(
-                    Constant.NUMBER_OF_STARTING_PIECES + Constant.NUMBER_OF_BONUS_PIECES
+                Constant.NUMBER_OF_STARTING_PIECES + Constant.NUMBER_OF_BONUS_PIECES
             ):
                 if x < Constant.NUMBER_OF_STARTING_PIECES:
                     for p in Constant.SELECTABLE_STARTING_PIECES:
                         piece = self.engine.turn + "_" + p
                         self.win.blit(
-                                self.pieces[self.engine.turn][piece], (x_buffer, initial_y)
+                            self.pieces[self.engine.turn][piece], (x_buffer, initial_y)
                         )
                         x_buffer += piece_spacing
                 else:
                     for p in Constant.BONUS_STARTING_PIECES:
                         piece = self.engine.turn + "_" + p
                         self.win.blit(
-                                self.pieces[self.engine.turn][piece], (x_buffer, initial_y)
+                            self.pieces[self.engine.turn][piece], (x_buffer, initial_y)
                         )
                         x_buffer += piece_spacing
 
@@ -2480,9 +2481,9 @@ class SelectStartingPieces(State):
                     spawn_list.append(self.selection_matrix[r][c][0])
         spawn_list.append(Constant.STARTING_PIECES[-1])
         if len(spawn_list) == (
-                Constant.NUMBER_OF_STARTING_PIECES
-                + len(Constant.STARTING_PIECES)
-                + Constant.NUMBER_OF_BONUS_PIECES
+            Constant.NUMBER_OF_STARTING_PIECES
+            + len(Constant.STARTING_PIECES)
+            + Constant.NUMBER_OF_BONUS_PIECES
         ):
             self.engine.transfer_to_starting_spawn(spawn_list)
 
@@ -2634,7 +2635,9 @@ class StartingSpawn(State):
 
         # Determine the acting tile based on the previously selected piece
         if previously_selected:
-            acting_tile = self.engine.board[previously_selected.row][previously_selected.col]
+            acting_tile = self.engine.board[previously_selected.row][
+                previously_selected.col
+            ]
         else:
             acting_tile = None
 
@@ -2683,7 +2686,9 @@ class StartingSpawn(State):
         # Handle spawning and update spawn squares
         self._update_spawn_squares()
 
-    def _handle_previously_selected_piece(self, previously_selected: Unit, row: int, col: int):
+    def _handle_previously_selected_piece(
+        self, previously_selected: Unit, row: int, col: int
+    ):
         """
         Handles the logic when a piece was previously selected.
 
@@ -2777,8 +2782,8 @@ class StartingSpawn(State):
             try:
                 # Draw the piece being dragged at the calculated position
                 self.win.blit(
-                        self.spawnTable[(self.engine.turn + "_" + self.engine.spawning)],
-                        (displayPosX, displayPosY),
+                    self.spawnTable[(self.engine.turn + "_" + self.engine.spawning)],
+                    (displayPosX, displayPosY),
                 )
             except TypeError:
                 pass
@@ -2812,7 +2817,7 @@ class DebugStart(StartingSpawn):
     Represents the debug starting state where players begin spawning their pieces with debug settings.
     """
 
-    def __init__(self, win: pygame.Surface, engine: "Engine"):
+    def __init__(self, win: pygame.Surface, engine: Engine):
         """
         Initializes the DebugStart state.
 
@@ -2919,7 +2924,7 @@ class Mining(State):
     Represents the mining state where players can mine resources on the board.
     """
 
-    def __init__(self, win: pygame.Surface, engine: "Engine"):
+    def __init__(self, win: pygame.Surface, engine: Engine):
         """
         Initializes the Mining state.
 
@@ -2963,16 +2968,20 @@ class Mining(State):
             # Check if the position is in the mining squares list
             if (row, col) in self.previously_selected.mining_squares_list:
                 if (
-                        self.engine.has_quarry(row, col)
-                        or self.engine.has_gold(row, col)
-                        or self.engine.has_sunken_quarry(row, col)
-                        or self.engine.is_empty(row, col)
+                    self.engine.has_quarry(row, col)
+                    or self.engine.has_gold(row, col)
+                    or self.engine.has_sunken_quarry(row, col)
+                    or self.engine.is_empty(row, col)
                 ):
                     # Draw the pickaxe image
-                    self.win.blit(Constant.IMAGES["pickaxe"], (display_pos_x, display_pos_y))
+                    self.win.blit(
+                        Constant.IMAGES["pickaxe"], (display_pos_x, display_pos_y)
+                    )
                 elif self.engine.has_wood(row, col):
                     # Draw the axe image
-                    self.win.blit(Constant.IMAGES["axe"], (display_pos_x, display_pos_y))
+                    self.win.blit(
+                        Constant.IMAGES["axe"], (display_pos_x, display_pos_y)
+                    )
 
     def left_click(self) -> bool:
         """
@@ -3023,7 +3032,9 @@ class Mining(State):
 
                 # Check if the selected square is in the mining squares list
                 if (row, col) in mining_squares:
-                    acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+                    acting_tile = self.engine.board[self.previously_selected.row][
+                        self.previously_selected.col
+                    ]
                     action_tile = self.engine.board[row][col]
 
                     # Create the appropriate event based on the resource
@@ -3095,7 +3106,7 @@ class Persuading(State):
             # Check if the position is in the persuader squares list
             if (row, col) in self.previously_selected.persuader_squares_list:
                 self.win.blit(
-                        Constant.IMAGES["persuade"], (display_pos_x, display_pos_y)
+                    Constant.IMAGES["persuade"], (display_pos_x, display_pos_y)
                 )
 
     def left_click(self) -> bool:
@@ -3145,7 +3156,9 @@ class Persuading(State):
                 if (row, col) in persuader_squares:
 
                     # The tile which the persuader is on
-                    acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+                    acting_tile = self.engine.board[self.previously_selected.row][
+                        self.previously_selected.col
+                    ]
 
                     # The tile containing the piece to be persuaded
                     action_tile = self.engine.board[row][col]
@@ -3181,7 +3194,7 @@ class Stealing(State):
         super().__init__(win, engine)
 
         # Updates the previously selected tile in the game
-        self.previously_selected: Tile = engine.update_previously_selected()
+        self.previously_selected: Unit = engine.update_previously_selected()
 
         # HUD sidebar for displaying additional information
         self.side_bar: Hud = Hud(self.win, self.engine)
@@ -3232,7 +3245,9 @@ class Stealing(State):
         if self.engine.stealing:
             self.engine.close_menus()
             action_tile: Tile = self.engine.board[self.row][self.col]
-            acting_tile: Tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+            acting_tile: Tile = self.engine.board[self.previously_selected.row][
+                self.previously_selected.col
+            ]
             event: Steal = Steal(self.engine, acting_tile, action_tile)
             self.engine.add_event(event)
             self.engine.stealing = None
@@ -3333,9 +3348,9 @@ class PreBuilding(State):
 
         # Append the menu to the engine's menus
         self.engine.menus.append(
-                self.engine.MENUS[self.menu_queue](
-                        row, col, self.win, self.engine, self.previously_selected_piece
-                )
+            self.engine.MENUS[self.menu_queue](
+                row, col, self.win, self.engine, self.previously_selected_piece
+            )
         )
 
     def can_select_piece(self, row: int, col: int) -> bool:
@@ -3380,9 +3395,6 @@ class PreBuilding(State):
 
         :return: True if an action is successfully performed, otherwise False.
         """
-        # Get the current mouse position
-        row, col = Constant.convert_pos(pygame.mouse.get_pos())
-
         # Handle menu input if applicable
         if self.engine.menus:
             for menu in self.engine.menus:
@@ -3557,7 +3569,9 @@ class Praying(State):
             if self.engine.has_prayable_building(row, col):
                 # Check if the building belongs to the current player
                 if self.engine.get_occupying(row, col).color == self.engine.turn:
-                    self.win.blit(Constant.IMAGES["prayer"], (display_pos_x, display_pos_y))
+                    self.win.blit(
+                        Constant.IMAGES["prayer"], (display_pos_x, display_pos_y)
+                    )
 
     def left_click(self) -> bool:
         """
@@ -3616,7 +3630,9 @@ class Praying(State):
         :param col: The target column for the pray action.
         """
         # Get the acting tile from the previously selected unit's position
-        acting_tile = self.engine.board[previously_selected.row][previously_selected.col]
+        acting_tile = self.engine.board[previously_selected.row][
+            previously_selected.col
+        ]
 
         # Get the action tile from the target position
         action_tile = self.engine.board[row][col]
@@ -3684,14 +3700,14 @@ class Spawning(State):
                 # Draw the appropriate image based on the spawning type
                 if self.engine.spawning == "quarry_1":
                     self.win.blit(
-                            Constant.IMAGES["pickaxe"], (displayPosX, displayPosY)
+                        Constant.IMAGES["pickaxe"], (displayPosX, displayPosY)
                     )
                 else:
                     self.win.blit(
-                            self.spawnTable[
-                                (self.engine.turn + "_" + self.engine.spawning)
-                            ],
-                            (displayPosX, displayPosY),
+                        self.spawnTable[
+                            (self.engine.turn + "_" + self.engine.spawning)
+                        ],
+                        (displayPosX, displayPosY),
                     )
             except TypeError:
                 pass
@@ -3721,7 +3737,9 @@ class Spawning(State):
 
     def perform_spawn(self, previously_selected, row, col):
         # Get the acting and action tiles
-        acting_tile = self.engine.board[previously_selected.row][previously_selected.col]
+        acting_tile = self.engine.board[previously_selected.row][
+            previously_selected.col
+        ]
         action_tile = self.engine.board[row][col]
 
         # Create and add the spawn event
@@ -3783,7 +3801,9 @@ class Winner(State):
         self.side_bar = Empty(self.win, self.engine)
 
         # Create a surface for the text box
-        self.text_box = pygame.Surface((self.text_surf.get_width(), self.text_surf.get_height()))
+        self.text_box = pygame.Surface(
+            (self.text_surf.get_width(), self.text_surf.get_height())
+        )
 
         # Get the window dimensions
         window_width = self.win.get_width()
@@ -3794,7 +3814,9 @@ class Winner(State):
 
         # Calculate the position for the text box
         self.text_box_x = Constant.BOARD_WIDTH_PX // 2 - self.text_box.get_width() // 2
-        self.text_box_y = Constant.BOARD_HEIGHT_PX // 2 - self.text_box.get_height() // 2
+        self.text_box_y = (
+            Constant.BOARD_HEIGHT_PX // 2 - self.text_box.get_height() // 2
+        )
 
         # Calculate the display position for the text surface
         self.display_x = window_width // 2 - self.text_surf.get_width() // 2
@@ -3815,14 +3837,12 @@ class Winner(State):
         self.revert_to_playing_state()
         self.engine.undo_last_event()
 
-
     def right_click(self):
         """
         Handles the right-click action to revert to the playing state.
         """
         self.revert_to_playing_state()
         self.engine.undo_last_event()
-
 
     def mouse_move(self):
         """
@@ -3934,12 +3954,15 @@ class Surrender(State):
         # Draw the sidebar
         self.side_bar.draw()
 
+
 class PieceCost(State):
     """
     Represents the piece cost screen state where players can view the cost of pieces.
     """
 
-    def __init__(self, win: pygame.Surface, engine: "Engine", current_state: State = None):
+    def __init__(
+        self, win: pygame.Surface, engine: "Engine", current_state: State = None
+    ):
         """
         Initializes the PieceCost state.
 
@@ -4053,7 +4076,7 @@ class Ritual(State):
         self.engine.reset_selected()
 
         # Set the performing_ritual flag to True for the previously selected piece
-        self.previously_selected.performing_ritual: bool = True
+        self.previously_selected.performing_ritual = True
 
         # Initialize the cost type to None
         self.cost_type: Optional[str] = None
@@ -4065,7 +4088,9 @@ class Ritual(State):
         self.player: Player = self.engine.players[self.turn]
 
         # Load the ritual image based on the current turn and state
-        self.ritual_image: pygame.Surface = Constant.PRAYER_RITUALS[self.turn + "_" + str(self)]
+        self.ritual_image: pygame.Surface = Constant.PRAYER_RITUALS[
+            self.turn + "_" + str(self)
+        ]
 
         # Close all menus in the engine
         self.engine.close_menus()
@@ -4141,7 +4166,7 @@ class SummonGoldGeneral(Ritual):
         self.side_bar: SideMenu = Hud(self.win, self.engine)
 
         # Set the ritual squares list for the previously selected piece
-        self.previously_selected.ritual_squares_list: list[tuple[int, int]] = (
+        self.previously_selected.ritual_squares_list = (
             self.previously_selected.gold_general_ritual_squares(self.engine)
         )
 
@@ -4191,11 +4216,15 @@ class SummonGoldGeneral(Ritual):
         # Check if the clicked square is valid
         if self.click_valid_square(row, col):
             # Get the acting and action tiles
-            acting_tile: Tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+            acting_tile: Tile = self.engine.board[self.previously_selected.row][
+                self.previously_selected.col
+            ]
             action_tile: Tile = self.engine.board[row][col]
 
             # Create and add the GoldGeneralEvent
-            event: GoldGeneralEvent = GoldGeneralEvent(self.engine, acting_tile, action_tile)
+            event: GoldGeneralEvent = GoldGeneralEvent(
+                self.engine, acting_tile, action_tile
+            )
             self.engine.add_event(event)
 
             # Revert to the playing state
@@ -4203,6 +4232,7 @@ class SummonGoldGeneral(Ritual):
         else:
             # Revert to the playing state if the square is not valid
             return self.revert_to_playing_state()
+
 
 class PerformSmite(Ritual):
     """
@@ -4226,7 +4256,7 @@ class PerformSmite(Ritual):
         self.engine.close_menus()
 
         # Set the ritual squares list for the previously selected piece
-        self.previously_selected.ritual_squares_list: list[tuple[int, int]] = self.smite_ritual_squares()
+        self.previously_selected.ritual_squares_list = self.smite_ritual_squares()
 
     def __repr__(self) -> str:
         """
@@ -4280,7 +4310,9 @@ class PerformSmite(Ritual):
         # Check if the clicked square is valid
         if self.click_valid_square(row, col):
             # Get the acting and action tiles
-            acting_tile: Tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+            acting_tile: Tile = self.engine.board[self.previously_selected.row][
+                self.previously_selected.col
+            ]
             action_tile: Tile = self.engine.board[row][col]
 
             # Create and add the Smite event
@@ -4316,7 +4348,7 @@ class PerformDestroyResource(Ritual):
         self.engine.close_menus()
 
         # Set the ritual squares list for the previously selected piece
-        self.previously_selected.ritual_squares_list: list[tuple[int, int]] = (
+        self.previously_selected.ritual_squares_list = (
             self.delete_resource_ritual_squares()
         )
 
@@ -4373,11 +4405,15 @@ class PerformDestroyResource(Ritual):
         # Check if the clicked square is valid
         if self.click_valid_square(row, col):
             # Get the acting and action tiles
-            acting_tile: Tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+            acting_tile: Tile = self.engine.board[self.previously_selected.row][
+                self.previously_selected.col
+            ]
             action_tile: Tile = self.engine.board[row][col]
 
             # Create and add the DestroyResource event
-            event: DestroyResource = DestroyResource(self.engine, acting_tile, action_tile)
+            event: DestroyResource = DestroyResource(
+                self.engine, acting_tile, action_tile
+            )
             self.engine.add_event(event)
 
             # Revert to the playing state
@@ -4386,9 +4422,10 @@ class PerformDestroyResource(Ritual):
             # Revert to the playing state if the square is not valid
             return self.revert_to_playing_state()
 
+
 class PerformCreateResource(Ritual):
     """
-    Represents the state where players can perform a create resource ritual on the board.
+    Represents the state where players can perform the ritual which creates a resource on the board.
     """
 
     def __init__(self, win: pygame.Surface, engine: "Engine"):
@@ -4408,7 +4445,7 @@ class PerformCreateResource(Ritual):
         self.engine.close_menus()
 
         # Set the ritual squares list for the previously selected piece
-        self.previously_selected.ritual_squares_list: list[tuple[int, int]] = (
+        self.previously_selected.ritual_squares_list = (
             self.create_resource_ritual_squares()
         )
 
@@ -4452,7 +4489,7 @@ class PerformCreateResource(Ritual):
 
     def create_resource_ritual_squares(self) -> list[tuple[int, int]]:
         """
-        Determines the valid squares for performing the create resource ritual.
+        Determines the valid squares for performing the resource creation ritual.
 
         :return: A list of tuples representing the valid squares.
         """
@@ -4469,7 +4506,7 @@ class PerformCreateResource(Ritual):
 
     def left_click(self) -> bool:
         """
-        Handles the left-click action to perform the create resource ritual.
+        Handles the left-click action to perform the resource creation ritual.
 
         :return: True if the action is successfully performed, otherwise False.
         """
@@ -4517,8 +4554,10 @@ class PerformCreateResource(Ritual):
         # Close all open menus after selecting a resource to summon
         self.engine.close_menus()
 
-        # Retrieve the tile where the summon originates
-        acting_tile: Tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+        # Retrieve the tile where the spawn originates
+        acting_tile: Tile = self.engine.board[self.previously_selected.row][
+            self.previously_selected.col
+        ]
 
         # Retrieve the target tile where the resource will be summoned
         action_tile: Tile = self.engine.board[self.row][self.col]
@@ -4586,7 +4625,7 @@ class PerformTeleport(Ritual):
         self.engine.close_menus()
 
         # Store valid squares for teleportation based on ritual rules
-        self.previously_selected.ritual_squares_list: list[tuple[int, int]] = self.get_teleportable_pieces()
+        self.previously_selected.ritual_squares_list = self.get_teleport_able_pieces()
 
         # Store the selected piece for teleportation
         self.selected: Optional[Piece] = None
@@ -4617,26 +4656,28 @@ class PerformTeleport(Ritual):
         if self.selected:
             self.selected.highlight_self_square(self.win)
 
-    def get_teleportable_pieces(self) -> list[tuple[int, int]]:
+    def get_teleport_able_pieces(self) -> list[tuple[int, int]]:
         """
         Retrieves a list of pieces that can be teleported.
 
-        :return: A list of (row, col) tuples representing teleportable piece positions.
+        :return: A list of (row, col) tuples representing teleport-able piece positions.
         """
-        teleportable_pieces: list[tuple[int, int]] = []
+        teleport_able_pieces: list[tuple[int, int]] = []
 
         # Add all player-controlled pieces that are not Buildings or Kings
         for piece in self.player.pieces:
             if not isinstance(piece, (Building, King)):
-                teleportable_pieces.append((piece.row, piece.col))
+                teleport_able_pieces.append((piece.row, piece.col))
 
         # Add all opponent-controlled pieces that are not Buildings or Kings
-        opponent_pieces: list[Piece] = self.engine.players[Constant.TURNS[self.turn]].pieces
+        opponent_pieces: list[Piece] = self.engine.players[
+            Constant.TURNS[self.turn]
+        ].pieces
         for piece in opponent_pieces:
             if not isinstance(piece, (King, Building)):
-                teleportable_pieces.append((piece.row, piece.col))
+                teleport_able_pieces.append((piece.row, piece.col))
 
-        return teleportable_pieces
+        return teleport_able_pieces
 
     def get_valid_teleport_squares(self) -> list[tuple[int, int]]:
         """
@@ -4657,9 +4698,14 @@ class PerformTeleport(Ritual):
 
                 # Check if the selected piece has special movement rules
                 if self.selected:
-                    if self.selected.is_rogue and self.engine.can_be_occupied_by_rogue(row, col):
+                    if self.selected.is_rogue and self.engine.can_be_occupied_by_rogue(
+                        row, col
+                    ):
                         valid_squares.append((row, col))
-                    elif self.selected.is_general and self.engine.can_be_occupied_by_gold_general(row, col):
+                    elif (
+                        self.selected.is_general
+                        and self.engine.can_be_occupied_by_gold_general(row, col)
+                    ):
                         valid_squares.append((row, col))
 
         return valid_squares
@@ -4702,7 +4748,9 @@ class PerformTeleport(Ritual):
             self.selected: Piece = self.engine.get_occupying(row, col)
 
             # Update the list of valid teleportation squares
-            self.previously_selected.ritual_squares_list = self.get_valid_teleport_squares()
+            self.previously_selected.ritual_squares_list = (
+                self.get_valid_teleport_squares()
+            )
 
             return True
 
@@ -4728,10 +4776,15 @@ class PerformTeleport(Ritual):
         """
 
         # Get the acting tile where the teleport initiates
-        acting_tile: Tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+        acting_tile: Tile = self.engine.board[self.previously_selected.row][
+            self.previously_selected.col
+        ]
 
         # Define the teleportation action from the current position to the new position
-        action_tile: tuple[tuple[int, int], tuple[int, int]] = ((self.selected.row, self.selected.col), (row, col))
+        action_tile: tuple[tuple[int, int], tuple[int, int]] = (
+            (self.selected.row, self.selected.col),
+            (row, col),
+        )
 
         # Create and register a new teleport event
         event: Teleport = Teleport(self.engine, acting_tile, action_tile)
@@ -4739,6 +4792,18 @@ class PerformTeleport(Ritual):
 
         # Return to the playing state
         return self.revert_to_playing_state()
+
+
+def is_valid_swap_piece(piece: Piece) -> bool:
+    """
+    Determines if a given piece can be swapped.
+
+    :param piece: The piece to check.
+    :return: True if the piece is swap-eligible, otherwise False.
+    """
+
+    # A valid piece for swapping cannot be a King or a Building
+    return not isinstance(piece, (King, Building))
 
 
 class PerformSwap(Ritual):
@@ -4768,13 +4833,13 @@ class PerformSwap(Ritual):
         self.second_selected: Optional[Piece] = None
 
         # Store valid swap squares based on ritual rules
-        self.previously_selected.ritual_squares_list: list[tuple[int, int]] = self.get_swapable_pieces()
+        self.previously_selected.ritual_squares_list = self.get_swappable_pieces()
 
         # If the selected piece is an assassin, preselect it and mark it as casting
         if str(self.previously_selected) == "assassin":
             self.first_selected = self.previously_selected
             self.first_selected.casting = True
-            self.previously_selected.ritual_squares_list = self.get_swapable_pieces()
+            self.previously_selected.ritual_squares_list = self.get_swappable_pieces()
 
     def __repr__(self) -> str:
         """
@@ -4802,35 +4867,24 @@ class PerformSwap(Ritual):
         if self.first_selected and str(self.first_selected) == "assassin":
             return
 
-    def is_valid_swap_piece(self, piece: Piece) -> bool:
-        """
-        Determines if a given piece can be swapped.
-
-        :param piece: The piece to check.
-        :return: True if the piece is swap-eligible, otherwise False.
-        """
-
-        # A valid piece for swapping cannot be a King or a Building
-        return not isinstance(piece, (King, Building))
-
-    def get_swapable_pieces(self) -> list[tuple[int, int]]:
+    def get_swappable_pieces(self) -> list[tuple[int, int]]:
         """
         Retrieves a list of valid pieces that can be swapped.
 
-        :return: A list of (row, col) tuples representing swapable piece positions.
+        :return: A list of (row, col) tuples representing swap-able piece positions.
         """
         valid_pieces: list[tuple[int, int]] = []
 
         # If no piece has been selected, find a valid first selection from the player's pieces
         if not self.first_selected:
             for piece in self.engine.players[self.turn].pieces:
-                if self.is_valid_swap_piece(piece):
+                if is_valid_swap_piece(piece):
                     valid_pieces.append((piece.row, piece.col))
             return valid_pieces
 
         # If the first piece is already selected, find valid second selections from the opponent's pieces
         for piece in self.engine.players[Constant.TURNS[self.turn]].pieces:
-            if self.is_valid_swap_piece(piece):
+            if is_valid_swap_piece(piece):
                 valid_pieces.append((piece.row, piece.col))
 
         return valid_pieces
@@ -4876,7 +4930,7 @@ class PerformSwap(Ritual):
             self.first_selected.casting = True
 
             # Update the list of valid swap targets
-            self.previously_selected.ritual_squares_list = self.get_swapable_pieces()
+            self.previously_selected.ritual_squares_list = self.get_swappable_pieces()
 
             return True
 
@@ -4905,7 +4959,9 @@ class PerformSwap(Ritual):
         self.second_selected: Piece = self.engine.get_occupying(row, col)
 
         # Get the acting tile where the swap initiates
-        acting_tile: Tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+        acting_tile: Tile = self.engine.board[self.previously_selected.row][
+            self.previously_selected.col
+        ]
 
         # Define the swap action from the first piece's position to the second piece's position
         action_tile: tuple[tuple[int, int], tuple[int, int]] = (
@@ -4945,7 +5001,10 @@ class PerformLineDestroy(Ritual):
 
         # Define possible movement directions for the line destruction
         self.directions: tuple[str, str, str, str] = (
-            Constant.UP, Constant.RIGHT, Constant.LEFT, Constant.DOWN
+            Constant.UP,
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.DOWN,
         )
 
         # Store the position of the previously selected piece
@@ -4958,22 +5017,30 @@ class PerformLineDestroy(Ritual):
         mouse_row, mouse_col = Constant.convert_pos(pygame.mouse.get_pos())
 
         # Define movement ranges for each possible direction
-        self.up: tuple[range, range] = (range(self.row - 1, -1, -1), range(self.col, self.col + 1))
+        self.up: tuple[range, range] = (
+            range(self.row - 1, -1, -1),
+            range(self.col, self.col + 1),
+        )
         self.down: tuple[range, range] = (
-            range(self.row + 1, Constant.BOARD_HEIGHT_SQ), range(self.col, self.col + 1)
+            range(self.row + 1, Constant.BOARD_HEIGHT_SQ),
+            range(self.col, self.col + 1),
         )
         self.right: tuple[range, range] = (
-            range(self.row, self.row + 1), range(self.col + 1, Constant.BOARD_WIDTH_SQ)
+            range(self.row, self.row + 1),
+            range(self.col + 1, Constant.BOARD_WIDTH_SQ),
         )
         self.left: tuple[range, range] = (
-            range(self.row, self.row + 1), range(self.col - 1, -1, -1)
+            range(self.row, self.row + 1),
+            range(self.col - 1, -1, -1),
         )
 
         # Determine the initial active destruction line based on mouse position
-        self.selected_range: Optional[tuple[range, range]] = self.determine_active_line(mouse_row, mouse_col)
+        self.selected_range: Optional[tuple[range, range]] = self.determine_active_line(
+            mouse_row, mouse_col
+        )
 
         # Store valid destruction squares based on the selected range
-        self.previously_selected.ritual_squares_list: list[tuple[int, int]] = (
+        self.previously_selected.ritual_squares_list = (
             self.active_line_destroy_ritual_squares(self.selected_range)
         )
 
@@ -4999,7 +5066,9 @@ class PerformLineDestroy(Ritual):
         # Draw the ritual effect at the mouse position
         self.draw_ritual_at_mouse_position()
 
-    def determine_active_line(self, row: int, col: int) -> Optional[tuple[range, range]]:
+    def determine_active_line(
+        self, row: int, col: int
+    ) -> Optional[tuple[range, range]]:
         """
         Determines the active destruction line based on the given row and column.
 
@@ -5041,8 +5110,9 @@ class PerformLineDestroy(Ritual):
             self.active_line_destroy_ritual_squares(self.selected_range)
         )
 
-    def active_line_destroy_ritual_squares(self, selected_range: Optional[tuple[range, range]]) -> list[
-        tuple[int, int]]:
+    def active_line_destroy_ritual_squares(
+        self, selected_range: Optional[tuple[range, range]]
+    ) -> list[tuple[int, int]]:
         """
         Determines which squares are affected by the line destruction.
 
@@ -5058,7 +5128,9 @@ class PerformLineDestroy(Ritual):
                 for c in selected_range[1]:
 
                     # Stop if the tile is protected by the opposite player
-                    if self.engine.board[r][c].is_protected_by_opposite_color(self.engine.turn):
+                    if self.engine.board[r][c].is_protected_by_opposite_color(
+                        self.engine.turn
+                    ):
                         break
 
                     # Otherwise, add the tile to the affected list
@@ -5086,7 +5158,9 @@ class PerformLineDestroy(Ritual):
         self.engine.line_destroy_selected_range = self.selected_range
 
         # Get the acting tile where the destruction originates
-        acting_tile: Tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+        acting_tile: Tile = self.engine.board[self.previously_selected.row][
+            self.previously_selected.col
+        ]
 
         # Get the action tile where the destruction is targeted
         action_tile: Tile = self.engine.board[row][col]
@@ -5132,7 +5206,9 @@ class PerformProtect(Ritual):
         self.engine.close_menus()
 
         # Store the list of squares that can be protected
-        self.previously_selected.ritual_squares_list: list[tuple[int, int]] = self.protectable_ritual_squares()
+        self.previously_selected.ritual_squares_list = (
+            self.protect_able_ritual_squares()
+        )
 
     def __repr__(self) -> str:
         """
@@ -5142,14 +5218,14 @@ class PerformProtect(Ritual):
         """
         return "protect"
 
-    def protectable_ritual_squares(self) -> list[tuple[int, int]]:
+    def protect_able_ritual_squares(self) -> list[tuple[int, int]]:
         """
         Identifies which tiles are eligible for protection.
 
-        :return: A list of (row, col) tuples representing protectable tiles.
+        :return: A list of (row, col) tuples representing protect-able tiles.
         """
 
-        protectable_squares: list[tuple[int, int]] = []
+        protect_able_squares: list[tuple[int, int]] = []
 
         # Iterate through each tile on the board
         for row in range(self.engine.rows):
@@ -5157,20 +5233,20 @@ class PerformProtect(Ritual):
 
                 # If the tile is empty, it can be protected
                 if self.engine.is_empty(row, col):
-                    protectable_squares.append((row, col))
+                    protect_able_squares.append((row, col))
                     continue
 
                 # Check if a piece is occupying the tile
                 piece: Optional[Piece] = self.engine.get_occupying(row, col)
                 if piece and not isinstance(piece, King):
-                    protectable_squares.append((row, col))
+                    protect_able_squares.append((row, col))
                     continue
 
                 # If the tile contains a resource, it can also be protected
                 if self.engine.get_resource(row, col):
-                    protectable_squares.append((row, col))
+                    protect_able_squares.append((row, col))
 
-        return protectable_squares
+        return protect_able_squares
 
     def draw(self):
         """
@@ -5203,7 +5279,9 @@ class PerformProtect(Ritual):
             return self.revert_to_playing_state()
 
         # Get the acting tile where the protection originates
-        acting_tile: Tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+        acting_tile: Tile = self.engine.board[self.previously_selected.row][
+            self.previously_selected.col
+        ]
 
         # Get the action tile where the protection is applied
         action_tile: Tile = self.engine.board[row][col]
@@ -5243,7 +5321,7 @@ class PerformPortal(Ritual):
         self.selected: Optional[Tile] = None
 
         # Store the list of valid squares where portals can be placed
-        self.previously_selected.ritual_squares_list: list[tuple[int, int]] = self.valid_portal_squares()
+        self.previously_selected.ritual_squares_list = self.valid_portal_squares()
 
     def __repr__(self) -> str:
         """
@@ -5328,12 +5406,14 @@ class PerformPortal(Ritual):
         elif self.click_valid_square(row, col) and self.selected:
 
             # Get the acting tile where the portal was originally placed
-            acting_tile: Tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+            acting_tile: Tile = self.engine.board[self.previously_selected.row][
+                self.previously_selected.col
+            ]
 
             # Define the action tile as a movement from the original portal to the new location
             action_tile: tuple[tuple[int, int], tuple[int, int]] = (
                 (self.selected.row, self.selected.col),
-                (row, col)
+                (row, col),
             )
 
             # Create and register a new portal event

@@ -2434,7 +2434,7 @@ class StartMenu(SideMenu):
                         self.engine.set_state(new_state)
             if pos[1] in range(self.r, self.menu_height):
                 self.engine.reset_board()
-                self.engine.starting_resources()
+                self.engine.generate_resources()
                 self.reset_map_image = Constant.RESOURCES[
                     random.choice(Constant.resources)
                 ]

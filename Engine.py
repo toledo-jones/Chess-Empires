@@ -1,7 +1,6 @@
 import sys
 
 from Map import *
-from Player import Player
 from Sounds import *
 from State import *
 from Tile import *
@@ -51,7 +50,7 @@ class Engine:
         self.turn_count_display = 0.5
         self.turn_count_actual = -1
         self.state = []
-        self.players = {}
+        self.players: Optional[dict[str, Player]] = {}
 
         # Gameplay Mechanics
         self.spawn_list = []
@@ -361,7 +360,7 @@ class Engine:
 
         return value
 
-    def starting_resources(self):
+    def generate_resources(self):
         self.map = random.choice(self.MAPS)(self)
         self.map.generate_stone()
         self.map.generate_resources()
@@ -400,24 +399,26 @@ class Engine:
         player = Player(color)
         self.players[color] = player
 
-    def set_state(self, state):
-        #   Accepts State Object and adds it to State List
+    def set_state(self, state: Union[str, State]):
+        """
+        Sets the current state of the game engine.
+
+        :param state: The new state to set, either as a string or a State object.
+        """
+        # Accepts State Object and adds it to State List
         if isinstance(state, State):
             self.state.append(state)
-
-        #   Accepts 'state' string and converts it to state Object. Then adds it to State List
         else:
+            # Accepts 'state' string and converts it to state Object. Then adds it to State List
             if state == "main menu":
                 from Splash import SplashScreen
-
-                new_state = self.STATES[state](
-                    self.state[-1].win, self, SplashScreen(self.state[-1].win)
-                )
+                window: pygame.Surface = self.get_current_state().get_window()
+                splash_screen: SplashScreen = SplashScreen(self.state[-1].win)
+                new_state: State = self.STATES[state](window, self, splash_screen)
             else:
-                new_state = self.STATES[state](self.state[-1].win, self)
+                new_state: State = self.STATES[state](self.state[-1].win, self)
 
             self.set_state(new_state)
-
         #
         #   Removes the first state in the list if the list reaches length of two
         #

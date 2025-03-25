@@ -3193,40 +3193,38 @@ class Stealing(State):
             if (row, col) in self.previously_selected.stealing_squares_list:
                 self.win.blit(Constant.IMAGES["steal"], (display_pos_x, display_pos_y))
 
-    def left_click(self):
+    def left_click(self) -> bool:
+        """
+        Handles left-click interactions, checking for menu interactions,
+        stealing mechanics, and valid square clicks.
+
+        :return: True if an action was performed, otherwise False.
+        """
+
         row, col = Constant.convert_pos(pygame.mouse.get_pos())
-        results = list()
 
-        # First, check if there are any menus
+        # Process menu interactions first
         if self.engine.menus:
-            for menu in self.engine.menus:
-                results.append(menu.left_click())
+            return any(menu.left_click() for menu in self.engine.menus)
 
-        # If no menus, check if stealing is in progress
+        # Handle stealing mechanic
         if self.engine.stealing:
             self.engine.close_menus()
             action_tile = self.engine.board[self.row][self.col]
-            acting_tile = self.engine.board[self.previously_selected.row][
-                self.previously_selected.col
-            ]
+            acting_tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
             event = Steal(self.engine, acting_tile, action_tile)
             self.engine.add_event(event)
             self.engine.stealing = None
-            results.append(self.revert_to_playing_state())
+            return self.revert_to_playing_state()
 
-        # If no menus and no stealing, check if the click is on a valid square
+        # If stealing is not in progress, check for valid tile selection
         if self.click_valid_square(row, col):
-            if not self.engine.stealing:
-                self.row = row
-                self.col = col
-                menu = StealingMenu(row, col, self.win, self.engine)
-                self.engine.menus.append(menu)
-                results.append(True)  # Return true if a valid square is clicked
-            else:
-                results.append(
-                        self.revert_to_playing_state()
-                )  # Return to playing state if stealing is ongoing
-        return any(results)
+            self.row, self.col = row, col
+            self.engine.menus.append(StealingMenu(row, col, self.win, self.engine))
+            return True
+
+            # Default case: return to playing state if no other action occurred
+        return self.revert_to_playing_state()
 
     def click_valid_square(self, row, col):
         if (row, col) in self.previously_selected.stealing_squares_list:

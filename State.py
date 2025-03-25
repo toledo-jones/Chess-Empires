@@ -325,6 +325,7 @@ class State:
             function = getattr(self.side_bar, input_type)
             # Call the function and return the result
             return function()
+        return False
 
     def menu_input(self, input_type: str) -> bool:
         """
@@ -340,6 +341,7 @@ class State:
                 function: callable = getattr(menu, input_type)
                 # Call the function and return the result
                 return function()
+        return False
 
     def draw(self):
         """
@@ -3512,6 +3514,7 @@ class Trading(State):
         if self.engine.menus:
             for menu in self.engine.menus:
                 return menu.left_click()
+        return False
 
     def right_click(self):
         """
@@ -4210,6 +4213,7 @@ class SummonGoldGeneral(Ritual):
         if Constant.tile_in_bounds(row, col):
             # Check if the square is in the ritual squares list
             return (row, col) in self.previously_selected.ritual_squares_list
+        return False
 
     def left_click(self) -> bool:
         """
@@ -4836,8 +4840,8 @@ class PerformSwap(Ritual):
         self.engine.close_menus()
 
         # Track the first and second selected pieces for swapping
-        self.first_selected: Optional[Piece] = None
-        self.second_selected: Optional[Piece] = None
+        self.first_selected: Optional[Unit] = None
+        self.second_selected: Optional[Unit] = None
 
         # Store valid swap squares based on ritual rules
         self.previously_selected.ritual_squares_list = self.get_swappable_pieces()

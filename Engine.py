@@ -121,6 +121,7 @@ class Engine:
         self.running = False
 
     def pause(self):
+        self.get_current_state().revert_to_playing_state()
         self.state.append(Pause(self.display_surface, self))
 
     def draw_display_surface(self):

@@ -1,6 +1,6 @@
 import os
 import random
-import time
+from typing import Tuple
 
 import pygame
 
@@ -14,7 +14,7 @@ class SplashScreen:
     def __init__(
         self,
         window: pygame.Surface,
-        logo_size: tuple = (400, 400),
+        logo_size: Tuple[int, int] = (400, 400),
     ):
         """
         Creates a splash screen object
@@ -23,10 +23,10 @@ class SplashScreen:
         self.window = window
         self.logo_size = logo_size
         self.logo_color = self.LOGO_COLORS[random.randint(0, 1)]
-        self.logo_image = self.load_logo()
+        self.logo_image: pygame.Surface = self.load_logo()
 
         # Calculate the position of the logo (centered)
-        self.logo_position = (
+        self.logo_position: tuple[int, int] = (
             self.window.get_width() // 2 - self.logo_size[0] // 2,
             self.window.get_height() // 3 - self.logo_size[1] // 2,
         )
@@ -36,7 +36,7 @@ class SplashScreen:
         logo_path = os.path.join(self.LOGO_FOLDER, f"{self.logo_color}_game_name.png")
 
         try:
-            logo = pygame.image.load(logo_path)
+            logo: pygame.Surface = pygame.image.load(logo_path)
             logo = pygame.transform.scale(logo, self.logo_size)
             return logo
         except pygame.error as e:

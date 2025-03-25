@@ -1,6 +1,12 @@
 from __future__ import annotations
 
+import typing
 from typing import Callable
+
+if typing.TYPE_CHECKING:
+    from Engine import Engine
+    from Splash import SplashScreen
+    from Player import Player
 
 from GameEvent import *
 from Menu import *
@@ -174,10 +180,10 @@ class State:
 
     def scale_paper_texture(self, surface: pygame.Surface) -> pygame.Surface:
         """
-        Scales a given surface to match the size of self.paper_texture.
+        Scales the paper texture to match the size of the surface object.
 
-        :param surface: The Pygame Surface object to be scaled.
-        :return: A new Pygame Surface object that is a scaled version of the input.
+        :param surface: The Pygame Surface object to be match the scale of.
+        :return: a new pygame object which is the scaled version of paper image.
         """
         width = surface.get_width()
         height = surface.get_height()
@@ -268,7 +274,7 @@ class State:
         """
         return _determine_special_move_type(acting_tile, action_tile, Move)
 
-    def revert_to_playing_state(self):
+    def revert_to_playing_state(self) -> False:
         """
         Reverts the engine to the 'playing' state, which is considered the default gameplay state.
         This method is typically used by various states to return to the default game state.
@@ -278,15 +284,19 @@ class State:
         """
         self.dragging = False
 
-        # Reset any flags and selections that are active during other states
-        self.engine.reset_flags()  # Resets any flags related to current actions
-        self.engine.reset_selected()  # Clears any selected items or pieces
-        self.engine.close_menus()  # Closes any open menus
+        # Resets any flags related to current actions
+        self.engine.reset_flags()
+
+        # Clears any selected items or pieces
+        self.engine.reset_selected()
+
+        # Closes any open menus
+        self.engine.close_menus()
 
         # Transition to the default 'Playing' state
         new_state = Playing(self.win, self.engine)
         self.engine.set_state(new_state)  # Sets the new state to 'Playing'
-        return True
+        return False
 
     def mouse_in_menu_bounds(self):
         """
@@ -476,42 +486,42 @@ class Settings(State):
         super().__init__(win, engine)  # Call parent class initializer
 
         # Scale paper texture to size of window
-        self.paper_texture = self.scale_paper_texture(self.win)
+        self.paper_texture: pygame.Surface = self.scale_paper_texture(self.win)
 
         # Store font color
-        self.color = Constant.turn_to_color[self.engine.turn]
+        self.color: str = Constant.turn_to_color[self.engine.turn]
 
         # Store window dimensions
-        self.window_width = self.win.get_width()
-        self.window_height = self.win.get_height()
+        self.window_width: int = self.win.get_width()
+        self.window_height: int = self.win.get_height()
 
         # Set the font size based on a constant square size
-        self.font_size = round(Constant.SQ_SIZE * 1)
+        self.font_size: int = round(Constant.SQ_SIZE * 1)
 
         # Load the font from the specified file
-        self.font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.font_size
+        self.font: pygame.font = pygame.font.Font(
+                os.path.join("files/fonts", "font.ttf"), self.font_size
         )
 
         # Define button labels
-        buttons = ["music:", "sounds:", "back"]
+        buttons: list[str] = ["music:", "sounds:", "back"]
 
         # Define flags for buttons on and off
-        flags = ["off", "on"]
+        flags: list[str] = ["off", "on"]
 
         # Create surfaces for each button text
-        self.button_surfaces = [
+        self.button_surfaces: list[pygame.Surface] = [
             self.font.render(button, True, self.color) for button in buttons
         ]
 
         # Create surfaces for each button text
-        self.flag_surfaces = [
+        self.flag_surfaces: list[pygame.Surface] = [
             self.font.render(flag, True, self.color) for flag in flags
         ]
 
         # Get button dimensions (assuming all buttons have the same size)
-        self.button_width = self.button_surfaces[1].get_width()
-        self.button_height = self.button_surfaces[1].get_height()
+        self.button_width: int = self.button_surfaces[1].get_width()
+        self.button_height: int = self.button_surfaces[1].get_height()
 
         # Create a highlight rectangle (transparent overlay) for hovering effect
         self.square = pygame.Surface((self.button_width, self.button_height))
@@ -519,16 +529,16 @@ class Settings(State):
         self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
 
         # Boolean list to track which button is currently highlighted
-        self.button_highlighted = [False] * len(buttons)
+        self.button_highlighted: list[bool] = [False] * len(buttons)
 
         # List to store button positions for consistent layout
-        self.button_positions = []
+        self.button_positions: list[Tuple[int, int]] = []
 
         # List for which flags are on or off
         self.current_flags = [int(Constant.MUSIC_ON), int(Constant.SOUND_EFFECTS_ON)]
 
         # List to store flag positions for consistent layout
-        self.flag_positions = []
+        self.flag_positions: list[Tuple[int, int]] = []
 
         # Compute initial button positions
         self.compute_button_positions()
@@ -541,7 +551,7 @@ class Settings(State):
         Computes and stores the positions for each flag next to the corresponding button.
         """
         # Set an offset to position the flag to the right of the button
-        flag_offset = Constant.SQ_SIZE
+        flag_offset: int = Constant.SQ_SIZE
 
         # Compute positions for music and sound flags
         for i in range(2):  # Only for 'music:' and 'sounds:' buttons
@@ -560,7 +570,7 @@ class Settings(State):
         Computes and stores the positions for each button to ensure consistent centering.
         """
         # Calculate total height occupied by all buttons (including spacing)
-        total_height = (
+        total_height: int = (
                 len(self.button_surfaces) * self.button_height
                 + (len(self.button_surfaces) - 1) * 10
         )
@@ -599,7 +609,7 @@ class Settings(State):
         # Draw flags next to music and sounds buttons
         for i in range(2):  # Only for 'music:' and 'sounds:' buttons
             self.win.blit(
-                self.flag_surfaces[self.current_flags[i]], self.flag_positions[i]
+                    self.flag_surfaces[self.current_flags[i]], self.flag_positions[i]
             )
 
     def mouse_move(self):
@@ -611,13 +621,13 @@ class Settings(State):
         mouse_x, mouse_y = pygame.mouse.get_pos()
 
         # Flag to track if the cursor is over any button
-        cursor_over_button = False
+        cursor_over_button: bool = False
 
         # Iterate over all buttons and check if the mouse is hovering over any
         for i, (button_x, button_y) in enumerate(self.button_positions):
             # Create a rectangle representing the button's clickable area
             button_rect = pygame.Rect(
-                button_x, button_y, self.button_width, self.button_height
+                    button_x, button_y, self.button_width, self.button_height
             )
 
             # Update highlight status
@@ -630,7 +640,7 @@ class Settings(State):
         # Change cursor based on whether it is over a button
         if cursor_over_button:
             pygame.mouse.set_cursor(
-                pygame.SYSTEM_CURSOR_HAND
+                    pygame.SYSTEM_CURSOR_HAND
             )  # Hand cursor for interaction
         else:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)  # Default cursor
@@ -677,7 +687,7 @@ class Settings(State):
         for i, (button_x, button_y) in enumerate(self.button_positions):
             # Create a rectangle representing the button's clickable area
             button_rect = pygame.Rect(
-                button_x, button_y, self.button_width, self.button_height
+                    button_x, button_y, self.button_width, self.button_height
             )
 
             # Check if mouse is inside button
@@ -721,34 +731,34 @@ class Pause(State):
         super().__init__(win, engine)  # Call parent class initializer
 
         # Scale paper texture
-        self.paper_texture = self.scale_paper_texture(self.win)
+        self.paper_texture: pygame.Surface = self.scale_paper_texture(self.win)
 
         # Store font color
-        self.color = Constant.turn_to_color[self.engine.turn]
+        self.color: str = Constant.turn_to_color[self.engine.turn]
 
         # Store window dimensions
-        self.window_width = self.win.get_width()
-        self.window_height = self.win.get_height()
+        self.window_width: int = self.win.get_width()
+        self.window_height: int = self.win.get_height()
 
         # Set the font size based on a constant square size
-        self.font_size = round(Constant.SQ_SIZE * 1)
+        self.font_size: int = round(Constant.SQ_SIZE * 1)
 
         # Load the font from the specified file
-        self.font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.font_size
+        self.font: pygame.font = pygame.font.Font(
+                os.path.join("files/fonts", "font.ttf"), self.font_size
         )
 
         # Define button labels
-        buttons = ["return to game", "how to play", "reset board", "settings", "quit"]
+        buttons: list[str] = ["return to game", "how to play", "reset board", "settings", "quit"]
 
         # Create surfaces for each button text
-        self.button_surfaces = [
+        self.button_surfaces: list[pygame.Surface] = [
             self.font.render(button, True, self.color) for button in buttons
         ]
 
         # Get button dimensions (assuming all buttons have the same size)
-        self.button_width = self.button_surfaces[0].get_width()
-        self.button_height = self.button_surfaces[0].get_height()
+        self.button_width: int = self.button_surfaces[0].get_width()
+        self.button_height: int = self.button_surfaces[0].get_height()
 
         # Create a highlight rectangle (transparent overlay) for hovering effect
         self.square = pygame.Surface((self.button_width, self.button_height))
@@ -756,10 +766,10 @@ class Pause(State):
         self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
 
         # Boolean list to track which button is currently highlighted
-        self.button_highlighted = [False] * len(buttons)
+        self.button_highlighted: list[bool] = [False] * len(buttons)
 
         # List to store button positions for consistent layout
-        self.button_positions = []
+        self.button_positions: list[Tuple[int, int]] = []
 
         # Compute initial button positions
         self.compute_button_positions()
@@ -769,7 +779,7 @@ class Pause(State):
         Computes and stores the positions for each button to ensure consistent centering.
         """
         # Calculate total height occupied by all buttons (including spacing)
-        total_height = (
+        total_height: int = (
                 len(self.button_surfaces) * self.button_height
                 + (len(self.button_surfaces) - 1) * 10
         )
@@ -778,7 +788,7 @@ class Pause(State):
         start_y = (self.window_height - total_height) // 2
 
         # Compute positions for each button and store them
-        self.button_positions = [
+        self.button_positions: list[Tuple[int, int]] = [
             (
                 (self.window_width - self.button_width) // 2,
                 start_y + i * (self.button_height + 10),
@@ -814,26 +824,28 @@ class Pause(State):
         mouse_x, mouse_y = pygame.mouse.get_pos()
 
         # Flag to track if the cursor is over any button
-        cursor_over_button = False
+        cursor_over_button: bool = False
 
         # Iterate over all buttons and check if the mouse is hovering over any
         for i, (button_x, button_y) in enumerate(self.button_positions):
             # Create a rectangle representing the button's clickable area
-            button_rect = pygame.Rect(
-                button_x, button_y, self.button_width, self.button_height
+            button_rect: pygame.Rect = pygame.Rect(
+                    button_x, button_y, self.button_width, self.button_height
             )
 
             # Update highlight status
             if button_rect.collidepoint(mouse_x, mouse_y):
                 self.button_highlighted[i] = True
-                cursor_over_button = True  # Set flag if mouse is over a button
+
+                # Set flag if mouse is over a button
+                cursor_over_button: bool = True
             else:
                 self.button_highlighted[i] = False
 
         # Change cursor based on whether it is over a button
         if cursor_over_button:
             pygame.mouse.set_cursor(
-                pygame.SYSTEM_CURSOR_HAND
+                    pygame.SYSTEM_CURSOR_HAND
             )  # Hand cursor for interaction
         else:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)  # Default cursor
@@ -880,7 +892,7 @@ class Pause(State):
         for i, (button_x, button_y) in enumerate(self.button_positions):
             # Create a rectangle representing the button's clickable area
             button_rect = pygame.Rect(
-                button_x, button_y, self.button_width, self.button_height
+                    button_x, button_y, self.button_width, self.button_height
             )
 
             # Check if mouse is inside button
@@ -926,21 +938,21 @@ class MainMenu(State):
     def __init__(self, win, engine, splash_screen):
         super().__init__(win, engine)
         # Paper texture
-        self.paper_texture = self.scale_paper_texture(self.win)
+        self.paper_texture: pygame.Surface = self.scale_paper_texture(self.win)
 
         # Menu logo and its position
-        self.main_menu_logo = splash_screen.logo_image
-        self.logo_position = splash_screen.logo_position
-        self.color = Constant.turn_to_color[splash_screen.logo_color]
-        self.logo_position_y = None
-        self.button_display_y = None
+        self.main_menu_logo: pygame.Surface = splash_screen.logo_image
+        self.logo_position: Tuple[int, int]  = splash_screen.logo_position
+        self.color: str = Constant.turn_to_color[splash_screen.logo_color]
+        self.logo_position_y: Optional[int] = None
+        self.button_display_y: Optional[int] = None
 
         # Window dimensions and font settings
-        self.window_width = self.win.get_width()
-        self.window_height = self.win.get_height()
-        self.font_size = round(Constant.SQ_SIZE * 1)
-        self.font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.font_size
+        self.window_width: int = self.win.get_width()
+        self.window_height: int = self.win.get_height()
+        self.font_size: int = round(Constant.SQ_SIZE * 1)
+        self.font: pygame.font = pygame.font.Font(
+                os.path.join("files/fonts", "font.ttf"), self.font_size
         )
 
         # Button text options
@@ -961,10 +973,10 @@ class MainMenu(State):
         self.square.fill(Constant.MOVE_SQUARE_HIGHLIGHT_COLOR)
 
         # Boolean list to track which button is currently highlighted
-        self.button_highlighted = [False] * len(buttons)
+        self.button_highlighted: list[bool] = [False] * len(buttons)
 
         # List to store button positions for consistent layout
-        self.button_positions = []
+        self.button_positions: list[Tuple[int, int]] = []
 
         # Compute initial button positions
         self.compute_button_positions()
@@ -1016,10 +1028,10 @@ class MainMenu(State):
         """
 
         # Place logo at top of screen
-        self.logo_position_y = self.window_height // 4
+        self.logo_position_y: int = self.window_height // 4
 
         # Place buttons on the bottom 2/3 of screen
-        self.button_display_y = (2 * self.window_height) // 3 - self.button_height // 2
+        self.button_display_y: int = (2 * self.window_height) // 3 - self.button_height // 2
 
         # Calculate the total width needed for all buttons
         total_buttons_width = len(self.button_surfaces) * self.button_width
@@ -1161,7 +1173,7 @@ class Instructions(State):
 
         # Load the font from the specified file
         self.font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.font_size
+                os.path.join("files/fonts", "font.ttf"), self.font_size
         )
 
         # Create surfaces for each button text
@@ -1223,7 +1235,7 @@ class Instructions(State):
 
         for i, (button_x, button_y) in enumerate(self.button_positions):
             button_rect = pygame.Rect(
-                button_x, button_y, self.button_width, self.button_height
+                    button_x, button_y, self.button_width, self.button_height
             )
 
             # Highlight the button if the mouse is over it
@@ -1282,7 +1294,7 @@ class Instructions(State):
         # Draw the current image at the center of the screen
         current_image = self.images[self.current_image_index]
         image_rect = current_image.get_rect(
-            centerx=self.window_width // 2, top=Constant.SQ_SIZE
+                centerx=self.window_width // 2, top=Constant.SQ_SIZE
         )
         self.win.blit(current_image, image_rect)
 
@@ -1304,19 +1316,19 @@ class Instructions(State):
         # Check if any button is clicked
         for i, (button_x, button_y) in enumerate(self.button_positions):
             button_rect = pygame.Rect(
-                button_x, button_y, self.button_width, self.button_height
+                    button_x, button_y, self.button_width, self.button_height
             )
 
             if button_rect.collidepoint(mouse_x, mouse_y):
                 if i == 0:  # Left arrow
                     self.current_image_index = (self.current_image_index - 1) % len(
-                        self.images
+                            self.images
                     )
                 elif i == 1:  # Back button
                     self.esc()
                 elif i == 2:  # Right arrow
                     self.current_image_index = (self.current_image_index + 1) % len(
-                        self.images
+                            self.images
                     )
 
     def scale_images(self):
@@ -1895,7 +1907,7 @@ class Playing(State):
                 try:
                     # Create ability menu for pieces with more than 1 ability
                     self.engine.create_contextual_menu(
-                        row, col, self.win, piece.contextual_options
+                            row, col, self.win, piece.contextual_options
                     )
 
                     # Immediately click into the menu if there is only one option
@@ -2138,11 +2150,11 @@ class SelectStartingPieces(State):
         # Set font size and render description text
         self.font_size = round(Constant.SQ_SIZE * 1)
         self.font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.font_size
+                os.path.join("files/fonts", "font.ttf"), self.font_size
         )
         self.description_text = "select your starting pieces:"
         self.text_surf = self.font.render(
-            self.description_text, True, Constant.turn_to_color[self.engine.turn]
+                self.description_text, True, Constant.turn_to_color[self.engine.turn]
         )
 
         # Set Y-buffer for spacing
@@ -2150,7 +2162,7 @@ class SelectStartingPieces(State):
 
         # Calculate initial positions and spacing
         self.initial_x = round(2.5 * self.window_width) // len(
-            Constant.SELECTABLE_STARTING_PIECES
+                Constant.SELECTABLE_STARTING_PIECES
         )
         self.x_buffer = self.initial_x
         self.piece_spacing = round(Constant.SQ_SIZE * 1.5)
@@ -2178,11 +2190,11 @@ class SelectStartingPieces(State):
         self.instruction_text_surfaces = []
         self.instruction_text_font_size = Constant.SQ_SIZE // 2
         self.instruction_text_font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.instruction_text_font_size
+                os.path.join("files/fonts", "font.ttf"), self.instruction_text_font_size
         )
         for line in self.instruction_text:
             l = self.instruction_text_font.render(
-                line, True, Constant.turn_to_color[self.engine.turn]
+                    line, True, Constant.turn_to_color[self.engine.turn]
             )
             self.instruction_text_surfaces.append(l)
 
@@ -2416,14 +2428,14 @@ class SelectStartingPieces(State):
                     for p in Constant.SELECTABLE_STARTING_PIECES:
                         piece = self.engine.turn + "_" + p
                         self.win.blit(
-                            self.pieces[self.engine.turn][piece], (x_buffer, initial_y)
+                                self.pieces[self.engine.turn][piece], (x_buffer, initial_y)
                         )
                         x_buffer += piece_spacing
                 else:
                     for p in Constant.BONUS_STARTING_PIECES:
                         piece = self.engine.turn + "_" + p
                         self.win.blit(
-                            self.pieces[self.engine.turn][piece], (x_buffer, initial_y)
+                                self.pieces[self.engine.turn][piece], (x_buffer, initial_y)
                         )
                         x_buffer += piece_spacing
 
@@ -2765,8 +2777,8 @@ class StartingSpawn(State):
             try:
                 # Draw the piece being dragged at the calculated position
                 self.win.blit(
-                    self.spawnTable[(self.engine.turn + "_" + self.engine.spawning)],
-                    (displayPosX, displayPosY),
+                        self.spawnTable[(self.engine.turn + "_" + self.engine.spawning)],
+                        (displayPosX, displayPosY),
                 )
             except TypeError:
                 pass
@@ -2901,6 +2913,7 @@ class DebugStart(StartingSpawn):
                 self.engine.create_player(Constant.TURNS[self.engine.turn])
                 self.begin_next_player_start_spawn()
 
+
 class Mining(State):
     """
     Represents the mining state where players can mine resources on the board.
@@ -2950,10 +2963,10 @@ class Mining(State):
             # Check if the position is in the mining squares list
             if (row, col) in self.previously_selected.mining_squares_list:
                 if (
-                    self.engine.has_quarry(row, col)
-                    or self.engine.has_gold(row, col)
-                    or self.engine.has_sunken_quarry(row, col)
-                    or self.engine.is_empty(row, col)
+                        self.engine.has_quarry(row, col)
+                        or self.engine.has_gold(row, col)
+                        or self.engine.has_sunken_quarry(row, col)
+                        or self.engine.is_empty(row, col)
                 ):
                     # Draw the pickaxe image
                     self.win.blit(Constant.IMAGES["pickaxe"], (display_pos_x, display_pos_y))
@@ -2975,10 +2988,7 @@ class Mining(State):
         if self.select(row, col):
             return True
         else:
-            self.engine.reset_selected()
-            new_state = Playing(self.win, self.engine)
-            self.engine.set_state(new_state)
-            return False
+            return self.revert_to_playing_state()
 
     def right_click(self):
         """
@@ -3027,15 +3037,14 @@ class Mining(State):
 
                     # Add the event to the engine and reset the selected piece
                     self.engine.add_event(event)
-                    new_state = Playing(self.win, self.engine)
-                    self.engine.reset_selected()
-                    self.engine.set_state(new_state)
+                    return self.revert_to_playing_state()
 
     def tab(self):
         """
         Handles the tab key press event to revert to the playing state.
         """
         self.revert_to_playing_state()
+
 
 class Persuading(State):
     """
@@ -3086,7 +3095,7 @@ class Persuading(State):
             # Check if the position is in the persuader squares list
             if (row, col) in self.previously_selected.persuader_squares_list:
                 self.win.blit(
-                    Constant.IMAGES["persuade"], (display_pos_x, display_pos_y)
+                        Constant.IMAGES["persuade"], (display_pos_x, display_pos_y)
                 )
 
     def left_click(self) -> bool:
@@ -3103,9 +3112,7 @@ class Persuading(State):
         if self.select(row, col):
             return True
         else:
-            self.engine.reset_selected()
-            new_state = Playing(self.win, self.engine)
-            self.engine.set_state(new_state)
+            self.revert_to_playing_state()
             return False
 
     def right_click(self):
@@ -3217,7 +3224,7 @@ class Stealing(State):
                 results.append(True)  # Return true if a valid square is clicked
             else:
                 results.append(
-                    self.revert_to_playing_state()
+                        self.revert_to_playing_state()
                 )  # Return to playing state if stealing is ongoing
         return any(results)
 
@@ -3292,9 +3299,9 @@ class PreBuilding(State):
 
         # Append the menu to the engine's menus
         self.engine.menus.append(
-            self.engine.MENUS[self.menu_queue](
-                row, col, self.win, self.engine, self.previously_selected_piece
-            )
+                self.engine.MENUS[self.menu_queue](
+                        row, col, self.win, self.engine, self.previously_selected_piece
+                )
         )
 
     def can_select_piece(self, row: int, col: int) -> bool:
@@ -3353,6 +3360,7 @@ class PreBuilding(State):
         Handles the right-click event to return to the playing state.
         """
         self.revert_to_playing_state()
+
     def mouse_move(self):
         """
         Handles mouse movement events.
@@ -3362,10 +3370,8 @@ class PreBuilding(State):
             for menu in self.engine.menus:
                 menu.mouse_move()
                 if not menu.mouse_in_menu_bounds():
-                    self.engine.reset_selected()
-                    self.engine.menus = []
-                    state = Playing(self.win, self.engine)
-                    self.engine.set_state(state)
+                    self.revert_to_playing_state()
+                    break
 
     def click_square_in_spawn_squares(self, row: int, col: int) -> bool:
         """
@@ -3385,71 +3391,151 @@ class PreBuilding(State):
 
 
 class Trading(State):
-    def __init__(self, win, engine):
+    """
+    Represents the trading state where players can trade resources on the board.
+    """
+
+    def __init__(self, win: pygame.Surface, engine: "Engine"):
+        """
+        Initializes the Trading state.
+
+        :param win: The game window surface.
+        :param engine: The game engine instance.
+        """
+        # Call the parent class initializer
         super().__init__(win, engine)
+
+        # Initialize the sidebar with a HUD
         self.side_bar = Hud(self.win, self.engine)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the Trading state.
+
+        :return: A string representing the Trading state.
+        """
         return "trading"
 
     def draw(self):
+        """
+        Draws the trading state, including the HUD and any active menus.
+        """
+        # Call the parent class's draw method
         super().draw()
+
+        # Draw the sidebar
         self.side_bar.draw()
+
+        # Draw each menu if any are open
         if self.engine.menus:
             for menu in self.engine.menus:
                 menu.draw()
 
     def mouse_move(self):
+        """
+        Handles mouse movement events.
+        """
+        # Handle menu input for mouse movement
         if self.engine.menus:
             for menu in self.engine.menus:
                 menu.mouse_move()
                 if not menu.mouse_in_menu_bounds():
+                    # Clear trading state and reset selected piece and menus
                     self.engine.trading = []
                     self.engine.reset_selected()
                     self.engine.menus = []
+
+                    # Set the state to Playing
                     state = Playing(self.win, self.engine)
                     self.engine.set_state(state)
 
-    def left_click(self):
+    def left_click(self) -> bool:
+        """
+        Handles the left-click action to interact with menus.
+
+        :return: True if an action is successfully performed, otherwise False.
+        """
+        # Handle menu input for left click
         if self.engine.menus:
             for menu in self.engine.menus:
                 return menu.left_click()
 
     def right_click(self):
+        """
+        Handles the right-click action to interact with menus.
+        """
+        # Handle menu input for right click
         if self.engine.menus:
             for menu in self.engine.menus:
                 menu.right_click()
 
     def tab(self):
+        """
+        Handles the tab key press event to revert to the playing state.
+        """
         self.revert_to_playing_state()
 
 
 class Praying(State):
-    def __init__(self, win, engine):
+    """
+    Represents the praying state where players can perform prayer actions on the board.
+    """
+
+    def __init__(self, win: pygame.Surface, engine: "Engine"):
+        """
+        Initializes the Praying state.
+
+        :param win: The game window surface.
+        :param engine: The game engine instance.
+        """
+        # Call the parent class initializer
         super().__init__(win, engine)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the Praying state.
+
+        :return: A string representing the Praying state.
+        """
         return "praying"
 
     def draw(self):
+        """
+        Draws the praying state, including the HUD and any active menus.
+        """
+        # Call the parent class's draw method
         super().draw()
+
+        # Draw the sidebar
         side_bar = Hud(self.win, self.engine)
         side_bar.draw()
+
+        # Get the current mouse position
         pos = pygame.mouse.get_pos()
         display_pos_x = pos[0] - Constant.SQ_SIZE // 2
         display_pos_y = pos[1] - Constant.SQ_SIZE // 2
+
+        # Check if the mouse position is within bounds
         if Constant.pos_in_bounds(pos):
             row, col = Constant.convert_pos(pos)
-            if self.engine.has_prayable_building(row, col):
-                if self.engine.get_occupying(row, col).color == self.engine.turn:
-                    self.win.blit(
-                        Constant.IMAGES["prayer"], (display_pos_x, display_pos_y)
-                    )
 
-    def left_click(self):
+            # Check if the position has a pray-able building
+            if self.engine.has_prayable_building(row, col):
+                # Check if the building belongs to the current player
+                if self.engine.get_occupying(row, col).color == self.engine.turn:
+                    self.win.blit(Constant.IMAGES["prayer"], (display_pos_x, display_pos_y))
+
+    def left_click(self) -> bool:
+        """
+        Handles the left-click action to select a praying square.
+
+        :return: True if a square is successfully selected, otherwise False.
+        """
+        # Get the current mouse position
         pos = pygame.mouse.get_pos()
         row, col = Constant.convert_pos(pos)
-        # try:
+
+        # Select the square and handle the result
         if self.select(row, col):
             return True
         else:
@@ -3459,378 +3545,861 @@ class Praying(State):
             return False
 
     def right_click(self):
-        self.engine.reset_selected()
-        state = Playing(self.win, self.engine)
-        self.engine.set_state(state)
+        """
+        Handles the right-click action to return to the playing state.
+        """
+        self.revert_to_playing_state()
 
     def mouse_move(self):
+        """
+        Handles mouse movement events.
+        """
         pass
 
-    def select(self, row, col):
-        # try:
-        prev = self.engine.update_previously_selected()
-        if prev is not None:
-            sel = self.engine.board[row][col].get_occupying()
-            praying_squares = prev.praying_squares_list
+    def select(self, row: int, col: int):
+        """
+        Selects a praying square and creates the appropriate event.
+
+        :param row: The row index of the selected square.
+        :param col: The column index of the selected square.
+        """
+        # Update the previously selected piece
+        previously_selected = self.engine.update_previously_selected()
+
+        if previously_selected is not None:
+            praying_squares = previously_selected.praying_squares_list
+
+            # Check if the selected square is in the praying squares list
             if (row, col) in praying_squares:
-                acting_tile = self.engine.board[prev.row][prev.col]
-                action_tile = self.engine.board[row][col]
-                event = Pray(self.engine, acting_tile, action_tile)
-                self.engine.add_event(event)
-                new_state = Playing(self.win, self.engine)
-                self.engine.reset_selected()
-                self.engine.set_state(new_state)
+                self.perform_pray(previously_selected, row, col)
+
+    def perform_pray(self, previously_selected: Unit, row: int, col: int):
+        """
+        Performs the pray action by creating an event and updating the game state.
+
+        :param previously_selected: The previously selected unit.
+        :param row: The target row for the pray action.
+        :param col: The target column for the pray action.
+        """
+        # Get the acting tile from the previously selected unit's position
+        acting_tile = self.engine.board[previously_selected.row][previously_selected.col]
+
+        # Get the action tile from the target position
+        action_tile = self.engine.board[row][col]
+
+        # Create a Pray event with the acting and action tiles
+        event = Pray(self.engine, acting_tile, action_tile)
+
+        # Add the event to the engine's event list
+        self.engine.add_event(event)
+
+        # Revert to the playing state
+        self.revert_to_playing_state()
 
     def tab(self):
+        """
+        Handles the tab key press event to revert to the playing state.
+        """
         self.revert_to_playing_state()
 
 
 class Spawning(State):
-    def __init__(self, win, engine):
+    """
+    Represents the spawning state where players can spawn pieces on the board.
+    """
+
+    def __init__(self, win: pygame.Surface, engine: "Engine"):
+        """
+        Initializes the Spawning state.
+
+        :param win: The game window surface.
+        :param engine: The game engine instance.
+        """
+        # Call the parent class initializer
         super().__init__(win, engine)
+
+        # Initialize the sidebar with a HUD
         self.side_bar = Hud(win, engine)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the Spawning state.
+
+        :return: A string representing the Spawning state.
+        """
         return "spawning"
 
     def draw(self):
+        """
+        Draws the spawning state, including the HUD and any active menus.
+        """
+        # Call the parent class's draw method
         super().draw()
+
+        # Draw the sidebar
         self.side_bar.draw()
+
+        # Get the current mouse position
         pos = pygame.mouse.get_pos()
         displayPosX = pos[0] - Constant.SQ_SIZE // 2
         displayPosY = pos[1] - Constant.SQ_SIZE // 2
+
+        # Check if the mouse position is within bounds
         if Constant.pos_in_bounds(pos):
             try:
+                # Draw the appropriate image based on the spawning type
                 if self.engine.spawning == "quarry_1":
                     self.win.blit(
-                        Constant.IMAGES["pickaxe"], (displayPosX, displayPosY)
+                            Constant.IMAGES["pickaxe"], (displayPosX, displayPosY)
                     )
                 else:
                     self.win.blit(
-                        self.spawnTable[
-                            (self.engine.turn + "_" + self.engine.spawning)
-                        ],
-                        (displayPosX, displayPosY),
+                            self.spawnTable[
+                                (self.engine.turn + "_" + self.engine.spawning)
+                            ],
+                            (displayPosX, displayPosY),
                     )
             except TypeError:
                 pass
             return True
 
-    def left_click(self):
+    def left_click(self) -> bool:
+        """
+        Handles the left-click action to spawn a piece.
+
+        :return: True if a piece is successfully spawned, otherwise False.
+        """
+        # Get the current mouse position
         pos = pygame.mouse.get_pos()
         row, col = Constant.convert_pos(pos)
-        previousP = self.engine.update_previously_selected()
-        if (row, col) in previousP.spawn_squares_list:
-            acting_tile = self.engine.board[previousP.row][previousP.col]
-            action_tile = self.engine.board[row][col]
-            spawn = type_of_spawn(acting_tile, action_tile, self.engine.spawning)
-            event = spawn(self.engine, acting_tile, action_tile)
-            self.engine.add_event(event)
-            state = Playing(self.win, self.engine)
-            self.engine.set_state(state)
-            return True
-        else:
-            state = Playing(self.win, self.engine)
-            self.engine.menus = []
-            self.engine.reset_selected()
-            self.engine.set_state(state)
-            return False
+
+        # Update the previously selected piece
+        previously_selected = self.engine.update_previously_selected()
+
+        # Check if the clicked position is in the spawn squares list
+        if (row, col) in previously_selected.spawn_squares_list:
+            # Perform the spawn action
+            self.perform_spawn(previously_selected, row, col)
+
+            # Return true and return to playing state
+            return not self.revert_to_playing_state()
+        return self.revert_to_playing_state()
+
+    def perform_spawn(self, previously_selected, row, col):
+        # Get the acting and action tiles
+        acting_tile = self.engine.board[previously_selected.row][previously_selected.col]
+        action_tile = self.engine.board[row][col]
+
+        # Create and add the spawn event
+        spawn = type_of_spawn(acting_tile, action_tile, self.engine.spawning)
+        event = spawn(self.engine, acting_tile, action_tile)
+        self.engine.add_event(event)
 
     def right_click(self):
+        """
+        Handles the right-click action to revert to the playing state.
+        """
         self.revert_to_playing_state()
 
     def mouse_move(self):
+        """
+        Handles mouse movement events.
+        """
         pass
 
     def tab(self):
+        """
+        Handles the tab key press event to revert to the playing state.
+        """
         self.revert_to_playing_state()
 
 
 class Winner(State):
+    """
+    Represents the winner state where the game displays the winning message.
+    """
 
-    def __init__(self, win, engine):
+    def __init__(self, win: pygame.Surface, engine: "Engine"):
+        """
+        Initializes the Winner state.
+
+        :param win: The game window surface.
+        :param engine: The game engine instance.
+        """
+        # Call the parent class initializer
         super().__init__(win, engine)
+
+        # Set the font size based on the square size constant
         self.font_size = round(Constant.SQ_SIZE * 2)
+
+        # Load the font with the specified size
         self.font = pygame.font.Font(
             os.path.join("files/fonts", "font.ttf"), self.font_size
         )
+
+        # Define the winning messages for each player
         self.key = {"w": "White Won!", "b": "Black Won!"}
+
+        # Render the winning message based on the current turn
         self.text_surf = self.font.render(
             self.key[self.engine.turn], True, Constant.turn_to_color[self.engine.turn]
         )
-        self.window_width = pygame.display.Info().current_w
-        self.window_height = pygame.display.Info().current_h
-        self.display_x = self.window_width // 2 - self.text_surf.get_width() // 2
-        self.display_y = self.window_height // 2 - self.text_surf.get_height() // 2
 
-    def __repr__(self):
+        # Initialize the sidebar with an empty state
+        self.side_bar = Empty(self.win, self.engine)
+
+        # Create a surface for the text box
+        self.text_box = pygame.Surface((self.text_surf.get_width(), self.text_surf.get_height()))
+
+        # Get the window dimensions
+        window_width = self.win.get_width()
+        window_height = self.win.get_height()
+
+        # Scale the paper texture for the text box
+        self.text_box_ = self.scale_paper_texture(self.text_box)
+
+        # Calculate the position for the text box
+        self.text_box_x = Constant.BOARD_WIDTH_PX // 2 - self.text_box.get_width() // 2
+        self.text_box_y = Constant.BOARD_HEIGHT_PX // 2 - self.text_box.get_height() // 2
+
+        # Calculate the display position for the text surface
+        self.display_x = window_width // 2 - self.text_surf.get_width() // 2
+        self.display_y = window_height // 2 - self.text_surf.get_height() // 2
+
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the Winner state.
+
+        :return: A string representing the Winner state.
+        """
         return "winner"
 
     def left_click(self):
-        self.engine.reset()
+        """
+        Handles the left-click action to revert to the playing state.
+        """
+        self.revert_to_playing_state()
+        self.engine.undo_last_event()
+
 
     def right_click(self):
-        self.engine.reset()
+        """
+        Handles the right-click action to revert to the playing state.
+        """
+        self.revert_to_playing_state()
+        self.engine.undo_last_event()
+
 
     def mouse_move(self):
+        """
+        Handles mouse movement events.
+        """
         pass
 
     def draw(self):
-        self.win.fill(Constant.MENU_COLOR)
-        self.win.blit(self.text_surf, (self.display_x, self.display_y))
+        """
+        Draws the winner state, including the sidebar and the winning message.
+        """
+        # Draw the sidebar
+        self.side_bar.draw()
+
+        # Fill the text box with the menu color
+        self.text_box.fill(Constant.MENU_COLOR)
+
+        # Draw the paper texture on the text box
+        self.draw_paper_texture(self.text_box)
+
+        # Blit the text surface onto the text box
+        self.text_box.blit(self.text_surf, (0, 0))
+
+        # Blit the text box onto the window
+        self.win.blit(self.text_box, (self.text_box_x, self.text_box_y))
 
     def enter(self):
-        self.engine.reset()
+        """
+        Handles the enter key press event to revert to the playing state.
+        """
+        self.revert_to_playing_state()
+        self.engine.undo_last_event()
 
     def tab(self):
-        self.engine.reset()
+        """
+        Handles the tab key press event to revert to the playing state.
+        """
+        self.revert_to_playing_state()
+        self.engine.undo_last_event()
 
 
 class Surrender(State):
-    def __init__(self, win, engine):
+    """
+    Represents the surrender state where players can choose to surrender the game.
+    """
+
+    def __init__(self, win: pygame.Surface, engine: "Engine"):
+        """
+        Initializes the Surrender state.
+
+        :param win: The game window surface.
+        :param engine: The game engine instance.
+        """
+        # Call the parent class initializer
         super().__init__(win, engine)
+
+        # Initialize the sidebar with a SurrenderMenu
         self.side_bar = SurrenderMenu(win, engine)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the Surrender state.
+
+        :return: A string representing the Surrender state.
+        """
         return "surrender"
 
     def left_click(self):
+        """
+        Handles the left-click action to process the surrender.
+
+        If the player is surrendering, it transitions to the Winner state.
+        """
+        # Process the left-click action on the sidebar
         self.side_bar.left_click()
+
+        # Check if the player is surrendering
         if self.engine.surrendering:
+            # Transition to the Winner state
             new_state = Winner(self.win, self.engine)
             self.engine.set_state(new_state)
 
     def right_click(self):
+        """
+        Handles the right-click action to revert to the playing state.
+        """
         self.revert_to_playing_state()
 
     def mouse_move(self):
+        """
+        Handles mouse movement events.
+        """
+        # Process the mouse movement on the sidebar
         self.side_bar.mouse_move()
 
     def tab(self):
+        """
+        Handles the tab key press event to revert to the playing state.
+        """
         self.revert_to_playing_state()
 
     def draw(self):
+        """
+        Draws the surrender state, including the sidebar.
+        """
+        # Call the parent class's draw method
         super().draw()
+
+        # Draw the sidebar
         self.side_bar.draw()
 
-
 class PieceCost(State):
-    def __init__(self, win, engine, current_state=None):
+    """
+    Represents the piece cost screen state where players can view the cost of pieces.
+    """
+
+    def __init__(self, win: pygame.Surface, engine: "Engine", current_state: State = None):
+        """
+        Initializes the PieceCost state.
+
+        :param win: The game window surface.
+        :param engine: The game engine instance.
+        :param current_state: The current state before transitioning to the PieceCost state.
+        """
+        # Set the current state
         self.current_state = current_state
+
+        # Call the parent class initializer
         super().__init__(win, engine)
+
+        # Create and append the Master menu to the engine's menus
         menu = Master(self.win, self.engine, Constant.MASTER_COST_LIST)
         self.engine.menus.append(menu)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the PieceCost state.
+
+        :return: A string representing the PieceCost state.
+        """
         return "piece cost screen"
 
     def remove_top_menu(self):
+        """
+        Removes the top menu from the engine's menus.
+
+        If there is only one menu left, it closes all menus and reverts to the previous state.
+        """
+        # Check if there is only one menu left
         if len(self.engine.menus) == 1:
+            # Close all menus
             self.engine.close_menus()
+
+            # Revert to the appropriate state based on the current state
             if str(self.current_state) == "playing":
                 self.revert_to_playing_state()
             else:
                 self.revert_to_starting_state()
-
         else:
+            # Close the top menu and remove it from the list
             self.engine.menus[-1].close()
             del self.engine.menus[-1]
 
     def right_click(self):
+        """
+        Handles the right-click action to remove the top menu.
+        """
         self.remove_top_menu()
 
     def mouse_move(self):
+        """
+        Handles mouse movement events.
+        """
+        # Process the mouse movement on the top menu if any menus are open
         if self.engine.menus:
             self.engine.menus[-1].mouse_move()
 
     def draw(self):
+        """
+        Draw only the top menu, if it does not exist, draw nothing.
+        """
         try:
+            # Draw the top menu
             self.engine.menus[-1].draw()
         except IndexError:
             pass
 
-    def left_click(self):
+    def left_click(self) -> bool:
+        """
+        Handles the left-click action to interact with the top menu.
+
+        :return: True if an action is successfully performed, otherwise False.
+        """
         return self.engine.menus[-1].left_click()
 
     def enter(self):
+        """
+        Handles the enter key press event.
+        """
         pass
 
     def tab(self):
+        """
+        Handles the tab key press event to remove the top menu.
+        """
         self.remove_top_menu()
 
 
 class Ritual(State):
-    def __init__(self, win, engine):
+    """
+    Represents the ritual state where players can perform rituals on the board.
+    """
+
+    def __init__(self, win: pygame.Surface, engine: "Engine"):
+        """
+        Initializes the Ritual state.
+
+        :param win: The game window surface.
+        :param engine: The game engine instance.
+        """
+        # Call the parent class initializer
         super().__init__(win, engine)
-        self.previously_selected = engine.update_previously_selected()
+
+        # Update the previously selected piece
+        self.previously_selected: Unit = engine.update_previously_selected()
+
+        # Reset the selected piece in the engine
         self.engine.reset_selected()
-        self.previously_selected.performing_ritual = True
-        self.cost_type = None
-        self.turn = self.engine.turn
-        self.player = self.engine.players[self.turn]
-        self.ritual_image = Constant.PRAYER_RITUALS[self.turn + "_" + str(self)]
+
+        # Set the performing_ritual flag to True for the previously selected piece
+        self.previously_selected.performing_ritual: bool = True
+
+        # Initialize the cost type to None
+        self.cost_type: Optional[str] = None
+
+        # Get the current turn
+        self.turn: str = self.engine.turn
+
+        # Get the current player
+        self.player: Player = self.engine.players[self.turn]
+
+        # Load the ritual image based on the current turn and state
+        self.ritual_image: pygame.Surface = Constant.PRAYER_RITUALS[self.turn + "_" + str(self)]
+
+        # Close all menus in the engine
         self.engine.close_menus()
+
+        # Set the pieces constant
         self.PIECES = Constant.B_PIECES | Constant.W_PIECES
 
-    def click_valid_square(self, row, col):
-        if (row, col) in self.previously_selected.ritual_squares_list:
-            return True
+    def click_valid_square(self, row: int, col: int) -> bool:
+        """
+        Checks if the clicked square is valid for performing the ritual.
+
+        :param row: The row index of the clicked square.
+        :param col: The column index of the clicked square.
+        :return: True if the square is valid, otherwise False.
+        """
+        return (row, col) in self.previously_selected.ritual_squares_list
 
     def draw_ritual_at_mouse_position(self):
+        """
+        Draws the ritual image at the current mouse position.
+        """
+        # Get the current mouse position
         pos = pygame.mouse.get_pos()
+
+        # Calculate the display position for the ritual image
         display_pos_x = pos[0] - Constant.SQ_SIZE // 2
         display_pos_y = pos[1] - Constant.SQ_SIZE // 2
+
+        # Blit the ritual image onto the window
         self.win.blit(self.ritual_image, (display_pos_x, display_pos_y))
 
     def right_click(self):
+        """
+        Handles the right-click action to revert to the playing state.
+        """
         self.revert_to_playing_state()
 
     def mouse_move(self):
+        """
+        Handles mouse movement events.
+        """
         pass
 
     def enter(self):
+        """
+        Handles the enter key press event.
+        """
         pass
 
     def tab(self):
+        """
+        Handles the tab key press event to revert to the playing state.
+        """
         self.revert_to_playing_state()
 
 
 class SummonGoldGeneral(Ritual):
-    def __init__(self, win, engine):
+    """
+    Represents the state where players can summon a Gold General on the board.
+    """
+
+    def __init__(self, win: pygame.Surface, engine: "Engine"):
+        """
+        Initializes the SummonGoldGeneral state.
+
+        :param win: The game window surface.
+        :param engine: The game engine instance.
+        """
+        # Call the parent class initializer
         super().__init__(win, engine)
-        self.side_bar = Hud(self.win, self.engine)
-        self.previously_selected.ritual_squares_list = (
+
+        # Initialize the sidebar with a HUD
+        self.side_bar: SideMenu = Hud(self.win, self.engine)
+
+        # Set the ritual squares list for the previously selected piece
+        self.previously_selected.ritual_squares_list: list[tuple[int, int]] = (
             self.previously_selected.gold_general_ritual_squares(self.engine)
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the SummonGoldGeneral state.
+
+        :return: A string representing the SummonGoldGeneral state.
+        """
         return "gold_general"
 
     def draw(self):
-
+        """
+        Draws the SummonGoldGeneral state, including the sidebar and the ritual image.
+        """
+        # Call the parent class's draw method
         super().draw()
+
+        # Draw the sidebar
         self.side_bar.draw()
+
+        # Draw the ritual image at the mouse position
         self.draw_ritual_at_mouse_position()
 
-    def click_valid_square(self, row, col):
-        if Constant.tile_in_bounds(row, col):
-            if (row, col) in self.previously_selected.ritual_squares_list:
-                return True
+    def click_valid_square(self, row: int, col: int) -> bool:
+        """
+        Checks if the clicked square is valid for summoning the Gold General.
 
-    def left_click(self):
+        :param row: The row index of the clicked square.
+        :param col: The column index of the clicked square.
+        :return: True if the square is valid, otherwise False.
+        """
+        # Check if the tile is within bounds
+        if Constant.tile_in_bounds(row, col):
+            # Check if the square is in the ritual squares list
+            return (row, col) in self.previously_selected.ritual_squares_list
+
+    def left_click(self) -> bool:
+        """
+        Handles the left-click action to summon the Gold General.
+
+        :return: True if the action is successfully performed, otherwise False.
+        """
+        # Get the row and column of the clicked position
         row, col = Constant.convert_pos(pygame.mouse.get_pos())
+
+        # Check if the clicked square is valid
         if self.click_valid_square(row, col):
-            acting_tile = self.engine.board[self.previously_selected.row][
-                self.previously_selected.col
-            ]
-            action_tile = self.engine.board[row][col]
-            event = GoldGeneralEvent(self.engine, acting_tile, action_tile)
+            # Get the acting and action tiles
+            acting_tile: Tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+            action_tile: Tile = self.engine.board[row][col]
+
+            # Create and add the GoldGeneralEvent
+            event: GoldGeneralEvent = GoldGeneralEvent(self.engine, acting_tile, action_tile)
             self.engine.add_event(event)
+
+            # Revert to the playing state
             return self.revert_to_playing_state()
         else:
+            # Revert to the playing state if the square is not valid
             return self.revert_to_playing_state()
 
-        # Spend prayer after the square is clicked
-
-
 class PerformSmite(Ritual):
+    """
+    Represents the state where players can perform a smite ritual on the board.
+    """
 
-    def __init__(self, win, engine):
+    def __init__(self, win: pygame.Surface, engine: "Engine"):
+        """
+        Initializes the PerformSmite state.
+
+        :param win: The game window surface.
+        :param engine: The game engine instance.
+        """
+        # Call the parent class initializer
         super().__init__(win, engine)
-        self.side_bar = Hud(self.win, self.engine)
-        self.engine.close_menus()
-        self.previously_selected.ritual_squares_list = self.smite_ritual_squares()
 
-    def __repr__(self):
+        # Initialize the sidebar with a HUD
+        self.side_bar: SideMenu = Hud(self.win, self.engine)
+
+        # Close all menus in the engine
+        self.engine.close_menus()
+
+        # Set the ritual squares list for the previously selected piece
+        self.previously_selected.ritual_squares_list: list[tuple[int, int]] = self.smite_ritual_squares()
+
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the PerformSmite state.
+
+        :return: A string representing the PerformSmite state.
+        """
         return "smite"
 
     def draw(self):
+        """
+        Draws the PerformSmite state, including the sidebar and the ritual image.
+        """
+        # Call the parent class's draw method
         super().draw()
+
+        # Draw the sidebar
         self.side_bar.draw()
+
+        # Draw the ritual image at the mouse position
         self.draw_ritual_at_mouse_position()
 
-    def smite_ritual_squares(self):
-        list_of_enemy_pieces = []
+    def smite_ritual_squares(self) -> list[tuple[int, int]]:
+        """
+        Determines the valid squares for performing the smite ritual.
+
+        :return: A list of tuples representing the valid squares.
+        """
+        list_of_enemy_pieces: list[tuple[int, int]] = []
+
+        # Iterate over the pieces of the current player
         for piece in self.engine.players[Constant.TURNS[self.engine.turn]].pieces:
             row, col = piece.row, piece.col
+
+            # Check if the piece is not a King and is not protected
             if not isinstance(piece, King):
                 if not self.engine.board[row][col].is_protected():
                     list_of_enemy_pieces.append((row, col))
+
         return list_of_enemy_pieces
 
-    def left_click(self):
+    def left_click(self) -> bool:
+        """
+        Handles the left-click action to perform the smite ritual.
+
+        :return: True if the action is successfully performed, otherwise False.
+        """
+        # Get the row and column of the clicked position
         row, col = Constant.convert_pos(pygame.mouse.get_pos())
+
+        # Check if the clicked square is valid
         if self.click_valid_square(row, col):
-            acting_tile = self.engine.board[self.previously_selected.row][
-                self.previously_selected.col
-            ]
-            action_tile = self.engine.board[row][col]
-            event = Smite(self.engine, acting_tile, action_tile)
+            # Get the acting and action tiles
+            acting_tile: Tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+            action_tile: Tile = self.engine.board[row][col]
+
+            # Create and add the Smite event
+            event: Smite = Smite(self.engine, acting_tile, action_tile)
             self.engine.add_event(event)
+
+            # Revert to the playing state
             return self.revert_to_playing_state()
         else:
+            # Revert to the playing state if the square is not valid
             return self.revert_to_playing_state()
 
 
 class PerformDestroyResource(Ritual):
-    def __init__(self, win, engine):
+    """
+    Represents the state where players can perform a destroy resource ritual on the board.
+    """
+
+    def __init__(self, win: pygame.Surface, engine: "Engine"):
+        """
+        Initializes the PerformDestroyResource state.
+
+        :param win: The game window surface.
+        :param engine: The game engine instance.
+        """
+        # Call the parent class initializer
         super().__init__(win, engine)
-        self.side_bar = Hud(self.win, self.engine)
+
+        # Initialize the sidebar with a HUD
+        self.side_bar: SideMenu = Hud(self.win, self.engine)
+
+        # Close all menus in the engine
         self.engine.close_menus()
-        self.previously_selected.ritual_squares_list = (
+
+        # Set the ritual squares list for the previously selected piece
+        self.previously_selected.ritual_squares_list: list[tuple[int, int]] = (
             self.delete_resource_ritual_squares()
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the PerformDestroyResource state.
+
+        :return: A string representing the PerformDestroyResource state.
+        """
         return "destroy_resource"
 
     def draw(self):
+        """
+        Draws the PerformDestroyResource state, including the sidebar and the ritual image.
+        """
+        # Call the parent class's draw method
         super().draw()
+
+        # Draw the sidebar
         self.side_bar.draw()
-        # Display Gold General at mouse position while mouse is on valid spawn square
+
+        # Highlight ritual squares on the board
         self.previously_selected.highlight_ritual_squares(self.win)
+
+        # Draw the ritual image at the mouse position
         self.draw_ritual_at_mouse_position()
 
-    def delete_resource_ritual_squares(self):
-        list_of_all_resources = []
+    def delete_resource_ritual_squares(self) -> list[tuple[int, int]]:
+        """
+        Determines the valid squares for performing the destroy resource ritual.
+
+        :return: A list of tuples representing the valid squares.
+        """
+        list_of_all_resources: list[tuple[int, int]] = []
+
+        # Iterate over all rows and columns on the board
         for row in range(self.engine.rows):
             for col in range(self.engine.cols):
+                # Check if the tile has a resource
                 if self.engine.has_resource(row, col):
                     list_of_all_resources.append((row, col))
+
         return list_of_all_resources
 
-    def left_click(self):
+    def left_click(self) -> bool:
+        """
+        Handles the left-click action to perform the destroy resource ritual.
+
+        :return: True if the action is successfully performed, otherwise False.
+        """
+        # Get the row and column of the clicked position
         row, col = Constant.convert_pos(pygame.mouse.get_pos())
 
+        # Check if the clicked square is valid
         if self.click_valid_square(row, col):
-            acting_tile = self.engine.board[self.previously_selected.row][
-                self.previously_selected.col
-            ]
-            action_tile = self.engine.board[row][col]
-            event = DestroyResource(self.engine, acting_tile, action_tile)
+            # Get the acting and action tiles
+            acting_tile: Tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+            action_tile: Tile = self.engine.board[row][col]
+
+            # Create and add the DestroyResource event
+            event: DestroyResource = DestroyResource(self.engine, acting_tile, action_tile)
             self.engine.add_event(event)
+
+            # Revert to the playing state
             return self.revert_to_playing_state()
         else:
+            # Revert to the playing state if the square is not valid
             return self.revert_to_playing_state()
 
-
 class PerformCreateResource(Ritual):
-    def __init__(self, win, engine):
+    """
+    Represents the state where players can perform a create resource ritual on the board.
+    """
+
+    def __init__(self, win: pygame.Surface, engine: "Engine"):
+        """
+        Initializes the PerformCreateResource state.
+
+        :param win: The game window surface.
+        :param engine: The game engine instance.
+        """
+        # Call the parent class initializer
         super().__init__(win, engine)
-        self.side_bar = Hud(self.win, self.engine)
+
+        # Initialize the sidebar with a HUD
+        self.side_bar: SideMenu = Hud(self.win, self.engine)
+
+        # Close all menus in the engine
         self.engine.close_menus()
-        self.previously_selected.ritual_squares_list = (
+
+        # Set the ritual squares list for the previously selected piece
+        self.previously_selected.ritual_squares_list: list[tuple[int, int]] = (
             self.create_resource_ritual_squares()
         )
-        self.row = None
-        self.col = None
 
-    def __repr__(self):
+        # Initialize row and col to None
+        self.row: Optional[int] = None
+        self.col: Optional[int] = None
+
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the PerformCreateResource state.
+
+        :return: A string representing the PerformCreateResource state.
+        """
         return "create_resource"
 
     def draw(self):
+        """
+        Draws the PerformCreateResource state, including the sidebar and the ritual image.
+        """
+        # Call the parent class's draw method
         super().draw()
+
+        # Draw the sidebar
         self.side_bar.draw()
+
         # Display Gold General at mouse position while mouse is on valid spawn square
         if self.engine.menus:
             for menu in self.engine.menus:
@@ -3839,206 +4408,576 @@ class PerformCreateResource(Ritual):
             self.draw_ritual_at_mouse_position()
 
     def mouse_move(self):
+        """
+        Handles mouse movement events.
+        """
+        # Handle menu input for mouse movement
         if self.engine.menus:
             for menu in self.engine.menus:
                 menu.mouse_move()
 
-    def create_resource_ritual_squares(self):
-        list_of_all_empty_squares = []
+    def create_resource_ritual_squares(self) -> list[tuple[int, int]]:
+        """
+        Determines the valid squares for performing the create resource ritual.
+
+        :return: A list of tuples representing the valid squares.
+        """
+        list_of_all_empty_squares: list[tuple[int, int]] = []
+
+        # Iterate over all rows and columns on the board
         for row in range(self.engine.rows):
             for col in range(self.engine.cols):
+                # Check if the tile is empty
                 if self.engine.is_empty(row, col):
                     list_of_all_empty_squares.append((row, col))
 
         return list_of_all_empty_squares
 
-    def left_click(self):
+    def left_click(self) -> bool:
+        """
+        Handles the left-click action to perform the create resource ritual.
+
+        :return: True if the action is successfully performed, otherwise False.
+        """
+
+        # Get the row and column of the clicked position based on the mouse coordinates
+        row: int
+        col: int
         row, col = Constant.convert_pos(pygame.mouse.get_pos())
-        flag = False
-        if self.engine.menus:
-            for menu in self.engine.menus:
-                flag = menu.left_click()
-                if self.engine.ritual_summon_resource:
-                    self.engine.close_menus()
-                    acting_tile = self.engine.board[self.previously_selected.row][
-                        self.previously_selected.col
-                    ]
-                    action_tile = self.engine.board[self.row][self.col]
-                    event = CreateResource(self.engine, acting_tile, action_tile)
-                    self.engine.add_event(event)
-                    self.engine.ritual_summon_resource = None
-                    return self.revert_to_playing_state()
+
+        # Handle menu input
+        if self.handle_menu_click():
+            return True
+
+        # Handle board click
+        return self.handle_board_click(row, col)
+
+    def handle_menu_click(self) -> bool:
+        """
+        Handles left-click interactions with open menus.
+
+        :return: True if a menu was clicked and handled, otherwise False.
+        """
+
+        # Return early if there are no open menus
+        if not self.engine.menus:
+            return False
+
+        # Iterate through all open menus and process left-click events
+        for menu in self.engine.menus:
+            menu_clicked: bool = menu.left_click()
+
+            # If a menu click triggers a ritual summon, complete the ritual
+            if menu_clicked and self.engine.ritual_summon_resource:
+                self.complete_ritual_summon()
+                return True
+
+        return False
+
+    def complete_ritual_summon(self):
+        """
+        Completes the ritual summoning of a resource by closing menus, creating an event,
+        and reverting to the playing state.
+        """
+
+        # Close all open menus after selecting a resource to summon
+        self.engine.close_menus()
+
+        # Retrieve the tile where the summon originates
+        acting_tile: Tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+
+        # Retrieve the target tile where the resource will be summoned
+        action_tile: Tile = self.engine.board[self.row][self.col]
+
+        # Create a new resource event using the acting and target tiles
+        event: CreateResource = CreateResource(self.engine, acting_tile, action_tile)
+
+        # Add the new event to the event manager
+        self.engine.add_event(event)
+
+        # Reset the ritual summon state
+        self.engine.ritual_summon_resource = None
+
+        # Revert to the playing state
+        self.revert_to_playing_state()
+
+    def handle_board_click(self, row: int, col: int) -> bool:
+        """
+        Handles left-click interactions with the board, allowing resource menu creation.
+
+        :param row: The row index of the clicked position on the board.
+        :param col: The column index of the clicked position on the board.
+        :return: True if a valid square was clicked and handled, otherwise False.
+        """
+
+        # Check if the clicked position is a valid square and no ritual summoning is in progress
         if self.click_valid_square(row, col) and not self.engine.ritual_summon_resource:
+            # Store the clicked position
             self.row = row
             self.col = col
-            menu = ResourceMenu(row, col, self.win, self.engine)
+
+            # Create a new resource menu at the clicked position
+            menu: ResourceMenu = ResourceMenu(row, col, self.win, self.engine)
+
+            # Add the resource menu to the engine's menu list
             self.engine.menus.append(menu)
-            flag = True
-        else:
-            return self.revert_to_playing_state()
+
+            return True
+
+        # If the clicked position is invalid, revert to the playing state
+        self.revert_to_playing_state()
+        return False
 
 
 class PerformTeleport(Ritual):
-    def __init__(self, win, engine):
-        super().__init__(win, engine)
-        self.side_bar = Hud(self.win, self.engine)
-        self.engine.close_menus()
-        self.previously_selected.ritual_squares_list = self.teleport_ritual_squares()
-        self.selected = None
+    """
+    Represents the teleportation ritual, allowing a player to move a piece to a valid square.
+    """
 
-    def __repr__(self):
+    def __init__(self, win: pygame.Surface, engine: Engine):
+        """
+        Initializes the PerformTeleport ritual.
+
+        :param win: The game window surface.
+        :param engine: The game engine managing the state.
+        """
+
+        # Initialize the parent class (Ritual)
+        super().__init__(win, engine)
+
+        # Create the sidebar HUD for displaying information
+        self.side_bar: Hud = Hud(self.win, self.engine)
+
+        # Close any open menus before performing the teleportation ritual
+        self.engine.close_menus()
+
+        # Store valid squares for teleportation based on ritual rules
+        self.previously_selected.ritual_squares_list: list[tuple[int, int]] = self.get_teleportable_pieces()
+
+        # Store the selected piece for teleportation
+        self.selected: Optional[Piece] = None
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of this ritual.
+
+        :return: A string representing the ritual type.
+        """
         return "teleport"
 
     def draw(self):
+        """
+        Draws the ritual state, including the sidebar and highlighted squares.
+        """
+
+        # Draw common ritual elements
         super().draw()
+
+        # Draw the sidebar HUD
         self.side_bar.draw()
+
+        # Draw the ritual effect at the mouse position
         self.draw_ritual_at_mouse_position()
+
+        # Highlight the selected piece if one is chosen
         if self.selected:
             self.selected.highlight_self_square(self.win)
 
-    def teleport_ritual_squares(self):
-        list_of_all_pieces = []
+    def get_teleportable_pieces(self) -> list[tuple[int, int]]:
+        """
+        Retrieves a list of pieces that can be teleported.
+
+        :return: A list of (row, col) tuples representing teleportable piece positions.
+        """
+        teleportable_pieces: list[tuple[int, int]] = []
+
+        # Add all player-controlled pieces that are not Buildings or Kings
         for piece in self.player.pieces:
-            if not isinstance(piece, Building):
-                if not isinstance(piece, King):
-                    list_of_all_pieces.append((piece.row, piece.col))
+            if not isinstance(piece, (Building, King)):
+                teleportable_pieces.append((piece.row, piece.col))
 
-        for piece in self.engine.players[Constant.TURNS[self.turn]].pieces:
-            if not isinstance(piece, King):
-                if not isinstance(piece, Building):
-                    list_of_all_pieces.append((piece.row, piece.col))
-        return list_of_all_pieces
+        # Add all opponent-controlled pieces that are not Buildings or Kings
+        opponent_pieces: list[Piece] = self.engine.players[Constant.TURNS[self.turn]].pieces
+        for piece in opponent_pieces:
+            if not isinstance(piece, (King, Building)):
+                teleportable_pieces.append((piece.row, piece.col))
 
-    def valid_teleport_squares(self):
-        valid_squares = []
+        return teleportable_pieces
+
+    def get_valid_teleport_squares(self) -> list[tuple[int, int]]:
+        """
+        Determines the valid squares where the selected piece can teleport.
+
+        :return: A list of (row, col) tuples representing valid teleportation destinations.
+        """
+        valid_squares: list[tuple[int, int]] = []
+
+        # Iterate over all board positions
         for row in range(self.engine.rows):
             for col in range(self.engine.cols):
+
+                # Check if the square is empty
                 if self.engine.is_empty(row, col):
                     valid_squares.append((row, col))
-                elif self.selected.is_rogue:
-                    if self.engine.can_be_occupied_by_rogue(row, col):
+                    continue
+
+                # Check if the selected piece has special movement rules
+                if self.selected:
+                    if self.selected.is_rogue and self.engine.can_be_occupied_by_rogue(row, col):
                         valid_squares.append((row, col))
-                elif self.selected.is_general:
-                    if self.engine.can_be_occupied_by_gold_general(row, col):
+                    elif self.selected.is_general and self.engine.can_be_occupied_by_gold_general(row, col):
                         valid_squares.append((row, col))
 
         return valid_squares
 
-    def left_click(self):
+    def left_click(self) -> bool:
+        """
+        Handles the left-click action during the teleportation ritual.
+
+        :return: True if the click is handled successfully, otherwise False.
+        """
+
+        # Get the row and column of the clicked position
+        row: int
+        col: int
         row, col = Constant.convert_pos(pygame.mouse.get_pos())
-        if self.click_valid_square(row, col) and self.selected is None:
-            self.selected = self.engine.get_occupying(row, col)
-            self.previously_selected.ritual_squares_list = self.valid_teleport_squares()
+
+        # Handle selecting a piece to teleport
+        if self.is_valid_selection(row, col):
             return True
-        elif self.click_valid_square(row, col) and self.selected:
-            acting_tile = self.engine.board[self.previously_selected.row][
-                self.previously_selected.col
-            ]
-            action_tile = ((self.selected.row, self.selected.col), (row, col))
-            event = Teleport(self.engine, acting_tile, action_tile)
-            self.engine.add_event(event)
-            return self.revert_to_playing_state()
-        else:
-            return self.revert_to_playing_state()
+
+        # Handle selecting a destination for teleportation
+        if self.is_valid_destination(row, col):
+            return self.perform_teleport(row, col)
+
+        # If the click was invalid, return to the playing state
+        return self.revert_to_playing_state()
+
+    def is_valid_selection(self, row: int, col: int) -> bool:
+        """
+        Determines if the clicked square is a valid piece selection for teleportation.
+
+        :param row: The row index of the clicked square.
+        :param col: The column index of the clicked square.
+        :return: True if a piece was successfully selected, otherwise False.
+        """
+
+        # Ensure the square is valid and no piece has been selected yet
+        if self.click_valid_square(row, col) and self.selected is None:
+            # Select the piece occupying the clicked square
+            self.selected: Piece = self.engine.get_occupying(row, col)
+
+            # Update the list of valid teleportation squares
+            self.previously_selected.ritual_squares_list = self.get_valid_teleport_squares()
+
+            return True
+
+        return False
+
+    def is_valid_destination(self, row: int, col: int) -> bool:
+        """
+        Determines if the clicked square is a valid teleportation destination.
+
+        :param row: The row index of the clicked square.
+        :param col: The column index of the clicked square.
+        :return: True if the clicked square is a valid teleport destination, otherwise False.
+        """
+        return self.click_valid_square(row, col) and self.selected is not None
+
+    def perform_teleport(self, row: int, col: int) -> bool:
+        """
+        Performs the teleportation ritual by creating a teleport event.
+
+        :param row: The target row index for teleportation.
+        :param col: The target column index for teleportation.
+        :return: Always returns True to indicate that teleportation was performed.
+        """
+
+        # Get the acting tile where the teleport initiates
+        acting_tile: Tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+
+        # Define the teleportation action from the current position to the new position
+        action_tile: tuple[tuple[int, int], tuple[int, int]] = ((self.selected.row, self.selected.col), (row, col))
+
+        # Create and register a new teleport event
+        event: Teleport = Teleport(self.engine, acting_tile, action_tile)
+        self.engine.add_event(event)
+
+        # Return to the playing state
+        return self.revert_to_playing_state()
 
 
 class PerformSwap(Ritual):
-    def __init__(self, win, engine):
+    """
+    Represents the swap ritual, allowing a player to swap positions of two valid pieces.
+    """
+
+    def __init__(self, win: pygame.Surface, engine: Engine):
+        """
+        Initializes the PerformSwap ritual.
+
+        :param win: The game window surface.
+        :param engine: The game engine managing the state.
+        """
+
+        # Initialize the parent class (Ritual)
         super().__init__(win, engine)
-        self.side_bar = Hud(self.win, self.engine)
+
+        # Create the sidebar HUD for displaying information
+        self.side_bar: Hud = Hud(self.win, self.engine)
+
+        # Close any open menus before starting the ritual
         self.engine.close_menus()
-        self.first_selected = None
-        self.second_selected = None
-        self.previously_selected.ritual_squares_list = self.swap_ritual_squares()
+
+        # Track the first and second selected pieces for swapping
+        self.first_selected: Optional[Piece] = None
+        self.second_selected: Optional[Piece] = None
+
+        # Store valid swap squares based on ritual rules
+        self.previously_selected.ritual_squares_list: list[tuple[int, int]] = self.get_swapable_pieces()
+
+        # If the selected piece is an assassin, preselect it and mark it as casting
         if str(self.previously_selected) == "assassin":
             self.first_selected = self.previously_selected
             self.first_selected.casting = True
-            self.previously_selected.ritual_squares_list = self.swap_ritual_squares()
+            self.previously_selected.ritual_squares_list = self.get_swapable_pieces()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of this ritual.
+
+        :return: A string representing the ritual type.
+        """
         return "swap"
 
     def draw(self):
+        """
+        Draws the ritual state, including the sidebar and selected piece highlights.
+        """
+
+        # Draw common ritual elements
         super().draw()
+
+        # Draw the sidebar HUD
         self.side_bar.draw()
+
+        # Draw the ritual effect at the mouse position
         self.draw_ritual_at_mouse_position()
-        if self.first_selected:
-            if str(self.first_selected) == "assassin":
-                return
 
-    def swap_criteria(self, piece):
-        if not isinstance(piece, King):
-            return not isinstance(piece, Building)
+        # If the first selected piece is an assassin, no further drawing is needed
+        if self.first_selected and str(self.first_selected) == "assassin":
+            return
 
-    def swap_ritual_squares(self):
-        valid_pieces = []
-        # find first selected:
+    def is_valid_swap_piece(self, piece: Piece) -> bool:
+        """
+        Determines if a given piece can be swapped.
+
+        :param piece: The piece to check.
+        :return: True if the piece is swap-eligible, otherwise False.
+        """
+
+        # A valid piece for swapping cannot be a King or a Building
+        return not isinstance(piece, (King, Building))
+
+    def get_swapable_pieces(self) -> list[tuple[int, int]]:
+        """
+        Retrieves a list of valid pieces that can be swapped.
+
+        :return: A list of (row, col) tuples representing swapable piece positions.
+        """
+        valid_pieces: list[tuple[int, int]] = []
+
+        # If no piece has been selected, find a valid first selection from the player's pieces
         if not self.first_selected:
             for piece in self.engine.players[self.turn].pieces:
-                if self.swap_criteria(piece):
+                if self.is_valid_swap_piece(piece):
                     valid_pieces.append((piece.row, piece.col))
             return valid_pieces
-        # find second selected:
+
+        # If the first piece is already selected, find valid second selections from the opponent's pieces
         for piece in self.engine.players[Constant.TURNS[self.turn]].pieces:
-            if self.swap_criteria(piece):
+            if self.is_valid_swap_piece(piece):
                 valid_pieces.append((piece.row, piece.col))
+
         return valid_pieces
 
-    def left_click(self):
+    def left_click(self) -> bool:
+        """
+        Handles the left-click action during the swap ritual.
+
+        :return: True if the click is handled successfully, otherwise False.
+        """
+
+        # Get the row and column of the clicked position
+        row: int
+        col: int
         row, col = Constant.convert_pos(pygame.mouse.get_pos())
+
+        # Handle selecting the first piece to swap
+        if self.is_valid_first_selection(row, col):
+            return True
+
+        # Handle selecting the second piece to swap
+        if self.is_valid_second_selection(row, col):
+            return self.perform_swap(row, col)
+
+        # If the click was invalid, return to the playing state
+        return self.revert_to_playing_state()
+
+    def is_valid_first_selection(self, row: int, col: int) -> bool:
+        """
+        Determines if the clicked square is a valid first piece selection for swapping.
+
+        :param row: The row index of the clicked square.
+        :param col: The column index of the clicked square.
+        :return: True if a piece was successfully selected, otherwise False.
+        """
+
+        # Ensure the square is valid and no piece has been selected yet
         if self.click_valid_square(row, col) and self.first_selected is None:
-            self.first_selected = self.engine.get_occupying(row, col)
+            # Select the piece occupying the clicked square
+            self.first_selected: Piece = self.engine.get_occupying(row, col)
+
+            # Mark the piece as casting the ritual
             self.first_selected.casting = True
-            self.previously_selected.ritual_squares_list = self.swap_ritual_squares()
-        elif self.click_valid_square(row, col) and self.first_selected:
-            self.second_selected = self.engine.get_occupying(row, col)
-            acting_tile = self.engine.board[self.previously_selected.row][
-                self.previously_selected.col
-            ]
-            action_tile = (
-                (self.first_selected.row, self.first_selected.col),
-                (row, col),
-            )
-            event = Swap(self.engine, acting_tile, action_tile)
-            self.engine.add_event(event)
-            return self.revert_to_playing_state()
-        else:
-            return self.revert_to_playing_state()
+
+            # Update the list of valid swap targets
+            self.previously_selected.ritual_squares_list = self.get_swapable_pieces()
+
+            return True
+
+        return False
+
+    def is_valid_second_selection(self, row: int, col: int) -> bool:
+        """
+        Determines if the clicked square is a valid second piece selection for swapping.
+
+        :param row: The row index of the clicked square.
+        :param col: The column index of the clicked square.
+        :return: True if the clicked square is a valid swap destination, otherwise False.
+        """
+        return self.click_valid_square(row, col) and self.first_selected is not None
+
+    def perform_swap(self, row: int, col: int) -> bool:
+        """
+        Performs the swap ritual by creating a swap event.
+
+        :param row: The target row index for swapping.
+        :param col: The target column index for swapping.
+        :return: Always returns True to indicate that swapping was performed.
+        """
+
+        # Get the second selected piece
+        self.second_selected: Piece = self.engine.get_occupying(row, col)
+
+        # Get the acting tile where the swap initiates
+        acting_tile: Tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+
+        # Define the swap action from the first piece's position to the second piece's position
+        action_tile: tuple[tuple[int, int], tuple[int, int]] = (
+            (self.first_selected.row, self.first_selected.col),
+            (row, col),
+        )
+
+        # Create and register a new swap event
+        event: Swap = Swap(self.engine, acting_tile, action_tile)
+        self.engine.add_event(event)
+
+        # Return to the playing state
+        return self.revert_to_playing_state()
 
 
 class PerformLineDestroy(Ritual):
-    def __init__(self, win, engine):
-        super().__init__(win, engine)
-        self.side_bar = Hud(self.win, self.engine)
-        self.engine.close_menus()
-        self.directions = (Constant.UP, Constant.RIGHT, Constant.LEFT, Constant.DOWN)
-        self.row = self.previously_selected.row
-        self.col = self.previously_selected.col
-        mouse_row, mouse_col = Constant.convert_pos(pygame.mouse.get_pos())
-        self.up = range(self.row - 1, -1, -1), range(self.col, self.col + 1)
-        self.down = range(self.row + 1, Constant.BOARD_HEIGHT_SQ), range(
-            self.col, self.col + 1
-        )
-        self.right = range(self.row, self.row + 1), range(
-            self.col + 1, Constant.BOARD_WIDTH_SQ
-        )
-        self.left = range(self.row, self.row + 1), range(self.col - 1, -1, -1)
+    """
+    Represents the line destroy ritual, allowing a player to destroy pieces in a straight line.
+    """
 
-        self.selected_range = self.determine_active_line(mouse_row, mouse_col)
-        self.previously_selected.ritual_squares_list = (
+    def __init__(self, win: pygame.Surface, engine: Engine):
+        """
+        Initializes the PerformLineDestroy ritual.
+
+        :param win: The game window surface.
+        :param engine: The game engine managing the state.
+        """
+
+        # Initialize the parent class (Ritual)
+        super().__init__(win, engine)
+
+        # Create the sidebar HUD for displaying information
+        self.side_bar: Hud = Hud(self.win, self.engine)
+
+        # Close any open menus before starting the ritual
+        self.engine.close_menus()
+
+        # Define possible movement directions for the line destruction
+        self.directions: tuple[str, str, str, str] = (
+            Constant.UP, Constant.RIGHT, Constant.LEFT, Constant.DOWN
+        )
+
+        # Store the position of the previously selected piece
+        self.row: int = self.previously_selected.row
+        self.col: int = self.previously_selected.col
+
+        # Determine the current mouse position in board coordinates
+        mouse_row: int
+        mouse_col: int
+        mouse_row, mouse_col = Constant.convert_pos(pygame.mouse.get_pos())
+
+        # Define movement ranges for each possible direction
+        self.up: tuple[range, range] = (range(self.row - 1, -1, -1), range(self.col, self.col + 1))
+        self.down: tuple[range, range] = (
+            range(self.row + 1, Constant.BOARD_HEIGHT_SQ), range(self.col, self.col + 1)
+        )
+        self.right: tuple[range, range] = (
+            range(self.row, self.row + 1), range(self.col + 1, Constant.BOARD_WIDTH_SQ)
+        )
+        self.left: tuple[range, range] = (
+            range(self.row, self.row + 1), range(self.col - 1, -1, -1)
+        )
+
+        # Determine the initial active destruction line based on mouse position
+        self.selected_range: Optional[tuple[range, range]] = self.determine_active_line(mouse_row, mouse_col)
+
+        # Store valid destruction squares based on the selected range
+        self.previously_selected.ritual_squares_list: list[tuple[int, int]] = (
             self.active_line_destroy_ritual_squares(self.selected_range)
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of this ritual.
+
+        :return: A string representing the ritual type.
+        """
         return "line_destroy"
 
     def draw(self):
+        """
+        Draws the ritual state, including the sidebar and visual effects.
+        """
+
+        # Draw common ritual elements
         super().draw()
+
+        # Draw the sidebar HUD
         self.side_bar.draw()
+
+        # Draw the ritual effect at the mouse position
         self.draw_ritual_at_mouse_position()
 
-    def determine_active_line(self, row, col):
+    def determine_active_line(self, row: int, col: int) -> Optional[tuple[range, range]]:
+        """
+        Determines the active destruction line based on the given row and column.
+
+        :param row: The row index of the target tile.
+        :param col: The column index of the target tile.
+        :return: A tuple containing the row and column ranges for the active destruction line.
+        """
+
+        # Ensure the target tile is within the board bounds
         if self.engine.tile_in_bounds(row, col):
+
+            # Determine which directional range matches the target tile
             if row in self.up[0] and col == self.col:
                 return self.up
             if row in self.down[0] and col == self.col:
@@ -4048,138 +4987,327 @@ class PerformLineDestroy(Ritual):
             if col in self.left[1] and row == self.row:
                 return self.left
 
+        return None
+
     def mouse_move(self):
+        """
+        Updates the destruction line selection when the mouse moves.
+        """
+
+        # Get the row and column of the current mouse position
+        row: int
+        col: int
         row, col = Constant.convert_pos(pygame.mouse.get_pos())
+
+        # Update the selected destruction line based on the mouse position
         self.selected_range = self.determine_active_line(row, col)
+
+        # Update the list of affected squares for the ritual
         self.previously_selected.ritual_squares_list = (
             self.active_line_destroy_ritual_squares(self.selected_range)
         )
 
-    def active_line_destroy_ritual_squares(self, selected_range):
-        active_line_squares = []
+    def active_line_destroy_ritual_squares(self, selected_range: Optional[tuple[range, range]]) -> list[
+        tuple[int, int]]:
+        """
+        Determines which squares are affected by the line destruction.
+
+        :param selected_range: The range of squares affected in a straight line.
+        :return: A list of (row, col) tuples representing affected tiles.
+        """
+
+        active_line_squares: list[tuple[int, int]] = []
+
+        # Ensure a valid range is selected before processing
         if selected_range:
             for r in selected_range[0]:
                 for c in selected_range[1]:
-                    if self.engine.board[r][c].is_protected_by_opposite_color(
-                            self.engine.turn
-                    ):
+
+                    # Stop if the tile is protected by the opposite player
+                    if self.engine.board[r][c].is_protected_by_opposite_color(self.engine.turn):
                         break
-                    else:
-                        active_line_squares.append((r, c))
+
+                    # Otherwise, add the tile to the affected list
+                    active_line_squares.append((r, c))
+
         return active_line_squares
 
-    def left_click(self):
+    def left_click(self) -> bool:
+        """
+        Handles the left-click action for executing the line destruction.
+
+        :return: True if the ritual successfully executes, otherwise False.
+        """
+
+        # Get the row and column of the clicked position
+        row: int
+        col: int
         row, col = Constant.convert_pos(pygame.mouse.get_pos())
-        if self.click_valid_square(row, col):
-            self.engine.line_destroy_selected_range = self.selected_range
-            acting_tile = self.engine.board[self.previously_selected.row][
-                self.previously_selected.col
-            ]
-            action_tile = self.engine.board[row][col]
-            event = LineDestroy(self.engine, acting_tile, action_tile)
-            self.engine.add_event(event)
-            if self.engine.enemy_player_king_does_not_exist():
-                new_state = Winner(self.win, self.engine)
-                self.engine.set_state(new_state)
-                return True
-            else:
-                return self.revert_to_playing_state()
-        else:
+
+        # Ensure the clicked square is a valid target
+        if not self.click_valid_square(row, col):
             return self.revert_to_playing_state()
+
+        # Store the selected destruction range
+        self.engine.line_destroy_selected_range = self.selected_range
+
+        # Get the acting tile where the destruction originates
+        acting_tile: Tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+
+        # Get the action tile where the destruction is targeted
+        action_tile: Tile = self.engine.board[row][col]
+
+        # Create and register a new line destruction event
+        event: LineDestroy = LineDestroy(self.engine, acting_tile, action_tile)
+        self.engine.add_event(event)
+
+        # If the enemy player's king is destroyed, transition to the Winner state
+        if self.engine.enemy_player_king_does_not_exist():
+            new_state: Winner = Winner(self.win, self.engine)
+            self.engine.set_state(new_state)
+            return True
+
+        # Otherwise, return to the normal playing state
+        return self.revert_to_playing_state()
 
 
 class PerformProtect(Ritual):
-    def __init__(self, win, engine):
-        super().__init__(win, engine)
-        self.side_bar = Hud(win, engine)
-        self.engine.close_menus()
-        self.previously_selected.ritual_squares_list = self.protectable_ritual_squares()
+    """
+    Represents the protect ritual, allowing a player to protect an empty tile,
+    a non-king piece, or a resource.
 
-    def __repr__(self):
+    :param win: The game window surface.
+    :param engine: The game engine managing the state.
+    """
+
+    def __init__(self, win: pygame.Surface, engine: Engine):
+        """
+        Initializes the PerformProtect ritual.
+
+        :param win: The game window surface.
+        :param engine: The game engine managing the state.
+        """
+
+        # Initialize the parent class (Ritual)
+        super().__init__(win, engine)
+
+        # Create the sidebar HUD for displaying information
+        self.side_bar: Hud = Hud(win, engine)
+
+        # Close any open menus before starting the ritual
+        self.engine.close_menus()
+
+        # Store the list of squares that can be protected
+        self.previously_selected.ritual_squares_list: list[tuple[int, int]] = self.protectable_ritual_squares()
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of this ritual.
+
+        :return: A string representing the ritual type.
+        """
         return "protect"
 
-    def protectable_ritual_squares(self):
-        ritual_squares = []
+    def protectable_ritual_squares(self) -> list[tuple[int, int]]:
+        """
+        Identifies which tiles are eligible for protection.
+
+        :return: A list of (row, col) tuples representing protectable tiles.
+        """
+
+        protectable_squares: list[tuple[int, int]] = []
+
+        # Iterate through each tile on the board
         for row in range(self.engine.rows):
             for col in range(self.engine.cols):
+
+                # If the tile is empty, it can be protected
                 if self.engine.is_empty(row, col):
-                    ritual_squares.append((row, col))
-                elif self.engine.get_occupying(row, col):
-                    piece = self.engine.get_occupying(row, col)
-                    if not isinstance(piece, King):
-                        ritual_squares.append((row, col))
-                elif self.engine.get_resource(row, col):
-                    ritual_squares.append((row, col))
-        return ritual_squares
+                    protectable_squares.append((row, col))
+                    continue
+
+                # Check if a piece is occupying the tile
+                piece: Optional[Piece] = self.engine.get_occupying(row, col)
+                if piece and not isinstance(piece, King):
+                    protectable_squares.append((row, col))
+                    continue
+
+                # If the tile contains a resource, it can also be protected
+                if self.engine.get_resource(row, col):
+                    protectable_squares.append((row, col))
+
+        return protectable_squares
 
     def draw(self):
+        """
+        Draws the ritual state, including the sidebar and visual effects.
+        """
+
+        # Draw common ritual elements
         super().draw()
+
+        # Draw the sidebar HUD
         self.side_bar.draw()
+
+        # Draw the ritual effect at the mouse position
         self.draw_ritual_at_mouse_position()
 
-    def left_click(self):
+    def left_click(self) -> bool:
+        """
+        Handles the left-click action for executing the protect ritual.
+
+        :return: True if the ritual successfully executes, otherwise False.
+        """
+
+        # Get the row and column of the clicked position
+        row: int
+        col: int
         row, col = Constant.convert_pos(pygame.mouse.get_pos())
-        if self.click_valid_square(row, col):
-            acting_tile = self.engine.board[self.previously_selected.row][
-                self.previously_selected.col
-            ]
-            action_tile = self.engine.board[row][col]
-            event = Protect(self.engine, acting_tile, action_tile)
-            self.engine.add_event(event)
+
+        # Ensure the clicked square is a valid target
+        if not self.click_valid_square(row, col):
             return self.revert_to_playing_state()
-        else:
-            return self.revert_to_playing_state()
+
+        # Get the acting tile where the protection originates
+        acting_tile: Tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+
+        # Get the action tile where the protection is applied
+        action_tile: Tile = self.engine.board[row][col]
+
+        # Create and register a new protection event
+        event: Protect = Protect(self.engine, acting_tile, action_tile)
+        self.engine.add_event(event)
+
+        # Return to the normal playing state
+        return self.revert_to_playing_state()
 
 
 class PerformPortal(Ritual):
-    def __init__(self, win, engine):
-        super().__init__(win, engine)
-        self.side_bar = Hud(win, engine)
-        self.engine.close_menus()
-        self.selected = None
-        self.previously_selected.ritual_squares_list = self.valid_portal_squares()
+    """
+    Represents the portal ritual, allowing a player to place a portal on a valid tile
+    and then teleport a piece to a new location.
+    """
 
-    def __repr__(self):
+    def __init__(self, win: pygame.Surface, engine: Engine):
+        """
+        Initializes the PerformPortal ritual.
+
+        :param win: The game window surface.
+        :param engine: The game engine managing the state.
+        """
+
+        # Initialize the parent class (Ritual)
+        super().__init__(win, engine)
+
+        # Create the sidebar HUD for displaying information
+        self.side_bar: Hud = Hud(win, engine)
+
+        # Close any open menus before starting the ritual
+        self.engine.close_menus()
+
+        # Tracks the initially selected tile for the portal
+        self.selected: Optional[Tile] = None
+
+        # Store the list of valid squares where portals can be placed
+        self.previously_selected.ritual_squares_list: list[tuple[int, int]] = self.valid_portal_squares()
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of this ritual.
+
+        :return: A string representing the ritual type.
+        """
         return "portal"
 
-    def valid_portal_squares(self):
-        ritual_squares = []
+    def valid_portal_squares(self) -> list[tuple[int, int]]:
+        """
+        Identifies which tiles are eligible for portal placement.
+
+        :return: A list of (row, col) tuples representing valid portal tiles.
+        """
+
+        valid_squares: list[tuple[int, int]] = []
+
+        # Iterate through each tile on the board
         for row in range(self.engine.rows):
             for col in range(self.engine.cols):
+
+                # If the tile is empty, it can have a portal
                 if self.engine.is_empty(row, col):
-                    ritual_squares.append((row, col))
-                elif self.engine.get_occupying(row, col):
-                    piece = self.engine.get_occupying(row, col)
-                    if not isinstance(piece, Piece) and not isinstance(piece, Building):
-                        ritual_squares.append((row, col))
-                elif self.engine.get_resource(row, col):
-                    ritual_squares.append((row, col))
-        if self.selected:
-            if (self.selected.row, self.selected.col) in ritual_squares:
-                ritual_squares.remove((self.selected.row, self.selected.col))
-        return ritual_squares
+                    valid_squares.append((row, col))
+                    continue
+
+                # Check if a non-Piece and non-Building entity is occupying the tile
+                piece: Optional[Piece] = self.engine.get_occupying(row, col)
+                if piece and not isinstance(piece, (Piece, Building)):
+                    valid_squares.append((row, col))
+                    continue
+
+                # If the tile contains a resource, it can also have a portal
+                if self.engine.get_resource(row, col):
+                    valid_squares.append((row, col))
+
+        # Ensure the currently selected portal tile is not in the valid squares list
+        if self.selected and (self.selected.row, self.selected.col) in valid_squares:
+            valid_squares.remove((self.selected.row, self.selected.col))
+
+        return valid_squares
 
     def draw(self):
+        """
+        Draws the ritual state, including the sidebar and portal effects.
+        """
+
+        # Draw common ritual elements
         super().draw()
+
+        # Draw the sidebar HUD
         self.side_bar.draw()
+
+        # Draw the ritual effect at the mouse position
         self.draw_ritual_at_mouse_position()
+
+        # If a portal is selected, render its image at the appropriate location
         if self.selected:
             self.selected.draw_portal_image(self.win)
 
-    def left_click(self):
+    def left_click(self) -> bool:
+        """
+        Handles the left-click action for executing the portal ritual.
+
+        :return: True if the ritual successfully executes, otherwise False.
+        """
+
+        # Get the row and column of the clicked position
+        row: int
+        col: int
         row, col = Constant.convert_pos(pygame.mouse.get_pos())
+
+        # If no portal has been selected yet, set the first selected portal tile
         if self.click_valid_square(row, col) and self.selected is None:
             self.selected = self.engine.board[row][col]
             self.selected.portal_image = Constant.IMAGES[self.turn + "_portal"]
             self.previously_selected.ritual_squares_list = self.valid_portal_squares()
             return True
+
+        # If a portal has already been selected, finalize portal placement
         elif self.click_valid_square(row, col) and self.selected:
-            acting_tile = self.engine.board[self.previously_selected.row][
-                self.previously_selected.col
-            ]
-            action_tile = ((self.selected.row, self.selected.col), (row, col))
-            event = Portal(self.engine, acting_tile, action_tile)
+
+            # Get the acting tile where the portal was originally placed
+            acting_tile: Tile = self.engine.board[self.previously_selected.row][self.previously_selected.col]
+
+            # Define the action tile as a movement from the original portal to the new location
+            action_tile: tuple[tuple[int, int], tuple[int, int]] = (
+                (self.selected.row, self.selected.col),
+                (row, col)
+            )
+
+            # Create and register a new portal event
+            event: Portal = Portal(self.engine, acting_tile, action_tile)
             self.engine.add_event(event)
+
+            # Return to the normal playing state
             return self.revert_to_playing_state()
-        else:
-            return self.revert_to_playing_state()
+
+        # If the click is invalid, revert back to the playing state
+        return self.revert_to_playing_state()

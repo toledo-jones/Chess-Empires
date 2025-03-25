@@ -2131,6 +2131,9 @@ class SideMenu:
             self.menu
         )
 
+    def draw(self):
+        pass
+
     def mouse_move(self):
         pass
 

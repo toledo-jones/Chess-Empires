@@ -1,277 +1,162 @@
+import typing
+from typing import Optional, Tuple
+
+if typing.TYPE_CHECKING:
+    from Engine import Engine
+
 import pygame
 
 import Constant
 
 
 class Unit:
-    def __init__(self, row, col, color):
-        self.row = row
-        self.col = col
-        self.color = color
-        self.check = None
-        self.offset = self.get_sprite_offset()
-        self.dragging = False
-        self.first_move = True
-        self.rect = pygame.Rect(
+    """
+    Represents a unit in the game with various attributes and methods for drawing and highlighting.
+    """
+
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Unit object.
+
+        :param row: The row position of the unit.
+        :param col: The column position of the unit.
+        :param color: The color of the unit.
+        """
+        # Initialize position and color
+        self.row: int = row
+        self.col: int = col
+        self.color: str = color
+
+        # Initialize other attributes
+        self.check: Optional[bool] = None
+        self.offset: tuple[int, int] = self.get_sprite_offset()
+        self.dragging: bool = False
+        self.first_move: bool = True
+        self.rect: pygame.Rect = pygame.Rect(
             col * Constant.SQ_SIZE,
             row * Constant.SQ_SIZE,
             Constant.SQ_SIZE,
             Constant.SQ_SIZE,
         )
 
-        self.sprites = (
+        # Initialize sprites
+        self.sprites: dict = (
             Constant.W_PIECES
             | Constant.W_BUILDINGS
             | Constant.B_PIECES
             | Constant.B_BUILDINGS
         )
 
-        self.purchasing = False
-        self.performing_ritual = False
-        self.mining = False
-        self.selected = False
-        self.pre_selected = False
-        self.unused_piece_highlight = False
-        self.praying = False
-        self.casting = False
-        self.stealing = False
-        self.mining_stealing = False
-        self.persuading = False
-        self.praying_building = False
-        self.display_moves = False
+        # Initialize state flags
+        self.purchasing: bool = False
+        self.performing_ritual: bool = False
+        self.mining: bool = False
+        self.selected: bool = False
+        self.pre_selected: bool = False
+        self.unused_piece_highlight: bool = False
+        self.praying: bool = False
+        self.casting: bool = False
+        self.stealing: bool = False
+        self.persuading: bool = False
+        self.display_moves: bool = False
 
-        self.can_be_persuaded = True
-        self.intercepted = False
-        self.is_rogue = False
-        self.is_general = False
-        self.is_wall = False
-        self.is_cavalry = False
+        # Initialize other attributes
+        self.can_be_persuaded: bool = True
+        self.intercepted: bool = False
+        self.is_rogue: bool = False
+        self.is_general: bool = False
+        self.is_wall: bool = False
+        self.is_cavalry: bool = False
 
-        self.additional_actions = 0
-        self.actions_remaining = 0
-        self.population_value = Constant.PIECE_POPULATION[str(self)]
-        self.additional_piece_limit = Constant.ADDITIONAL_PIECE_LIMIT[str(self)]
+        self.additional_actions: int = 0
+        self.actions_remaining: int = 0
+        self.population_value: int = Constant.PIECE_POPULATION[str(self)]
+        self.additional_piece_limit: int = Constant.ADDITIONAL_PIECE_LIMIT[str(self)]
 
-        self.praying_squares_list = []
-        self.spawn_squares_list = []
-        self.move_squares_list = []
-        self.mining_squares_list = []
-        self.interceptor_squares_list = []
-        self.stealing_squares_list = []
-        self.ritual_squares_list = []
-        self.capture_squares_list = []
-        self.persuader_squares_list = []
-        self.swap_squares_list = []
+        # Initialize square lists
+        self.praying_squares_list: list[Tuple[int, int]] = []
+        self.spawn_squares_list: list[Tuple[int, int]] = []
+        self.move_squares_list: list[Tuple[int, int]] = []
+        self.mining_squares_list: list[Tuple[int, int]] = []
+        self.interceptor_squares_list: list[Tuple[int, int]] = []
+        self.stealing_squares_list: list[Tuple[int, int]] = []
+        self.ritual_squares_list: list[Tuple[int, int]] = []
+        self.capture_squares_list: list[Tuple[int, int]] = []
+        self.persuader_squares_list: list[Tuple[int, int]] = []
 
-        self.square = pygame.Surface(
+        # Initialize drawing attributes
+        self.square: pygame.Surface = pygame.Surface(
             (Constant.SQ_SIZE, Constant.SQ_SIZE), pygame.SRCALPHA
         )
-        self.self_selected_square_color = Constant.SELF_SQUARE_HIGHLIGHT_COLOR
-        self.unused_square_color = Constant.UNUSED_PIECE_HIGHLIGHT_COLOR
-        self.move_square_color = Constant.MOVE_SQUARE_HIGHLIGHT_COLOR
-        self.check_color = Constant.CHECK_SQUARE_HIGHLIGHT_COLOR
-        self.is_effected_by_jester = True
-
-    def get_rect(self) -> pygame.Surface:
-        return self.rect
-
-    def update_praying_squares(self, engine):
-        self.praying_squares_list = self.praying_squares(engine)
-
-    def update_swap_squares(self, engine):
-        self.swap_squares_list = self.swap_squares(engine)
-
-    def update_stealing_squares(self, engine):
-        self.stealing_squares_list = self.stealing_squares(engine)
-
-    def update_interceptor_squares(self, engine):
-        self.interceptor_squares_list = self.interceptor_squares(engine)
-
-    def update_persuader_squares(self, engine):
-        self.persuader_squares_list = self.persuader_squares(engine)
-
-    def update_mining_squares(self, engine):
-        self.mining_squares_list = self.mining_squares(engine)
-
-    def update_move_squares(self, engine):
-        self.move_squares_list = self.move_squares(engine)
-
-    def update_capture_squares(self, engine):
-        self.capture_squares_list = self.capture_squares(engine)
-
-    def gold_general_ritual_squares(self, engine):
-        return []
-
-    def update_spawn_squares(self, engine):
-        self.spawn_squares_list = self.spawn_squares(engine)
-
-    def update_ritual_squares(self, engine):
-        self.ritual_squares_list = self.ritual_squares(engine)
-
-    def can_act(self):
-        return self.actions_remaining > 0
-
-    def possible_moves(self):
-        return {
+        self.self_selected_square_color: tuple = Constant.SELF_SQUARE_HIGHLIGHT_COLOR
+        self.unused_square_color: tuple = Constant.UNUSED_PIECE_HIGHLIGHT_COLOR
+        self.move_square_color: tuple = Constant.MOVE_SQUARE_HIGHLIGHT_COLOR
+        self.check_color: tuple = Constant.CHECK_SQUARE_HIGHLIGHT_COLOR
+        self.is_effected_by_jester: bool = True
+        self.square_list: dict[str, list] = {
             "spawn": self.spawn_squares_list,
+            "stealing": self.stealing_squares_list,
+            "praying": self.praying_squares_list,
+            "mining": self.mining_squares_list,
             "move": self.move_squares_list,
-            "mine": self.mining_squares_list,
-            "steal": self.stealing_squares_list,
-            "pray": self.praying_squares_list,
-            "capture": self.capture_squares_list,
             "ritual": self.ritual_squares_list,
-            "persuade": self.persuader_squares_list,
+            "capture": self.capture_squares_list,
+            "persuader": self.persuader_squares_list,
+            "interceptor": self.interceptor_squares_list,
         }
+        self.flag_to_action = [
+            ("purchasing", ["spawn"]),
+            ("stealing", ["stealing"]),
+            ("praying", ["praying"]),
+            ("mining", ["mining"]),
+            ("selected", ["move", "capture"]),
+            ("pre_selected", ["spawn"]),
+            ("performing_ritual", ["ritual"]),
+            ("persuading", ["persuader"]),
+        ]
 
-    def can_capture(self, r, c, engine):
-        capture_tile = None
-        if engine.tile_in_bounds(r, c):
-            capture_tile = engine.board[r][c].get_occupying()
-        valid_square = isinstance(capture_tile, Piece) or isinstance(
-            capture_tile, Building
-        )
-        if not valid_square:
-            return False
-        if self.is_rogue:
-            return self.rogue_can_capture(r, c, engine, capture_tile)
-        if self.is_cavalry:
-            return self.cavalry_can_capture(r, c, engine, capture_tile)
-        if self.is_general:
-            return self.general_can_capture(r, c, engine, capture_tile)
-        return self.default_can_capture(r, c, engine, capture_tile)
+    def draw_highlights(self, win: pygame.Surface):
+        """
+        Draws the highlights on the game window based on the unit's state.
 
-    def general_can_capture(self, r, c, engine, capture_tile):
-        if engine.can_be_legally_occupied_by_rogue(r, c):
-            if self.color != capture_tile.get_color():
-                if not engine.board[r][c].is_protected():
-                    return True
-                else:
-                    if not engine.board[r][c].is_protected_by_opposite_color(
-                        self.color
-                    ):
-                        return True
-
-    def cavalry_can_capture(self, r, c, engine, capture_tile):
-        if engine.can_be_legally_occupied(r, c):
-            if self.color != capture_tile.get_color():
-                if not engine.board[r][c].is_protected():
-                    return True
-                else:
-                    if not engine.board[r][c].is_protected_by_opposite_color(
-                        self.color
-                    ):
-                        return True
-
-    def rogue_can_capture(self, r, c, engine, capture_tile):
-        if engine.can_be_legally_occupied_by_rogue(r, c):
-            if self.color != capture_tile.get_color():
-                if not capture_tile.is_wall:
-                    if not engine.board[r][c].is_protected():
-                        return True
-                    else:
-                        if not engine.board[r][c].is_protected_by_opposite_color(
-                            self.color
-                        ):
-                            return True
-
-    def default_can_capture(self, r, c, engine, capture_tile):
-        if engine.can_be_legally_occupied(r, c):
-            if self.color != capture_tile.get_color():
-                if not capture_tile.is_wall:
-                    if not engine.board[r][c].is_protected():
-                        return True
-                    else:
-                        if not engine.board[r][c].is_protected_by_opposite_color(
-                            self.color
-                        ):
-                            return True
-
-    def persuader_squares(self, engine):
-        return []
-
-    def mining_squares(self, engine):
-        return []
-
-    def interceptor_squares(self, engine):
-        return []
-
-    def capture_squares(self, engine):
-        return []
-
-    def stealing_squares(self, engine):
-        return []
-
-    def swap_squares(self, engine):
-        return []
-
-    def praying_squares(self, engine):
-        return []
-
-    def move_squares(self, engine):
-        return []
-
-    def spawn_squares(self, engine):
-        return []
-
-    def ritual_squares(self, engine):
-        return []
-
-    def get_position(self):
-        return self.row, self.col
-
-    def change_pos(self, row, col):
-        self.row = row
-        self.col = col
-        self.rect.x = col * Constant.SQ_SIZE
-        self.rect.y = row * Constant.SQ_SIZE
-
-    def draw_highlights(self, win):
-        if self.unused_piece_highlight:
-            self.highlight_self_square_unused(win)
-        if self.purchasing:
-            self.highlight_self_square(win)
-            self.highlight_spawn_squares(win)
-        elif self.selected:
-            self.highlight_self_square(win)
-            self.highlight_move_squares(win)
-            self.highlight_capture_squares(win)
-        elif self.pre_selected:
-            self.highlight_self_square(win)
-        elif self.performing_ritual:
-            self.highlight_ritual_squares(win)
-        elif self.mining:
-            self.highlight_self_square(win)
-            self.highlight_mining_squares(win)
-        elif self.praying:
-            self.highlight_self_square(win)
-            self.highlight_praying_squares(win)
-        elif self.mining_stealing:
-            self.highlight_self_square(win)
-            self.highlight_stealing_squares(win)
-            self.highlight_mining_squares(win)
-        elif self.praying_building:
-            self.highlight_self_square(win)
-            self.highlight_spawn_squares(win)
-            self.highlight_praying_squares(win)
-        elif self.stealing:
-            self.highlight_self_square(win)
-            self.highlight_stealing_squares(win)
-        elif self.persuading:
-            self.highlight_self_square(win)
-            self.highlight_persuader_squares(win)
-        elif self.display_moves:
-            self.highlight_self_square(win)
-            self.highlight_move_squares(win)
-            self.highlight_capture_squares(win)
-            self.highlight_swap_squares(win)
-        elif self.check:
-            self.highlight_self_square_check(win)
+        :param win: The game window surface.
+        """
+        # Disable unused piece highlight if no actions remain
         if self.actions_remaining == 0:
             self.unused_piece_highlight = False
+
+        # Highlight the unused piece if applicable
+        if self.unused_piece_highlight:
+            self.highlight_self_square_unused(win)
+
+        # Highlight this piece because it is in check
+        if self.check:
+            self.highlight_self_square_check(win)
+
+        # Highlight the casting square if applicable
         if self.casting:
             self.highlight_self_square(win)
 
-    def draw(self, win):
+        # Highlight squares based on active flags
+        active_flags = [
+            actions
+            for flag_name, actions in self.flag_to_action
+            if getattr(self, flag_name)
+        ]
+
+        # If there are any active flags, highlight the unit's square and draw highlights for each action
+        if active_flags:
+            self.highlight_self_square(win)
+            for actions in active_flags:
+                for action in actions:
+                    self.draw_highlight(win, action)
+
+    def draw(self, win: pygame.Surface):
+        """
+        Draws the unit on the game window.
+
+        :param win: The game window surface.
+        """
         # Check if the piece is not currently being dragged
         if not self.dragging:
             # Get the appropriate sprite based on the piece's color and type
@@ -286,156 +171,470 @@ class Unit:
             # Draw the piece sprite at the calculated position on the window
             win.blit(sprite, (x, y))
 
-    def highlight_self_square_check(self, win):
-        self.draw_self_highlight(win, self.check_color)
+    def draw_self_highlight(self, win: pygame.Surface, color: tuple):
+        """
+        Draws a highlight on the unit's square.
 
-    def square_fill(self, color):
-        self.square.fill(color)
-
-    def draw_self_highlight(self, win, color):
+        :param win: The game window surface.
+        :param color: The color of the highlight.
+        """
+        # Fill the square with the specified color
         self.square_fill(color)
         win.blit(
             self.square, (self.col * Constant.SQ_SIZE, self.row * Constant.SQ_SIZE)
         )
 
-    def draw_squares_in_list(self, win, square_list, color):
+    def draw_squares_in_list(
+        self, win: pygame.Surface, square_list: list[Tuple[int, int]], color: tuple
+    ):
+        """
+        Draws squares from a list on the game window.
+
+        :param win: The game window surface.
+        :param square_list: List of squares to draw.
+        :param color: The color to fill the squares.
+        """
+        # Fill the square with the specified color
         self.square_fill(color)
+        # Draw each square in the list
         for square in square_list:
             win.blit(
                 self.square,
                 (square[1] * Constant.SQ_SIZE, square[0] * Constant.SQ_SIZE),
             )
 
-    def highlight_self_square_unused(self, win):
+    def draw_highlight(self, win: pygame.Surface, square_type: str):
+        """
+        Draws highlights on the game window based on the square type.
+
+        :param win: The game window surface.
+        :param square_type: The type of squares to highlight.
+        """
+        # Check if the square type is in the highlight list
+        if square_type in self.square_list:
+            # Draw the squares of the specified type
+            self.draw_squares_in_list(
+                win,
+                getattr(self, f"{square_type}_squares_list"),
+                self.move_square_color,
+            )
+
+    def highlight_self_square_check(self, win: pygame.Surface):
+        """
+        Highlights the unit's square if it is in check.
+
+        :param win: The game window surface.
+        """
+        # Draw the highlight for the check square
+        self.draw_self_highlight(win, self.check_color)
+
+    def square_fill(self, color: tuple):
+        """
+        Fills the unit's square with the specified color.
+
+        :param color: The color to fill the square.
+        """
+        # Fill the square with the specified color
+        self.square.fill(color)
+
+    def highlight_self_square_unused(self, win: pygame.Surface):
+        """
+        Highlights the unit's square if it is unused.
+
+        :param win: The game window surface.
+        """
+        # Draw the sparkle image on the unit's square
         win.blit(
             Constant.IMAGES["sparkle"],
             (self.col * Constant.SQ_SIZE, self.row * Constant.SQ_SIZE),
         )
 
-    def highlight_self_square(self, win):
+    def highlight_self_square(self, win: pygame.Surface):
+        """
+        Highlights the unit's square.
+
+        :param win: The game window surface.
+        """
+        # Draw the highlight for the selected square
         self.draw_self_highlight(win, self.self_selected_square_color)
 
-    def highlight_spawn_squares(self, win):
-        self.draw_squares_in_list(win, self.spawn_squares_list, self.move_square_color)
+    def update_squares(self, engine: "Engine"):
+        """
+        Updates the squares lists based on the unit's state.
 
-    def highlight_stealing_squares(self, win):
-        self.draw_squares_in_list(
-            win, self.stealing_squares_list, self.move_square_color
-        )
+        :param engine: The game engine.
+        """
+        # Update each square list based on the unit's state
+        for action, squares_list in self.square_list.items():
+            try:
+                # Attempt to get the method for the desired action. action_squares
+                update_method = getattr(self, f"{action}_squares")
 
-    def highlight_praying_squares(self, win):
-        self.draw_squares_in_list(
-            win, self.praying_squares_list, self.move_square_color
-        )
+                # Update the squares list for the action using the attribute
+                setattr(self, f"{action}_squares_list", update_method(engine))
 
-    def highlight_mining_squares(self, win):
-        self.draw_squares_in_list(win, self.mining_squares_list, self.move_square_color)
+                if action == "spawn":
+                    print(f"Updated {action} squares list")
+                    print(getattr(self, f"{action}_squares_list"))
 
-    def highlight_move_squares(self, win):
-        self.draw_squares_in_list(win, self.move_squares_list, self.move_square_color)
+            # Many pieces will not have a method for each action
+            except AttributeError as e:
+                print(e)
+                continue
 
-    def highlight_ritual_squares(self, win):
-        self.draw_squares_in_list(win, self.ritual_squares_list, self.move_square_color)
+    def change_pos(self, row: int, col: int):
+        """
+        Changes the position of the unit.
 
-    def highlight_capture_squares(self, win):
-        self.draw_squares_in_list(
-            win, self.capture_squares_list, self.move_square_color
-        )
+        :param row: The new row position.
+        :param col: The new column position.
+        """
+        # Update the row and column positions
+        self.row = row
+        self.col = col
+        # Update the rectangle position
+        self.rect.x = col * Constant.SQ_SIZE
+        self.rect.y = row * Constant.SQ_SIZE
 
-    def highlight_swap_squares(self, win):
-        self.draw_squares_in_list(win, self.swap_squares_list, self.move_square_color)
+    def get_additional_piece_limit(self) -> int:
+        """
+        Gets the additional piece limit for the unit.
 
-    def highlight_persuader_squares(self, win):
-        self.draw_squares_in_list(
-            win, self.persuader_squares_list, self.move_square_color
-        )
-
-    def get_additional_piece_limit(self):
+        :return: The additional piece limit.
+        """
+        # Return the additional piece limit
         return self.additional_piece_limit
 
-    def get_additional_actions(self):
+    def get_additional_actions(self) -> int:
+        """
+        Gets the additional actions for the unit.
+
+        :return: The additional actions.
+        """
+        # Return the additional actions
         return self.additional_actions
 
-    def get_population_value(self):
+    def get_population_value(self) -> int:
+        """
+        Gets the population value for the unit.
+
+        :return: The population value.
+        """
+        # Return the population value from the constant
         return Constant.PIECE_POPULATION[str(self)]
 
-    def get_sprite_offset(self):
-        # if random.randint(1, 2) > 1:
-        #     r = random.randint(Constant.SQ_SIZE // -10, Constant.SQ_SIZE // 10)
-        #     z = random.randint(Constant.SQ_SIZE // -10, Constant.SQ_SIZE // 10)
-        #     return r, z
-        # else:
+    def get_sprite_offset(self) -> Tuple[int, int]:
+        """
+        Gets the sprite offset for the unit.
+
+        :return: The sprite offset.
+        """
+        # Return the sprite offset from the constant
         return Constant.PIECE_IMAGE_MODIFY[str(self)]["OFFSET"]
 
-    def get_color(self):
+    def get_rect(self) -> pygame.Rect:
+        """
+        Gets the rectangle representing the unit's position and size.
+
+        :return: The rectangle.
+        """
+        # Return the rectangle
+        return self.rect
+
+    def get_color(self) -> str:
+        """
+        Gets the color of the unit.
+
+        :return: The color.
+        """
+        # Return the color
         return self.color
 
-    def can_spawn(self, engine):
+    def get_position(self) -> Tuple[int, int]:
+        """
+        Gets the position of the unit.
+
+        :return: The row and column position.
+        """
+        # Return the row and column position
+        return self.row, self.col
+
+    def can_spawn(self, engine: "Engine") -> bool:
+        """
+        Checks if the unit can spawn.
+
+        :param engine: The game engine.
+        :return: True if the unit can spawn, False otherwise.
+        """
+        # Get the spawn list for the unit
         spawn_list = Constant.SPAWN_LISTS[str(self)]
         legal_spawns = []
+
+        # Check each spawn in the list
         for spawn in spawn_list:
             if engine.is_legal_spawn(spawn, spawner=self):
                 legal_spawns.append(spawn)
-        if legal_spawns:
-            return True
 
+        # Return True if there are legal spawns
+        return bool(legal_spawns)
 
-class Building(Unit):
-    def __init__(self, row, col, color):
-        super().__init__(row, col, color)
-        self.can_be_persuaded = False
-        self.is_effected_by_jester = False
-        self.contextual_options = ["build"]
-        self.yield_when_prayed = 0
+    def can_act(self) -> bool:
+        """
+        Checks if the unit can perform an action.
 
-    def base_spawn_criteria(self, engine, row, col):
-        if engine.tile_in_bounds(row, col):
-            return not engine.board[row][col].is_protected_by_opposite_color(self.color)
+        :return: True if the unit can act, False otherwise.
+        """
+        # Return True if the unit has actions remaining
+        return self.actions_remaining > 0
 
-    def get_unit_kind(self):
-        return "building"
+    def can_capture(self, r: int, c: int, engine: "Engine") -> bool:
+        """
+        Checks if the unit can capture a piece at the given position.
 
-    def right_click(self, engine):
+        :param r: The row position.
+        :param c: The column position.
+        :param engine: The game engine.
+        :return: True if the unit can capture, False otherwise.
+        """
+        capture_piece = None
+        # Check if the tile is within bounds
+        if engine.tile_in_bounds(r, c):
+            capture_piece = engine.board[r][c].get_occupying()
+
+        # Check if the capture tile is a valid square
+        valid_square = isinstance(capture_piece, Piece) or isinstance(
+            capture_piece, Building
+        )
+        if not valid_square:
+            return False
+
+        # Check capture conditions based on unit type
+        if self.is_rogue:
+            return self.rogue_can_capture(r, c, engine, capture_piece)
+        if self.is_cavalry:
+            return self.cavalry_can_capture(r, c, engine, capture_piece)
+        if self.is_general:
+            return self.general_can_capture(r, c, engine, capture_piece)
+        return self.default_can_capture(r, c, engine, capture_piece)
+
+    def _can_capture(
+        self,
+        r: int,
+        c: int,
+        engine: "Engine",
+        capture_piece: "Unit",
+        check_rogue: bool = False,
+    ) -> bool:
+        """
+        Checks if a unit can capture a piece at the given position.
+
+        :param r: The row position.
+        :param c: The column position.
+        :param engine: The game engine.
+        :param capture_piece: The piece to be captured.
+        :param check_rogue: Whether to check for rogue-specific capture rules.
+        :return: True if the unit can capture, False otherwise.
+        """
+        if check_rogue:
+            if not engine.can_be_legally_occupied_by_rogue(r, c):
+                return False
+        else:
+            if not engine.can_be_legally_occupied(r, c):
+                return False
+
+        if self.color != capture_piece.get_color():
+            if not capture_piece.is_wall:
+                if not engine.board[r][c].is_protected():
+                    return True
+                if not engine.board[r][c].is_protected_by_opposite_color(self.color):
+                    return True
+        return False
+
+    def general_can_capture(
+        self, r: int, c: int, engine: "Engine", capture_tile: "Unit"
+    ) -> bool:
+        return self._can_capture(r, c, engine, capture_tile, check_rogue=True)
+
+    def cavalry_can_capture(
+        self, r: int, c: int, engine: "Engine", capture_tile: "Unit"
+    ) -> bool:
+        return self._can_capture(r, c, engine, capture_tile)
+
+    def rogue_can_capture(
+        self, r: int, c: int, engine: "Engine", capture_tile: "Unit"
+    ) -> bool:
+        return self._can_capture(r, c, engine, capture_tile, check_rogue=True)
+
+    def default_can_capture(
+        self, r: int, c: int, engine: "Engine", capture_tile: "Unit"
+    ) -> bool:
+        return self._can_capture(r, c, engine, capture_tile)
+
+    def right_click(self, engine: "Engine") -> True:
+        """
+        Handles the right-click action on the building.
+
+        :param engine: The game engine.
+        :return: Always returns True.
+        """
         return True
 
 
-class Piece(Unit):
-    def __init__(self, row, col, color):
+class Building(Unit):
+    """
+    Represents a building unit in the game with various attributes and methods.
+    """
+
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Building object.
+
+        :param row: The row position of the building.
+        :param col: The column position of the building.
+        :param color: The color of the building.
+        """
         super().__init__(row, col, color)
 
-    def get_unit_kind(self):
-        return "piece"
+        # Indicates if the building can be persuaded
+        self.can_be_persuaded: bool = False
 
-    def general_move_criteria(self, engine, r, c):
-        if engine.can_be_occupied_by_gold_general(r, c):
-            if engine.board[r][c].is_protected_by_opposite_color(self.color):
-                return False
-            return True
+        # Indicates if the building is affected by the jester
+        self.is_effected_by_jester: bool = False
 
-    def rogue_move_criteria(self, engine, r, c):
-        if engine.can_be_occupied_by_rogue(r, c):
-            if engine.board[r][c].is_protected_by_opposite_color(self.color):
-                return False
-            return True
+        # Contextual options available for the building
+        self.contextual_options: list[str] = ["build"]
 
-    def base_move_criteria(self, engine, r, c):
-        if engine.can_be_occupied(r, c):
-            if engine.board[r][c].is_protected_by_opposite_color(self.color):
-                return False
-            return True
+        # Yield when the building is prayed
+        self.yield_when_prayed: int = 0
 
-    def right_click(self, engine):
+        # Kind of the unit
+        self.unit_kind: str = "building"
+
+    def base_spawn_criteria(self, engine: "Engine", row: int, col: int) -> bool:
+        """
+        Determines if the building can spawn at the given position.
+
+        :param engine: The game engine.
+        :param row: The row position to check.
+        :param col: The column position to check.
+        :return: True if the building can spawn, False otherwise.
+        """
+        # Check if the tile is within bounds
+        if engine.tile_in_bounds(row, col):
+            # Check if the tile is not protected by the opposite color
+            return not engine.board[row][col].is_protected_by_opposite_color(self.color)
+        return False
+
+
+class Piece(Unit):
+    """
+    Represents a piece unit in the game with various attributes and methods.
+    """
+
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Piece object.
+
+        :param row: The row position of the piece.
+        :param col: The column position of the piece.
+        :param color: The color of the piece.
+        """
+        super().__init__(row, col, color)
+        self.unit_kind: str = "piece"
+
+    def can_move(
+        self, engine: "Engine", row: int, col: int, can_be_occupied_function
+    ) -> bool:
+        """
+        Determines if the piece can move to the given position based on the provided criteria.
+
+        :param engine: The game engine.
+        :param row: The row position to check.
+        :param col: The column position to check.
+        :param can_be_occupied_function: Function to check if the tile can be occupied.
+        :return: True if the piece can move, False otherwise.
+        """
+        # Check if the tile can be occupied using the provided function
+        if not can_be_occupied_function(row, col):
+            return False
+
+        # Check if the tile is protected by the opposite color
+        if engine.board[row][col].is_protected_by_opposite_color(self.color):
+            return False
+
+        return True
+
+    def general_move_criteria(self, engine: "Engine", row: int, c: int) -> bool:
+        """
+        Determines if the piece can move to the given position based on general criteria.
+
+        :param engine: The game engine.
+        :param row: The row position to check.
+        :param c: The column position to check.
+        :return: True if the piece can move, False otherwise.
+        """
+        return self.can_move(engine, row, c, engine.can_be_occupied_by_gold_general)
+
+    def rogue_move_criteria(self, engine: "Engine", row: int, col: int) -> bool:
+        """
+        Determines if the piece can move to the given position based on rogue criteria.
+
+        :param engine: The game engine.
+        :param row: The row position to check.
+        :param col: The column position to check.
+        :return: True if the piece can move, False otherwise.
+        """
+        return self.can_move(engine, row, col, engine.can_be_occupied_by_rogue)
+
+    def base_move_criteria(self, engine: "Engine", row: int, col: int) -> bool:
+        """
+        Determines if the piece can move to the given position based on base criteria.
+
+        :param engine: The game engine.
+        :param row: The row position to check.
+        :param col: The column position to check.
+        :return: True if the piece can move, False otherwise.
+        """
+        return self.can_move(engine, row, col, engine.can_be_occupied)
+
+    def right_click(self, engine: "Engine") -> True:
+        """
+        Handles the right-click action on the piece.
+
+        :param engine: The game engine.
+        :return: Always returns True.
+        """
         return True
 
 
 class King(Piece):
-    def __repr__(self):
+    """
+    Represents a king piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the king piece.
+
+        :return: The string "king".
+        """
         return "king"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a King object.
+
+        :param row: The row position of the king.
+        :param col: The column position of the king.
+        :param color: The color of the king.
+        """
         super().__init__(row, col, color)
-        self.check = False
-        self.move_directions = (
+
+        # Indicates if the king is in check
+        self.check: bool = False
+
+        # Directions the king can move
+        self.move_directions: tuple = (
             Constant.RIGHT,
             Constant.LEFT,
             Constant.UP,
@@ -445,37 +644,79 @@ class King(Piece):
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
         )
-        self.contextual_options = ["king"]
 
-    def capture_squares(self, engine):
-        squares = []
+        # Contextual options available for the king
+        self.contextual_options: list[str] = ["king"]
+
+    def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the king can capture.
+
+        :param engine: The game engine.
+        :return: A list of squares the king can capture.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each direction for capture
         for direction in self.move_directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.can_capture(r, c, engine):
-                squares.append((r, c))
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
+            if self.can_capture(row, col, engine):
+                squares.append((row, col))
         return squares
 
-    def move_squares(self, engine):
-        squares = []
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the king can move to.
+
+        :param engine: The game engine.
+        :return: A list of squares the king can move to.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each direction for movement
         for direction in self.move_directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.base_move_criteria(engine, r, c):
-                squares.append((r, c))
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
+            if self.base_move_criteria(engine, row, col):
+                squares.append((row, col))
         return squares
 
-    def right_click(self, engine):
+    def right_click(self, engine: "Engine") -> bool:
+        """
+        Handles the right-click action on the king.
+
+        :param engine: The game engine.
+        :return: Always returns True.
+        """
         return True
 
 
 class Queen(Piece):
-    def __repr__(self):
+    """
+    Represents a queen piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the queen piece.
+
+        :return: The string "queen".
+        """
         return "queen"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Queen object.
+
+        :param row: The row position of the queen.
+        :param col: The column position of the queen.
+        :param color: The color of the queen.
+        """
         super().__init__(row, col, color)
-        self.directions = (
+
+        # Directions the queen can move
+        self.directions: tuple = (
             Constant.RIGHT,
             Constant.LEFT,
             Constant.UP,
@@ -485,52 +726,94 @@ class Queen(Piece):
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
         )
-        self.distance = Constant.BOARD_WIDTH_SQ
-        self.contextual_options = ["queen"]
 
-    def capture_squares(self, engine):
-        squares = []
+        # Maximum distance the queen can move
+        self.distance: int = Constant.BOARD_WIDTH_SQ
 
+        # Contextual options available for the queen
+        self.contextual_options: list[str] = ["queen"]
+
+    def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the queen can capture.
+
+        :param engine: The game engine.
+        :return: A list of squares the queen can capture.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each direction for capture
         for direction in self.directions:
             for distance in range(1, self.distance):
-                r = self.row + direction[0] * distance
-                c = self.col + direction[1] * distance
-                if not engine.tile_in_bounds(r, c):
+                row: int = self.row + direction[0] * distance
+                col: int = self.col + direction[1] * distance
+                if not engine.tile_in_bounds(row, col):
                     break
-                if self.can_capture(r, c, engine):
-                    squares.append((r, c))
+                if self.can_capture(row, col, engine):
+                    squares.append((row, col))
                     break
-                if not self.base_move_criteria(engine, r, c):
+                if not self.base_move_criteria(engine, row, col):
                     break
 
         return squares
 
-    def move_squares(self, engine):
-        squares = []
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the queen can move to.
 
+        :param engine: The game engine.
+        :return: A list of squares the queen can move to.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each direction for movement
         for direction in self.directions:
             for distance in range(1, self.distance):
-                r = self.row + direction[0] * distance
-                c = self.col + direction[1] * distance
-                if not engine.tile_in_bounds(r, c):
+                row: int = self.row + direction[0] * distance
+                col: int = self.col + direction[1] * distance
+                if not engine.tile_in_bounds(row, col):
                     break
-                if not self.base_move_criteria(engine, r, c):
+                if not self.base_move_criteria(engine, row, col):
                     break
                 else:
-                    squares.append((r, c))
+                    squares.append((row, col))
         return squares
 
-    def right_click(self, engine):
+    def right_click(self, engine: "Engine") -> bool:
+        """
+        Handles the right-click action on the queen.
+
+        :param engine: The game engine.
+        :return: Always returns True.
+        """
         return True
 
 
 class Duke(Piece):
-    def __repr__(self):
+    """
+    Represents a duke piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the duke piece.
+
+        :return: The string "duke".
+        """
         return "duke"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Duke object.
+
+        :param row: The row position of the duke.
+        :param col: The column position of the duke.
+        :param color: The color of the duke.
+        """
         super().__init__(row, col, color)
-        self.directions = (
+
+        # Directions the duke can move
+        self.directions: tuple = (
             Constant.RIGHT,
             Constant.LEFT,
             Constant.UP,
@@ -540,64 +823,113 @@ class Duke(Piece):
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
         )
-        self.distance = Constant.BOARD_WIDTH_SQ
-        self.contextual_options = ["pray"]
 
-    def praying_squares(self, engine):
-        moves = []
+        # Maximum distance the duke can move
+        self.distance: int = Constant.BOARD_WIDTH_SQ
 
+        # Contextual options available for the duke
+        self.contextual_options: list[str] = ["pray"]
+
+    def praying_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the duke can pray at.
+
+        :param engine: The game engine.
+        :return: A list of squares the duke can pray at.
+        """
+        moves: list[tuple[int, int]] = []
+
+        # Check each direction for praying
         for direction in self.directions:
-            r = self.row + direction[0]
-            c = self.col + direction[0]
-            if engine.has_prayable_building(r, c):
-                if engine.get_occupying(r, c).color is self.color:
-                    moves.append((r, c))
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[0]
+            if engine.has_prayable_building(row, col):
+                if engine.get_occupying(row, col).color is self.color:
+                    moves.append((row, col))
 
         return moves
 
-    def capture_squares(self, engine):
-        squares = []
+    def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the duke can capture.
 
+        :param engine: The game engine.
+        :return: A list of squares the duke can capture.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each direction for capture
         for direction in self.directions:
             for distance in range(1, self.distance):
-                r = self.row + direction[0] * distance
-                c = self.col + direction[1] * distance
-                if not engine.tile_in_bounds(r, c):
+                row: int = self.row + direction[0] * distance
+                col: int = self.col + direction[1] * distance
+                if not engine.tile_in_bounds(row, col):
                     break
-                if self.can_capture(r, c, engine):
-                    squares.append((r, c))
+                if self.can_capture(row, col, engine):
+                    squares.append((row, col))
                     break
-                if not self.base_move_criteria(engine, r, c):
+                if not self.base_move_criteria(engine, row, col):
                     break
 
         return squares
 
-    def move_squares(self, engine):
-        squares = []
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the duke can move to.
 
+        :param engine: The game engine.
+        :return: A list of squares the duke can move to.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each direction for movement
         for direction in self.directions:
             for distance in range(1, self.distance):
-                r = self.row + direction[0] * distance
-                c = self.col + direction[1] * distance
-                if not engine.tile_in_bounds(r, c):
+                row: int = self.row + direction[0] * distance
+                col: int = self.col + direction[1] * distance
+                if not engine.tile_in_bounds(row, col):
                     break
-                if not self.base_move_criteria(engine, r, c):
+                if not self.base_move_criteria(engine, row, col):
                     break
                 else:
-                    squares.append((r, c))
+                    squares.append((row, col))
         return squares
 
-    def right_click(self, engine):
+    def right_click(self, engine: "Engine") -> True:
+        """
+        Handles the right-click action on the duke.
+
+        :param engine: The game engine.
+        :return: Always returns True.
+        """
         return True
 
 
 class FireSpinner(Piece):
-    def __repr__(self):
+    """
+    Represents a FireSpinner piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the FireSpinner piece.
+
+        :return: The string "fire_spinner".
+        """
         return "fire_spinner"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a FireSpinner object.
+
+        :param row: The row position of the FireSpinner.
+        :param col: The column position of the FireSpinner.
+        :param color: The color of the FireSpinner.
+        """
         super().__init__(row, col, color)
-        self.knight_directions = (
+
+        # Directions the FireSpinner can move
+        self.knight_directions: tuple = (
             Constant.TWO_UP_RIGHT,
             Constant.TWO_RIGHT_UP,
             Constant.TWO_DOWN_RIGHT,
@@ -607,55 +939,98 @@ class FireSpinner(Piece):
             Constant.TWO_DOWN_LEFT,
             Constant.TWO_LEFT_DOWN,
         )
-        self.depth = 3
 
-    def move_squares(self, engine):
-        squares = []
+        # Depth of movement for the FireSpinner
+        self.depth: int = 3
+
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the FireSpinner can move to.
+
+        :param engine: The game engine.
+        :return: A list of squares the FireSpinner can move to.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each direction for movement
         for direction in self.knight_directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.base_move_criteria(engine, r, c):
-                squares.append((r, c))
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
+            if self.base_move_criteria(engine, row, col):
+                squares.append((row, col))
                 for i in range(self.depth):
-                    new_r = r + direction[0]
-                    new_c = c + direction[1]
-                    if self.base_move_criteria(engine, new_r, new_c):
-                        if (new_r, new_c) not in squares:
-                            squares.append((new_r, new_c))
+                    new_row: int = row + direction[0]
+                    new_col: int = col + direction[1]
+                    if self.base_move_criteria(engine, new_row, new_col):
+                        if (new_row, new_col) not in squares:
+                            squares.append((new_row, new_col))
                     else:
                         break
 
         return squares
 
-    def capture_squares(self, engine):
-        squares = []
+    def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the FireSpinner can capture.
+
+        :param engine: The game engine.
+        :return: A list of squares the FireSpinner can capture.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each direction for capture
         for direction in self.knight_directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.can_capture(r, c, engine):
-                squares.append((r, c))
-            elif self.base_move_criteria(engine, r, c):
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
+            if self.can_capture(row, col, engine):
+                squares.append((row, col))
+            elif self.base_move_criteria(engine, row, col):
                 for i in range(self.depth):
-                    new_r = r + direction[0]
-                    new_c = c + direction[1]
-                    if self.can_capture(new_r, new_c, engine):
-                        if (new_r, new_c) not in squares:
-                            squares.append((new_r, new_c))
+                    new_row: int = row + direction[0]
+                    new_col: int = col + direction[1]
+                    if self.can_capture(new_row, new_col, engine):
+                        if (new_row, new_col) not in squares:
+                            squares.append((new_row, new_col))
                         break
-                    elif not self.base_move_criteria(engine, new_r, new_c):
+                    elif not self.base_move_criteria(engine, new_row, new_col):
                         break
 
         return squares
 
 
 class Lion(Piece):
-    def __repr__(self):
+    """
+    Represents a Lion piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the Lion piece.
+
+        :return: The string "lion".
+        """
         return "lion"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Lion object.
+
+        :param row: The row position of the Lion.
+        :param col: The column position of the Lion.
+        :param color: The color of the Lion.
+        """
         super().__init__(row, col, color)
-        self.directions = (Constant.UP, Constant.RIGHT, Constant.DOWN, Constant.LEFT)
-        self.knight_directions = (
+
+        # Directions the Lion can move
+        self.directions: tuple = (
+            Constant.UP,
+            Constant.RIGHT,
+            Constant.DOWN,
+            Constant.LEFT,
+        )
+
+        # Knight-like directions the Lion can move
+        self.knight_directions: tuple = (
             Constant.TWO_UP_RIGHT,
             Constant.TWO_RIGHT_UP,
             Constant.TWO_DOWN_RIGHT,
@@ -665,61 +1040,105 @@ class Lion(Piece):
             Constant.TWO_DOWN_LEFT,
             Constant.TWO_LEFT_DOWN,
         )
-        self.distance = Constant.BOARD_WIDTH_SQ
 
-    def capture_squares(self, engine):
-        squares = []
+        # Maximum distance the Lion can move
+        self.distance: int = Constant.BOARD_WIDTH_SQ
 
+    def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the Lion can capture.
+
+        :param engine: The game engine.
+        :return: A list of squares the Lion can capture.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each knight direction for capture
         for direction in self.knight_directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.can_capture(r, c, engine):
-                squares.append((r, c))
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
+            if self.can_capture(row, col, engine):
+                squares.append((row, col))
 
+        # Check each straight direction for capture
         for direction in self.directions:
             for distance in range(1, self.distance):
-                r = self.row + direction[0] * distance
-                c = self.col + direction[1] * distance
-                if not engine.tile_in_bounds(r, c):
+                row: int = self.row + direction[0] * distance
+                col: int = self.col + direction[1] * distance
+                if not engine.tile_in_bounds(row, col):
                     break
-                if self.can_capture(r, c, engine):
-                    squares.append((r, c))
+                if self.can_capture(row, col, engine):
+                    squares.append((row, col))
                     break
-                if not self.base_move_criteria(engine, r, c):
+                if not self.base_move_criteria(engine, row, col):
                     break
 
         return squares
 
-    def move_squares(self, engine):
-        squares = []
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the Lion can move to.
 
+        :param engine: The game engine.
+        :return: A list of squares the Lion can move to.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each knight direction for movement
         for direction in self.knight_directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.base_move_criteria(engine, r, c):
-                squares.append((r, c))
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
+            if self.base_move_criteria(engine, row, col):
+                squares.append((row, col))
 
+        # Check each straight direction for movement
         for direction in self.directions:
             for distance in range(1, self.distance):
-                r = self.row + direction[0] * distance
-                c = self.col + direction[1] * distance
-                if not engine.tile_in_bounds(r, c):
+                row: int = self.row + direction[0] * distance
+                col: int = self.col + direction[1] * distance
+                if not engine.tile_in_bounds(row, col):
                     break
-                if not self.base_move_criteria(engine, r, c):
+                if not self.base_move_criteria(engine, row, col):
                     break
                 else:
-                    squares.append((r, c))
+                    squares.append((row, col))
+
         return squares
 
 
 class Rook(Piece):
-    def __repr__(self):
+    """
+    Represents a rook piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the rook piece.
+
+        :return: The string "rook".
+        """
         return "rook"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Rook object.
+
+        :param row: The row position of the rook.
+        :param col: The column position of the rook.
+        :param color: The color of the rook.
+        """
         super().__init__(row, col, color)
-        self.directions = (Constant.UP, Constant.RIGHT, Constant.DOWN, Constant.LEFT)
-        self.praying_directions = (
+
+        # Directions the rook can move
+        self.directions: tuple = (
+            Constant.UP,
+            Constant.RIGHT,
+            Constant.DOWN,
+            Constant.LEFT,
+        )
+
+        # Directions the rook can pray
+        self.praying_directions: tuple = (
             Constant.RIGHT,
             Constant.LEFT,
             Constant.UP,
@@ -729,138 +1148,277 @@ class Rook(Piece):
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
         )
-        self.distance = Constant.BOARD_WIDTH_SQ
-        self.contextual_options = ["pray"]
 
-    def praying_squares(self, engine):
-        moves = []
+        # Maximum distance the rook can move
+        self.distance: int = Constant.BOARD_WIDTH_SQ
 
+        # Contextual options available for the rook
+        self.contextual_options: list[str] = ["pray"]
+
+    def praying_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the rook can pray at.
+
+        :param engine: The game engine.
+        :return: A list of squares the rook can pray at.
+        """
+        moves: list[tuple[int, int]] = []
+
+        # Check each direction for praying
         for direction in range(len(self.praying_directions)):
-            d = self.praying_directions[direction]
-            r = self.row - d[0]
-            c = self.col - d[1]
-            if engine.has_prayable_building(r, c):
-                if engine.get_occupying(r, c).color is self.color:
-                    moves.append((r, c))
+            direction_tuple: tuple[int, int] = self.praying_directions[direction]
+            row: int = self.row - direction_tuple[0]
+            col: int = self.col - direction_tuple[1]
+            if engine.has_prayable_building(row, col):
+                if engine.get_occupying(row, col).color == self.color:
+                    moves.append((row, col))
 
         return moves
 
-    def capture_squares(self, engine):
-        squares = []
+    def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the rook can capture.
 
+        :param engine: The game engine.
+        :return: A list of squares the rook can capture.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each direction for capture
         for direction in self.directions:
             for distance in range(1, self.distance):
-                r = self.row + direction[0] * distance
-                c = self.col + direction[1] * distance
-                if not engine.tile_in_bounds(r, c):
+                row: int = self.row + direction[0] * distance
+                col: int = self.col + direction[1] * distance
+                if not engine.tile_in_bounds(row, col):
                     break
-                if self.can_capture(r, c, engine):
-                    squares.append((r, c))
+                if self.can_capture(row, col, engine):
+                    squares.append((row, col))
                     break
-                if not self.base_move_criteria(engine, r, c):
+                if not self.base_move_criteria(engine, row, col):
                     break
 
         return squares
 
-    def move_squares(self, engine):
-        squares = []
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the rook can move to.
 
+        :param engine: The game engine.
+        :return: A list of squares the rook can move to.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each direction for movement
         for direction in self.directions:
             for distance in range(1, self.distance):
-                r = self.row + direction[0] * distance
-                c = self.col + direction[1] * distance
-                if not engine.tile_in_bounds(r, c):
+                row: int = self.row + direction[0] * distance
+                col: int = self.col + direction[1] * distance
+                if not engine.tile_in_bounds(row, col):
                     break
-                if not self.base_move_criteria(engine, r, c):
+                if not self.base_move_criteria(engine, row, col):
                     break
                 else:
-                    squares.append((r, c))
+                    squares.append((row, col))
         return squares
 
-    def right_click(self, engine):
+    def right_click(self, engine: "Engine") -> bool:
+        """
+        Handles the right-click action on the rook.
+
+        :param engine: The game engine.
+        :return: Always returns True.
+        """
         return True
 
 
 class Acrobat(Piece):
-    def __repr__(self):
+    """
+    Represents an Acrobat piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the Acrobat piece.
+
+        :return: The string "acrobat".
+        """
         return "acrobat"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes an Acrobat object.
+
+        :param row: The row position of the Acrobat.
+        :param col: The column position of the Acrobat.
+        :param color: The color of the Acrobat.
+        """
         super().__init__(row, col, color)
-        self.directions = (
+
+        # Directions the Acrobat can move
+        self.directions: tuple = (
             Constant.UP_LEFT,
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
             Constant.UP_RIGHT,
         )
-        self.distance = Constant.BOARD_WIDTH_SQ
-        self.leaped_square = None
 
-    def move_criteria(self, engine, r, c):
-        if engine.can_be_legally_occupied(r, c):
-            if engine.board[r][c].is_protected_by_opposite_color(self.color):
+        # Maximum distance the Acrobat can move
+        self.distance: int = Constant.BOARD_WIDTH_SQ
+
+        # The square the Acrobat has leaped over
+        self.leaped_square: Optional[tuple[int, int]] = None
+
+    def move_criteria(self, engine: "Engine", row: int, col: int) -> bool:
+        """
+        Determines if the Acrobat can move to the given position based on specific criteria.
+
+        :param engine: The game engine.
+        :param row: The row position to check.
+        :param col: The column position to check.
+        :return: True if the Acrobat can move, False otherwise.
+        """
+        # Check if the tile can be legally occupied
+        if engine.can_be_legally_occupied(row, col):
+            # Check if the tile is protected by an opposite color piece
+            if engine.board[row][col].is_protected_by_opposite_color(self.color):
                 return False
             return True
+        return False
 
-    def capture_squares(self, engine):
-        squares = []
+    def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the Acrobat can capture.
+
+        :param engine: The game engine.
+        :return: A list of squares the Acrobat can capture.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each direction for capture
         for direction in self.directions:
+            # Reset the leaped_square to None for each new direction
             self.leaped_square = None
+
+            # Iterate over the possible distances in the current direction
             for distance in range(1, self.distance):
-                r = self.row + direction[0] * distance
-                c = self.col + direction[1] * distance
+                # Calculate the new row position based on the current direction and distance
+                row: int = self.row + direction[0] * distance
+
+                # Calculate the new column position based on the current direction and distance
+                col: int = self.col + direction[1] * distance
+
+                # If no square has been leaped over yet
                 if not self.leaped_square:
-                    if not self.move_criteria(engine, r, c):
+                    # Check if the move criteria are not met for the current position
+                    if not self.move_criteria(engine, row, col):
+                        # Break out of the loop if the move criteria are not met
                         break
-                    if engine.get_occupying(r, c):
-                        if self.can_capture(r, c, engine):
-                            squares.append((r, c))
-                        self.leaped_square = (r, c)
+
+                    # Check if there is a piece occupying the current position
+                    if engine.get_occupying(row, col):
+                        # If the piece can be captured, add the position to the capture squares list
+                        if self.can_capture(row, col, engine):
+                            squares.append((row, col))
+
+                        # Set the leaped_square to the current position
+                        self.leaped_square = (row, col)
                 else:
-                    if self.can_capture(r, c, engine):
-                        squares.append((r, c))
+                    # If a square has been leaped over, check if the piece can be captured
+                    if self.can_capture(row, col, engine):
+                        # Add the position to the capture squares list
+                        squares.append((row, col))
+
+                        # Break out of the loop after capturing
                         break
-                    elif not self.base_move_criteria(engine, r, c):
+
+                    # If the base move criteria are not met for the current position
+                    elif not self.base_move_criteria(engine, row, col):
+                        # Break out of the loop if the base move criteria are not met
                         break
 
         return squares
 
-    def move_squares(self, engine):
-        squares = []
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the Acrobat can move to.
+
+        :param engine: The game engine.
+        :return: A list of squares the Acrobat can move to.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each direction for movement
         for direction in self.directions:
+            # Reset the leaped_square to None for each new direction
             self.leaped_square = None
+
+            # Iterate over the possible distances in the current direction
             for distance in range(1, self.distance):
-                r = self.row + direction[0] * distance
-                c = self.col + direction[1] * distance
+                # Calculate the new row position based on the current direction and distance
+                row: int = self.row + direction[0] * distance
+
+                # Calculate the new column position based on the current direction and distance
+                col: int = self.col + direction[1] * distance
+
+                # If no square has been leaped over yet
                 if not self.leaped_square:
-                    if not self.move_criteria(engine, r, c):
+                    # Check if the move criteria are not met for the current position
+                    if not self.move_criteria(engine, row, col):
+                        # Break out of the loop if the move criteria are not met
                         break
                     else:
-                        if engine.get_occupying(r, c):
-                            self.leaped_square = (r, c)
+                        # Check if there is a piece occupying the current position
+                        if engine.get_occupying(row, col):
+                            # Set the leaped_square to the current position
+                            self.leaped_square = (row, col)
                         else:
-                            squares.append((r, c))
+                            # Add the position to the move squares list
+                            squares.append((row, col))
                 else:
-                    if not self.base_move_criteria(engine, r, c):
+                    # If a square has been leaped over, check if the base move criteria are met
+                    if not self.base_move_criteria(engine, row, col):
+                        # Break out of the loop if the base move criteria are not met
                         break
                     else:
-                        squares.append((r, c))
+                        # Add the position to the move squares list
+                        squares.append((row, col))
+
         return squares
 
 
 class Bishop(Piece):
-    def __repr__(self):
+    """
+    Represents a bishop piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the bishop piece.
+
+        :return: The string "bishop".
+        """
         return "bishop"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Bishop object.
+
+        :param row: The row position of the bishop.
+        :param col: The column position of the bishop.
+        :param color: The color of the bishop.
+        """
         super().__init__(row, col, color)
-        self.directions = (
+
+        # Directions the bishop can move
+        self.directions: tuple = (
             Constant.UP_LEFT,
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
             Constant.UP_RIGHT,
         )
-        self.praying_directions = (
+
+        # Directions the bishop can pray
+        self.praying_directions: tuple = (
             Constant.RIGHT,
             Constant.LEFT,
             Constant.UP,
@@ -870,65 +1428,119 @@ class Bishop(Piece):
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
         )
-        self.distance = Constant.BOARD_WIDTH_SQ
-        self.contextual_options = ["pray"]
 
-    def praying_squares(self, engine):
-        moves = []
+        # Maximum distance the bishop can move
+        self.distance: int = Constant.BOARD_WIDTH_SQ
 
+        # Contextual options available for the bishop
+        self.contextual_options: list[str] = ["pray"]
+
+    def praying_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the bishop can pray at.
+
+        :param engine: The game engine.
+        :return: A list of squares the bishop can pray at.
+        """
+        moves: list[tuple[int, int]] = []
+
+        # Check each direction for praying
         for direction in range(len(self.praying_directions)):
-            d = self.praying_directions[direction]
-            r = self.row - d[0]
-            c = self.col - d[1]
-            if engine.has_prayable_building(r, c):
-                if engine.get_occupying(r, c).color is self.color:
-                    moves.append((r, c))
+            direction_tuple: tuple[int, int] = self.praying_directions[direction]
+            row: int = self.row - direction_tuple[0]
+            col: int = self.col - direction_tuple[1]
+
+            # Check if the building at the position can be prayed at
+            if engine.has_prayable_building(row, col):
+                # Check if the occupying piece is of the same color
+                if engine.get_occupying(row, col).color is self.color:
+                    moves.append((row, col))
 
         return moves
 
-    def capture_squares(self, engine):
-        squares = []
+    def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the bishop can capture.
 
+        :param engine: The game engine.
+        :return: A list of squares the bishop can capture.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each direction for capture
         for direction in self.directions:
             for distance in range(1, self.distance):
-                r = self.row + direction[0] * distance
-                c = self.col + direction[1] * distance
-                if not engine.tile_in_bounds(r, c):
+                row: int = self.row + direction[0] * distance
+                col: int = self.col + direction[1] * distance
+
+                # Check if the tile is within bounds
+                if not engine.tile_in_bounds(row, col):
                     break
-                if self.can_capture(r, c, engine):
-                    squares.append((r, c))
+
+                # Check if the bishop can capture at the position
+                if self.can_capture(row, col, engine):
+                    squares.append((row, col))
                     break
-                if not self.base_move_criteria(engine, r, c):
+
+                # Check if the base move criteria are not met
+                if not self.base_move_criteria(engine, row, col):
                     break
 
         return squares
 
-    def move_squares(self, engine):
-        squares = []
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the bishop can move to.
 
+        :param engine: The game engine.
+        :return: A list of squares the bishop can move to.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each direction for movement
         for direction in self.directions:
             for distance in range(1, self.distance):
-                r = self.row + direction[0] * distance
-                c = self.col + direction[1] * distance
-                if not engine.tile_in_bounds(r, c):
+                row: int = self.row + direction[0] * distance
+                col: int = self.col + direction[1] * distance
+
+                # Check if the tile is within bounds
+                if not engine.tile_in_bounds(row, col):
                     break
-                if not self.base_move_criteria(engine, r, c):
+
+                # Check if the base move criteria are not met
+                if not self.base_move_criteria(engine, row, col):
                     break
                 else:
-                    squares.append((r, c))
-        return squares
+                    squares.append((row, col))
 
-    def right_click(self, engine):
-        return True
+        return squares
 
 
 class Knight(Piece):
-    def __repr__(self):
+    """
+    Represents a knight piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the knight piece.
+
+        :return: The string "knight".
+        """
         return "knight"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Knight object.
+
+        :param row: The row position of the knight.
+        :param col: The column position of the knight.
+        :param color: The color of the knight.
+        """
         super().__init__(row, col, color)
-        self.directions = (
+
+        # Directions the knight can move
+        self.directions: tuple = (
             Constant.TWO_UP_RIGHT,
             Constant.TWO_RIGHT_UP,
             Constant.TWO_DOWN_RIGHT,
@@ -938,126 +1550,249 @@ class Knight(Piece):
             Constant.TWO_DOWN_LEFT,
             Constant.TWO_LEFT_DOWN,
         )
-        self.distance = 1
-        self.is_cavalry = True
 
-    def capture_squares(self, engine):
-        squares = []
+        # Maximum distance the knight can move
+        self.distance: int = 1
 
+        # Indicates if the knight is cavalry
+        self.is_cavalry: bool = True
+
+    def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the knight can capture.
+
+        :param engine: The game engine.
+        :return: A list of squares the knight can capture.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each direction for capture
         for direction in self.directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.can_capture(r, c, engine):
-                squares.append((r, c))
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
+
+            # Check if the knight can capture at the position
+            if self.can_capture(row, col, engine):
+                squares.append((row, col))
 
         return squares
 
-    def move_squares(self, engine):
-        squares = []
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the knight can move to.
 
+        :param engine: The game engine.
+        :return: A list of squares the knight can move to.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each direction for movement
         for direction in self.directions:
-            r = self.row - direction[0]
-            c = self.col - direction[1]
-            if self.base_move_criteria(engine, r, c):
-                squares.append((r, c))
+            row: int = self.row - direction[0]
+            col: int = self.col - direction[1]
+
+            # Check if the base move criteria are met
+            if self.base_move_criteria(engine, row, col):
+                squares.append((row, col))
 
         return squares
 
 
 class Pawn(Piece):
-    def __repr__(self):
+    """
+    Represents a pawn piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the pawn piece.
+
+        :return: The string "pawn".
+        """
         return "pawn"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Pawn object.
+
+        :param row: The row position of the pawn.
+        :param col: The column position of the pawn.
+        :param color: The color of the pawn.
+        """
         super().__init__(row, col, color)
-        self.mining_directions = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
-        )
-        self.move_directions = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-        )
-        self.capture_directions = (
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
-        )
-        self.move_distance = 3
-        self.capture_distance = 1
-        self.contextual_options = ["mine"]
 
-    def mining_squares(self, engine):
+        # Directions the pawn can mine
+        self.mining_directions: tuple = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
+
+        # Directions the pawn can move
+        self.move_directions: tuple = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+        )
+
+        # Directions the pawn can capture
+        self.capture_directions: tuple = (
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
+
+        # Maximum distance the pawn can move
+        self.move_distance: int = 3
+
+        # Maximum distance the pawn can capture
+        self.capture_distance: int = 1
+
+        # Contextual options available for the pawn
+        self.contextual_options: list[str] = ["mine"]
+
+    def mining_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the pawn can mine.
+
+        :param engine: The game engine.
+        :return: A list of squares the pawn can mine.
+        """
+        # Initialize an empty list to store the mining squares
         mining_squares = []
-        for direction in self.mining_directions:
-            r = self.row - direction[0]
-            c = self.col - direction[1]
-            if engine.has_mineable_resource(r, c):
-                if engine.get_occupying(r, c):
-                    if engine.get_occupying_color(r, c) is not self.color:
-                        pass
-                    elif engine.get_occupying_color(r, c) is self.color:
-                        mining_squares.append((r, c))
-                elif engine.has_none_occupying(r, c):
-                    mining_squares.append((r, c))
-            elif engine.can_contain_quarry(r, c) and engine.is_empty(r, c):
-                mining_squares.append((r, c))
 
+        # Iterate over each direction in the mining directions
+        for direction in self.mining_directions:
+            # Calculate the new row and column based on the current direction
+            row, col = self.row - direction[0], self.col - direction[1]
+
+            # Get the piece occupying the calculated position
+            occupying_piece = engine.get_occupying(row, col)
+
+            # Check if the tile has a mineable resource
+            if engine.has_mineable_resource(row, col):
+                # If there is an occupying piece, check its color
+                if occupying_piece:
+                    # If the occupying piece is of the same color, add the position to mining squares
+                    if engine.get_occupying_color(row, col) is self.color:
+                        mining_squares.append((row, col))
+                else:
+                    # If there is no occupying piece, add the position to mining squares
+                    mining_squares.append((row, col))
+            # Check if the tile can contain a quarry and is empty
+            elif engine.can_contain_quarry(row, col) and engine.is_empty(row, col):
+                # Add the position to mining squares
+                mining_squares.append((row, col))
+
+        # Return the list of mining squares
         return mining_squares
 
-    def capture_squares(self, engine):
-        squares = []
+    def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the pawn can capture.
 
+        :param engine: The game engine.
+        :return: A list of squares the pawn can capture.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each direction for capture
         for direction in self.capture_directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.can_capture(r, c, engine):
-                squares.append((r, c))
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
+
+            # Check if the pawn can capture at the position
+            if self.can_capture(row, col, engine):
+                squares.append((row, col))
+
         return squares
 
-    def move_squares(self, engine):
-        squares = []
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the pawn can move to.
+
+        :param engine: The game engine.
+        :return: A list of squares the pawn can move to.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Adjust move distance based on whether it's the first move
         if not self.first_move:
             self.move_distance = 2
         else:
             self.move_distance = 3
 
+        # Check each direction for movement
         for direction in self.move_directions:
             for distance in range(1, self.move_distance):
-                r = self.row + direction[0] * distance
-                c = self.col + direction[1] * distance
-                if not engine.tile_in_bounds(r, c):
-                    break
-                if not self.base_move_criteria(engine, r, c):
+                row: int = self.row + direction[0] * distance
+                col: int = self.col + direction[1] * distance
+
+                # Check if the tile is within bounds
+                if not engine.tile_in_bounds(row, col):
                     break
 
+                # Check if the base move criteria are not met
+                if not self.base_move_criteria(engine, row, col):
+                    break
                 else:
-                    squares.append((r, c))
+                    squares.append((row, col))
 
         return squares
 
-    def right_click(self, engine):
+    def right_click(self, engine: "Engine"):
+        """
+        Handles the right-click action on the pawn.
+
+        :param engine: The game engine.
+        :return: Always returns True.
+        """
         return True
 
 
 class RogueRook(Piece):
-    def __repr__(self):
+    """
+    Represents a rogue rook piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the rogue rook piece.
+
+        :return: The string "rogue_rook".
+        """
         return "rogue_rook"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a RogueRook object.
+
+        :param row: The row position of the rogue rook.
+        :param col: The column position of the rogue rook.
+        :param color: The color of the rogue rook.
+        """
         super().__init__(row, col, color)
-        self.directions = (Constant.UP, Constant.RIGHT, Constant.DOWN, Constant.LEFT)
-        self.distance = Constant.BOARD_WIDTH_SQ
-        self.stealing_directions = (
+
+        # Directions the rogue rook can move
+        self.directions: tuple = (
+            Constant.UP,
+            Constant.RIGHT,
+            Constant.DOWN,
+            Constant.LEFT,
+        )
+
+        # Maximum distance the rogue rook can move
+        self.distance: int = Constant.BOARD_WIDTH_SQ
+
+        # Directions the rogue rook can steal
+        self.stealing_directions: tuple = (
             Constant.RIGHT,
             Constant.LEFT,
             Constant.UP,
@@ -1067,63 +1802,125 @@ class RogueRook(Piece):
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
         )
-        self.is_rogue = True
-        self.contextual_options = ["steal"]
 
-    def capture_squares(self, engine):
-        squares = []
+        # Indicates if the rogue rook is a rogue
+        self.is_rogue: bool = True
 
+        # Contextual options available for the rogue rook
+        self.contextual_options: list[str] = ["steal"]
+
+    def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the rogue rook can capture.
+
+        :param engine: The game engine.
+        :return: A list of squares the rogue rook can capture.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each direction for capture
         for direction in self.directions:
             for distance in range(1, self.distance):
-                r = self.row + direction[0] * distance
-                c = self.col + direction[1] * distance
-                if not engine.tile_in_bounds(r, c):
+                row: int = self.row + direction[0] * distance
+                col: int = self.col + direction[1] * distance
+
+                # Check if the tile is within bounds
+                if not engine.tile_in_bounds(row, col):
                     break
-                if self.can_capture(r, c, engine):
-                    squares.append((r, c))
+
+                # Check if the rogue rook can capture at the position
+                if self.can_capture(row, col, engine):
+                    squares.append((row, col))
                     break
-                if not self.rogue_move_criteria(engine, r, c):
+
+                # Check if the rogue move criteria are not met
+                if not self.rogue_move_criteria(engine, row, col):
                     break
 
         return squares
 
-    def move_squares(self, engine):
-        squares = []
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the rogue rook can move to.
 
+        :param engine: The game engine.
+        :return: A list of squares the rogue rook can move to.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each direction for movement
         for direction in self.directions:
             for distance in range(1, self.distance):
-                r = self.row + direction[0] * distance
-                c = self.col + direction[1] * distance
-                if not engine.tile_in_bounds(r, c):
+                row: int = self.row + direction[0] * distance
+                col: int = self.col + direction[1] * distance
+
+                # Check if the tile is within bounds
+                if not engine.tile_in_bounds(row, col):
                     break
-                if not self.rogue_move_criteria(engine, r, c):
+
+                # Check if the rogue move criteria are not met
+                if not self.rogue_move_criteria(engine, row, col):
                     break
                 else:
-                    squares.append((r, c))
+                    squares.append((row, col))
+
         return squares
 
-    def stealing_squares(self, engine):
-        squares = []
+    def stealing_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the rogue rook can steal from.
 
+        :param engine: The game engine.
+        :return: A list of squares the rogue rook can steal from.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each direction for stealing
         for direction in self.stealing_directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.can_capture(r, c, engine):
-                squares.append((r, c))
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
+
+            # Check if the rogue rook can capture at the position
+            if self.can_capture(row, col, engine):
+                squares.append((row, col))
 
         return squares
 
-    def right_click(self, engine):
+    def right_click(self, engine: "Engine"):
+        """
+        Handles the right-click action on the rogue rook.
+
+        :param engine: The game engine.
+        :return: Always returns True.
+        """
         return True
 
 
 class RogueBishop(Piece):
-    def __repr__(self):
+    """
+    Represents a rogue bishop piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the rogue bishop piece.
+
+        :return: The string "rogue_bishop".
+        """
         return "rogue_bishop"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a RogueBishop object.
+
+        :param row: The row position of the rogue bishop.
+        :param col: The column position of the rogue bishop.
+        :param color: The color of the rogue bishop.
+        """
         super().__init__(row, col, color)
-        self.stealing_directions = (
+
+        # Directions the rogue bishop can steal
+        self.stealing_directions: tuple = (
             Constant.RIGHT,
             Constant.LEFT,
             Constant.UP,
@@ -1133,72 +1930,136 @@ class RogueBishop(Piece):
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
         )
-        self.directions = (
+
+        # Directions the rogue bishop can move
+        self.directions: tuple = (
             Constant.UP_LEFT,
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
             Constant.UP_RIGHT,
         )
 
-        self.distance = Constant.BOARD_WIDTH_SQ
-        self.is_rogue = True
-        self.contextual_options = ["steal"]
+        # Maximum distance the rogue bishop can move
+        self.distance: int = Constant.BOARD_WIDTH_SQ
 
-    def capture_squares(self, engine):
-        squares = []
+        # Indicates if the rogue bishop is a rogue
+        self.is_rogue: bool = True
 
+        # Contextual options available for the rogue bishop
+        self.contextual_options: list[str] = ["steal"]
+
+    def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the rogue bishop can capture.
+
+        :param engine: The game engine.
+        :return: A list of squares the rogue bishop can capture.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each direction for capture
         for direction in self.directions:
             for distance in range(1, self.distance):
-                r = self.row + direction[0] * distance
-                c = self.col + direction[1] * distance
-                if not engine.tile_in_bounds(r, c):
+                row: int = self.row + direction[0] * distance
+                col: int = self.col + direction[1] * distance
+
+                # Check if the tile is within bounds
+                if not engine.tile_in_bounds(row, col):
                     break
-                if self.can_capture(r, c, engine):
-                    squares.append((r, c))
+
+                # Check if the rogue bishop can capture at the position
+                if self.can_capture(row, col, engine):
+                    squares.append((row, col))
                     break
-                if not self.rogue_move_criteria(engine, r, c):
+
+                # Check if the rogue move criteria are not met
+                if not self.rogue_move_criteria(engine, row, col):
                     break
 
         return squares
 
-    def move_squares(self, engine):
-        squares = []
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the rogue bishop can move to.
 
+        :param engine: The game engine.
+        :return: A list of squares the rogue bishop can move to.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each direction for movement
         for direction in self.directions:
             for distance in range(1, self.distance):
-                r = self.row + direction[0] * distance
-                c = self.col + direction[1] * distance
-                if not engine.tile_in_bounds(r, c):
+                row: int = self.row + direction[0] * distance
+                col: int = self.col + direction[1] * distance
+
+                # Check if the tile is within bounds
+                if not engine.tile_in_bounds(row, col):
                     break
-                if not self.rogue_move_criteria(engine, r, c):
+
+                # Check if the rogue move criteria are not met
+                if not self.rogue_move_criteria(engine, row, col):
                     break
                 else:
-                    squares.append((r, c))
-        return squares
-
-    def stealing_squares(self, engine):
-        squares = []
-
-        for direction in range(len(self.stealing_directions)):
-            d = self.stealing_directions[direction]
-            r = self.row - d[0]
-            c = self.col - d[1]
-            if self.can_capture(r, c, engine):
-                squares.append((r, c))
+                    squares.append((row, col))
 
         return squares
 
-    def right_click(self, engine):
+    def stealing_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the rogue bishop can steal from.
+
+        :param engine: The game engine.
+        :return: A list of squares the rogue bishop can steal from.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each direction for stealing
+        for direction in self.stealing_directions:
+            row: int = self.row - direction[0]
+            col: int = self.col - direction[1]
+
+            # Check if the rogue bishop can capture at the position
+            if self.can_capture(row, col, engine):
+                squares.append((row, col))
+
+        return squares
+
+    def right_click(self, engine: "Engine"):
+        """
+        Handles the right-click action on the rogue bishop.
+
+        :param engine: The game engine.
+        :return: Always returns True.
+        """
         return True
 
 
 class RogueKnight(Piece):
-    def __repr__(self):
+    """
+    Represents a rogue knight piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the rogue knight piece.
+
+        :return: The string "rogue_knight".
+        """
         return "rogue_knight"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a RogueKnight object.
+
+        :param row: The row position of the rogue knight.
+        :param col: The column position of the rogue knight.
+        :param color: The color of the rogue knight.
+        """
         super().__init__(row, col, color)
-        self.directions = (
+
+        # Directions the rogue knight can move
+        self.directions: tuple = (
             Constant.TWO_UP_RIGHT,
             Constant.TWO_RIGHT_UP,
             Constant.TWO_DOWN_RIGHT,
@@ -1208,7 +2069,9 @@ class RogueKnight(Piece):
             Constant.TWO_DOWN_LEFT,
             Constant.TWO_LEFT_DOWN,
         )
-        self.stealing_directions = (
+
+        # Directions the rogue knight can steal
+        self.stealing_directions: tuple = (
             Constant.RIGHT,
             Constant.LEFT,
             Constant.UP,
@@ -1218,162 +2081,307 @@ class RogueKnight(Piece):
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
         )
-        self.distance = 1
-        self.is_rogue = True
-        self.is_cavalry = True
-        self.contextual_options = ["steal"]
 
-    def stealing_squares(self, engine):
-        squares = []
+        # Maximum distance the rogue knight can move
+        self.distance: int = 1
 
+        # Indicates if the rogue knight is a rogue
+        self.is_rogue: bool = True
+
+        # Indicates if the rogue knight is cavalry
+        self.is_cavalry: bool = True
+
+        # Contextual options available for the rogue knight
+        self.contextual_options: list[str] = ["steal"]
+
+    def stealing_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the rogue knight can steal from.
+
+        :param engine: The game engine.
+        :return: A list of squares the rogue knight can steal from.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each direction for stealing
         for direction in self.stealing_directions:
-            r = self.row - direction[0]
-            c = self.col - direction[1]
-            if self.can_capture(r, c, engine):
-                squares.append((r, c))
+            row: int = self.row - direction[0]
+            col: int = self.col - direction[1]
+
+            # Check if the rogue knight can capture at the position
+            if self.can_capture(row, col, engine):
+                squares.append((row, col))
 
         return squares
 
-    def capture_squares(self, engine):
-        squares = []
+    def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the rogue knight can capture.
 
+        :param engine: The game engine.
+        :return: A list of squares the rogue knight can capture.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each direction for capture
         for direction in self.directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.can_capture(r, c, engine):
-                squares.append((r, c))
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
+
+            # Check if the rogue knight can capture at the position
+            if self.can_capture(row, col, engine):
+                squares.append((row, col))
 
         return squares
 
-    def move_squares(self, engine):
-        squares = []
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the rogue knight can move to.
 
+        :param engine: The game engine.
+        :return: A list of squares the rogue knight can move to.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Check each direction for movement
         for direction in self.directions:
-            r = self.row - direction[0]
-            c = self.col - direction[1]
-            if self.rogue_move_criteria(engine, r, c):
-                squares.append((r, c))
+            row: int = self.row - direction[0]
+            col: int = self.col - direction[1]
+
+            # Check if the rogue move criteria are met
+            if self.rogue_move_criteria(engine, row, col):
+                squares.append((row, col))
 
         return squares
 
-    def right_click(self, engine):
+    def right_click(self, engine: "Engine"):
+        """
+        Handles the right-click action on the rogue knight.
+
+        :param engine: The game engine.
+        :return: Always returns True.
+        """
         return True
 
 
 class RoguePawn(Piece):
-    def __repr__(self):
+    """
+    Represents a rogue pawn piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the rogue pawn piece.
+
+        :return: The string "rogue_pawn".
+        """
         return "rogue_pawn"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a RoguePawn object.
+
+        :param row: The row position of the rogue pawn.
+        :param col: The column position of the rogue pawn.
+        :param color: The color of the rogue pawn.
+        """
         super().__init__(row, col, color)
-        self.mining_directions = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
-        )
-        self.move_directions = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-        )
-        self.capture_directions = (
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
-        )
-        self.stealing_directions = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
-        )
-        self.move_distance = 3
-        self.capture_distance = 1
-        self.contextual_options = ["mine", "steal"]
-        self.is_rogue = True
 
-    def mining_squares(self, engine):
+        # Directions the rogue pawn can mine
+        self.mining_directions: tuple = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
+
+        # Directions the rogue pawn can move
+        self.move_directions: tuple = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+        )
+
+        # Directions the rogue pawn can capture
+        self.capture_directions: tuple = (
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
+
+        # Directions the rogue pawn can steal
+        self.stealing_directions: tuple = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
+
+        # Maximum distance the rogue pawn can move
+        self.move_distance: int = 3
+
+        # Maximum distance the rogue pawn can capture
+        self.capture_distance: int = 1
+
+        # Contextual options available for the rogue pawn
+        self.contextual_options: list[str] = ["mine", "steal"]
+
+        # Indicates if the rogue pawn is a rogue
+        self.is_rogue: bool = True
+
+    def mining_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the rogue pawn can mine.
+
+        :param engine: The game engine.
+        :return: A list of squares the rogue pawn can mine.
+        """
+        # Initialize an empty list to store the mining squares
         mining_squares = []
-        for direction in self.mining_directions:
-            r = self.row - direction[0]
-            c = self.col - direction[1]
-            if engine.has_mineable_resource(r, c):
-                if engine.get_occupying(r, c):
-                    if engine.get_occupying_color(r, c) is not self.color:
-                        pass
-                    elif engine.get_occupying_color(r, c) is self.color:
-                        mining_squares.append((r, c))
-                elif engine.has_none_occupying(r, c):
-                    mining_squares.append((r, c))
-            elif engine.can_contain_quarry(r, c) and engine.is_empty(r, c):
-                mining_squares.append((r, c))
 
+        # Iterate over each direction in the mining directions
+        for direction in self.mining_directions:
+            # Calculate the new row and column based on the current direction
+            row, col = self.row - direction[0], self.col - direction[1]
+
+            # Get the piece occupying the calculated position
+            occupying_piece = engine.get_occupying(row, col)
+
+            # Check if the tile has mineable resources
+            if engine.has_mineable_resource(row, col):
+                # If there is no occupying piece or the occupying piece is of the same color
+                if (
+                    not occupying_piece
+                    or engine.get_occupying_color(row, col) is self.color
+                ):
+                    # Add the position to the mining squares list
+                    mining_squares.append((row, col))
+            # Check if the tile can contain a quarry and is empty
+            elif engine.can_contain_quarry(row, col) and engine.is_empty(row, col):
+                # Add the position to the mining squares list
+                mining_squares.append((row, col))
+
+        # Return the list of mining squares
         return mining_squares
 
-    def capture_squares(self, engine):
-        squares = []
+    def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the rogue pawn can capture.
 
+        :param engine: The game engine.
+        :return: A list of squares the rogue pawn can capture.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the capture directions
         for direction in self.capture_directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.can_capture(r, c, engine):
-                squares.append((r, c))
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
+
+            # Check if the rogue pawn can capture at the position
+            if self.can_capture(row, col, engine):
+                squares.append((row, col))
 
         return squares
 
-    def move_squares(self, engine):
-        squares = []
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the rogue pawn can move to.
+
+        :param engine: The game engine.
+        :return: A list of squares the rogue pawn can move to.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Adjust move distance based on whether it's the first move
         if not self.first_move:
             self.move_distance = 2
         else:
             self.move_distance = 3
 
+        # Iterate over each direction in the move directions
         for direction in self.move_directions:
             for distance in range(1, self.move_distance):
-                r = self.row + direction[0] * distance
-                c = self.col + direction[1] * distance
-                if not engine.tile_in_bounds(r, c):
+                row: int = self.row + direction[0] * distance
+                col: int = self.col + direction[1] * distance
+
+                # Check if the tile is within bounds
+                if not engine.tile_in_bounds(row, col):
                     break
-                if not self.rogue_move_criteria(engine, r, c):
+
+                # Check if the rogue move criteria are met
+                if not self.rogue_move_criteria(engine, row, col):
                     break
                 else:
-                    squares.append((r, c))
-        return squares
-
-    def stealing_squares(self, engine):
-        squares = []
-
-        for direction in range(len(self.stealing_directions)):
-            d = self.stealing_directions[direction]
-            r = self.row - d[0]
-            c = self.col - d[1]
-            if self.can_capture(r, c, engine):
-                squares.append((r, c))
+                    squares.append((row, col))
 
         return squares
 
-    def right_click(self, engine):
+    def stealing_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the rogue pawn can steal from.
+
+        :param engine: The game engine.
+        :return: A list of squares the rogue pawn can steal from.
+        """
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the stealing directions
+        for direction in self.stealing_directions:
+            row: int = self.row - direction[0]
+            col: int = self.col - direction[1]
+
+            # Check if the rogue pawn can capture at the position
+            if self.can_capture(row, col, engine):
+                squares.append((row, col))
+
+        return squares
+
+    def right_click(self, engine: "Engine"):
+        """
+        Handles the right-click action on the rogue pawn.
+
+        :param engine: The game engine.
+        :return: Always returns True.
+        """
         return True
 
 
 class Magician(Piece):
-    def __repr__(self):
+    """
+    Represents a magician piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the magician piece.
+
+        :return: The string "magician".
+        """
         return "magician"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Magician object.
+
+        :param row: The row position of the magician.
+        :param col: The column position of the magician.
+        :param color: The color of the magician.
+        """
         super().__init__(row, col, color)
-        self.directions = (
+
+        # Directions the magician can move
+        self.directions: tuple = (
             Constant.RIGHT,
             Constant.LEFT,
             Constant.UP,
@@ -1383,31 +2391,72 @@ class Magician(Piece):
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
         )
-        self.distance = 1
-        self.contextual_options = ["ritual"]
 
-    def right_click(self, engine):
+        # Maximum distance the magician can move
+        self.distance: int = 1
+
+        # Contextual options available for the magician
+        self.contextual_options: list[str] = ["ritual"]
+
+    def right_click(self, engine: "Engine"):
+        """
+        Handles the right-click action on the magician.
+
+        :param engine: The game engine.
+        :return: Always returns True.
+        """
         return True
 
-    def move_squares(self, engine):
-        squares = []
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the magician can move to.
 
+        :param engine: The game engine.
+        :return: A list of squares the magician can move to.
+        """
+        # Initialize an empty list to store the move squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the move directions
         for direction in self.directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.base_move_criteria(engine, r, c):
-                squares.append((r, c))
+            # Calculate the new row and column based on the current direction
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
 
+            # Check if the move criteria are met
+            if self.base_move_criteria(engine, row, col):
+                # Add the position to the move squares list
+                squares.append((row, col))
+
+        # Return the list of move squares
         return squares
 
 
 class Monk(Piece):
-    def __repr__(self):
+    """
+    Represents a monk piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the monk piece.
+
+        :return: The string "monk".
+        """
         return "monk"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Monk object.
+
+        :param row: The row position of the monk.
+        :param col: The column position of the monk.
+        :param color: The color of the monk.
+        """
         super().__init__(row, col, color)
-        self.directions = (
+
+        # Directions the monk can move
+        self.directions: tuple = (
             Constant.RIGHT,
             Constant.LEFT,
             Constant.UP,
@@ -1417,67 +2466,149 @@ class Monk(Piece):
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
         )
-        self.distance = 1
-        self.contextual_options = ["build", "pray"]
 
-    def right_click(self, engine):
+        # Maximum distance the monk can move
+        self.distance: int = 1
+
+        # Contextual options available for the monk
+        self.contextual_options: list[str] = ["build", "pray"]
+
+    def right_click(self, engine: "Engine"):
+        """
+        Handles the right-click action on the monk.
+
+        :param engine: The game engine.
+        :return: Always returns True.
+        """
         return True
 
-    def move_squares(self, engine):
-        squares = []
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the monk can move to.
 
+        :param engine: The game engine.
+        :return: A list of squares the monk can move to.
+        """
+        # Initialize an empty list to store the move squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the move directions
         for direction in self.directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.base_move_criteria(engine, r, c):
-                squares.append((r, c))
+            # Calculate the new row and column based on the current direction
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
 
+            # Check if the move criteria are met
+            if self.base_move_criteria(engine, row, col):
+                # Add the position to the move squares list
+                squares.append((row, col))
+
+        # Return the list of move squares
         return squares
 
-    def base_spawn_criteria(self, engine, row, col):
+    def base_spawn_criteria(self, engine: "Engine", row: int, col: int) -> bool:
+        """
+        Determines if the monk can spawn at the given position based on base criteria.
+
+        :param engine: The game engine.
+        :param row: The row position to check.
+        :param col: The column position to check.
+        :return: True if the monk can spawn, False otherwise.
+        """
+        # Check if the tile is within bounds
         if engine.tile_in_bounds(row, col):
+            # Check if the tile has no occupying piece, no portal, and no trap
             return (
                 engine.has_none_occupying(row, col)
                 and not engine.has_portal(row, col)
                 and not engine.has_trap(row, col)
             )
+        return False
 
-    def spawn_squares(self, engine):
-        spawn_squares = []
+    def spawn_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the monk can spawn at.
+
+        :param engine: The game engine.
+        :return: A list of squares the monk can spawn at.
+        """
+        # Initialize an empty list to store the spawn squares
+        spawn_squares: list[tuple[int, int]] = []
+
+        # Check if the monk can spawn
         if not self.can_spawn(engine):
             return spawn_squares
 
+        # Iterate over each direction in the spawn directions
         for direction in self.directions:
-            r = self.row - direction[0]
-            c = self.col - direction[1]
-            if self.base_spawn_criteria(engine, r, c):
-                if engine.has_no_resource(
-                    r,
-                    c,
-                ) or engine.has_depleted_quarry(r, c):
-                    spawn_squares.append((r, c))
+            # Calculate the new row and column based on the current direction
+            row: int = self.row - direction[0]
+            col: int = self.col - direction[1]
+
+            # Check if the spawn criteria are met
+            if self.base_spawn_criteria(engine, row, col):
+                # Check if the tile has no resource or has a depleted quarry
+                if engine.has_no_resource(row, col) or engine.has_depleted_quarry(
+                    row, col
+                ):
+                    # Add the position to the spawn squares list
+                    spawn_squares.append((row, col))
+
+        # Return the list of spawn squares
         return spawn_squares
 
-    def praying_squares(self, engine):
-        squares = []
+    def praying_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the monk can pray at.
 
+        :param engine: The game engine.
+        :return: A list of squares the monk can pray at.
+        """
+        # Initialize an empty list to store the praying squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the praying directions
         for direction in self.directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if engine.has_prayable_building(r, c):
-                if engine.get_occupying(r, c).color is self.color:
-                    squares.append((r, c))
+            # Calculate the new row and column based on the current direction
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
 
+            # Check if the tile has a prayable building
+            if engine.has_prayable_building(row, col):
+                # Check if the occupying piece is of the same color
+                if engine.get_occupying(row, col).color is self.color:
+                    # Add the position to the praying squares list
+                    squares.append((row, col))
+
+        # Return the list of praying squares
         return squares
 
 
 class Ram(Piece):
-    def __repr__(self):
+    """
+    Represents a ram piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the ram piece.
+
+        :return: The string "ram".
+        """
         return "ram"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Ram object.
+
+        :param row: The row position of the ram.
+        :param col: The column position of the ram.
+        :param color: The color of the ram.
+        """
         super().__init__(row, col, color)
-        self.directions = (
+
+        # Directions the ram can move
+        self.directions: tuple = (
             Constant.TWO_UP_RIGHT,
             Constant.TWO_UP_LEFT,
             Constant.TWO_RIGHT_UP,
@@ -1487,8 +2618,12 @@ class Ram(Piece):
             Constant.TWO_DOWN_LEFT,
             Constant.TWO_DOWN_RIGHT,
         )
-        self.is_cavalry = True
-        self.extra_move_directions = {
+
+        # Indicates if the ram is cavalry
+        self.is_cavalry: bool = True
+
+        # Extra move directions for the ram
+        self.extra_move_directions: dict = {
             Constant.TWO_UP_RIGHT: Constant.UP_RIGHT,
             Constant.TWO_UP_LEFT: Constant.UP_LEFT,
             Constant.TWO_RIGHT_UP: Constant.UP_RIGHT,
@@ -1499,49 +2634,101 @@ class Ram(Piece):
             Constant.TWO_DOWN_RIGHT: Constant.DOWN_RIGHT,
         }
 
-        self.distance = Constant.BOARD_WIDTH_SQ
+        # Maximum distance the ram can move
+        self.distance: int = Constant.BOARD_WIDTH_SQ
 
-    def capture_squares(self, engine):
-        squares = []
+    def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the ram can capture.
+
+        :param engine: The game engine.
+        :return: A list of squares the ram can capture.
+        """
+        # Initialize an empty list to store the capture squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the capture directions
         for direction in self.directions:
             for distance in range(0, Constant.BOARD_WIDTH_SQ):
-                d = self.extra_move_directions[direction]
-                r = self.row + direction[0] + d[0] * distance
-                c = self.col + direction[1] + d[1] * distance
-                if not engine.tile_in_bounds(r, c):
-                    break
-                if self.can_capture(r, c, engine):
-                    squares.append((r, c))
-                    break
-                if not self.base_move_criteria(engine, r, c):
+                # Calculate the new row and column based on the current direction and distance
+                extra_direction: tuple[int, int] = self.extra_move_directions[direction]
+                row: int = self.row + direction[0] + extra_direction[0] * distance
+                col: int = self.col + direction[1] + extra_direction[1] * distance
+
+                # Check if the tile is within bounds
+                if not engine.tile_in_bounds(row, col):
                     break
 
+                # Check if the ram can capture at the calculated position
+                if self.can_capture(row, col, engine):
+                    squares.append((row, col))
+                    break
+
+                # Check if the base move criteria are not met
+                if not self.base_move_criteria(engine, row, col):
+                    break
+
+        # Return the list of capture squares
         return squares
 
-    def move_squares(self, engine):
-        squares = []
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the ram can move to.
+
+        :param engine: The game engine.
+        :return: A list of squares the ram can move to.
+        """
+        # Initialize an empty list to store the move squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the move directions
         for direction in self.directions:
             for distance in range(0, Constant.BOARD_WIDTH_SQ):
-                d = self.extra_move_directions[direction]
-                r = self.row + direction[0] + d[0] * distance
-                c = self.col + direction[1] + d[1] * distance
-                if not engine.tile_in_bounds(r, c):
-                    break
-                if not self.base_move_criteria(engine, r, c):
-                    break
-                else:
-                    squares.append((r, c))
+                # Calculate the new row and column based on the current direction and distance
+                extra_direction: tuple[int, int] = self.extra_move_directions[direction]
+                row: int = self.row + direction[0] + extra_direction[0] * distance
+                col: int = self.col + direction[1] + extra_direction[1] * distance
 
+                # Check if the tile is within bounds
+                if not engine.tile_in_bounds(row, col):
+                    break
+
+                # Check if the base move criteria are not met
+                if not self.base_move_criteria(engine, row, col):
+                    break
+
+                # Add the position to the move squares list
+                squares.append((row, col))
+
+        # Return the list of move squares
         return squares
 
 
 class Elephant(Piece):
-    def __repr__(self):
+    """
+    Represents an elephant piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the elephant piece.
+
+        :return: The string "elephant".
+        """
         return "elephant"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes an Elephant object.
+
+        :param row: The row position of the elephant.
+        :param col: The column position of the elephant.
+        :param color: The color of the elephant.
+        """
         super().__init__(row, col, color)
-        self.directions = (
+
+        # Directions the elephant can move
+        self.directions: tuple = (
             Constant.TWO_UP_RIGHT,
             Constant.TWO_RIGHT_UP,
             Constant.TWO_DOWN_RIGHT,
@@ -1552,7 +2739,8 @@ class Elephant(Piece):
             Constant.TWO_LEFT_DOWN,
         )
 
-        self.directions_to_extra_moves = {
+        # Extra move directions for the elephant
+        self.directions_to_extra_moves: dict = {
             Constant.TWO_UP_RIGHT: Constant.UP,
             Constant.TWO_RIGHT_UP: Constant.RIGHT,
             Constant.TWO_DOWN_RIGHT: Constant.DOWN,
@@ -1562,50 +2750,108 @@ class Elephant(Piece):
             Constant.TWO_DOWN_LEFT: Constant.DOWN,
             Constant.TWO_LEFT_DOWN: Constant.LEFT,
         }
-        self.distance = 1
-        self.is_cavalry = True
 
-    def capture_squares(self, engine):
-        squares = []
+        # Maximum distance the elephant can move
+        self.distance: int = 1
 
+        # Indicates if the elephant is cavalry
+        self.is_cavalry: bool = True
+
+    def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the elephant can capture.
+
+        :param engine: The game engine.
+        :return: A list of squares the elephant can capture.
+        """
+        # Initialize an empty list to store the capture squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the capture directions
         for direction in self.directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.can_capture(r, c, engine):
-                squares.append((r, c))
-            elif self.base_move_criteria(engine, r, c):
-                extra_direction = self.directions_to_extra_moves[direction]
-                r += extra_direction[0]
-                c += extra_direction[1]
-                if self.can_capture(r, c, engine):
-                    squares.append((r, c))
+            # Calculate the new row and column based on the current direction
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
 
+            # Check if the elephant can capture at the calculated position
+            if self.can_capture(row, col, engine):
+                squares.append((row, col))
+            # Check if the base move criteria are met
+            elif self.base_move_criteria(engine, row, col):
+                # Calculate the extra move direction
+                extra_direction: tuple[int, int] = self.directions_to_extra_moves[
+                    direction
+                ]
+                row += extra_direction[0]
+                col += extra_direction[1]
+
+                # Check if the elephant can capture at the new position
+                if self.can_capture(row, col, engine):
+                    squares.append((row, col))
+
+        # Return the list of capture squares
         return squares
 
-    def move_squares(self, engine):
-        squares = []
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the elephant can move to.
 
+        :param engine: The game engine.
+        :return: A list of squares the elephant can move to.
+        """
+        # Initialize an empty list to store the move squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the move directions
         for direction in self.directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.base_move_criteria(engine, r, c):
-                squares.append((r, c))
-                extra_direction = self.directions_to_extra_moves[direction]
-                r += extra_direction[0]
-                c += extra_direction[1]
-                if self.base_move_criteria(engine, r, c):
-                    squares.append((r, c))
+            # Calculate the new row and column based on the current direction
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
 
+            # Check if the base move criteria are met
+            if self.base_move_criteria(engine, row, col):
+                squares.append((row, col))
+
+                # Calculate the extra move direction
+                extra_direction: tuple[int, int] = self.directions_to_extra_moves[
+                    direction
+                ]
+                row += extra_direction[0]
+                col += extra_direction[1]
+
+                # Check if the base move criteria are met for the new position
+                if self.base_move_criteria(engine, row, col):
+                    squares.append((row, col))
+
+        # Return the list of move squares
         return squares
 
 
 class Assassin(Piece):
-    def __repr__(self):
+    """
+    Represents an assassin piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the assassin piece.
+
+        :return: The string "assassin".
+        """
         return "assassin"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes an Assassin object.
+
+        :param row: The row position of the assassin.
+        :param col: The column position of the assassin.
+        :param color: The color of the assassin.
+        """
         super().__init__(row, col, color)
-        self.directions = (
+
+        # Directions the assassin can move
+        self.directions: tuple = (
             Constant.RIGHT,
             Constant.LEFT,
             Constant.UP,
@@ -1615,26 +2861,62 @@ class Assassin(Piece):
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
         )
-        self.distance = Constant.BOARD_WIDTH_SQ
-        self.contextual_options = ["ritual"]
 
-    def capture_squares(self, engine):
-        squares = []
+        # Maximum distance the assassin can move
+        self.distance: int = Constant.BOARD_WIDTH_SQ
+
+        # Contextual options available for the assassin
+        self.contextual_options: list[str] = ["ritual"]
+
+    def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the assassin can capture.
+
+        :param engine: The game engine.
+        :return: A list of squares the assassin can capture.
+        """
+        # Initialize an empty list to store the capture squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the capture directions
         for direction in self.directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.can_capture(r, c, engine):
-                squares.append((r, c))
+            # Calculate the new row and column based on the current direction
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
+
+            # Check if the assassin can capture at the calculated position
+            if self.can_capture(row, col, engine):
+                squares.append((row, col))
+
+        # Return the list of capture squares
         return squares
 
 
 class Jester(Piece):
-    def __repr__(self):
+    """
+    Represents a jester piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the jester piece.
+
+        :return: The string "jester".
+        """
         return "jester"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Jester object.
+
+        :param row: The row position of the jester.
+        :param col: The column position of the jester.
+        :param color: The color of the jester.
+        """
         super().__init__(row, col, color)
-        self.directions = (
+
+        # Directions the jester can move
+        self.directions: tuple = (
             Constant.RIGHT,
             Constant.LEFT,
             Constant.UP,
@@ -1644,41 +2926,91 @@ class Jester(Piece):
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
         )
-        self.distance = Constant.BOARD_WIDTH_SQ
 
-    def move_squares(self, engine):
-        squares = []
+        # Maximum distance the jester can move
+        self.distance: int = Constant.BOARD_WIDTH_SQ
 
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the jester can move to.
+
+        :param engine: The game engine.
+        :return: A list of squares the jester can move to.
+        """
+        # Initialize an empty list to store the move squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the move directions
         for direction in self.directions:
-            for distance in range(1, self.distance):
-                r = self.row + direction[0] * distance
-                c = self.col + direction[1] * distance
-                if not engine.tile_in_bounds(r, c):
+            for dist in range(1, self.distance):
+                # Calculate the new row and column based on the current direction and distance
+                row: int = self.row + direction[0] * dist
+                col: int = self.col + direction[1] * dist
+
+                # Check if the tile is within bounds
+                if not engine.tile_in_bounds(row, col):
                     break
-                if not self.base_move_criteria(engine, r, c):
+
+                # Check if the jester can move to the calculated position
+                if not self.base_move_criteria(engine, row, col):
                     break
-                else:
-                    squares.append((r, c))
+
+                # Add the position to the move squares list
+                squares.append((row, col))
+
+        # Return the list of move squares
         return squares
 
-    def interceptor_squares(self, engine):
-        squares = []
-        for direction in self.directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if engine.has_occupying(r, c):
-                squares.append((r, c))
+    def interceptor_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the jester can intercept.
 
+        :param engine: The game engine.
+        :return: A list of squares the jester can intercept.
+        """
+        # Initialize an empty list to store the interceptor squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the interceptor directions
+        for direction in self.directions:
+            # Calculate the new row and column based on the current direction
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
+
+            # Check if there is an occupying piece at the calculated position
+            if engine.has_occupying(row, col):
+                # Add the position to the interceptor squares list
+                squares.append((row, col))
+
+        # Return the list of interceptor squares
         return squares
 
 
 class Doe(Piece):
-    def __repr__(self):
+    """
+    Represents a doe piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the doe piece.
+
+        :return: The string "doe".
+        """
         return "doe"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Doe object.
+
+        :param row: The row position of the doe.
+        :param col: The column position of the doe.
+        :param color: The color of the doe.
+        """
         super().__init__(row, col, color)
-        self.knight_directions = (
+
+        # Directions the doe can move like a knight
+        self.knight_directions: tuple = (
             Constant.TWO_UP_RIGHT,
             Constant.TWO_RIGHT_UP,
             Constant.TWO_DOWN_RIGHT,
@@ -1688,68 +3020,112 @@ class Doe(Piece):
             Constant.TWO_DOWN_LEFT,
             Constant.TWO_LEFT_DOWN,
         )
-        self.bishop_directions = (
+
+        # Directions the doe can move like a bishop
+        self.bishop_directions: tuple = (
             Constant.UP_LEFT,
             Constant.UP_RIGHT,
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
         )
-        self.distance = Constant.BOARD_WIDTH_SQ
-        self.is_cavalry = True
 
-    def capture_squares(self, engine):
-        squares = []
+        # Maximum distance the doe can move
+        self.distance: int = Constant.BOARD_WIDTH_SQ
 
+        # Indicates if the doe is cavalry
+        self.is_cavalry: bool = True
+
+    def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the doe can capture.
+
+        :param engine: The game engine.
+        :return: A list of squares the doe can capture.
+        """
+        # Initialize an empty list to store the capture squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each knight direction for capture
         for direction in self.knight_directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.can_capture(r, c, engine):
-                squares.append((r, c))
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
+            if self.can_capture(row, col, engine):
+                squares.append((row, col))
 
+        # Iterate over each bishop direction for capture
         for direction in self.bishop_directions:
             for i in range(1, self.distance):
-                r = self.row + direction[0] * i
-                c = self.col + direction[1] * i
-                if not engine.tile_in_bounds(r, c):
+                row: int = self.row + direction[0] * i
+                col: int = self.col + direction[1] * i
+                if not engine.tile_in_bounds(row, col):
                     break
-                if self.can_capture(r, c, engine):
-                    squares.append((r, c))
+                if self.can_capture(row, col, engine):
+                    squares.append((row, col))
                     break
-                if not self.base_move_criteria(engine, r, c):
+                if not self.base_move_criteria(engine, row, col):
                     break
 
+        # Return the list of capture squares
         return squares
 
-    def move_squares(self, engine):
-        squares = []
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the doe can move to.
 
+        :param engine: The game engine.
+        :return: A list of squares the doe can move to.
+        """
+        # Initialize an empty list to store the move squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each knight direction for movement
         for direction in self.knight_directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.base_move_criteria(engine, r, c):
-                squares.append((r, c))
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
+            if self.base_move_criteria(engine, row, col):
+                squares.append((row, col))
 
+        # Iterate over each bishop direction for movement
         for direction in self.bishop_directions:
             for i in range(1, self.distance):
-                r = self.row + direction[0] * i
-                c = self.col + direction[1] * i
-                if not engine.tile_in_bounds(r, c):
+                row: int = self.row + direction[0] * i
+                col: int = self.col + direction[1] * i
+                if not engine.tile_in_bounds(row, col):
                     break
-                if not self.base_move_criteria(engine, r, c):
+                if not self.base_move_criteria(engine, row, col):
                     break
                 else:
-                    squares.append((r, c))
+                    squares.append((row, col))
 
+        # Return the list of move squares
         return squares
 
 
 class Pikeman(Piece):
-    def __repr__(self):
+    """
+    Represents a pikeman piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the pikeman piece.
+
+        :return: The string "pikeman".
+        """
         return "pikeman"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Pikeman object.
+
+        :param row: The row position of the pikeman.
+        :param col: The column position of the pikeman.
+        :param color: The color of the pikeman.
+        """
         super().__init__(row, col, color)
-        self.directions = (
+
+        # Directions the pikeman can move
+        self.directions: tuple = (
             Constant.RIGHT,
             Constant.LEFT,
             Constant.UP,
@@ -1759,40 +3135,79 @@ class Pikeman(Piece):
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
         )
-        self.distance = 1
-        self.is_cavalry = True
 
-    def capture_squares(self, engine):
-        squares = []
+        # Maximum distance the pikeman can move
+        self.distance: int = 1
 
+        # Indicates if the pikeman is cavalry
+        self.is_cavalry: bool = True
+
+    def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the pikeman can capture.
+
+        :param engine: The game engine.
+        :return: A list of squares the pikeman can capture.
+        """
+        # Initialize an empty list to store the capture squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the capture directions
         for direction in self.directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.can_capture(r, c, engine):
-                squares.append((r, c))
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
+            if self.can_capture(row, col, engine):
+                squares.append((row, col))
 
+        # Return the list of capture squares
         return squares
 
-    def move_squares(self, engine):
-        squares = []
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the pikeman can move to.
 
+        :param engine: The game engine.
+        :return: A list of squares the pikeman can move to.
+        """
+        # Initialize an empty list to store the move squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the move directions
         for direction in self.directions:
-            r = self.row - direction[0]
-            c = self.col - direction[1]
-            if self.base_move_criteria(engine, r, c):
-                squares.append((r, c))
+            row: int = self.row - direction[0]
+            col: int = self.col - direction[1]
+            if self.base_move_criteria(engine, row, col):
+                squares.append((row, col))
 
+        # Return the list of move squares
         return squares
 
 
 class Builder(Piece):
-    def __repr__(self):
+    """
+    Represents a builder piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the builder piece.
+
+        :return: The string "builder".
+        """
         return "builder"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Builder object.
+
+        :param row: The row position of the builder.
+        :param col: The column position of the builder.
+        :param color: The color of the builder.
+        """
         super().__init__(row, col, color)
 
-        self.directions = (
+        # Directions the builder can move
+        self.directions: tuple = (
             Constant.RIGHT,
             Constant.LEFT,
             Constant.UP,
@@ -1802,83 +3217,162 @@ class Builder(Piece):
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
         )
-        self.mining_directions = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
-        )
-        self.distance = 1
-        self.contextual_options = ["build", "mine"]
 
-    def mining_squares(self, engine):
-        mining_squares = []
+        # Directions the builder can mine
+        self.mining_directions: tuple = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
+
+        # Maximum distance the builder can move
+        self.distance: int = 1
+
+        # Contextual options available for the builder
+        self.contextual_options: list[str] = ["build", "mine"]
+
+    def mining_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the builder can mine.
+
+        :param engine: The game engine.
+        :return: A list of squares the builder can mine.
+        """
+        # Initialize an empty list to store the mining squares
+        mining_squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the mining directions
         for direction in self.mining_directions:
-            r = self.row - direction[0]
-            c = self.col - direction[1]
-            if engine.has_mineable_resource(r, c):
-                if engine.get_occupying(r, c):
-                    if engine.get_occupying_color(r, c) is not self.color:
-                        pass
-                    elif engine.get_occupying_color(r, c) is self.color:
-                        mining_squares.append((r, c))
-                elif engine.has_none_occupying(r, c):
-                    mining_squares.append((r, c))
-            elif engine.can_contain_quarry(r, c) and engine.is_empty(r, c):
-                mining_squares.append((r, c))
+            row: int = self.row - direction[0]
+            col: int = self.col - direction[1]
 
+            # Check if the tile has a mineable resource
+            if engine.has_mineable_resource(row, col):
+                if engine.get_occupying(row, col):
+                    if engine.get_occupying_color(row, col) is not self.color:
+                        pass
+                    elif engine.get_occupying_color(row, col) is self.color:
+                        mining_squares.append((row, col))
+                elif engine.has_none_occupying(row, col):
+                    mining_squares.append((row, col))
+            elif engine.can_contain_quarry(row, col) and engine.is_empty(row, col):
+                mining_squares.append((row, col))
+
+        # Return the list of mining squares
         return mining_squares
 
-    def move_squares(self, engine):
-        moves = []
-        for direction in self.directions:
-            r = self.row - direction[0]
-            c = self.col - direction[1]
-            if self.base_move_criteria(engine, r, c):
-                moves.append((r, c))
-        return moves
+    def base_spawn_criteria(self, engine: "Engine", row: int, col: int) -> bool:
+        """
+        Determines if the builder can spawn at the given position based on base criteria.
 
-    def base_spawn_criteria(self, engine, row, col):
+        :param engine: The game engine.
+        :param row: The row position to check.
+        :param col: The column position to check.
+        :return: True if the builder can spawn, False otherwise.
+        """
+        # Check if the tile is within bounds
         if engine.tile_in_bounds(row, col):
             return (
                 engine.has_none_occupying(row, col)
                 and not engine.has_portal(row, col)
                 and not engine.has_trap(row, col)
             )
+        return False
 
-    def spawn_squares(self, engine):
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the builder can move to.
 
-        spawn_squares = []
+        :param engine: The game engine.
+        :return: A list of squares the builder can move to.
+        """
+        # Initialize an empty list to store the move squares
+        moves: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the move directions
+        for direction in self.directions:
+            row: int = self.row - direction[0]
+            col: int = self.col - direction[1]
+
+            # Check if the move criteria are met
+            if self.base_move_criteria(engine, row, col):
+                moves.append((row, col))
+
+        # Return the list of move squares
+        return moves
+
+    def spawn_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the builder can spawn at.
+
+        :param engine: The game engine.
+        :return: A list of squares the builder can spawn at.
+        """
+        # Initialize an empty list to store the spawn squares
+        spawn_squares: list[tuple[int, int]] = []
+
+        # Check if the builder can spawn
         if not self.can_spawn(engine):
             return spawn_squares
 
+        # Iterate over each direction in the spawn directions
         for direction in self.directions:
-            r = self.row - direction[0]
-            c = self.col - direction[1]
-            if self.base_spawn_criteria(engine, r, c):
-                if engine.has_no_resource(
-                    r,
-                    c,
-                ) or engine.has_depleted_quarry(r, c):
-                    spawn_squares.append((r, c))
+            row: int = self.row - direction[0]
+            col: int = self.col - direction[1]
+
+            # Check if the base spawn criteria are met
+            if self.base_spawn_criteria(engine, row, col):
+                if engine.has_no_resource(row, col) or engine.has_depleted_quarry(
+                    row, col
+                ):
+                    spawn_squares.append((row, col))
+
+        # Return the list of spawn squares
         return spawn_squares
 
-    def right_click(self, engine):
+    def right_click(self, engine: "Engine"):
+        """
+        Handles the right-click action on the builder.
+
+        :param engine: The game engine.
+        :return: Always returns True.
+        """
         return True
 
 
 class Unicorn(Piece):
-    def __repr__(self):
+    """
+    Represents a unicorn piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the unicorn piece.
+
+        :return: The string "unicorn".
+        """
         return "unicorn"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Unicorn object.
+
+        :param row: The row position of the unicorn.
+        :param col: The column position of the unicorn.
+        :param color: The color of the unicorn.
+        """
         super().__init__(row, col, color)
-        self.is_cavalry = True
-        self.knight_directions = (
+
+        # Indicates if the unicorn is cavalry
+        self.is_cavalry: bool = True
+
+        # Directions the unicorn can move like a knight
+        self.knight_directions: tuple = (
             Constant.TWO_UP_RIGHT,
             Constant.TWO_RIGHT_UP,
             Constant.TWO_DOWN_RIGHT,
@@ -1889,13 +3383,16 @@ class Unicorn(Piece):
             Constant.TWO_LEFT_DOWN,
         )
 
-        self.cardinal_directions = (
+        # Directions the unicorn can move in cardinal directions
+        self.cardinal_directions: tuple = (
             Constant.THREE_RIGHT,
             Constant.THREE_DOWN,
             Constant.THREE_UP,
             Constant.THREE_LEFT,
         )
-        self.knight_directions_to_extra_moves = {
+
+        # Mapping of knight directions to extra moves
+        self.knight_directions_to_extra_moves: dict = {
             Constant.TWO_UP_RIGHT: Constant.TWO_RIGHT_UP,
             Constant.TWO_RIGHT_UP: Constant.TWO_UP_RIGHT,
             Constant.TWO_DOWN_RIGHT: Constant.TWO_RIGHT_DOWN,
@@ -1905,69 +3402,110 @@ class Unicorn(Piece):
             Constant.TWO_DOWN_LEFT: Constant.TWO_LEFT_DOWN,
             Constant.TWO_LEFT_DOWN: Constant.TWO_DOWN_LEFT,
         }
-        self.distance = 1
 
-    def capture_squares(self, engine):
-        squares = []
+        # Maximum distance the unicorn can move
+        self.distance: int = 1
 
+    def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the unicorn can capture.
+
+        :param engine: The game engine.
+        :return: A list of squares the unicorn can capture.
+        """
+        # Initialize an empty list to store the capture squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each cardinal direction for capture
         for direction in self.cardinal_directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.can_capture(r, c, engine):
-                squares.append((r, c))
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
+            if self.can_capture(row, col, engine):
+                squares.append((row, col))
 
+        # Iterate over each knight direction for capture
         for direction in self.knight_directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.can_capture(r, c, engine):
-                squares.append((r, c))
-
-            elif engine.can_be_occupied(r, c):
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
+            if self.can_capture(row, col, engine):
+                squares.append((row, col))
+            elif engine.can_be_occupied(row, col):
                 extra_move_direction = self.knight_directions_to_extra_moves[direction]
-                r += extra_move_direction[0]
-                c += extra_move_direction[1]
-                if self.can_capture(r, c, engine):
-                    squares.append((r, c))
+                row += extra_move_direction[0]
+                col += extra_move_direction[1]
+                if self.can_capture(row, col, engine):
+                    squares.append((row, col))
 
+        # Return the list of capture squares
         return squares
 
-    def move_squares(self, engine):
-        squares = []
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the unicorn can move to.
 
+        :param engine: The game engine.
+        :return: A list of squares the unicorn can move to.
+        """
+        # Initialize an empty list to store the move squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each cardinal direction for movement
         for direction in self.cardinal_directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.base_move_criteria(engine, r, c):
-                squares.append((r, c))
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
+            if self.base_move_criteria(engine, row, col):
+                squares.append((row, col))
 
+        # Iterate over each knight direction for movement
         for direction in self.knight_directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.base_move_criteria(engine, r, c):
-                squares.append((r, c))
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
+            if self.base_move_criteria(engine, row, col):
+                squares.append((row, col))
                 extra_move_direction = self.knight_directions_to_extra_moves[direction]
-                r += extra_move_direction[0]
-                c += extra_move_direction[1]
-                if self.base_move_criteria(engine, r, c):
-                    if (r, c) not in squares:
-                        squares.append((r, c))
+                row += extra_move_direction[0]
+                col += extra_move_direction[1]
+                if self.base_move_criteria(engine, row, col):
+                    if (row, col) not in squares:
+                        squares.append((row, col))
 
+        # Return the list of move squares
         return squares
 
 
 class Champion(Piece):
-    def __repr__(self):
+    """
+    Represents a champion piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the champion piece.
+
+        :return: The string "champion".
+        """
         return "champion"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Champion object.
+
+        :param row: The row position of the champion.
+        :param col: The column position of the champion.
+        :param color: The color of the champion.
+        """
         super().__init__(row, col, color)
-        self.directions = (
+
+        # Directions the champion can move
+        self.directions: tuple = (
             Constant.UP_RIGHT,
             Constant.UP_LEFT,
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
         )
-        self.praying_directions = (
+
+        # Directions the champion can pray
+        self.praying_directions: tuple = (
             Constant.RIGHT,
             Constant.LEFT,
             Constant.UP,
@@ -1977,77 +3515,147 @@ class Champion(Piece):
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
         )
-        self.extra_move_directions = {
+
+        # Extra move directions for the champion
+        self.extra_move_directions: dict = {
             Constant.UP_RIGHT: (Constant.UP, Constant.RIGHT),
             Constant.UP_LEFT: (Constant.UP, Constant.LEFT),
             Constant.DOWN_RIGHT: (Constant.DOWN, Constant.RIGHT),
             Constant.DOWN_LEFT: (Constant.DOWN, Constant.LEFT),
         }
-        self.contextual_options = ["pray"]
 
-        self.distance = Constant.BOARD_WIDTH_SQ
+        # Contextual options available for the champion
+        self.contextual_options: list[str] = ["pray"]
 
-    def praying_squares(self, engine):
-        moves = []
+        # Maximum distance the champion can move
+        self.distance: int = Constant.BOARD_WIDTH_SQ
 
+    def praying_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the champion can pray at.
+
+        :param engine: The game engine.
+        :return: A list of squares the champion can pray at.
+        """
+        # Initialize an empty list to store the praying squares
+        moves: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the praying directions
         for direction in range(len(self.praying_directions)):
-            d = self.praying_directions[direction]
-            r = self.row - d[0]
-            c = self.col - d[1]
-            if engine.has_prayable_building(r, c):
-                if engine.get_occupying(r, c).color is self.color:
-                    moves.append((r, c))
+            direction_tuple: tuple[int, int] = self.praying_directions[direction]
+            row: int = self.row - direction_tuple[0]
+            col: int = self.col - direction_tuple[1]
 
+            # Check if the tile has a prayable building
+            if engine.has_prayable_building(row, col):
+                if engine.get_occupying(row, col).color is self.color:
+                    moves.append((row, col))
+
+        # Return the list of praying squares
         return moves
 
-    def capture_squares(self, engine):
-        squares = []
+    def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the champion can capture.
 
+        :param engine: The game engine.
+        :return: A list of squares the champion can capture.
+        """
+        # Initialize an empty list to store the capture squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the capture directions
         for direction in self.directions:
-            extra_directions = self.extra_move_directions[direction]
+            extra_directions: tuple[int, int] = self.extra_move_directions[direction]
             for extra_direction in extra_directions:
                 for distance in range(0, self.distance):
-                    r = self.row + direction[0] + extra_direction[0] * distance
-                    c = self.col + direction[1] + extra_direction[1] * distance
-                    if not engine.tile_in_bounds(r, c):
+                    row: int = self.row + direction[0] + extra_direction[0] * distance
+                    col: int = self.col + direction[1] + extra_direction[1] * distance
+
+                    # Check if the tile is within bounds
+                    if not engine.tile_in_bounds(row, col):
                         break
-                    if self.can_capture(r, c, engine):
-                        if (r, c) not in squares:
-                            squares.append((r, c))
+
+                    # Check if the champion can capture the piece at the position
+                    if self.can_capture(row, col, engine):
+                        if (row, col) not in squares:
+                            squares.append((row, col))
                             break
-                    if not self.base_move_criteria(engine, r, c):
+
+                    # Check if the base move criteria are met
+                    if not self.base_move_criteria(engine, row, col):
                         break
+
+        # Return the list of capture squares
         return squares
 
-    def move_squares(self, engine):
-        squares = []
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the champion can move to.
 
+        :param engine: The game engine.
+        :return: A list of squares the champion can move to.
+        """
+        # Initialize an empty list to store the move squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the move directions
         for direction in self.directions:
-            extra_directions = self.extra_move_directions[direction]
+            extra_directions: tuple[int, int] = self.extra_move_directions[direction]
             for extra_direction in extra_directions:
                 for distance in range(0, self.distance):
-                    r = self.row + direction[0] + extra_direction[0] * distance
-                    c = self.col + direction[1] + extra_direction[1] * distance
-                    if not engine.tile_in_bounds(r, c):
+                    row: int = self.row + direction[0] + extra_direction[0] * distance
+                    col: int = self.col + direction[1] + extra_direction[1] * distance
+
+                    # Check if the tile is within bounds
+                    if not engine.tile_in_bounds(row, col):
                         break
-                    if not self.base_move_criteria(engine, r, c):
+
+                    # Check if the base move criteria are met
+                    if not self.base_move_criteria(engine, row, col):
                         break
                     else:
-                        if (r, c) not in squares:
-                            squares.append((r, c))
+                        if (row, col) not in squares:
+                            squares.append((row, col))
+
+        # Return the list of move squares
         return squares
 
-    def right_click(self, engine):
+    def right_click(self, engine: "Engine") -> bool:
+        """
+        Handles the right-click action on the champion.
+
+        :param engine: The game engine.
+        :return: Always returns True.
+        """
         return True
 
 
 class Oxen(Piece):
-    def __repr__(self):
+    """
+    Represents an oxen piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the oxen piece.
+
+        :return: The string "oxen".
+        """
         return "oxen"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes an Oxen object.
+
+        :param row: The row position of the oxen.
+        :param col: The column position of the oxen.
+        :param color: The color of the oxen.
+        """
         super().__init__(row, col, color)
-        self.directions = (
+
+        # Directions the oxen can move
+        self.directions: tuple = (
             Constant.TWO_UP_RIGHT,
             Constant.TWO_RIGHT_UP,
             Constant.TWO_DOWN_RIGHT,
@@ -2057,9 +3665,12 @@ class Oxen(Piece):
             Constant.TWO_DOWN_LEFT,
             Constant.TWO_LEFT_DOWN,
         )
-        self.is_cavalry = True
 
-        self.extra_move_directions = {
+        # Indicates if the oxen is cavalry
+        self.is_cavalry: bool = True
+
+        # Extra move directions for the oxen
+        self.extra_move_directions: dict = {
             Constant.TWO_UP_RIGHT: Constant.UP,
             Constant.TWO_RIGHT_UP: Constant.RIGHT,
             Constant.TWO_DOWN_RIGHT: Constant.DOWN,
@@ -2070,53 +3681,100 @@ class Oxen(Piece):
             Constant.TWO_LEFT_DOWN: Constant.LEFT,
         }
 
-        self.distance = Constant.BOARD_WIDTH_SQ
+        # Maximum distance the oxen can move
+        self.distance: int = Constant.BOARD_WIDTH_SQ
 
-    def capture_squares(self, engine):
-        squares = []
+    def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the oxen can capture.
 
+        :param engine: The game engine.
+        :return: A list of squares the oxen can capture.
+        """
+        # Initialize an empty list to store the capture squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the capture directions
         for direction in self.directions:
-            extra_direction = self.extra_move_directions[direction]
+            extra_direction: tuple[int, int] = self.extra_move_directions[direction]
             for distance in range(0, self.distance):
-                r = self.row + direction[0] + extra_direction[0] * distance
-                c = self.col + direction[1] + extra_direction[1] * distance
-                if not engine.tile_in_bounds(r, c):
-                    break
-                if self.can_capture(r, c, engine):
-                    if (r, c) not in squares:
-                        squares.append((r, c))
-                        break
-                if not self.base_move_criteria(engine, r, c):
+                row: int = self.row + direction[0] + extra_direction[0] * distance
+                col: int = self.col + direction[1] + extra_direction[1] * distance
+
+                # Check if the tile is within bounds
+                if not engine.tile_in_bounds(row, col):
                     break
 
+                # Check if the oxen can capture the piece at the position
+                if self.can_capture(row, col, engine):
+                    if (row, col) not in squares:
+                        squares.append((row, col))
+                        break
+
+                # Check if the base move criteria are met
+                if not self.base_move_criteria(engine, row, col):
+                    break
+
+        # Return the list of capture squares
         return squares
 
-    def move_squares(self, engine):
-        squares = []
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the oxen can move to.
 
+        :param engine: The game engine.
+        :return: A list of squares the oxen can move to.
+        """
+        # Initialize an empty list to store the move squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the move directions
         for direction in self.directions:
-            extra_direction = self.extra_move_directions[direction]
+            extra_direction: tuple[int, int] = self.extra_move_directions[direction]
             for distance in range(0, self.distance):
-                r = self.row + direction[0] + extra_direction[0] * distance
-                c = self.col + direction[1] + extra_direction[1] * distance
-                if not engine.tile_in_bounds(r, c):
+                row: int = self.row + direction[0] + extra_direction[0] * distance
+                col: int = self.col + direction[1] + extra_direction[1] * distance
+
+                # Check if the tile is within bounds
+                if not engine.tile_in_bounds(row, col):
                     break
-                if not self.base_move_criteria(engine, r, c):
+
+                # Check if the base move criteria are met
+                if not self.base_move_criteria(engine, row, col):
                     break
                 else:
-                    if (r, c) not in squares:
-                        squares.append((r, c))
+                    if (row, col) not in squares:
+                        squares.append((row, col))
 
+        # Return the list of move squares
         return squares
 
 
 class Persuader(Piece):
-    def __repr__(self):
+    """
+    Represents a persuader piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the persuader piece.
+
+        :return: The string "persuader".
+        """
         return "persuader"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Persuader object.
+
+        :param row: The row position of the persuader.
+        :param col: The column position of the persuader.
+        :param color: The color of the persuader.
+        """
         super().__init__(row, col, color)
-        self.directions = (
+
+        # Directions the persuader can move
+        self.directions: tuple = (
             Constant.RIGHT,
             Constant.LEFT,
             Constant.UP,
@@ -2126,47 +3784,100 @@ class Persuader(Piece):
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
         )
-        self.distance = Constant.BOARD_WIDTH_SQ
-        self.contextual_options = ["persuade"]
 
-    def persuader_squares(self, engine):
-        squares = []
+        # Maximum distance the persuader can move
+        self.distance: int = Constant.BOARD_WIDTH_SQ
 
+        # Contextual options available for the persuader
+        self.contextual_options: list[str] = ["persuade"]
+
+    def persuader_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the persuader can persuade.
+
+        :param engine: The game engine.
+        :return: A list of squares the persuader can persuade.
+        """
+        # Initialize an empty list to store the persuader squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the persuader directions
         for direction in self.directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.can_capture(r, c, engine):
-                if engine.get_occupying(r, c).can_be_persuaded:
-                    squares.append((r, c))
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
 
+            # Check if the persuader can capture the piece at the position
+            if self.can_capture(row, col, engine):
+                if engine.get_occupying(row, col).can_be_persuaded:
+                    squares.append((row, col))
+
+        # Return the list of persuader squares
         return squares
 
-    def move_squares(self, engine):
-        squares = []
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the persuader can move to.
 
+        :param engine: The game engine.
+        :return: A list of squares the persuader can move to.
+        """
+        # Initialize an empty list to store the move squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the move directions
         for direction in self.directions:
             for distance in range(1, self.distance):
-                r = self.row + direction[0] * distance
-                c = self.col + direction[1] * distance
-                if not engine.tile_in_bounds(r, c):
+                row: int = self.row + direction[0] * distance
+                col: int = self.col + direction[1] * distance
+
+                # Check if the tile is within bounds
+                if not engine.tile_in_bounds(row, col):
                     break
-                if not self.base_move_criteria(engine, r, c):
+
+                # Check if the base move criteria are met
+                if not self.base_move_criteria(engine, row, col):
                     break
                 else:
-                    squares.append((r, c))
+                    squares.append((row, col))
+
+        # Return the list of move squares
         return squares
 
-    def right_click(self, engine):
+    def right_click(self, engine: "Engine") -> bool:
+        """
+        Handles the right-click action on the persuader.
+
+        :param engine: The game engine.
+        :return: Always returns True.
+        """
         return True
 
 
 class GoldGeneral(Piece):
-    def __repr__(self):
+    """
+    Represents a gold general piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the gold general piece.
+
+        :return: The string "gold_general".
+        """
         return "gold_general"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a GoldGeneral object.
+
+        :param row: The row position of the gold general.
+        :param col: The column position of the gold general.
+        :param color: The color of the gold general.
+        """
         super().__init__(row, col, color)
-        self.directions = (
+
+        # Directions the gold general can move
+        self.directions: tuple = (
             Constant.RIGHT,
             Constant.LEFT,
             Constant.UP,
@@ -2176,8 +3887,12 @@ class GoldGeneral(Piece):
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
         )
-        self.distance = Constant.BOARD_WIDTH_SQ
-        self.praying_directions = (
+
+        # Maximum distance the gold general can move
+        self.distance: int = Constant.BOARD_WIDTH_SQ
+
+        # Directions the gold general can pray
+        self.praying_directions: tuple = (
             Constant.RIGHT,
             Constant.LEFT,
             Constant.UP,
@@ -2187,89 +3902,132 @@ class GoldGeneral(Piece):
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
         )
-        self.is_general = True
-        self.can_be_persuaded = False
 
-    def praying_squares(self, engine):
-        squares = []
+        # Indicates if the gold general is a general
+        self.is_general: bool = True
 
+        # Indicates if the gold general can be persuaded
+        self.can_be_persuaded: bool = False
+
+    def praying_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the gold general can pray at.
+
+        :param engine: The game engine.
+        :return: A list of squares the gold general can pray at.
+        """
+        # Initialize an empty list to store the praying squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the praying directions
         for direction in self.praying_directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if engine.has_prayable_building(r, c):
-                if engine.get_occupying(r, c).color is self.color:
-                    squares.append((r, c))
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
+
+            # Check if the square has a prayable building
+            if engine.has_prayable_building(row, col):
+                if engine.get_occupying(row, col).color == self.color:
+                    squares.append((row, col))
+
+        # Return the list of praying squares
         return squares
 
-    def capture_squares(self, engine):
-        squares = []
+    def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the gold general can capture.
 
+        :param engine: The game engine.
+        :return: A list of squares the gold general can capture.
+        """
+        # Initialize an empty list to store the capture squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the capture directions
         for direction in self.directions:
             for distance in range(1, self.distance):
-                r = self.row + direction[0] * distance
-                c = self.col + direction[1] * distance
-                if not engine.tile_in_bounds(r, c):
-                    break
-                if self.can_capture(r, c, engine):
-                    squares.append((r, c))
-                    break
-                if not self.general_move_criteria(engine, r, c):
+                row: int = self.row + direction[0] * distance
+                col: int = self.col + direction[1] * distance
+
+                # Check if the tile is within bounds
+                if not engine.tile_in_bounds(row, col):
                     break
 
+                # Check if the gold general can capture the piece at the position
+                if self.can_capture(row, col, engine):
+                    squares.append((row, col))
+                    break
+
+                # Check if the general move criteria are met
+                if not self.general_move_criteria(engine, row, col):
+                    break
+
+        # Return the list of capture squares
         return squares
 
-    def move_squares(self, engine):
-        squares = []
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the gold general can move to.
 
+        :param engine: The game engine.
+        :return: A list of squares the gold general can move to.
+        """
+        # Initialize an empty list to store the move squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the move directions
         for direction in self.directions:
             for distance in range(1, self.distance):
-                r = self.row + direction[0] * distance
-                c = self.col + direction[1] * distance
-                if not engine.tile_in_bounds(r, c):
+                row: int = self.row + direction[0] * distance
+                col: int = self.col + direction[1] * distance
+
+                # Check if the tile is within bounds
+                if not engine.tile_in_bounds(row, col):
                     break
-                if not self.general_move_criteria(engine, r, c):
+
+                # Check if the general move criteria are met
+                if not self.general_move_criteria(engine, row, col):
                     break
                 else:
-                    squares.append((r, c))
+                    squares.append((row, col))
+
+        # Return the list of move squares
         return squares
 
-    def right_click(self, engine):
+    def right_click(self, engine: "Engine") -> bool:
+        """
+        Handles the right-click action on the gold general.
+
+        :param engine: The game engine.
+        :return: Always returns True.
+        """
         return True
 
 
 class Trapper(Piece):
-    def __repr__(self):
+    """
+    Represents a trapper piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the trapper piece.
+
+        :return: The string "trapper".
+        """
         return "trapper"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Trapper object.
+
+        :param row: The row position of the trapper.
+        :param col: The column position of the trapper.
+        :param color: The color of the trapper.
+        """
         super().__init__(row, col, color)
-        self.trapping_directions = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
-        )
-        self.move_directions = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-        )
-        self.capture_directions = (
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
-        )
-        self.move_distance = 3
-        self.capture_distance = 1
-        self.is_rogue = True
-        self.contextual_options = ["build", "steal"]
-        self.stealing_directions = (
+
+        # Directions the trapper can trap
+        self.trapping_directions: tuple = (
             Constant.RIGHT,
             Constant.LEFT,
             Constant.UP,
@@ -2280,87 +4038,219 @@ class Trapper(Piece):
             Constant.DOWN_LEFT,
         )
 
-    def capture_squares(self, engine):
-        squares = []
+        # Directions the trapper can move
+        self.move_directions: tuple = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+        )
 
+        # Directions the trapper can capture
+        self.capture_directions: tuple = (
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
+
+        # Maximum distance the trapper can move
+        self.move_distance: int = 3
+
+        # Maximum distance the trapper can capture
+        self.capture_distance: int = 1
+
+        # Indicates if the trapper is a rogue
+        self.is_rogue: bool = True
+
+        # Contextual options available for the trapper
+        self.contextual_options: list[str] = ["build", "steal"]
+
+        # Directions the trapper can steal
+        self.stealing_directions: tuple = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
+
+    def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the trapper can capture.
+
+        :param engine: The game engine.
+        :return: A list of squares the trapper can capture.
+        """
+        # Initialize an empty list to store the capture squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the capture directions
         for direction in self.capture_directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.can_capture(r, c, engine):
-                squares.append((r, c))
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
+
+            # Check if the trapper can capture the piece at the position
+            if self.can_capture(row, col, engine):
+                squares.append((row, col))
+
+        # Return the list of capture squares
         return squares
 
-    def can_spawn(self, engine):
-        spawn_list = Constant.SPAWN_LISTS[str(self)]
-        legal_spawns = []
+    def can_spawn(self, engine: "Engine") -> bool:
+        """
+        Determines if the trapper can spawn.
+
+        :param engine: The game engine.
+        :return: True if the trapper can spawn, False otherwise.
+        """
+        # Get the list of legal spawns for the trapper
+        spawn_list: list = Constant.SPAWN_LISTS[str(self)]
+        legal_spawns: list = []
+
+        # Iterate over each spawn in the spawn list
         for spawn in spawn_list:
             if engine.is_legal_spawn(spawn, spawner=self):
                 legal_spawns.append(spawn)
-        if legal_spawns:
-            return True
 
-    def stealing_squares(self, engine):
-        squares = []
+        # Return True if there are legal spawns, False otherwise
+        return bool(legal_spawns)
 
-        for direction in range(len(self.stealing_directions)):
-            d = self.stealing_directions[direction]
-            r = self.row - d[0]
-            c = self.col - d[1]
-            if self.can_capture(r, c, engine):
-                squares.append((r, c))
+    def stealing_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the trapper can steal from.
 
+        :param engine: The game engine.
+        :return: A list of squares the trapper can steal from.
+        """
+        # Initialize an empty list to store the stealing squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the stealing directions
+        for direction in self.stealing_directions:
+            row: int = self.row - direction[0]
+            col: int = self.col - direction[1]
+
+            # Check if the trapper can capture the piece at the position
+            if self.can_capture(row, col, engine):
+                squares.append((row, col))
+
+        # Return the list of stealing squares
         return squares
 
-    def base_spawn_criteria(self, engine, row, col):
+    def base_spawn_criteria(self, engine: "Engine", row: int, col: int) -> bool:
+        """
+        Determines if the trapper can spawn at the given position based on base criteria.
+
+        :param engine: The game engine.
+        :param row: The row position to check.
+        :param col: The column position to check.
+        :return: True if the trapper can spawn, False otherwise.
+        """
+        # Check if the tile is within bounds
         if engine.tile_in_bounds(row, col):
             return not engine.has_trap(row, col) and not engine.board[row][
                 col
             ].is_protected_by_opposite_color(self.color)
+        return False
 
-    def spawn_squares(self, engine):
-        squares = []
+    def spawn_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the trapper can spawn at.
+
+        :param engine: The game engine.
+        :return: A list of squares the trapper can spawn at.
+        """
+        # Initialize an empty list to store the spawn squares
+        squares: list[tuple[int, int]] = []
+
+        # Check if the trapper can spawn
         if not self.can_spawn(engine):
             return squares
 
+        # Iterate over each direction in the trapping directions
         for direction in self.trapping_directions:
-            r = self.row - direction[0]
-            c = self.col - direction[1]
-            if self.base_spawn_criteria(engine, r, c):
-                if engine.can_be_occupied_by_rogue(r, c):
-                    squares.append((r, c))
+            row: int = self.row - direction[0]
+            col: int = self.col - direction[1]
 
+            # Check if the base spawn criteria are met
+            if self.base_spawn_criteria(engine, row, col):
+                if engine.can_be_occupied_by_rogue(row, col):
+                    squares.append((row, col))
+
+        # Return the list of spawn squares
         return squares
 
-    def move_squares(self, engine):
-        squares = []
-        if not self.first_move:
-            self.move_distance = 2
-        else:
-            self.move_distance = 3
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the trapper can move to.
 
+        :param engine: The game engine.
+        :return: A list of squares the trapper can move to.
+        """
+        # Initialize an empty list to store the move squares
+        squares: list[tuple[int, int]] = []
+
+        # Set the move distance based on whether it is the first move
+        self.move_distance = 2 if not self.first_move else 3
+
+        # Iterate over each direction in the move directions
         for direction in self.move_directions:
             for distance in range(1, self.move_distance):
-                r = self.row + direction[0] * distance
-                c = self.col + direction[1] * distance
-                if not engine.tile_in_bounds(r, c):
+                row: int = self.row + direction[0] * distance
+                col: int = self.col + direction[1] * distance
+
+                # Check if the tile is within bounds
+                if not engine.tile_in_bounds(row, col):
                     break
-                if not self.rogue_move_criteria(engine, r, c):
+
+                # Check if the rogue move criteria are met
+                if not self.rogue_move_criteria(engine, row, col):
                     break
                 else:
-                    squares.append((r, c))
+                    squares.append((row, col))
+
+        # Return the list of move squares
         return squares
 
-    def right_click(self, engine):
+    def right_click(self, engine: "Engine") -> bool:
+        """
+        Handles the right-click action on the trapper.
+
+        :param engine: The game engine.
+        :return: Always returns True.
+        """
         return True
 
 
 class Trader(Piece):
-    def __repr__(self):
+    """
+    Represents a trader piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the trader piece.
+
+        :return: The string "trader".
+        """
         return "trader"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Trader object.
+
+        :param row: The row position of the trader.
+        :param col: The column position of the trader.
+        :param color: The color of the trader.
+        """
         super().__init__(row, col, color)
-        self.directions = (
+
+        # Directions the trader can move
+        self.directions: tuple = (
             Constant.RIGHT,
             Constant.LEFT,
             Constant.UP,
@@ -2370,30 +4260,67 @@ class Trader(Piece):
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
         )
-        self.contextual_options = ["trade"]
 
-    def move_squares(self, engine):
-        squares = []
+        # Contextual options available for the trader
+        self.contextual_options: list[str] = ["trade"]
 
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the trader can move to.
+
+        :param engine: The game engine.
+        :return: A list of squares the trader can move to.
+        """
+        # Initialize an empty list to store the move squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the move directions
         for direction in self.directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.base_move_criteria(engine, r, c):
-                squares.append((r, c))
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
 
+            # Check if the base move criteria are met
+            if self.base_move_criteria(engine, row, col):
+                squares.append((row, col))
+
+        # Return the list of move squares
         return squares
 
-    def right_click(self, engine):
+    def right_click(self, engine: "Engine") -> bool:
+        """
+        Handles the right-click action on the trader.
+
+        :param engine: The game engine.
+        :return: Always returns True.
+        """
         return True
 
 
 class Stable(Building):
-    def __repr__(self):
+    """
+    Represents a stable building in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the stable building.
+
+        :return: The string "stable".
+        """
         return "stable"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Stable object.
+
+        :param row: The row position of the stable.
+        :param col: The column position of the stable.
+        :param color: The color of the stable.
+        """
         super().__init__(row, col, color)
-        self.directions = (
+
+        # Directions the stable can spawn units
+        self.directions: tuple = (
             Constant.RIGHT,
             Constant.LEFT,
             Constant.UP,
@@ -2403,33 +4330,75 @@ class Stable(Building):
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
         )
-        self.distance = 1
-        self.additional_actions = Constant.STABLE_ADDITIONAL_ACTIONS
 
-    def spawn_squares(self, engine):
-        spawn_squares = []
+        # Maximum distance the stable can spawn units
+        self.distance: int = 1
+
+        # Additional actions available for the stable
+        self.additional_actions: list[str] = Constant.STABLE_ADDITIONAL_ACTIONS
+
+    def spawn_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the stable can spawn units at.
+
+        :param engine: The game engine.
+        :return: A list of squares the stable can spawn units at.
+        """
+        # Initialize an empty list to store the spawn squares
+        spawn_squares: list[tuple[int, int]] = []
+
+        # Check if the stable can spawn units
         if not self.can_spawn(engine):
             return spawn_squares
 
+        # Iterate over each direction in the spawn directions
         for direction in self.directions:
-            r = self.row - direction[0]
-            c = self.col - direction[1]
-            if self.base_spawn_criteria(engine, r, c):
-                if engine.can_be_occupied(r, c):
-                    spawn_squares.append((r, c))
+            row: int = self.row - direction[0]
+            col: int = self.col - direction[1]
+
+            # Check if the base spawn criteria are met
+            if self.base_spawn_criteria(engine, row, col):
+                if engine.can_be_occupied(row, col):
+                    spawn_squares.append((row, col))
+
+        # Return the list of spawn squares
         return spawn_squares
 
-    def right_click(self, engine):
+    def right_click(self, engine: "Engine") -> bool:
+        """
+        Handles the right-click action on the stable.
+
+        :param engine: The game engine.
+        :return: Always returns True.
+        """
         return True
 
 
 class Barracks(Building):
-    def __repr__(self):
+    """
+    Represents a barracks building in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the barracks building.
+
+        :return: The string "barracks".
+        """
         return "barracks"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Barracks object.
+
+        :param row: The row position of the barracks.
+        :param col: The column position of the barracks.
+        :param color: The color of the barracks.
+        """
         super().__init__(row, col, color)
-        self.directions = (
+
+        # Directions the barracks can spawn units
+        self.directions: tuple = (
             Constant.RIGHT,
             Constant.LEFT,
             Constant.UP,
@@ -2439,34 +4408,75 @@ class Barracks(Building):
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
         )
-        self.distance = 1
-        self.additional_actions = Constant.BARRACKS_ADDITIONAL_ACTIONS
 
-    def spawn_squares(self, engine):
-        spawn_squares = []
+        # Maximum distance the barracks can spawn units
+        self.distance: int = 1
 
+        # Additional actions available for the barracks
+        self.additional_actions: list[str] = Constant.BARRACKS_ADDITIONAL_ACTIONS
+
+    def spawn_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the barracks can spawn units at.
+
+        :param engine: The game engine.
+        :return: A list of squares the barracks can spawn units at.
+        """
+        # Initialize an empty list to store the spawn squares
+        spawn_squares: list[tuple[int, int]] = []
+
+        # Check if the barracks can spawn units
         if not self.can_spawn(engine):
             return spawn_squares
 
+        # Iterate over each direction in the spawn directions
         for direction in self.directions:
-            r = self.row - direction[0]
-            c = self.col - direction[1]
-            if self.base_spawn_criteria(engine, r, c):
-                if engine.can_be_occupied(r, c):
-                    spawn_squares.append((r, c))
+            row: int = self.row - direction[0]
+            col: int = self.col - direction[1]
+
+            # Check if the base spawn criteria are met
+            if self.base_spawn_criteria(engine, row, col):
+                if engine.can_be_occupied(row, col):
+                    spawn_squares.append((row, col))
+
+        # Return the list of spawn squares
         return spawn_squares
 
-    def right_click(self, engine):
+    def right_click(self, engine: "Engine") -> bool:
+        """
+        Handles the right-click action on the barracks.
+
+        :param engine: The game engine.
+        :return: Always returns True.
+        """
         return True
 
 
 class Castle(Building):
-    def __repr__(self):
+    """
+    Represents a castle building in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the castle building.
+
+        :return: The string "castle".
+        """
         return "castle"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Castle object.
+
+        :param row: The row position of the castle.
+        :param col: The column position of the castle.
+        :param color: The color of the castle.
+        """
         super().__init__(row, col, color)
-        self.directions = (
+
+        # Directions the castle can spawn units
+        self.directions: tuple = (
             Constant.RIGHT,
             Constant.LEFT,
             Constant.UP,
@@ -2476,38 +4486,80 @@ class Castle(Building):
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
         )
-        self.distance = 1
-        self.additional_actions = Constant.CASTLE_ADDITIONAL_ACTIONS
 
-    def spawn_squares(self, engine):
-        spawn_squares = []
+        # Maximum distance the castle can spawn units
+        self.distance: int = 1
 
+        # Additional actions available for the castle
+        self.additional_actions: list[str] = Constant.CASTLE_ADDITIONAL_ACTIONS
+
+    def spawn_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the castle can spawn units at.
+
+        :param engine: The game engine.
+        :return: A list of squares the castle can spawn units at.
+        """
+        # Initialize an empty list to store the spawn squares
+        spawn_squares: list[tuple[int, int]] = []
+
+        # Check if the castle can spawn units
         if not str(engine.state[-1]) == "start spawn":
             if not self.can_spawn(engine):
                 return spawn_squares
 
+        # Iterate over each direction in the spawn directions
         for direction in self.directions:
-            r = self.row - direction[0]
-            c = self.col - direction[1]
+            row: int = self.row - direction[0]
+            col: int = self.col - direction[1]
+
+            # Check if the spawning unit is a rogue pawn or trapper
             if engine.spawning == "rogue_pawn" or engine.spawning == "trapper":
-                if engine.can_be_occupied_by_rogue(r, c):
-                    spawn_squares.append((r, c))
-            elif self.base_spawn_criteria(engine, r, c):
-                if engine.can_be_occupied(r, c):
-                    spawn_squares.append((r, c))
+                if engine.can_be_occupied_by_rogue(row, col):
+                    spawn_squares.append((row, col))
+            # Check if the base spawn criteria are met
+            elif self.base_spawn_criteria(engine, row, col):
+                if engine.can_be_occupied(row, col):
+                    spawn_squares.append((row, col))
+
+        # Return the list of spawn squares
         return spawn_squares
 
-    def right_click(self, engine):
+    def right_click(self, engine: "Engine") -> bool:
+        """
+        Handles the right-click action on the castle.
+
+        :param engine: The game engine.
+        :return: Always returns True.
+        """
         return True
 
 
 class Circus(Building):
-    def __repr__(self):
+    """
+    Represents a circus building in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the circus building.
+
+        :return: The string "circus".
+        """
         return "circus"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Circus object.
+
+        :param row: The row position of the circus.
+        :param col: The column position of the circus.
+        :param color: The color of the circus.
+        """
         super().__init__(row, col, color)
-        self.directions = (
+
+        # Directions the circus can spawn units
+        self.directions: tuple = (
             Constant.RIGHT,
             Constant.LEFT,
             Constant.UP,
@@ -2517,34 +4569,76 @@ class Circus(Building):
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
         )
-        self.distance = 1
-        self.additional_actions = Constant.CIRCUS_ADDITIONAL_ACTIONS
 
-    def spawn_squares(self, engine):
-        spawn_squares = []
+        # Maximum distance the circus can spawn units
+        self.distance: int = 1
 
+        # Additional actions available for the circus
+        self.additional_actions: list[str] = Constant.CIRCUS_ADDITIONAL_ACTIONS
+
+    def spawn_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the circus can spawn units at.
+
+        :param engine: The game engine.
+        :return: A list of squares the circus can spawn units at.
+        """
+        # Initialize an empty list to store the spawn squares
+        spawn_squares: list[tuple[int, int]] = []
+
+        # Check if the circus can spawn units
         if not self.can_spawn(engine):
             return spawn_squares
 
+        # Iterate over each direction in the spawn directions
         for direction in self.directions:
-            r = self.row - direction[0]
-            c = self.col - direction[1]
-            if self.base_spawn_criteria(engine, r, c):
-                if engine.can_be_occupied(r, c):
-                    spawn_squares.append((r, c))
+            row: int = self.row - direction[0]
+            col: int = self.col - direction[1]
+
+            # Check if the base spawn criteria are met
+            if self.base_spawn_criteria(engine, row, col):
+                # Check if the square can be occupied
+                if engine.can_be_occupied(row, col):
+                    spawn_squares.append((row, col))
+
+        # Return the list of spawn squares
         return spawn_squares
 
-    def right_click(self, engine):
+    def right_click(self, engine: "Engine") -> bool:
+        """
+        Handles the right-click action on the circus.
+
+        :param engine: The game engine.
+        :return: Always returns True.
+        """
         return True
 
 
 class Fortress(Building):
-    def __repr__(self):
+    """
+    Represents a fortress building in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the fortress building.
+
+        :return: The string "fortress".
+        """
         return "fortress"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Fortress object.
+
+        :param row: The row position of the fortress.
+        :param col: The column position of the fortress.
+        :param color: The color of the fortress.
+        """
         super().__init__(row, col, color)
-        self.directions = (
+
+        # Directions the fortress can spawn units
+        self.directions: tuple = (
             Constant.RIGHT,
             Constant.LEFT,
             Constant.UP,
@@ -2554,52 +4648,130 @@ class Fortress(Building):
             Constant.DOWN_RIGHT,
             Constant.DOWN_LEFT,
         )
-        self.distance = 1
-        self.additional_actions = Constant.FORTRESS_ADDITIONAL_ACTIONS
 
-    def spawn_squares(self, engine):
-        spawn_squares = []
+        # Maximum distance the fortress can spawn units
+        self.distance: int = 1
 
+        # Additional actions available for the fortress
+        self.additional_actions: list[str] = Constant.FORTRESS_ADDITIONAL_ACTIONS
+
+    def spawn_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the fortress can spawn units at.
+
+        :param engine: The game engine.
+        :return: A list of squares the fortress can spawn units at.
+        """
+        # Initialize an empty list to store the spawn squares
+        spawn_squares: list[tuple[int, int]] = []
+
+        # Check if the fortress can spawn units
         if not self.can_spawn(engine):
             return spawn_squares
 
+        # Iterate over each direction in the spawn directions
         for direction in self.directions:
-            r = self.row - direction[0]
-            c = self.col - direction[1]
-            if self.base_spawn_criteria(engine, r, c):
-                if engine.can_be_occupied_by_rogue(r, c):
-                    spawn_squares.append((r, c))
+            row: int = self.row - direction[0]
+            col: int = self.col - direction[1]
+
+            # Check if the base spawn criteria are met
+            if self.base_spawn_criteria(engine, row, col):
+                # Check if the square can be occupied by a rogue
+                if engine.can_be_occupied_by_rogue(row, col):
+                    spawn_squares.append((row, col))
+
+        # Return the list of spawn squares
         return spawn_squares
 
-    def right_click(self, engine):
+    def right_click(self, engine: "Engine") -> bool:
+        """
+        Handles the right-click action on the fortress.
+
+        :param engine: The game engine.
+        :return: Always returns True.
+        """
         return True
 
 
 class PrayerStone(Building):
-    def __repr__(self):
+    """
+    Represents a prayer stone building in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the prayer stone building.
+
+        :return: The string "prayer_stone".
+        """
         return "prayer_stone"
 
-    def __init__(self, row, col, color):
-        super().__init__(row, col, color)
-        self.directions = ()
-        self.distance = 0
-        self.remaining = 0
-        self.yield_when_prayed = Constant.PRAYER_STONE_YIELD
-        self.is_effected_by_jester = False
-        self.additional_actions = Constant.PRAYER_STONE_ADDITIONAL_ACTIONS
-        self.contextual_options = ["ritual"]
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a PrayerStone object.
 
-    def right_click(self, engine):
+        :param row: The row position of the prayer stone.
+        :param col: The column position of the prayer stone.
+        :param color: The color of the prayer stone.
+        """
+        super().__init__(row, col, color)
+
+        # Directions the prayer stone can spawn units
+        self.directions: tuple = ()
+
+        # Maximum distance the prayer stone can spawn units
+        self.distance: int = 0
+
+        # Remaining uses of the prayer stone
+        self.remaining: int = 0
+
+        # Yield when the prayer stone is prayed
+        self.yield_when_prayed: int = Constant.PRAYER_STONE_YIELD
+
+        # Indicates if the prayer stone is affected by the jester
+        self.is_effected_by_jester: bool = False
+
+        # Additional actions available for the prayer stone
+        self.additional_actions: list[str] = Constant.PRAYER_STONE_ADDITIONAL_ACTIONS
+
+        # Contextual options available for the prayer stone
+        self.contextual_options: list[str] = ["ritual"]
+
+    def right_click(self, engine: "Engine") -> bool:
+        """
+        Handles the right-click action on the prayer stone.
+
+        :param engine: The game engine.
+        :return: Always returns True.
+        """
         return True
 
 
 class Monolith(Building):
-    def __repr__(self):
+    """
+    Represents a monolith building in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the monolith building.
+
+        :return: The string "monolith".
+        """
         return "monolith"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Monolith object.
+
+        :param row: The row position of the monolith.
+        :param col: The column position of the monolith.
+        :param color: The color of the monolith.
+        """
         super().__init__(row, col, color)
-        self.directions = (
+
+        # Directions the monolith can spawn units
+        self.directions: tuple = (
             Constant.UP,
             Constant.RIGHT,
             Constant.LEFT,
@@ -2609,119 +4781,239 @@ class Monolith(Building):
             Constant.DOWN_RIGHT,
             Constant.UP_RIGHT,
         )
-        self.distance = 2
-        self.remaining = 0
-        self.yield_when_prayed = Constant.MONOLITH_YIELD
-        self.is_effected_by_jester = False
-        self.additional_actions = Constant.MONOLITH_ADDITIONAL_ACTIONS
-        self.contextual_options = ["ritual"]
 
-    def gold_general_ritual_squares(self, engine):
-        ritual_squares = []
+        # Maximum distance the monolith can spawn units
+        self.distance: int = 2
+
+        # Remaining uses of the monolith
+        self.remaining: int = 0
+
+        # Yield when the monolith is prayed
+        self.yield_when_prayed: int = Constant.MONOLITH_YIELD
+
+        # Indicates if the monolith is affected by the jester
+        self.is_effected_by_jester: bool = False
+
+        # Additional actions available for the monolith
+        self.additional_actions: list[str] = Constant.MONOLITH_ADDITIONAL_ACTIONS
+
+        # Contextual options available for the monolith
+        self.contextual_options: list[str] = ["ritual"]
+
+    def gold_general_ritual_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the gold general can perform rituals at.
+
+        :param engine: The game engine.
+        :return: A list of squares the gold general can perform rituals at.
+        """
+        # Initialize an empty list to store the ritual squares
+        ritual_squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the spawn directions
         for direction in self.directions:
             for i in range(self.distance):
-                r = self.row + direction[0] * i
-                c = self.col + direction[1] * i
-                if self.base_spawn_criteria(engine, r, c):
-                    if engine.can_be_occupied_by_gold_general(r, c):
-                        ritual_squares.append((r, c))
+                row: int = self.row + direction[0] * i
+                col: int = self.col + direction[1] * i
 
+                # Check if the base spawn criteria are met
+                if self.base_spawn_criteria(engine, row, col):
+                    # Check if the square can be occupied by the gold general
+                    if engine.can_be_occupied_by_gold_general(row, col):
+                        ritual_squares.append((row, col))
+
+        # Return the list of ritual squares
         return ritual_squares
 
-    def right_click(self, engine):
+    def right_click(self, engine: "Engine") -> bool:
+        """
+        Handles the right-click action on the monolith.
+
+        :param engine: The game engine.
+        :return: Always returns True.
+        """
         return True
 
 
 class Ferz(Piece):
-    def __repr__(self):
+    """
+    Represents a Ferz piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the Ferz piece.
+
+        :return: The string "ferz".
+        """
         return "ferz"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Ferz object.
+
+        :param row: The row position of the Ferz.
+        :param col: The column position of the Ferz.
+        :param color: The color of the Ferz.
+        """
         super().__init__(row, col, color)
-        self.mining_directions = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
-        )
-        self.capture_directions = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-        )
-        self.move_directions = (
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
-        )
-        self.move_distance = 3
-        self.capture_distance = 1
-        self.contextual_options = ["mine"]
 
-    def mining_squares(self, engine):
-        mining_squares = []
+        # Directions the Ferz can mine
+        self.mining_directions: tuple = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
+
+        # Directions the Ferz can capture
+        self.capture_directions: tuple = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+        )
+
+        # Directions the Ferz can move
+        self.move_directions: tuple = (
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
+
+        # Maximum distance the Ferz can move
+        self.move_distance: int = 3
+
+        # Maximum distance the Ferz can capture
+        self.capture_distance: int = 1
+
+        # Contextual options available for the Ferz
+        self.contextual_options: list[str] = ["mine"]
+
+    def mining_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the Ferz can mine.
+
+        :param engine: The game engine.
+        :return: A list of squares the Ferz can mine.
+        """
+        # Initialize an empty list to store the mining squares
+        mining_squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the mining directions
         for direction in self.mining_directions:
-            r = self.row - direction[0]
-            c = self.col - direction[1]
-            if engine.has_mineable_resource(r, c):
-                if engine.get_occupying(r, c):
-                    if engine.get_occupying_color(r, c) is not self.color:
-                        pass
-                    elif engine.get_occupying_color(r, c) is self.color:
-                        mining_squares.append((r, c))
-                elif engine.has_none_occupying(r, c):
-                    mining_squares.append((r, c))
-            elif engine.can_contain_quarry(r, c) and engine.is_empty(r, c):
-                mining_squares.append((r, c))
+            row: int = self.row - direction[0]
+            col: int = self.col - direction[1]
 
+            # Check if the square has mineable resources
+            if engine.has_mineable_resource(row, col):
+                if engine.get_occupying(row, col):
+                    if engine.get_occupying_color(row, col) is not self.color:
+                        pass
+                    elif engine.get_occupying_color(row, col) is self.color:
+                        mining_squares.append((row, col))
+                elif engine.has_none_occupying(row, col):
+                    mining_squares.append((row, col))
+            elif engine.can_contain_quarry(row, col) and engine.is_empty(row, col):
+                mining_squares.append((row, col))
+
+        # Return the list of mining squares
         return mining_squares
 
-    def capture_squares(self, engine):
-        squares = []
+    def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the Ferz can capture.
 
+        :param engine: The game engine.
+        :return: A list of squares the Ferz can capture.
+        """
+        # Initialize an empty list to store the capture squares
+        squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the capture directions
         for direction in self.capture_directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.can_capture(r, c, engine):
-                squares.append((r, c))
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
+
+            # Check if the Ferz can capture at the given position
+            if self.can_capture(row, col, engine):
+                squares.append((row, col))
+
+        # Return the list of capture squares
         return squares
 
-    def move_squares(self, engine):
-        squares = []
-        if not self.first_move:
-            self.move_distance = 2
-        else:
-            self.move_distance = 3
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the Ferz can move to.
 
+        :param engine: The game engine.
+        :return: A list of squares the Ferz can move to.
+        """
+        # Initialize an empty list to store the move squares
+        squares: list[tuple[int, int]] = []
+
+        # Set the move distance based on whether it is the first move
+        self.move_distance = 2 if not self.first_move else 3
+
+        # Iterate over each direction in the move directions
         for direction in self.move_directions:
             for distance in range(1, self.move_distance):
-                r = self.row + direction[0] * distance
-                c = self.col + direction[1] * distance
-                if not engine.tile_in_bounds(r, c):
+                row: int = self.row + direction[0] * distance
+                col: int = self.col + direction[1] * distance
+
+                # Check if the tile is within bounds
+                if not engine.tile_in_bounds(row, col):
                     break
-                if not self.base_move_criteria(engine, r, c):
+
+                # Check if the base move criteria are met
+                if not self.base_move_criteria(engine, row, col):
                     break
                 else:
-                    squares.append((r, c))
+                    squares.append((row, col))
+
+        # Return the list of move squares
         return squares
 
-    def right_click(self, engine):
+    def right_click(self, engine: "Engine") -> bool:
+        """
+        Handles the right-click action on the Ferz.
+
+        :param engine: The game engine.
+        :return: Always returns True.
+        """
         return True
 
 
 class Cavalry(Piece):
-    def __repr__(self):
+    """
+    Represents a Cavalry piece in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the Cavalry piece.
+
+        :return: The string "cavalry".
+        """
         return "cavalry"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Cavalry object.
+
+        :param row: The row position of the Cavalry.
+        :param col: The column position of the Cavalry.
+        :param color: The color of the Cavalry.
+        """
         super().__init__(row, col, color)
-        self.directions = (
+
+        # Directions the Cavalry can move in a knight-like pattern
+        self.directions: tuple = (
             Constant.TWO_UP_RIGHT,
             Constant.TWO_RIGHT_UP,
             Constant.TWO_DOWN_RIGHT,
@@ -2731,122 +5023,212 @@ class Cavalry(Piece):
             Constant.TWO_DOWN_LEFT,
             Constant.TWO_LEFT_DOWN,
         )
-        self.mining_directions = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
-        )
-        self.move_directions = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-        )
-        self.capture_directions = (
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_LEFT,
-            Constant.DOWN_RIGHT,
-        )
-        self.contextual_options = ["mine"]
-        self.move_distance = 2
-        self.distance = 1
 
-    def capture_squares(self, engine):
-        squares = []
+        # Directions the Cavalry can mine
+        self.mining_directions: tuple = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_RIGHT,
+            Constant.DOWN_LEFT,
+        )
+
+        # Directions the Cavalry can move in a straight line
+        self.move_directions: tuple = (
+            Constant.RIGHT,
+            Constant.LEFT,
+            Constant.UP,
+            Constant.DOWN,
+        )
+
+        # Directions the Cavalry can capture
+        self.capture_directions: tuple = (
+            Constant.UP_RIGHT,
+            Constant.UP_LEFT,
+            Constant.DOWN_LEFT,
+            Constant.DOWN_RIGHT,
+        )
+
+        # Contextual options available for the Cavalry
+        self.contextual_options: list[str] = ["mine"]
+
+        # Maximum distance the Cavalry can move
+        self.move_distance: int = 2
+
+        # Maximum distance the Cavalry can capture
+        self.distance: int = 1
+
+    def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the Cavalry can capture.
+
+        :param engine: The game engine.
+        :return: A list of squares the Cavalry can capture.
+        """
+        # Initialize an empty list to store the capture squares
+        squares: list[tuple[int, int]] = []
+
         # Pawn Capture
         if not self.first_move:
             for direction in self.capture_directions:
-                r = self.row + direction[0]
-                c = self.col + direction[1]
-                if self.can_capture(r, c, engine):
-                    squares.append((r, c))
+                row: int = self.row + direction[0]
+                col: int = self.col + direction[1]
+                if self.can_capture(row, col, engine):
+                    squares.append((row, col))
             return squares
 
         # Knight Capture
         for direction in self.directions:
-            r = self.row + direction[0]
-            c = self.col + direction[1]
-            if self.can_capture(r, c, engine):
-                squares.append((r, c))
+            row: int = self.row + direction[0]
+            col: int = self.col + direction[1]
+            if self.can_capture(row, col, engine):
+                squares.append((row, col))
 
+        # Return the list of capture squares
         return squares
 
-    def right_click(self, engine):
+    def right_click(self, engine: "Engine") -> bool:
+        """
+        Handles the right-click action on the Cavalry.
+
+        :param engine: The game engine.
+        :return: Returns False if it is not the first move, otherwise True.
+        """
         if not self.first_move:
             return False
 
         return True
 
-    def mining_squares(self, engine):
-        mining_squares = []
+    def mining_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the Cavalry can mine.
 
+        :param engine: The game engine.
+        :return: A list of squares the Cavalry can mine.
+        """
+        # Initialize an empty list to store the mining squares
+        mining_squares: list[tuple[int, int]] = []
+
+        # Iterate over each direction in the mining directions
         for direction in self.mining_directions:
-            r = self.row - direction[0]
-            c = self.col - direction[1]
-            if engine.has_mineable_resource(r, c):
-                if engine.get_occupying(r, c):
-                    if engine.get_occupying_color(r, c) is not self.color:
-                        pass
-                    elif engine.get_occupying_color(r, c) is self.color:
-                        mining_squares.append((r, c))
-                elif engine.has_none_occupying(r, c):
-                    mining_squares.append((r, c))
-            elif engine.can_contain_quarry(r, c) and engine.is_empty(r, c):
-                mining_squares.append((r, c))
+            row: int = self.row - direction[0]
+            col: int = self.col - direction[1]
 
+            # Check if the square has mineable resources
+            if engine.has_mineable_resource(row, col):
+                if engine.get_occupying(row, col):
+                    if engine.get_occupying_color(row, col) is not self.color:
+                        pass
+                    elif engine.get_occupying_color(row, col) is self.color:
+                        mining_squares.append((row, col))
+                elif engine.has_none_occupying(row, col):
+                    mining_squares.append((row, col))
+            elif engine.can_contain_quarry(row, col) and engine.is_empty(row, col):
+                mining_squares.append((row, col))
+
+        # Return the list of mining squares
         return mining_squares
 
-    def move_squares(self, engine):
-        squares = []
+    def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+        """
+        Determines the squares the Cavalry can move to.
+
+        :param engine: The game engine.
+        :return: A list of squares the Cavalry can move to.
+        """
+        # Initialize an empty list to store the move squares
+        squares: list[tuple[int, int]] = []
 
         # Pawn Moves
         if not self.first_move:
             for direction in self.move_directions:
                 for distance in range(1, self.move_distance):
-                    r = self.row + direction[0] * distance
-                    c = self.col + direction[1] * distance
-                    if not engine.tile_in_bounds(r, c):
+                    row: int = self.row + direction[0] * distance
+                    col: int = self.col + direction[1] * distance
+                    if not engine.tile_in_bounds(row, col):
                         break
-                    if not self.base_move_criteria(engine, r, c):
+                    if not self.base_move_criteria(engine, row, col):
                         break
                     else:
-                        squares.append((r, c))
+                        squares.append((row, col))
             return squares
 
         # Knight Moves
         for direction in self.directions:
-            r = self.row - direction[0]
-            c = self.col - direction[1]
-            if self.base_move_criteria(engine, r, c):
-                squares.append((r, c))
+            row: int = self.row - direction[0]
+            col: int = self.col - direction[1]
+            if self.base_move_criteria(engine, row, col):
+                squares.append((row, col))
 
+        # Return the list of move squares
         return squares
 
 
 class Trap(Building):
-    def __repr__(self):
+    """
+    Represents a trap building in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the trap building.
+
+        :return: The string "trap".
+        """
         return "trap"
 
-    def __init__(self, row, col, color):
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Trap object.
+
+        :param row: The row position of the trap.
+        :param col: The column position of the trap.
+        :param color: The color of the trap.
+        """
         super().__init__(row, col, color)
 
-    def highlight_self_square_unused(self, win):
+    def highlight_self_square_unused(self, win: pygame.Surface):
+        """
+        Override default highlights so the square is not highlighted. This is not a 'usable' piece.
+
+        :param win: The game window surface.
+        """
         pass
 
 
 class Wall(Building):
-    def __repr__(self):
+    """
+    Represents a wall building in the game with various attributes and methods.
+    """
+
+    def __repr__(self) -> str:
+        """
+        Returns the string representation of the wall building.
+
+        :return: The string "wall".
+        """
         return "wall"
 
-    def __init__(self, row, col, color):
-        super().__init__(row, col, color)
-        self.is_wall = True
+    def __init__(self, row: int, col: int, color: str):
+        """
+        Initializes a Wall object.
 
-    def highlight_self_square_unused(self, win):
+        :param row: The row position of the wall.
+        :param col: The column position of the wall.
+        :param color: The color of the wall.
+        """
+        super().__init__(row, col, color)
+
+        # Indicates that this building is a wall
+        self.is_wall: bool = True
+
+    def highlight_self_square_unused(self, win: pygame.Surface):
+        """
+        Override default highlights so the square is not highlighted. This is not a 'usable' piece.
+
+        :param win: The game window surface.
+        """
         pass

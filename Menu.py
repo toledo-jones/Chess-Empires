@@ -2961,16 +2961,6 @@ class Contextual(Menu):
             "build": no_requirements,
             "ritual": no_requirements,
         }
-        self.updates = {
-            "pray": self.engine.update_praying_squares,
-            "mine": self.engine.update_mining_squares,
-            "king": None,
-            "queen": None,
-            "trade": None,
-            "persuade": self.engine.update_persuader_squares,
-            "steal": self.engine.update_stealing_squares,
-            "build": self.engine.update_spawn_squares,
-        }
         for item in menu_list:
             if item == "king":
                 icon_key = f"{self.engine.turn}_flag"
@@ -3003,7 +2993,7 @@ class Contextual(Menu):
         if not self.requirements[item]:
             return False
         try:
-            self.updates[item]()
+            self.engine.update_squares()
             squares = {
                 "pray": self.piece.praying_squares_list,
                 "mine": self.piece.mining_squares_list,

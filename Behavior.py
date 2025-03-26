@@ -172,7 +172,7 @@ class MaterialCounter(Behavior):
                 engine.create_piece(
                     row, col, engine.PIECES["castle"](row, col, engine.turn)
                 )
-                engine.get_occupying(row, col).update_spawn_squares(engine)
+                engine.get_occupying(row, col).update_squares(engine)
                 spawn_squares_list = engine.get_occupying(row, col).spawn_squares_list
                 if len(spawn_squares_list) >= 7:
                     for sq in spawn_squares_list:

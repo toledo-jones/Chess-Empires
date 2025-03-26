@@ -76,7 +76,7 @@ class GameEvent:
         :return: bool: True if the specified king is in check, False otherwise
         """
         # Update the possible moves for all pieces before checking for check.
-        self.engine.update_moves()
+        self.engine.update_squares()
 
         # Retrieve the player and enemy objects based on the current turn.
         player = self.engine.players[self.engine.get_turn()]
@@ -220,7 +220,7 @@ class StartSpawn(GameEvent):
             )
 
         # Get the type of unit spawned.
-        kind = self.engine.get_occupying(self.dest[0], self.dest[1]).get_unit_kind()
+        kind = self.engine.get_occupying(self.dest[0], self.dest[1]).unit_kind
 
         # Play the corresponding spawn sound effect.
         self.engine.sounds.play("spawn_" + kind)
@@ -239,7 +239,7 @@ class StartSpawn(GameEvent):
         super().undo()
 
         # Get the type of unit that was spawned.
-        kind = self.engine.get_occupying(self.dest[0], self.dest[1]).get_unit_kind()
+        kind = self.engine.get_occupying(self.dest[0], self.dest[1]).unit_kind
 
         # Play the corresponding undo spawn sound effect.
         self.engine.sounds.play("spawn_" + kind)
@@ -273,7 +273,7 @@ class StartSpawn(GameEvent):
         self.engine.set_state(self.state)
 
         # Update the spawn-able squares on the board.
-        self.engine.update_spawn_squares()
+        self.engine.update_squares()
 
         # Reset the piece limit for the player whose turn it is.
         self.engine.players[self.engine.turn].reset_piece_limit()
@@ -1312,7 +1312,7 @@ class PortalSpawn(GameEvent):
         kind = (
             self.engine.board[self.dest[0]][self.dest[1]]
             .get_occupying()
-            .get_unit_kind()
+            .unit_kind
         )
         self.engine.sounds.play("spawn_" + kind)
 
@@ -1370,7 +1370,7 @@ class PortalSpawn(GameEvent):
         kind = (
             self.engine.board[self.dest[0]][self.dest[1]]
             .get_occupying()
-            .get_unit_kind()
+            .unit_kind
         )
         self.engine.sounds.play("spawn_" + kind)
 
@@ -1600,7 +1600,7 @@ class TrapSpawn(GameEvent):
         kind = (
             self.engine.board[self.dest[0]][self.dest[1]]
             .get_occupying()
-            .get_unit_kind()
+            .unit_kind
         )
 
         # Play the corresponding spawn sound effect.
@@ -1729,7 +1729,7 @@ class Spawn(GameEvent):
         kind = (
             self.engine.board[self.dest[0]][self.dest[1]]
             .get_occupying()
-            .get_unit_kind()
+            .unit_kind
         )
 
         # Play the corresponding spawn sound effect.
@@ -1795,7 +1795,7 @@ class Spawn(GameEvent):
         kind = (
             self.engine.board[self.dest[0]][self.dest[1]]
             .get_occupying()
-            .get_unit_kind()
+            .unit_kind
         )
 
         # Play the corresponding spawn sound effect.

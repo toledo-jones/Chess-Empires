@@ -1,9 +1,9 @@
 import sys
 
 from Map import *
+from Player import *
 from Sounds import *
 from State import *
-from Tile import *
 from Trades import *
 
 
@@ -468,11 +468,6 @@ class Engine:
         else:
             return False
 
-    def update_stealing_squares(self):
-        for player in self.players:
-            for piece in self.players[player].pieces:
-                piece.update_stealing_squares(self)
-
     def draw(self, win):
         try:
             # Define the alternating colors for the squares
@@ -583,12 +578,10 @@ class Engine:
                 does_king_exist = True
         return not does_king_exist
 
-    def update_moves(self):
+    def update_squares(self):
         for player in self.players:
             for piece in self.players[player].pieces:
-                piece.update_swap_squares(self)
-                piece.update_move_squares(self)
-                piece.update_capture_squares(self)
+                piece.update_squares(self)
 
     def has_prayer_stone(self, row, col):
         try:
@@ -607,9 +600,7 @@ class Engine:
             piece.praying,
             piece.casting,
             piece.stealing,
-            piece.mining_stealing,
             piece.persuading,
-            piece.praying_building,
         ]
         if any(selected_list):
             return True
@@ -655,27 +646,10 @@ class Engine:
 
         return available_rituals
 
-    def update_all_squares(self):
+    def update_squares(self):
         for player in self.players:
             for piece in self.players[player].pieces:
-                piece.update_mining_squares(self)
-                piece.update_stealing_squares(self)
-                piece.update_praying_squares(self)
-                piece.update_move_squares(self)
-                piece.update_capture_squares(self)
-                piece.update_spawn_squares(self)
-                piece.update_persuader_squares(self)
-                piece.update_swap_squares(self)
-
-    def update_mining_squares(self):
-        for player in self.players:
-            for piece in self.players[player].pieces:
-                piece.update_mining_squares(self)
-
-    def update_spawn_squares(self):
-        for player in self.players:
-            for piece in self.players[player].pieces:
-                piece.update_spawn_squares(self)
+                piece.update_squares(self)
 
     def set_actions_remaining(self, n):
         for player in self.players:
@@ -703,7 +677,6 @@ class Engine:
                 piece.praying_building = False
                 piece.display_moves = False
                 piece.performing_ritual = False
-                piece.dragging = False
 
 
     def reset_piece_limit(self, color):
@@ -1372,7 +1345,7 @@ class Engine:
     def update_interceptor_squares(self):
         for player in self.players:
             for piece in self.players[player].pieces:
-                piece.update_interceptor_squares(self)
+                piece.update_squares(self)
 
     def has_trap(self, row, col):
         try:
@@ -1440,7 +1413,7 @@ class Engine:
         self.used_and_intercepted_pieces = []
 
     def transfer_to_stealing_state(self, row, col):
-        self.update_stealing_squares()
+        self.update_squares()
         stealing_squares = self.board[row][col].get_occupying().stealing_squares_list
         allow_steal = False
         if stealing_squares:
@@ -1453,7 +1426,7 @@ class Engine:
             return True
 
     def transfer_to_building_state(self, row, col):
-        self.update_spawn_squares()
+        self.update_squares()
         self.set_pre_selected(row, col, True)
         new_state = PreBuilding(self.state[-1].win, self)
         self.menus = []
@@ -1493,7 +1466,7 @@ class Engine:
             return True
 
     def transfer_to_mining_state(self, row, col):
-        self.update_mining_squares()
+        self.update_squares()
         mining_squares = self.board[row][col].get_occupying().mining_squares_list
         allow_mine = False
         for m in mining_squares:

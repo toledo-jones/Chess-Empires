@@ -1,7 +1,10 @@
 import os
 import random
 from typing import Dict, List, Tuple, Optional
+import typing
 
+if typing.TYPE_CHECKING:
+    from Engine import Engine
 import pygame
 
 from Tile import Tile
@@ -22,32 +25,106 @@ def get_initial_menu_position(row, col):
 
 
 class Menu:
-    def __init__(self, win, engine):
-        self.win = win
-        self.engine = engine
-        self.pieces = {
+    """
+    Represents a menu in the game with various attributes and methods.
+    """
+
+    def __init__(self, win: pygame.Surface, engine: "Engine"):
+        """
+        Initializes a Menu object.
+
+        :param win: The game window surface.
+        :param engine: The game engine.
+        """
+        # Menu dimensions
+        self._menu_width = None
+        self._menu_height = None
+
+        # Menu position
+        self._menu_position_x = None
+        self._menu_position_y = None
+
+        # Screen surface and engine
+        self.win: pygame.Surface = win
+        self.engine: "Engine" = engine
+
+        # Dictionary of pieces and buildings for each color
+        self.pieces: dict[str, set] = {
             "w": Constant.W_PIECES | Constant.W_BUILDINGS,
             "b": Constant.B_PIECES | Constant.B_BUILDINGS,
         }
-        self._menu_boundary_buffer = 0
+
+        # Buffer to prevent menu from clipping the screen edges
+        self._menu_boundary_buffer: int = 0
 
     @property
-    def menu_boundary_buffer(self):
+    def menu_boundary_buffer(self) -> int:
+        """
+        Returns the menu boundary buffer.
+
+        :return: The menu boundary buffer.
+        """
         return self.menu_width // 2
 
-    def correct_menu_boundary(self):
-        """Positions the menu near the mouse cursor while ensuring it stays within screen boundaries."""
+    @property
+    def menu_width(self) -> int:
+        """
+        Returns the menu width.
+
+        :return: The menu width.
+        """
+        return self._menu_width
+
+    @menu_width.setter
+    def menu_width(self, value: int) -> None:
+        """
+        Sets the menu width.
+
+        :param: value: The menu width.
+        """
+        self._menu_width = value
+
+    @property
+    def menu_height(self) -> int:
+        """
+        Returns the menu height.
+
+        :return: The menu height.
+        """
+        return self._menu_height
+
+    @menu_height.setter
+    def menu_height(self, value: int) -> None:
+        """
+        Sets the menu height.
+
+        :param: value: The menu width.
+        """
+        self._menu_height = value
+
+    def correct_menu_boundary(self) -> tuple[int, int]:
+        """
+        Positions the menu near the mouse cursor while ensuring it stays within screen boundaries.
+
+        :return: The corrected x and y positions for the menu.
+        """
+        # Get the current mouse position
         mouse_x, mouse_y = pygame.mouse.get_pos()
-        board_width = Constant.BOARD_WIDTH_PX
-        board_height = Constant.BOARD_HEIGHT_PX
-        menu_width = self.menu_width
-        menu_height = self.menu_height
-        boundary_buffer = (
-            self.menu_boundary_buffer
-        )  # Optional buffer to prevent edge clipping
+
+        # Get the board dimensions
+        board_width: int = Constant.BOARD_WIDTH_PX
+        board_height: int = Constant.BOARD_HEIGHT_PX
+
+        # Get the menu dimensions
+        menu_width: int = self.menu_width
+        menu_height: int = self.menu_height
+
+        # Get the boundary buffer
+        boundary_buffer: int = self.menu_boundary_buffer
 
         # Start at mouse position
-        x, y = mouse_x, mouse_y
+        x: int = mouse_x
+        y: int = mouse_y
 
         # Adjust X to keep menu within screen width
         if x + menu_width > board_width:
@@ -63,394 +140,589 @@ class Menu:
 
         return x, y
 
-    def mouse_in_menu_bounds(self):
-        """Checks if the mouse is within the menu boundaries."""
+    @property
+    def menu_position_x(self) -> int:
+        """
+        Returns the x-coordinate of the menu position.
 
+        :return: The x-coordinate of the menu position.
+        """
+        return self._menu_position_x
+
+    @menu_position_x.setter
+    def menu_position_x(self, value: int) -> None:
+        """
+        Sets the x-coordinate of the menu position.
+
+        :param: value: The x-coordinate of the menu position.
+        """
+        self._menu_position_x = value
+
+    @property
+    def menu_position_y(self) -> int:
+        """
+        Returns the y-coordinate of the menu position.
+
+        :return: The y-coordinate of the menu position.
+        """
+        return self._menu_position_y
+
+    @menu_position_y.setter
+    def menu_position_y(self, value: int) -> None:
+        """
+        Sets the y-coordinate of the menu position.
+
+        :param: value: The y-coordinate of the menu position.
+        """
+        self._menu_position_y = value
+
+    def mouse_in_menu_bounds(self) -> bool:
+        """
+        Checks if the mouse is within the menu boundaries.
+
+        :return: True if the mouse is within the menu boundaries, False otherwise.
+        """
+        # Get the current mouse position
         x, y = pygame.mouse.get_pos()
 
         # Check if the mouse is outside the board
         if (
-            x <= 0
-            or x >= Constant.BOARD_WIDTH_PX - 1
-            or y <= 0
-            or y >= Constant.BOARD_HEIGHT_PX - 1
+                x <= 0
+                or x >= Constant.BOARD_WIDTH_PX - 1
+                or y <= 0
+                or y >= Constant.BOARD_HEIGHT_PX - 1
         ):
             return False
 
         # Check if the mouse is outside the menu bounds
         if not (
-            self.menu_position_x - self.menu_boundary_buffer
-            <= x
-            <= self.menu_position_x + self.menu_boundary_buffer + self.menu_width
-            and self.menu_position_y - self.menu_boundary_buffer
-            <= y
-            <= self.menu_position_y + self.menu_boundary_buffer + self.menu_height
+                self.menu_position_x - self.menu_boundary_buffer
+                <= x
+                <= self.menu_position_x + self.menu_boundary_buffer + self.menu_width
+                and self.menu_position_y - self.menu_boundary_buffer
+                <= y
+                <= self.menu_position_y + self.menu_boundary_buffer + self.menu_height
         ):
             return False
+
         return True
 
+    def get_index_selected(self, pos: Tuple[int, int], options: List[str]) -> Optional[int]:
+        """
+        Determines the index of the ritual corresponding to the given mouse position.
+
+        This method calculates which ritual option is selected based on the mouse position
+        within the menu boundaries. It iterates through the list of options and checks if
+        the mouse's Y-coordinate falls within the vertical range of each option.
+
+        :param pos: The current mouse position as a tuple (x, y).
+        :param options: The list of ritual options.
+        :return: The index of the ritual if the mouse position is within bounds, else None.
+        """
+        # Check if the mouse's X-coordinate is within the menu's width
+        if pos[0] < self.menu_position_x + self.menu_width:
+            # Get the number of options
+            length = len(options)
+
+            # Iterate through each option to determine if the mouse is within its vertical range
+            for index in range(length):
+                # Calculate the starting Y-coordinate for the current option
+                start_y = (index / length) * self.menu_height + self.menu_position_y
+
+                # Calculate the ending Y-coordinate for the current option
+                end_y = ((index + 1) / length) * self.menu_height + self.menu_position_y
+
+                # Check if the mouse's Y-coordinate is within the current option's range
+                if start_y <= pos[1] < end_y:
+                    return index
+
+        # Return None if the mouse position is not within any option's range
+        return None
+
+    def get_option_selected(self, options: list[str]) -> Optional[str]:
+        """
+        Determines which option was clicked based on the mouse position.
+        This is used in almost all menus with edge to edge highlighting.
+
+        :return: The clicked option, or None if no ritual was clicked.
+        """
+        pos = pygame.mouse.get_pos()
+        index = self.get_index_selected(pos, options)
+        return options[index] if index is not None else None
+
     def close(self):
+        """
+        Closes the menu.
+        """
         pass
 
 
 class Notification(Menu):
-    def __init__(self, row, col, win, engine, message="blank"):
-        """Initializes the notification menu at the given board position."""
+    """
+    Represents a notification menu in the game with various attributes and methods.
+    """
+
+    def __init__(self, row: int, col: int, win: pygame.Surface, engine: "Engine", message: str = "blank"):
+        """
+        Initializes the notification menu at the given board position.
+
+        :param row: The row position of the notification.
+        :param col: The column position of the notification.
+        :param win: The game window surface.
+        :param engine: The game engine.
+        :param message: The notification message.
+        """
+        # Initialize the parent Menu class
         super().__init__(win, engine)
-        self.row = row
-        self.col = col
-        self.color = Constant.turn_to_color[self.engine.turn]
-        self.message = Constant.NOTIFICATIONS[message]
+
+        # Set the row and column positions
+        self.row: int = row
+        self.col: int = col
+
+        # Set the color based on the current turn
+        self.color: Tuple[int, int, int] = Constant.turn_to_color[self.engine.turn]
+
+        # Set the notification message
+        self.message: List[str] = Constant.NOTIFICATIONS[message]
 
         # Font setup
-        self.font_size = round(Constant.SQ_SIZE * 0.3)
-        self.font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.font_size
+        self.font_size: int = round(Constant.SQ_SIZE * 0.3)
+        self.font: pygame.font.Font = pygame.font.Font(
+                os.path.join("files/fonts", "font.ttf"), self.font_size
         )
 
         # Menu dimensions
-        self.menu_width = Constant.SQ_SIZE * 3
-        self.menu_height = Constant.SQ_SIZE + len(self.message) * Constant.SQ_SIZE
-        self.y_buffer_between_messages = Constant.SQ_SIZE
+        self.menu_width: int = Constant.SQ_SIZE * 3
+        self.menu_height: int = Constant.SQ_SIZE + len(self.message) * Constant.SQ_SIZE
+        self.y_buffer_between_messages: int = Constant.SQ_SIZE
 
-        self.menu_boundary_buffer_x = self.menu_width + self.menu_boundary_buffer
-        self.menu_boundary_buffer_y = self.menu_height + self.menu_boundary_buffer
+        # Menu boundary buffer
+        self.menu_boundary_buffer_x: int = self.menu_width + self.menu_boundary_buffer
+        self.menu_boundary_buffer_y: int = self.menu_height + self.menu_boundary_buffer
 
         # Positioning
-        self.initial_menu_position = get_initial_menu_position(self.row, self.col)
+        self.initial_menu_position: Tuple[int, int] = get_initial_menu_position(self.row, self.col)
+        self.menu_position_x: int
+        self.menu_position_y: int
         self.menu_position_x, self.menu_position_y = self.correct_menu_boundary()
 
         # Create menu surface
-        self.menu = pygame.Surface((self.menu_width, self.menu_height))
+        self.menu: pygame.Surface = pygame.Surface((self.menu_width, self.menu_height))
 
         # "OK" text rendering
-        self.ok_text_surface = self.font.render("ok", True, self.color)
-        self.ok_display_x = (self.menu_width - self.ok_text_surface.get_width()) // 2
-        self.ok_display_y = self.menu_height - self.ok_text_surface.get_height()
+        self.ok_text_surface: pygame.Surface = self.font.render("ok", True, self.color)
+        self.ok_display_x: int = (self.menu_width - self.ok_text_surface.get_width()) // 2
+        self.ok_display_y: int = self.menu_height - self.ok_text_surface.get_height()
 
         # Message rendering
-        self.message_text_surfaces = [
+        self.message_text_surfaces: List[pygame.Surface] = [
             self.font.render(msg, True, self.color) for msg in self.message
         ]
 
         # Highlight area for interaction
-        self.highlight_display_x = 0
-        self.highlight_display_y = self.menu_height - Constant.SQ_SIZE
-        self.square = pygame.Surface((self.menu_width, Constant.SQ_SIZE))
+        self.highlight_display_x: int = 0
+        self.highlight_display_y: int = self.menu_height - Constant.SQ_SIZE
+        self.square: pygame.Surface = pygame.Surface((self.menu_width, Constant.SQ_SIZE))
         self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
-        self.highlight = False
+        self.highlight: bool = False
 
     def draw(self):
+        """
+        Draws the notification menu on the game window.
+        """
+        # Fill the menu with the background color
         self.menu.fill(Constant.MENU_COLOR)
-        y_buffer = 0
+
+        # Initialize the vertical buffer for message rendering
+        y_buffer: int = 0
+
+        # Render each message in the notification
         for message in self.message_text_surfaces:
-            text_display_x = self.menu_width // 2 - message.get_width() // 2
+            text_display_x: int = self.menu_width // 2 - message.get_width() // 2
             self.menu.blit(message, (text_display_x, y_buffer))
             y_buffer += self.y_buffer_between_messages
+
+        # Highlight the "OK" button if needed
         if self.highlight:
             self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
-            self.menu.blit(
-                self.square, (self.highlight_display_x, self.highlight_display_y)
-            )
+            self.menu.blit(self.square, (self.highlight_display_x, self.highlight_display_y))
+
+        # Render the "OK" text
         self.menu.blit(self.ok_text_surface, (self.ok_display_x, self.ok_display_y))
+
+        # Blit the menu onto the game window
         self.win.blit(self.menu, (self.menu_position_x, self.menu_position_y))
 
-    def left_click(self):
-        menu_above_ok_button = len(self.message) * round(Constant.SQ_SIZE * 0.8)
-        pos = pygame.mouse.get_pos()
+    def left_click(self) -> bool:
+        """
+        Handles the left-click action on the notification menu.
+
+        :return: True if the click is within the "OK" button area, otherwise False.
+        """
+        # Calculate the vertical buffer above the "OK" button
+        menu_above_ok_button: int = len(self.message) * round(Constant.SQ_SIZE * 0.8)
+
+        # Get the current mouse position
+        pos: Tuple[int, int] = pygame.mouse.get_pos()
+
+        # Check if the click is within the "OK" button area
         if self.menu_position_x < pos[0] < self.menu_position_x + self.menu_width:
-            if (
-                self.menu_position_y + menu_above_ok_button
-                < pos[1]
-                < self.menu_position_y + self.menu_height
-            ):
+            if self.menu_position_y + menu_above_ok_button < pos[1] < self.menu_position_y + self.menu_height:
                 self.engine.close_menus()
                 return True
+        return False
 
     def right_click(self):
+        """
+        Handles the right-click action on the notification menu.
+        """
         self.engine.close_menus()
 
     def mouse_move(self):
-        menu_above_ok_button = len(self.message) * round(Constant.SQ_SIZE * 0.8)
-        pos = pygame.mouse.get_pos()
+        """
+        Handles mouse movement over the notification menu.
+        """
+        # Calculate the vertical buffer above the "OK" button
+        menu_above_ok_button: int = len(self.message) * round(Constant.SQ_SIZE * 0.8)
+
+        # Get the current mouse position
+        pos: Tuple[int, int] = pygame.mouse.get_pos()
+
+        # Check if the mouse is within the "OK" button area
         if self.menu_position_x < pos[0] < self.menu_position_x + self.menu_width:
-            if (
-                self.menu_position_y + menu_above_ok_button
-                < pos[1]
-                < self.menu_position_y + self.menu_height
-            ):
+            if self.menu_position_y + menu_above_ok_button < pos[1] < self.menu_position_y + self.menu_height:
                 self.highlight = True
                 return
 
+        # Reset the highlight state
         self.highlight = False
 
 
 class RitualMenu(Menu):
-    def __init__(self, row, col, win, engine, ritual_list, cost_type):
-        self.cost_type = cost_type
-        self.ritual_list = ritual_list
-        self.row = row
-        self.col = col
+    """
+    Represents a ritual menu in the game with various attributes and methods.
+    """
+
+    def __init__(self, row: int, col: int, win: pygame.Surface, engine: "Engine", ritual_list: list, cost_type: str):
+        """
+        Initializes the ritual menu at the given board position.
+
+        :param row: The row position of the ritual menu.
+        :param col: The column position of the ritual menu.
+        :param win: The game window surface.
+        :param engine: The game engine.
+        :param ritual_list: The list of rituals.
+        :param cost_type: The type of cost for the rituals.
+        """
+        # Set the cost type and ritual list
+        self.cost_type: str = cost_type
+        self.ritual_list: list = ritual_list
+
+        # Set the row and column positions
+        self.row: int = row
+        self.col: int = col
+
+        # Initialize the parent Menu class
         super().__init__(win, engine)
 
-        self.font_size = round(Constant.SQ_SIZE / 2)
-        self.font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.font_size
+        # Font setup
+        self.font_size: int = round(Constant.SQ_SIZE / 2)
+        self.font: pygame.font.Font = pygame.font.Font(
+                os.path.join("files/fonts", "font.ttf"), self.font_size
         )
+
+        # Get the current player
         self.player = self.engine.players[self.engine.turn]
-        self.initial_menu_position = (
+
+        # Initial menu position
+        self.initial_menu_position: Tuple[int, int] = (
             self.col * Constant.SQ_SIZE + Constant.SQ_SIZE // 2,
             self.row * Constant.SQ_SIZE + Constant.SQ_SIZE // 2,
         )
-        self.vertical_buffer_between_pieces = Constant.SQ_SIZE // 6
-        self.horizontal_buffer_between_costs = round(Constant.SQ_SIZE * 1.3)
-        self.bar_width = Constant.IMAGES["prayer_bar"].get_width()
-        self.bar_height = Constant.IMAGES["prayer_bar"].get_height()
-        self.bar_end_width = Constant.IMAGES["prayer_bar_end"].get_width()
+
+        # Buffers for spacing
+        self.vertical_buffer_between_pieces: int = Constant.SQ_SIZE // 6
+        self.horizontal_buffer_between_costs: int = round(Constant.SQ_SIZE * 1.3)
+
+        # Bar dimensions
+        self.bar_width: int = Constant.IMAGES["prayer_bar"].get_width()
+        self.bar_height: int = Constant.IMAGES["prayer_bar"].get_height()
+        self.bar_end_width: int = Constant.IMAGES["prayer_bar_end"].get_width()
+
+        # Ritual dimensions
         self.rituals = Constant.PRAYER_RITUALS
-        self.ritual_width = self.rituals["w_gold_general"].get_width()
-        self.ritual_height = self.rituals["w_gold_general"].get_height()
+        self.ritual_width: int = self.rituals["w_gold_general"].get_width()
+        self.ritual_height: int = self.rituals["w_gold_general"].get_height()
+
+        # Gold icon setup
         self.gold_icon = Constant.MENU_ICONS["gold_coin"]
-        self.gold_icon_display_x = (
-            self.ritual_width + self.vertical_buffer_between_pieces
+        self.gold_icon_display_x: int = (
+                self.ritual_width + self.vertical_buffer_between_pieces
         )
-        self.gold_cost_text_display_x = (
-            self.ritual_width + self.vertical_buffer_between_pieces * 2
+        self.gold_cost_text_display_x: int = (
+                self.ritual_width + self.vertical_buffer_between_pieces * 2
         )
+
+        # Menu dimensions
         if not self.cost_type == "gold":
-            self.menu_width = (
-                self.ritual_width
-                + self.vertical_buffer_between_pieces
-                + self.bar_end_width * 16
-                + self.bar_width
+            self.menu_width: int = (
+                    self.ritual_width
+                    + self.vertical_buffer_between_pieces
+                    + self.bar_end_width * 16
+                    + self.bar_width
             )
         else:
-            self.menu_width = (
-                self.ritual_width
-                + self.vertical_buffer_between_pieces
-                + self.gold_icon.get_width() * 2
+            self.menu_width: int = (
+                    self.ritual_width
+                    + self.vertical_buffer_between_pieces
+                    + self.gold_icon.get_width() * 2
             )
 
-        self.menu_height = len(ritual_list) * self.ritual_height
+        self.menu_height: int = len(ritual_list) * self.ritual_height
 
+        # Correct menu boundary
+        self.menu_position_x: int
+        self.menu_position_y: int
         self.menu_position_x, self.menu_position_y = self.correct_menu_boundary()
-        self.menu = pygame.Surface((self.menu_width, self.menu_height))
+
+        # Create menu surface
+        self.menu: pygame.Surface = pygame.Surface((self.menu_width, self.menu_height))
 
         # Scale paper texture
         self.paper_texture = self.engine.get_current_state().scale_paper_texture(
-            self.menu
+                self.menu
         )
 
-        self.menu_boundary_buffer_y = self.menu_height + self.menu_boundary_buffer
-        self.menu_boundary_buffer_x = self.menu_width + self.menu_boundary_buffer
+        # Menu boundary buffer
+        self.menu_boundary_buffer_y: int = self.menu_height + self.menu_boundary_buffer
+        self.menu_boundary_buffer_x: int = self.menu_width + self.menu_boundary_buffer
+
+        # Casting state
         self.casting = None
 
-        self.prayer_bar_edge = self.vertical_buffer_between_pieces + self.ritual_width
-        self.prayer_bar_end_edge = self.prayer_bar_edge + self.bar_width
-        self.y_buffer = (
-            self.vertical_buffer_between_pieces // 2
-            + self.ritual_height // 2
-            - self.bar_height // 2
-        )
-        self.ritual_highlight_list = []
-        self.square = pygame.Surface(
-            (self.menu_width, round(1 / len(self.ritual_list) * self.menu_height))
-        )
-        self.available_menu_space_for_prayer_bar = self.menu_width - self.ritual_width
+        # Prayer bar edges
+        self.prayer_bar_edge: int = self.vertical_buffer_between_pieces + self.ritual_width
+        self.prayer_bar_end_edge: int = self.prayer_bar_edge + self.bar_width
 
+        # Vertical buffer for prayer bar
+        self.y_buffer: int = (
+                self.vertical_buffer_between_pieces // 2
+                + self.ritual_height // 2
+                - self.bar_height // 2
+        )
+
+        # Ritual highlight list
+        self.ritual_highlight_list: List[bool] = []
+        self.square: pygame.Surface = pygame.Surface(
+                (self.menu_width, round(1 / len(self.ritual_list) * self.menu_height))
+        )
+        self.available_menu_space_for_prayer_bar: int = self.menu_width - self.ritual_width
+
+        # Initialize ritual highlight list
         for _ in self.ritual_list:
             self.ritual_highlight_list.append(False)
 
-    def full_length_of_prayer_bar(self, length_of_ritual):
+    def full_length_of_prayer_bar(self, length_of_ritual: int) -> int:
+        """
+        Calculates the full length of the prayer bar for a given ritual length.
+
+        :param length_of_ritual: The length of the ritual.
+        :return: The full length of the prayer bar.
+        """
         return self.bar_end_width * length_of_ritual + self.bar_width
 
-    def ritual_clicked(self):
-        pos = pygame.mouse.get_pos()
-        mp = self.menu_position_y
-        length = len(self.ritual_list)
-        mh = self.menu_height
-
-        if self.menu_position_x < pos[0] + (self.menu_width // 3):
-            for x in range(len(self.ritual_list)):
-                a = x / length
-                b = a * mh
-                c = b + mp
-                d = (x + 1) / length
-                e = d * mh
-                f = e + mp
-                r = range(round(c), round(f))
-                if pos[1] in r:
-                    return self.ritual_list[x]
-
     def mouse_move(self):
-        pos = pygame.mouse.get_pos()
-        if self.menu_position_x < pos[0] + (self.menu_width // 3):
-            for x in range(len(self.ritual_list)):
-                a = x / len(self.ritual_list)
-                b = a * self.menu_height
-                c = b + self.menu_position_y
-                d = (x + 1) / len(self.ritual_list)
-                e = d * self.menu_height
-                f = e + self.menu_position_y
-                r = range(round(c), round(f))
-                if pos[1] in r:
-                    self.ritual_highlight_list[x] = True
-                    for z in range(len(self.ritual_highlight_list)):
-                        if z is not x:
-                            self.ritual_highlight_list[z] = False
-        else:
-            for _ in self.ritual_highlight_list:
-                _ = False
+        """
+        Handles mouse movement over the ritual menu. It highlights the rituals based on the mouse position.
 
-    def left_click(self):
-        self.casting = self.ritual_clicked()
+        :return: None
+        """
+        pos = pygame.mouse.get_pos()
+        index = self.get_index_selected(pos, self.ritual_list)
+
+        if index is not None:
+            # Highlight only the ritual at `index`
+            self.ritual_highlight_list = [
+                i == index for i in range(len(self.ritual_highlight_list))
+            ]
+        else:
+            # Un-highlight all rituals
+            self.ritual_highlight_list = [False] * len(self.ritual_highlight_list)
+
+    def left_click(self) -> bool:
+        """
+        Handles the left-click action for selecting and casting a ritual.
+
+        :return: True if the ritual is successfully cast, otherwise reverts to the playing state.
+        """
+        # Determine the ritual being clicked
+        self.casting: Optional[str] = self.get_option_selected(self.ritual_list)
+
+        # Check if the ritual is valid and not intercepted
         if (
-            self.casting is None
-            or not self.engine.is_legal_ritual(self.casting, self.cost_type)
-            or self.engine.get_occupying(self.row, self.col).intercepted
+                self.casting is None
+                or not self.engine.is_legal_ritual(self.casting, self.cost_type)
+                or self.engine.get_occupying(self.row, self.col).intercepted
         ):
             return self.engine.state[-1].revert_to_playing_state()
-        else:
-            self.engine.menus = []
-            return self.engine.transfer_to_ritual_state(self.casting, self.cost_type)
+
+        # Clear menus and transfer to the ritual state
+        self.engine.menus = []
+        return self.engine.transfer_to_ritual_state(self.casting, self.cost_type)
 
     def right_click(self):
+        """
+        Handles the right-click action to revert to the playing state.
+        """
         self.engine.state[-1].revert_to_playing_state()
 
     def draw(self):
+        """
+        Draws the ritual menu on the game window.
+        """
+        # Fill menu background
         self.menu.fill(Constant.MENU_COLOR)
 
-        # Draw paper texture blended with background
+        # Draw paper texture
         self.engine.get_current_state().draw_paper_texture(self.menu)
 
-        for x in range(len(self.ritual_list)):
-            a = x / len(self.ritual_list)
-            b = a * self.menu_height
-            if self.ritual_highlight_list[x]:
-                self.menu.blit(self.square, (0, b))
+        # Highlight selected rituals
+        highlight_indices: List[int] = [i for i, highlighted in enumerate(self.ritual_highlight_list) if highlighted]
+        for index in highlight_indices:
+            start_y: float = (index / len(self.ritual_list)) * self.menu_height
+            self.menu.blit(self.square, (0, start_y))
 
+        # Set highlight properties once (instead of inside a loop)
         self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
         self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
 
-        # Prayer Counter
-        y_buffer_ritual = 0
-        y_buffer_prayer = self.y_buffer
-        for ritual in self.ritual_list:
-            if self.cost_type == "prayer":
-                length_of_this_prayer_bar = self.full_length_of_prayer_bar(
-                    Constant.PRAYER_COSTS[ritual]["prayer"]
-                )
-                bar_end_edge = (
-                    self.ritual_width
-                    + self.available_menu_space_for_prayer_bar // 2
-                    - length_of_this_prayer_bar // 2
-                )
-                bar_edge = bar_end_edge - self.bar_width
-                self.menu.blit(
-                    Constant.IMAGES["prayer_bar"], (bar_edge, y_buffer_prayer)
-                )
-                for z in range(Constant.PRAYER_COSTS[ritual]["prayer"]):
-                    new_edge = bar_end_edge + self.bar_end_width * (z)
-                    self.menu.blit(
-                        Constant.IMAGES["prayer_bar_end"], (new_edge, y_buffer_prayer)
-                    )
-                y_buffer_prayer += self.y_buffer + self.ritual_height // 2
-            elif self.cost_type == "gold":
-                if Constant.PRAYER_COSTS[ritual]["gold"] != 0:
-                    cost = Constant.PRAYER_COSTS[ritual]["gold"]
-                    if self.player.gold >= cost:
-                        color = Constant.turn_to_color[self.engine.turn]
-                    else:
-                        color = Constant.RED
-                    gold_cost = self.font.render(str(cost), True, color)
-                    gold_icon_display_y = (
-                        y_buffer_ritual + self.gold_icon.get_height() // 2
-                    )
-                    gold_text_display_y = y_buffer_ritual + gold_cost.get_height() // 2
-                    self.menu.blit(
-                        self.gold_icon, (self.gold_icon_display_x, gold_icon_display_y)
-                    )
-                    self.menu.blit(
-                        gold_cost, (self.gold_cost_text_display_x, gold_text_display_y)
-                    )
+        # Initialize buffers for drawing rituals and costs
+        y_buffer_ritual: int = 0
+        y_buffer_prayer: int = self.y_buffer
 
-            self.menu.blit(
-                self.rituals[self.engine.turn + "_" + ritual], (0, y_buffer_ritual)
-            )
+        # Cache values to avoid redundant dictionary lookups
+        turn: int = self.engine.turn
+        rituals: Dict[str, pygame.Surface] = self.rituals
+        prayer_costs: Dict[str, Dict[str, int]] = Constant.PRAYER_COSTS
+        cost_type: str = self.cost_type
+        player_gold: int = self.player.gold
+
+        for ritual in self.ritual_list:
+            cost_data: Dict[str, int] = prayer_costs[ritual]
+
+            if cost_type == "prayer":
+                prayer_cost: int = cost_data["prayer"]
+                if prayer_cost > 0:
+                    # Calculate the prayer bar position
+                    bar_length: int = self.full_length_of_prayer_bar(prayer_cost)
+                    bar_end_edge: int = (
+                            self.ritual_width
+                            + self.available_menu_space_for_prayer_bar // 2
+                            - bar_length // 2
+                    )
+                    bar_edge: int = bar_end_edge - self.bar_width
+
+                    # Draw prayer bars
+                    self.menu.blit(Constant.IMAGES["prayer_bar"], (bar_edge, y_buffer_prayer))
+                    for z in range(prayer_cost):
+                        self.menu.blit(
+                                Constant.IMAGES["prayer_bar_end"],
+                                (bar_end_edge + self.bar_end_width * z, y_buffer_prayer),
+                        )
+
+                    y_buffer_prayer += self.y_buffer + self.ritual_height // 2
+
+            elif cost_type == "gold" and cost_data["gold"] > 0:
+                gold_cost: int = cost_data["gold"]
+                gold_color: Tuple[int, int, int] = Constant.turn_to_color[
+                    turn] if player_gold >= gold_cost else Constant.RED
+                gold_surface: pygame.Surface = self.font.render(str(gold_cost), True, gold_color)
+
+                # Compute Y positions for gold icon and cost text
+                gold_icon_y: int = y_buffer_ritual + self.gold_icon.get_height() // 2
+                gold_text_y: int = y_buffer_ritual + gold_surface.get_height() // 2
+
+                self.menu.blit(self.gold_icon, (self.gold_icon_display_x, gold_icon_y))
+                self.menu.blit(gold_surface, (self.gold_cost_text_display_x, gold_text_y))
+
+            # Draw the ritual icon
+            ritual_key: str = f"{turn}_{ritual}"
+            self.menu.blit(rituals[ritual_key], (0, y_buffer_ritual))
             y_buffer_ritual += self.ritual_height
 
+        # Draw menu onto the game window
         self.win.blit(self.menu, (self.menu_position_x, self.menu_position_y))
 
 
 class TraderMenu(Menu):
-    def __init__(self, row, col, win, engine, resource_list, amounts, trade_arrow):
-        self.row = row
-        self.col = col
-        self.key = {"log": "wood", "gold_coin": "gold", "stone": "stone"}
-        self.resource_list = resource_list
+    """
+    Represents a trader menu in the game with various attributes and methods.
+    """
+
+    def __init__(self, row: int, col: int, win: pygame.Surface, engine: "Engine", resource_list: List[str],
+                 amounts: Dict[str, int], trade_arrow: pygame.Surface):
+        """
+        Initializes the trader menu at the given board position.
+
+        :param row: The row position of the trader menu.
+        :param col: The column position of the trader menu.
+        :param win: The game window surface.
+        :param engine: The game engine.
+        :param resource_list: The list of resources.
+        :param amounts: The amounts of each resource.
+        :param trade_arrow: The trade arrow image.
+        """
+        self.row: int = row
+        self.col: int = col
+        self.key: Dict[str, str] = {"log": "wood", "gold_coin": "gold", "stone": "stone"}
+        self.resource_list: List[str] = resource_list
         super().__init__(win, engine)
-        self.trade_arrow = trade_arrow
-        self.amounts = amounts
+        self.trade_arrow: pygame.Surface = trade_arrow
+        self.amounts: Dict[str, int] = amounts
         self.player = self.engine.players[self.engine.turn]
-        self.give_image = Constant.IMAGES["give"]
-        self.selected = None
-        self.horizontal_buffer = Constant.SQ_SIZE // 2
-        self.vertical_buffer_between_pieces = Constant.SQ_SIZE // 4
-        self.font_size = round(Constant.SQ_SIZE / 2)
-        self.font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.font_size
+        self.give_image: pygame.Surface = Constant.IMAGES["give"]
+        self.selected: Optional[str] = None
+        self.horizontal_buffer: int = Constant.SQ_SIZE // 2
+        self.vertical_buffer_between_pieces: int = Constant.SQ_SIZE // 4
+        self.font_size: int = round(Constant.SQ_SIZE / 2)
+        self.font: pygame.font.Font = pygame.font.Font(
+                os.path.join("files/fonts", "font.ttf"), self.font_size
         )
-        self.font_color = Constant.turn_to_color[self.engine.turn]
-        self.resource_height = Constant.IMAGES["gold_coin"].get_width()
-        self.resource_width = Constant.IMAGES["gold_coin"].get_height()
-        self.menu_width = (
-            self.resource_width
-            + self.horizontal_buffer
-            + self.resource_width
-            + Constant.SQ_SIZE
+        self.font_color: Tuple[int, int, int] = Constant.turn_to_color[self.engine.turn]
+        self.resource_height: int = Constant.IMAGES["gold_coin"].get_width()
+        self.resource_width: int = Constant.IMAGES["gold_coin"].get_height()
+        self.menu_width: int = (
+                self.resource_width
+                + self.horizontal_buffer
+                + self.resource_width
+                + Constant.SQ_SIZE
         )
-        self.menu_height = len(self.resource_list) * (
-            self.resource_height + self.vertical_buffer_between_pieces
+        self.menu_height: int = len(self.resource_list) * (
+                self.resource_height + self.vertical_buffer_between_pieces
         )
-        self.menu = pygame.Surface((self.menu_width, self.menu_height))
+        self.menu: pygame.Surface = pygame.Surface((self.menu_width, self.menu_height))
 
         # Scale paper texture
-        self.paper_texture = self.engine.get_current_state().scale_paper_texture(
-            self.menu
+        self.paper_texture: pygame.Surface = self.engine.get_current_state().scale_paper_texture(
+                self.menu
         )
-        self.initial_menu_position = (
+        self.initial_menu_position: Tuple[int, int] = (
             self.col * Constant.SQ_SIZE + Constant.SQ_SIZE // 2,
             self.row * Constant.SQ_SIZE + Constant.SQ_SIZE // 2,
         )
+        self.menu_position_x: int
+        self.menu_position_y: int
         self.menu_position_x, self.menu_position_y = self.correct_menu_boundary()
-        self.menu_boundary_buffer_y = self.menu_height + self.menu_boundary_buffer
-        self.menu_boundary_buffer_x = self.menu_width + self.menu_boundary_buffer
-        self.spawn_highlight_list = []
-        self.square = pygame.Surface(
-            (self.menu_width, round(1 / len(self.resource_list) * self.menu_height))
+        self.menu_boundary_buffer_y: int = self.menu_height + self.menu_boundary_buffer
+        self.menu_boundary_buffer_x: int = self.menu_width + self.menu_boundary_buffer
+        self.spawn_highlight_list: List[bool] = []
+        self.square: pygame.Surface = pygame.Surface(
+                (self.menu_width, round(1 / len(self.resource_list) * self.menu_height))
         )
         for _ in self.resource_list:
             self.spawn_highlight_list.append(False)
         self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
         self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
-
-    def resource_selected(self):
-        pos = pygame.mouse.get_pos()
-        mp = self.menu_position_y
-        length = len(self.resource_list)
-        mh = self.menu_height
-
-        if self.menu_position_x < pos[0] + (self.menu_width // 3):
-            for x in range(len(self.resource_list)):
-                a = x / length
-                b = a * mh
-                c = b + mp
-                d = (x + 1) / length
-                e = d * mh
-                f = e + mp
-                r = range(round(c), round(f))
-                if pos[1] in r:
-                    return self.resource_list[x]
 
     def mouse_move(self):
         """
@@ -464,145 +736,240 @@ class TraderMenu(Menu):
         mouse_x, mouse_y = pygame.mouse.get_pos()
 
         # Check if the mouse is within the horizontal bounds of the menu
-        if self.menu_position_x < mouse_x + (self.menu_width // 3):
-            # Iterate through the resource list to find which item is being hovered over
-            for index in range(len(self.resource_list)):
-                # Calculate the top and bottom y-coordinates of the current menu item
-                item_start_y = (
-                    index / len(self.resource_list)
-                ) * self.menu_height + self.menu_position_y
-                item_end_y = (
-                    (index + 1) / len(self.resource_list)
-                ) * self.menu_height + self.menu_position_y
+        if mouse_x + (self.menu_width // 3) < self.menu_position_x:
+            # If the mouse is outside the bounds, reset all highlights and cursor
+            if any(self.spawn_highlight_list):
+                self.spawn_highlight_list = [False] * len(self.spawn_highlight_list)
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+            return
 
-                # Check if the mouse's y-coordinate is within the vertical bounds of the item
-                if round(item_start_y) <= mouse_y <= round(item_end_y):
-                    # Highlight the item at the current index
-                    self.spawn_highlight_list[index] = True
+        # Precompute the item height ratio to avoid repeated division
+        item_height_ratio = 1 / len(self.resource_list) * self.menu_height
 
-                    # Set cursor to hand
-                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+        # Track the index that should be highlighted
+        highlighted_index = None
 
-                    # De-highlight other items in the list
-                    for i in range(len(self.spawn_highlight_list)):
-                        if i != index:
-                            self.spawn_highlight_list[i] = False
+        # Iterate through the resource list to find which item is hovered over
+        for index, _ in enumerate(self.resource_list):
+            # Calculate the start and end Y-coordinates of the current menu item
+            item_start_y = index * item_height_ratio + self.menu_position_y
+            item_end_y = (index + 1) * item_height_ratio + self.menu_position_y
+
+            # Check if the mouse's Y-coordinate falls within the current item's bounds
+            if round(item_start_y) <= mouse_y <= round(item_end_y):
+                highlighted_index = index
+                break  # Stop checking once a highlight is found
+
+        # Update highlighting only if necessary
+        if highlighted_index is not None:
+            # Only update if the item is not already highlighted
+            if not self.spawn_highlight_list[highlighted_index]:
+                self.spawn_highlight_list = [i == highlighted_index for i in range(len(self.spawn_highlight_list))]
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
         else:
-            # If the mouse is outside the menu bounds, remove all highlights
-            self.spawn_highlight_list = [False] * len(self.spawn_highlight_list)
-            # Set cursor to hand
-            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+            # Only reset if something was highlighted before
+            if any(self.spawn_highlight_list):
+                self.spawn_highlight_list = [False] * len(self.spawn_highlight_list)
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
-    def draw(self):
+    def draw(self) -> Tuple[int, int]:
+        """
+        Draws the trader menu on the game window.
+
+        :return: The x and y positions of the menu.
+        """
+        # Fill the menu with the background color
         self.menu.fill(Constant.MENU_COLOR)
+
         # Draw paper texture blended with background
         self.engine.get_current_state().draw_paper_texture(self.menu)
-        for x in range(len(self.resource_list)):
-            a = x / len(self.resource_list)
-            b = a * self.menu_height
-            if self.spawn_highlight_list[x]:
-                self.menu.blit(self.square, (0, b))
 
-        y_buffer = 0
-        for p in self.resource_list:
+        # Highlight selected resources
+        for index in range(len(self.resource_list)):
+            start_y: float = (index / len(self.resource_list)) * self.menu_height
+            if self.spawn_highlight_list[index]:
+                self.menu.blit(self.square, (0, start_y))
+
+        # Initialize buffer for drawing resources and amounts
+        y_buffer: int = 0
+
+        # Draw each resource and its amount
+        for resource in self.resource_list:
             self.menu.blit(
-                Constant.IMAGES[p],
-                (self.horizontal_buffer // 2, y_buffer + self.menu_height // 16),
+                    Constant.IMAGES[resource],
+                    (self.horizontal_buffer // 2, y_buffer + self.menu_height // 16),
             )
 
-            amount_text_surface = self.font.render(
-                ": " + str(self.amounts[p]), True, self.font_color
-            )
-
-            self.menu.blit(
-                self.trade_arrow,
-                (
-                    self.menu_width - self.trade_arrow.get_width(),
-                    y_buffer + self.menu_height // 16,
-                ),
+            amount_text_surface: pygame.Surface = self.font.render(
+                    ": " + str(self.amounts[resource]), True, self.font_color
             )
 
             self.menu.blit(
-                amount_text_surface,
-                (self.resource_width + self.horizontal_buffer, y_buffer),
+                    self.trade_arrow,
+                    (
+                        self.menu_width - self.trade_arrow.get_width(),
+                        y_buffer + self.menu_height // 16,
+                    ),
+            )
+
+            self.menu.blit(
+                    amount_text_surface,
+                    (self.resource_width + self.horizontal_buffer, y_buffer),
             )
 
             y_buffer += self.menu_height // len(self.resource_list)
 
+        # Blit the menu onto the game window
         self.win.blit(self.menu, (self.menu_position_x, self.menu_position_y))
         return self.menu_position_x, self.menu_position_y
 
 
 class GiveMenu(TraderMenu):
-    def __init__(self, row, col, win, engine, resource_list):
+    """
+    Represents a give menu in the game with various attributes and methods.
+    """
+
+    def __init__(self, row: int, col: int, win: pygame.Surface, engine: "Engine", resource_list: List[str]):
+        """
+        Initializes the give menu at the given board position.
+
+        :param row: The row position of the give menu.
+        :param col: The column position of the give menu.
+        :param win: The game window surface.
+        :param engine: The game engine.
+        :param resource_list: The list of resources.
+        """
+        # Get the current player
         self.player = engine.players[engine.turn]
-        self.amounts = {
-            "log": engine.trade_handler.get_give_conversion("wood", self.player),
+
+        # Get the amounts of each resource to give
+        self.amounts: Dict[str, int] = {
+            "log"      : engine.trade_handler.get_give_conversion("wood", self.player),
             "gold_coin": engine.trade_handler.get_give_conversion("gold", self.player),
-            "stone": engine.trade_handler.get_give_conversion("stone", self.player),
+            "stone"    : engine.trade_handler.get_give_conversion("stone", self.player),
         }
-        self.trade_arrow = Constant.IMAGES["give"]
-        super().__init__(
-            row, col, win, engine, resource_list, self.amounts, self.trade_arrow
-        )
+
+        # Set the trade arrow image
+        self.trade_arrow: pygame.Surface = Constant.IMAGES["give"]
+
+        # Initialize the parent TraderMenu class
+        super().__init__(row, col, win, engine, resource_list, self.amounts, self.trade_arrow)
 
     def right_click(self):
+        """
+        Handles the right-click action to revert to the playing state.
+        """
+        # Reset piece trading state
         self.engine.piece_trading = None
+
+        # Revert to the playing state
         self.engine.state[-1].revert_to_playing_state()
 
-    def left_click(self):
-        self.selected = self.resource_selected()
+    def left_click(self) -> bool:
+        """
+        Handles the left-click action for selecting and giving a resource.
+
+        :return: True if a resource is successfully given, otherwise False.
+        """
+        # Determine the selected resource based on the mouse position
+        self.selected: Optional[str] = self.get_index_selected(pygame.mouse.get_pos(), self.resource_list)
+
         if self.selected is not None:
-            amount_given = self.amounts[self.selected]
+            # Get the amount of the selected resource to give
+            amount_given: int = self.amounts[self.selected]
+
+            # Add the selected resource and amount to the trading list
             self.engine.trading.append((self.selected, amount_given))
+
+            # Close the current menus
             self.engine.close_menus()
-            resource_list = []
-            resources = ["log", "gold_coin", "stone"]
-            for resource in resources:
-                if resource is not self.selected:
-                    resource_list.append(resource)
+
+            # Create a new resource list excluding the selected resource
+            resource_list: List[str] = [resource for resource in ["log", "gold_coin", "stone"] if
+                                        resource != self.selected]
+
+            # Get the row and column of the mouse position
+            row: int
+            col: int
             row, col = Constant.convert_pos(pygame.mouse.get_pos())
-            menu = ReceiveMenu(
-                row, col, self.win, self.engine, resource_list, amount_given
-            )
+
+            # Create and add a new ReceiveMenu
+            menu = ReceiveMenu(row, col, self.win, self.engine, resource_list, amount_given)
             self.engine.menus.append(menu)
+
             return True
+
+        return False
 
 
 class ReceiveMenu(TraderMenu):
-    def __init__(self, row, col, win, engine, resource_list, amount_given):
-        self.amount_given = amount_given
-        self.amounts = {
-            "log": engine.trade_handler.get_receive_conversion(
-                self.amount_given, "wood"
-            ),
-            "gold_coin": engine.trade_handler.get_receive_conversion(
-                self.amount_given, "gold"
-            ),
-            "stone": engine.trade_handler.get_receive_conversion(
-                self.amount_given, "stone"
-            ),
-        }
-        self.trade_arrow = Constant.IMAGES["receive"]
-        super().__init__(
-            row, col, win, engine, resource_list, self.amounts, self.trade_arrow
-        )
+    """
+    Represents a receive menu in the game with various attributes and methods.
+    """
 
-    def left_click(self):
-        self.selected = self.resource_selected()
+    def __init__(self, row: int, col: int, win: pygame.Surface, engine: "Engine", resource_list: List[str],
+                 amount_given: int):
+        """
+        Initializes the receive menu at the given board position.
+
+        :param row: The row position of the receive menu.
+        :param col: The column position of the receive menu.
+        :param win: The game window surface.
+        :param engine: The game engine.
+        :param resource_list: The list of resources.
+        :param amount_given: The amount of resource given.
+        """
+        self.amount_given: int = amount_given
+        self.amounts: Dict[str, int] = {
+            "log"      : engine.trade_handler.get_receive_conversion(self.amount_given, "wood"),
+            "gold_coin": engine.trade_handler.get_receive_conversion(self.amount_given, "gold"),
+            "stone"    : engine.trade_handler.get_receive_conversion(self.amount_given, "stone"),
+        }
+        self.trade_arrow: pygame.Surface = Constant.IMAGES["receive"]
+        super().__init__(row, col, win, engine, resource_list, self.amounts, self.trade_arrow)
+
+    def left_click(self) -> bool:
+        """
+        Handles the left-click action for selecting and receiving a resource.
+
+        :return: True if a resource is successfully received, otherwise False.
+        """
+        # Determine the selected resource based on the mouse position
+        self.selected: Optional[str] = self.get_index_selected(pygame.mouse.get_pos(), self.resource_list)
+
         if self.selected is not None:
-            amount = self.engine.trade_handler.get_receive_conversion(
-                self.amount_given, self.key[self.selected]
-            )
+            # Get the amount of the selected resource to receive
+            amount: int = self.engine.trade_handler.get_receive_conversion(self.amount_given, self.key[self.selected])
+
+            # Clear the current menus
             self.engine.menus = []
+
+            # Add the selected resource and amount to the trading list
             self.engine.trading.append((self.selected, amount))
+
+            # Execute the trade
             self.engine.trade()
+
             return True
 
+        return False
+
     def right_click(self):
+        """
+        Handles the right-click action to revert to the previous trader menu.
+        """
+        # Close the current menus
         self.engine.close_menus()
+
+        # Clear the trading list
         self.engine.trading = []
+
+        # Get the row and column of the mouse position
+        row: int
+        col: int
         row, col = Constant.convert_pos(pygame.mouse.get_pos())
+
+        # Create and display a new trader menu
         self.engine.create_trader_menu(row, col, False)
 
 
@@ -614,7 +981,7 @@ class StealingMenu(Menu):
     """
 
     def __init__(
-        self, row: int, col: int, win: pygame.Surface, engine: "Engine"
+            self, row: int, col: int, win: pygame.Surface, engine: "Engine"
     ) -> None:
         """
         Initializes the StealingMenu.
@@ -626,7 +993,7 @@ class StealingMenu(Menu):
         """
         self.row = row
         self.col = col
-        self.spawn_list = ["log", "gold_coin", "stone"]
+        self.action_list = ["log", "gold_coin", "stone"]
         self.key = {"log": "wood", "gold_coin": "gold", "stone": "stone"}
 
         # Initialize the type of entity being stolen from
@@ -640,8 +1007,8 @@ class StealingMenu(Menu):
 
         # Create a mapping of classes to type strings
         entity_map = {
-            Trader: "trader",  # Trader corresponds to "trader"
-            Piece: "piece",  # Any Piece that isn't a Trader corresponds to "piece"
+            Trader  : "trader",  # Trader corresponds to "trader"
+            Piece   : "piece",  # Any Piece that isn't a Trader corresponds to "piece"
             Building: "building",  # Building corresponds to "building"
         }
 
@@ -653,13 +1020,13 @@ class StealingMenu(Menu):
 
         # Get the amounts of each resource available for stealing
         self.amounts = {
-            "log": self.engine.stealing_values("wood", self.type_stolen_from),
+            "log"      : self.engine.stealing_values("wood", self.type_stolen_from),
             "gold_coin": self.engine.stealing_values("gold", self.type_stolen_from),
-            "stone": self.engine.stealing_values("stone", self.type_stolen_from),
+            "stone"    : self.engine.stealing_values("stone", self.type_stolen_from),
         }
-        for resource in self.spawn_list:
+        for resource in self.action_list:
             if self.amounts[resource] == 0:
-                self.spawn_list.remove(resource)
+                self.action_list.remove(resource)
 
         # Set up menu dimensions and appearance
 
@@ -674,7 +1041,7 @@ class StealingMenu(Menu):
 
         # Create the font object using the font file "font.ttf" and the calculated font size
         self.font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.font_size
+                os.path.join("files/fonts", "font.ttf"), self.font_size
         )
 
         # Set the font color based on the current player's turn using a predefined color mapping
@@ -688,13 +1055,13 @@ class StealingMenu(Menu):
 
         # Calculate the menu width as the sum of two resource widths and the horizontal buffer
         self.menu_width = (
-            self.resource_width + self.horizontal_buffer + self.resource_width
+                self.resource_width + self.horizontal_buffer + self.resource_width
         )
 
         # Calculate the menu height based on the number of items in the spawn list
         # Each item will take up space equivalent to the resource height plus vertical buffer
-        self.menu_height = len(self.spawn_list) * (
-            self.resource_height + self.vertical_buffer_between_pieces
+        self.menu_height = len(self.action_list) * (
+                self.resource_height + self.vertical_buffer_between_pieces
         )
 
         # Create a pygame surface for the menu with the calculated width and height
@@ -702,7 +1069,7 @@ class StealingMenu(Menu):
 
         # Scale paper texture
         self.paper_texture = self.engine.get_current_state().scale_paper_texture(
-            self.menu
+                self.menu
         )
 
         # Set initial menu position based on the column and row
@@ -727,9 +1094,9 @@ class StealingMenu(Menu):
         # Initialize highlight list for spawn items
         self.spawn_highlight_list = []
         self.square = pygame.Surface(
-            (self.menu_width, round(1 / len(self.spawn_list) * self.menu_height))
+                (self.menu_width, round(1 / len(self.action_list) * self.menu_height))
         )
-        for _ in self.spawn_list:
+        for _ in self.action_list:
             self.spawn_highlight_list.append(False)
         self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
         self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
@@ -745,8 +1112,8 @@ class StealingMenu(Menu):
         self.engine.get_current_state().draw_paper_texture(self.menu)
 
         # Highlight selected items
-        for x in range(len(self.spawn_list)):
-            a = x / len(self.spawn_list)
+        for x in range(len(self.action_list)):
+            a = x / len(self.action_list)
             b = a * self.menu_height
             if self.spawn_highlight_list[x]:
                 self.menu.blit(self.square, (0, b))
@@ -755,19 +1122,19 @@ class StealingMenu(Menu):
         y_buffer = 0
 
         # Iterate through the spawn list to draw the resources and amounts
-        for p in self.spawn_list:
+        for p in self.action_list:
             # Center the resource image icon horizontally within the menu width
             # Align the icon at 1/3 of the menu width, centered within its section
             icon_x = self.menu_width // 3 - self.resource_width // 2
 
             # Draw the resource image at the calculated position
             self.menu.blit(
-                Constant.IMAGES[p], (icon_x, y_buffer + self.menu_height // 16)
+                    Constant.IMAGES[p], (icon_x, y_buffer + self.menu_height // 16)
             )
 
             # Center the amount text surface horizontally within the remaining 2/3 of the menu width
             amount_text_surface = self.font.render(
-                ": " + str(self.amounts[p]), True, self.font_color
+                    ": " + str(self.amounts[p]), True, self.font_color
             )
 
             # Align the text at the center of the right side of the menu
@@ -775,8 +1142,8 @@ class StealingMenu(Menu):
 
             # Draw the amount text below the resource image (adding a vertical offset for spacing)
             self.menu.blit(
-                amount_text_surface,
-                (text_x, y_buffer),
+                    amount_text_surface,
+                    (text_x, y_buffer),
             )
 
             # Increment the y_buffer by the total height of the resource image + vertical spacing
@@ -785,39 +1152,40 @@ class StealingMenu(Menu):
         self.win.blit(self.menu, (self.menu_position_x, self.menu_position_y))
         return self.menu_position_x, self.menu_position_y
 
-    def resource_selected(self):
-        pos = pygame.mouse.get_pos()
-        mp = self.menu_position_y
-        length = len(self.spawn_list)
-        mh = self.menu_height
+    def left_click(self) -> bool:
+        """
+        Handles the left-click action for selecting and stealing a resource.
 
-        if self.menu_position_x < pos[0] + (self.menu_width // 3):
-            for x in range(len(self.spawn_list)):
-                a = x / length
-                b = a * mh
-                c = b + mp
-                d = (x + 1) / length
-                e = d * mh
-                f = e + mp
-                r = range(round(c), round(f))
-                if pos[1] in r:
-                    return self.spawn_list[x]
-
-    def left_click(self):
+        :return: True if a resource is successfully stolen, otherwise reverts to the playing state.
+        """
+        # Reset the stealing state
         self.engine.stealing = None
-        stolen_resource = self.resource_selected()
+
+        # Determine the selected resource based on the mouse position
+        stolen_resource: Optional[str] = self.get_index_selected(pygame.mouse.get_pos(), self.action_list)
+
         if stolen_resource:
-            amount = self.amounts[stolen_resource]
+            # Get the amount of the selected resource to steal
+            amount: int = self.amounts[stolen_resource]
+
+            # Clear the current menus
             self.engine.menus = []
+
+            # Set the stealing state with the selected resource and amount
             self.engine.stealing = [self.key[stolen_resource], amount]
+
             return True
         else:
+            # Reset the stealing state and revert to the playing state
             self.engine.stealing = None
             return self.engine.state[-1].revert_to_playing_state()
 
     def right_click(self):
-        self.engine.ritual_summon_resource = None
-        self.engine.state[-1].revert_to_playing_state()
+        """
+        Handles the right-click action to revert to the playing state.
+        """
+        # Revert to the playing state
+        self.engine.get_current_state().revert_to_playing_state()
 
     def mouse_move(self):
         """
@@ -833,14 +1201,14 @@ class StealingMenu(Menu):
         # Check if the mouse is within the horizontal bounds of the menu
         if self.menu_position_x < mouse_x + (self.menu_width // 3):
             # Iterate through the resource list to find which item is being hovered over
-            for index in range(len(self.spawn_list)):
+            for index in range(len(self.action_list)):
                 # Calculate the top and bottom y-coordinates of the current menu item
                 item_start_y = (
-                    index / len(self.spawn_list)
-                ) * self.menu_height + self.menu_position_y
+                                       index / len(self.action_list)
+                               ) * self.menu_height + self.menu_position_y
                 item_end_y = (
-                    (index + 1) / len(self.spawn_list)
-                ) * self.menu_height + self.menu_position_y
+                                     (index + 1) / len(self.action_list)
+                             ) * self.menu_height + self.menu_position_y
 
                 # Check if the mouse's y-coordinate is within the vertical bounds of the item
                 if round(item_start_y) <= mouse_y <= round(item_end_y):
@@ -873,18 +1241,18 @@ class ResourceMenu(Menu):
         self.vertical_buffer_between_pieces = Constant.SQ_SIZE // 4
         self.font_size = round(Constant.SQ_SIZE / 2)
         self.font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.font_size
+                os.path.join("files/fonts", "font.ttf"), self.font_size
         )
         self.resource_height = Constant.RESOURCES["gold_tile_1"].get_width()
         self.resource_width = Constant.RESOURCES["gold_tile_1"].get_height()
         self.menu_width = self.resource_width + self.horizontal_buffer
         self.menu_height = len(self.spawn_list) * (
-            self.resource_height + self.vertical_buffer_between_pieces
+                self.resource_height + self.vertical_buffer_between_pieces
         )
         self.menu = pygame.Surface((self.menu_width, self.menu_height))
         # Scale paper texture
         self.paper_texture = self.engine.get_current_state().scale_paper_texture(
-            self.menu
+                self.menu
         )
         self.initial_menu_position = (
             self.col * Constant.SQ_SIZE + Constant.SQ_SIZE // 2,
@@ -895,7 +1263,7 @@ class ResourceMenu(Menu):
         self.menu_boundary_buffer_x = self.menu_width + self.menu_boundary_buffer
         self.spawn_highlight_list = []
         self.square = pygame.Surface(
-            (self.menu_width, round(1 / len(self.spawn_list) * self.menu_height))
+                (self.menu_width, round(1 / len(self.spawn_list) * self.menu_height))
         )
         for _ in self.spawn_list:
             self.spawn_highlight_list.append(False)
@@ -950,11 +1318,11 @@ class ResourceMenu(Menu):
             for index in range(len(self.spawn_list)):
                 # Calculate the top and bottom y-coordinates of the current menu item
                 item_start_y = (
-                    index / len(self.spawn_list)
-                ) * self.menu_height + self.menu_position_y
+                                       index / len(self.spawn_list)
+                               ) * self.menu_height + self.menu_position_y
                 item_end_y = (
-                    (index + 1) / len(self.spawn_list)
-                ) * self.menu_height + self.menu_position_y
+                                     (index + 1) / len(self.spawn_list)
+                             ) * self.menu_height + self.menu_position_y
 
                 # Check if the mouse's y-coordinate is within the vertical bounds of the item
                 if round(item_start_y) <= mouse_y <= round(item_end_y):
@@ -990,7 +1358,7 @@ class ResourceMenu(Menu):
         y_buffer = 0
         for p in self.spawn_list:
             self.menu.blit(
-                Constant.RESOURCES[p], (self.horizontal_buffer // 2, y_buffer)
+                    Constant.RESOURCES[p], (self.horizontal_buffer // 2, y_buffer)
             )
             y_buffer += self.menu_height // len(self.spawn_list)
 
@@ -1011,11 +1379,11 @@ class SpawningMenu(Menu):
         self.vertical_buffer_between_pieces = Constant.SQ_SIZE // 4
         self.font_size = round(Constant.SQ_SIZE / 2)
         self.font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.font_size
+                os.path.join("files/fonts", "font.ttf"), self.font_size
         )
         self.test_text = self.font.render("10", True, Constant.RED)
         self.menu_width = Constant.SQ_SIZE + (
-            3 * self.horizontal_buffer_between_costs + self.test_text.get_width()
+                3 * self.horizontal_buffer_between_costs + self.test_text.get_width()
         )
         self.menu_height = len(spawn_list) * Constant.SPAWNING_MENU_HEIGHT_BUFFER + (
             self.vertical_buffer_between_pieces
@@ -1028,7 +1396,7 @@ class SpawningMenu(Menu):
         self.menu = pygame.Surface((self.menu_width, self.menu_height))
         # Scale paper texture
         self.paper_texture = self.engine.get_current_state().scale_paper_texture(
-            self.menu
+                self.menu
         )
         self.piece_x = self.vertical_buffer_between_pieces
         self.log_x = self.piece_x + self.horizontal_buffer_between_costs
@@ -1037,7 +1405,7 @@ class SpawningMenu(Menu):
         self.player = self.engine.players[self.engine.turn]
         self.spawn_highlight_list = []
         self.square = pygame.Surface(
-            (self.menu_width, round(1 / len(self.spawn_list) * self.menu_height))
+                (self.menu_width, round(1 / len(self.spawn_list) * self.menu_height))
         )
         self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
         self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
@@ -1066,7 +1434,7 @@ class SpawningMenu(Menu):
         self.engine.spawning = None
         self.spawning = self.piece_spawned()
         if not self.spawning or not self.engine.is_legal_spawn(
-            self.spawning, self.spawner
+                self.spawning, self.spawner
         ):
             self.engine.spawning = None
             pos = pygame.mouse.get_pos()
@@ -1081,7 +1449,7 @@ class SpawningMenu(Menu):
                 True
             )
             self.engine.get_occupying(
-                self.spawner.row, self.spawner.col
+                    self.spawner.row, self.spawner.col
             ).pre_selected = False
             return self.engine.transfer_to_spawning_state(self.spawning)
 
@@ -1106,11 +1474,11 @@ class SpawningMenu(Menu):
             for index in range(len(self.spawn_list)):
                 # Calculate the top and bottom y-coordinates of the current menu item
                 item_start_y = (
-                    index / len(self.spawn_list)
-                ) * self.menu_height + self.menu_position_y
+                                       index / len(self.spawn_list)
+                               ) * self.menu_height + self.menu_position_y
                 item_end_y = (
-                    (index + 1) / len(self.spawn_list)
-                ) * self.menu_height + self.menu_position_y
+                                     (index + 1) / len(self.spawn_list)
+                             ) * self.menu_height + self.menu_position_y
 
                 # Check if the mouse's y-coordinate is within the vertical bounds of the item
                 if round(item_start_y) <= mouse_y <= round(item_end_y):
@@ -1158,15 +1526,15 @@ class SpawningMenu(Menu):
                     color = Constant.RED
                 log_cost = self.font.render(str(piece_cost["log"]), True, color)
                 self.menu.blit(
-                    Constant.MENU_ICONS["log"],
-                    (self.log_x, y_buffer + Constant.SQ_SIZE // 4),
+                        Constant.MENU_ICONS["log"],
+                        (self.log_x, y_buffer + Constant.SQ_SIZE // 4),
                 )
                 self.menu.blit(
-                    log_cost,
-                    (
-                        (self.log_x + (Constant.SQ_SIZE // 1.5)),
-                        (y_buffer + (Constant.SQ_SIZE // 6)),
-                    ),
+                        log_cost,
+                        (
+                            (self.log_x + (Constant.SQ_SIZE // 1.5)),
+                            (y_buffer + (Constant.SQ_SIZE // 6)),
+                        ),
                 )
 
             # Gold Cost
@@ -1177,15 +1545,15 @@ class SpawningMenu(Menu):
                     color = Constant.RED
                 gold_cost = self.font.render(str(piece_cost["gold"]), True, color)
                 self.menu.blit(
-                    Constant.MENU_ICONS["gold_coin"],
-                    (self.gold_x, y_buffer + Constant.SQ_SIZE // 4),
+                        Constant.MENU_ICONS["gold_coin"],
+                        (self.gold_x, y_buffer + Constant.SQ_SIZE // 4),
                 )
                 self.menu.blit(
-                    gold_cost,
-                    (
-                        (self.gold_x + (Constant.SQ_SIZE // 1.5)),
-                        (y_buffer + (Constant.SQ_SIZE // 6)),
-                    ),
+                        gold_cost,
+                        (
+                            (self.gold_x + (Constant.SQ_SIZE // 1.5)),
+                            (y_buffer + (Constant.SQ_SIZE // 6)),
+                        ),
                 )
 
             # Stone Cost
@@ -1196,15 +1564,15 @@ class SpawningMenu(Menu):
                     color = Constant.RED
                 stone_cost = self.font.render(str(piece_cost["stone"]), True, color)
                 self.menu.blit(
-                    Constant.MENU_ICONS["stone"],
-                    (self.stone_x, y_buffer + Constant.SQ_SIZE // 4),
+                        Constant.MENU_ICONS["stone"],
+                        (self.stone_x, y_buffer + Constant.SQ_SIZE // 4),
                 )
                 self.menu.blit(
-                    stone_cost,
-                    (
-                        (self.stone_x + (Constant.SQ_SIZE // 1.5)),
-                        (y_buffer + (Constant.SQ_SIZE // 6)),
-                    ),
+                        stone_cost,
+                        (
+                            (self.stone_x + (Constant.SQ_SIZE // 1.5)),
+                            (y_buffer + (Constant.SQ_SIZE // 6)),
+                        ),
                 )
 
             # Menu
@@ -1212,7 +1580,7 @@ class SpawningMenu(Menu):
                 self.menu.blit(Constant.RESOURCES[p], (self.piece_x, y_buffer))
             else:
                 self.menu.blit(
-                    self.pieces[self.engine.turn][piece], (self.piece_x, y_buffer)
+                        self.pieces[self.engine.turn][piece], (self.piece_x, y_buffer)
                 )
 
             y_buffer += Constant.SPAWNING_MENU_HEIGHT_BUFFER
@@ -1314,7 +1682,7 @@ class Encyclopedia(Menu):
         self.engine = engine
         # Scale paper texture
         self.paper_texture = self.engine.get_current_state().scale_paper_texture(
-            self.win
+                self.win
         )
         self.description = False
 
@@ -1328,10 +1696,10 @@ class Encyclopedia(Menu):
 
         # Initialize Fonts
         self.large_font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.large_font_size
+                os.path.join("files/fonts", "font.ttf"), self.large_font_size
         )
         self.small_font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.small_font_size
+                os.path.join("files/fonts", "font.ttf"), self.small_font_size
         )
 
         # Boiler Plate
@@ -1342,17 +1710,17 @@ class Encyclopedia(Menu):
             self.color = pygame.Color("black")
             self.player = None
         self.resources = {
-            "wood": Constant.MENU_ICONS["log"],
-            "gold": Constant.MENU_ICONS["gold_coin"],
+            "wood" : Constant.MENU_ICONS["log"],
+            "gold" : Constant.MENU_ICONS["gold_coin"],
             "stone": Constant.MENU_ICONS["stone"],
         }
         self.icons = (
-            Constant.W_PIECES
-            | Constant.W_BUILDINGS
-            | Constant.B_PIECES
-            | Constant.B_BUILDINGS
-            | Constant.PRAYER_RITUALS
-            | Constant.RESOURCES
+                Constant.W_PIECES
+                | Constant.W_BUILDINGS
+                | Constant.B_PIECES
+                | Constant.B_BUILDINGS
+                | Constant.PRAYER_RITUALS
+                | Constant.RESOURCES
         )
         self.title_text_format_key = {"prayer_stone": "floating stone"}
         self.menu_logo = self.get_menu_logo(str(self))
@@ -1365,7 +1733,7 @@ class Encyclopedia(Menu):
         # Graphics Math
         self.title_text_display_x = self.window_width // 2 - self.title_text_width // 2
         self.title_text_display_y = (
-            round(self.window_height * 1 / 6) - self.title_text_height // 2
+                round(self.window_height * 1 / 6) - self.title_text_height // 2
         )
         self.menu_logo_display_x, self.menu_logo_display_y = (
             self.get_menu_logo_position()
@@ -1429,7 +1797,7 @@ class PieceDescription(Encyclopedia):
         # Define font size and load the font
         self.small_font_size: int = round(Constant.SQ_SIZE * (1 / 3))
         self.small_font: pygame.font.Font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.small_font_size
+                os.path.join("files/fonts", "font.ttf"), self.small_font_size
         )
 
         # Define board dimensions
@@ -1444,7 +1812,7 @@ class PieceDescription(Encyclopedia):
 
         # Create the board surface
         self.board_surface: pygame.Surface = pygame.Surface(
-            (self.cols * Constant.SQ_SIZE, self.rows * Constant.SQ_SIZE)
+                (self.cols * Constant.SQ_SIZE, self.rows * Constant.SQ_SIZE)
         )
 
         # Define board positioning on the window
@@ -1477,10 +1845,10 @@ class PieceDescription(Encyclopedia):
         # Define text box positioning
         self.text_box_x: int = self.board_surface.get_width() + self.board_x * 2
         self.text_box_width: int = self.window_width - (
-            self.board_surface.get_width() + self.board_x * 3
+                self.board_surface.get_width() + self.board_x * 3
         )
         self.text_box: pygame.Surface = pygame.Surface(
-            (self.text_box_width, self.window_height // 2.2)
+                (self.text_box_width, self.window_height // 2.2)
         )
 
         # Scale Paper surface to text box
@@ -1502,48 +1870,48 @@ class PieceDescription(Encyclopedia):
 
         # Define layout calculations for cost display
         self.cost_display_y: int = (
-            self.window_height // 2 - self.resources["wood"].get_height() // 2
+                self.window_height // 2 - self.resources["wood"].get_height() // 2
         )
         self.x_buffer_between_costs: int = round(Constant.SQ_SIZE * 1.5)
         self.description_text_y: int = (
-            self.cost_display_y + self.description_text_height
+                self.cost_display_y + self.description_text_height
         )
         self.cost_display_x: int = 0
 
         # Determine cost display positioning based on type
         if self.type == "piece":
             count = sum(
-                1
-                for cost in Constant.PIECE_COSTS[self.selected]
-                if Constant.PIECE_COSTS[self.selected][cost] != 0
+                    1
+                    for cost in Constant.PIECE_COSTS[self.selected]
+                    if Constant.PIECE_COSTS[self.selected][cost] != 0
             )
             full_length = (
-                self.resources["wood"].get_width() * count
-                + (self.x_buffer_between_costs // 2) * count
+                    self.resources["wood"].get_width() * count
+                    + (self.x_buffer_between_costs // 2) * count
             )
             self.cost_display_x = (
-                self.window_width // 2
-                - full_length // 2
-                + self.board_x // 2
-                + self.board_surface.get_width() // 2
+                    self.window_width // 2
+                    - full_length // 2
+                    + self.board_x // 2
+                    + self.board_surface.get_width() // 2
             )
             self.title_text_display_x = (
-                self.window_width // 2
-                - self.title_text_width // 2
-                + self.board_x // 2
-                + self.board_surface.get_width() // 2
+                    self.window_width // 2
+                    - self.title_text_width // 2
+                    + self.board_x // 2
+                    + self.board_surface.get_width() // 2
             )
             self.menu_logo_display_x = (
-                self.window_width // 2
-                - self.menu_logo.get_width() // 2
-                + self.board_x // 2
-                + self.board_surface.get_width() // 2
+                    self.window_width // 2
+                    - self.menu_logo.get_width() // 2
+                    + self.board_x // 2
+                    + self.board_surface.get_width() // 2
             )
             self.set_up_demonstration_board()
         elif self.type == "ritual":
             length_of_this_prayer_bar: int = self.full_length_of_prayer_bar(self.cost)
             self.cost_display_x = (
-                self.window_width // 2 - length_of_this_prayer_bar // 2
+                    self.window_width // 2 - length_of_this_prayer_bar // 2
             )
             self.text_box_x = (self.window_width - self.text_box_width) // 2
 
@@ -1568,10 +1936,10 @@ class PieceDescription(Encyclopedia):
 
         # Render title and menu logo
         self.win.blit(
-            self.text_surf, (self.title_text_display_x, self.title_text_display_y)
+                self.text_surf, (self.title_text_display_x, self.title_text_display_y)
         )
         self.win.blit(
-            self.menu_logo, (self.menu_logo_display_x, self.menu_logo_display_y)
+                self.menu_logo, (self.menu_logo_display_x, self.menu_logo_display_y)
         )
 
         # Set initial position for description text rendering
@@ -1583,7 +1951,7 @@ class PieceDescription(Encyclopedia):
 
         # Render and justify description text
         for line_surface in self.justify_text(
-            self.small_font, " ".join(self.description_text), max_width, self.color
+                self.small_font, " ".join(self.description_text), max_width, self.color
         ):
             x_position: int = (max_width - line_surface.get_width()) // 2
             self.text_box.blit(line_surface, (x_position, y_buffer))
@@ -1607,19 +1975,19 @@ class PieceDescription(Encyclopedia):
             "quarry_1",
         ]
         contextual_options = {
-            "pray": ["monolith, prayer_stone"],
-            "mine": resource_tiles,
-            "king": list(),
-            "queen": list(),
-            "trade": list(),
+            "pray"    : ["monolith, prayer_stone"],
+            "mine"    : resource_tiles,
+            "king"    : list(),
+            "queen"   : list(),
+            "trade"   : list(),
             "persuade": ["enemy"],
-            "steal": ["enemy"],
-            "build": list(),
-            "ritual": list(),
+            "steal"   : ["enemy"],
+            "build"   : list(),
+            "ritual"  : list(),
         }
         row, col = 3, 3
         self.board[row][col].set_occupying(
-            self.engine.PIECES[self.selected](row, col, color)
+                self.engine.PIECES[self.selected](row, col, color)
         )
         self.board[row][col].get_occupying().update_move_squares(self.engine)
         self.board[row][col].get_occupying().display_moves = True
@@ -1677,8 +2045,8 @@ class PieceDescription(Encyclopedia):
 
                 try:
                     if (
-                        getattr(self.player, Constant.RESOURCE_KEY[resource])
-                        >= self.cost[resource]
+                            getattr(self.player, Constant.RESOURCE_KEY[resource])
+                            >= self.cost[resource]
                     ):
                         color = self.color
                     else:
@@ -1686,12 +2054,12 @@ class PieceDescription(Encyclopedia):
                 except AttributeError:
                     color = self.color
                 text_surf = self.small_font.render(
-                    " " + str(self.cost[resource]), True, color
+                        " " + str(self.cost[resource]), True, color
                 )
                 resource_position = (cost_x, self.cost_display_y)
 
                 self.win.blit(
-                    self.resources[Constant.RESOURCE_KEY[resource]], resource_position
+                        self.resources[Constant.RESOURCE_KEY[resource]], resource_position
                 )
 
                 cost_text_position = (
@@ -1705,7 +2073,7 @@ class PieceDescription(Encyclopedia):
     def draw_ritual_cost(self):
         bar_end_edge = self.cost_display_x
         self.win.blit(
-            self.prayer_bar, (bar_end_edge - self.bar_width, self.cost_display_y)
+                self.prayer_bar, (bar_end_edge - self.bar_width, self.cost_display_y)
         )
         for z in range(self.cost):
             new_edge = bar_end_edge + self.bar_end_width * z
@@ -1727,17 +2095,17 @@ class PieceDescription(Encyclopedia):
 
                 # Draw the square
                 pygame.draw.rect(
-                    self.board_surface,
-                    color,
-                    pygame.Rect(x, y, rect_size[0], rect_size[1]),
+                        self.board_surface,
+                        color,
+                        pygame.Rect(x, y, rect_size[0], rect_size[1]),
                 )
 
                 # Draw the tile using blend mode (avoid re-evaluating color calculation)
                 tile_color = self.color_key[(r + c) % 2]
                 self.board_surface.blit(
-                    Constant.BOARD_TILES[tile_color][self.board[r][c].index],
-                    (x, y),
-                    special_flags=pygame.BLEND_RGBA_MULT,
+                        Constant.BOARD_TILES[tile_color][self.board[r][c].index],
+                        (x, y),
+                        special_flags=pygame.BLEND_RGBA_MULT,
                 )
         # Draw the board pieces
         for r in range(self.rows):
@@ -1789,19 +2157,19 @@ class CostMenu(Encyclopedia):
         self.text_display_x = self.window_width // 2 - self.title_text_width // 2
 
         self.text_display_y = (
-            round(self.window_height * 1 / 6) - self.title_text_height // 2
+                round(self.window_height * 1 / 6) - self.title_text_height // 2
         )
 
         self.width_of_of_all_columns_and_buffers = (
-            self.column_width + self.x_buffer_between_columns
-        ) * len(self.spawn_list)
+                                                           self.column_width + self.x_buffer_between_columns
+                                                   ) * len(self.spawn_list)
 
         self.column_display_y = round(self.window_height * 1 / 2)
 
         for _ in self.spawn_list:
             self.highlight_list.append(False)
             column = pygame.Surface(
-                [self.column_width, self.column_height], pygame.SRCALPHA, 32
+                    [self.column_width, self.column_height], pygame.SRCALPHA, 32
             )
             column = column.convert_alpha()
             self.column_list.append(column)
@@ -1820,21 +2188,21 @@ class CostMenu(Encyclopedia):
 
         # Calculate the initial position for displaying the columns
         column_display_x = (
-            self.window_width // 2 - self.width_of_of_all_columns_and_buffers // 2
+                self.window_width // 2 - self.width_of_of_all_columns_and_buffers // 2
         )
 
         # Iterate over each column to check if the mouse is hovering over it
         for index, column in enumerate(self.column_list):
             # Check if the mouse is within the vertical bounds of the column
             is_within_column_y = (
-                self.column_display_y
-                <= mouse_y
-                <= self.column_display_y + self.column_height
+                    self.column_display_y
+                    <= mouse_y
+                    <= self.column_display_y + self.column_height
             )
 
             # Check if the mouse is within the horizontal bounds of the column
             is_within_column_x = (
-                column_display_x <= mouse_x <= column_display_x + self.column_width
+                    column_display_x <= mouse_x <= column_display_x + self.column_width
             )
 
             if is_within_column_x and is_within_column_y:
@@ -1864,11 +2232,11 @@ class CostMenu(Encyclopedia):
         self.win.blit(self.text_surf, (self.text_display_x, self.text_display_y))
         if self.menu_logo:
             self.win.blit(
-                self.menu_logo, (self.menu_logo_display_x, self.menu_logo_display_y)
+                    self.menu_logo, (self.menu_logo_display_x, self.menu_logo_display_y)
             )
 
         column_display_x = (
-            self.window_width // 2 - self.width_of_of_all_columns_and_buffers // 2
+                self.window_width // 2 - self.width_of_of_all_columns_and_buffers // 2
         )
         for column in self.column_list:
             index = self.column_list.index(column)
@@ -1885,7 +2253,7 @@ class CostMenu(Encyclopedia):
 
             # Graphics Math
             piece_display_x = (
-                self.column_width // 2 - self.icons[piece].get_width() // 2
+                    self.column_width // 2 - self.icons[piece].get_width() // 2
             )
 
             column.blit(self.icons[piece], (piece_display_x, 0))
@@ -1895,8 +2263,8 @@ class CostMenu(Encyclopedia):
                 if cost[resource] != 0:
                     try:
                         if (
-                            getattr(self.player, Constant.RESOURCE_KEY[resource])
-                            >= cost[resource]
+                                getattr(self.player, Constant.RESOURCE_KEY[resource])
+                                >= cost[resource]
                         ):
                             color = self.color
                         else:
@@ -1904,7 +2272,7 @@ class CostMenu(Encyclopedia):
                     except AttributeError:
                         color = self.color
                     text_surface = self.small_font.render(
-                        str(cost[resource]), True, color
+                            str(cost[resource]), True, color
                     )
                     resource_position = (
                         self.column_width // 4 - resource_sprite.get_width() // 2,
@@ -1924,15 +2292,15 @@ class CostMenu(Encyclopedia):
     def piece_selected(self):
         pos = pygame.mouse.get_pos()
         column_display_x = (
-            self.window_width // 2 - self.width_of_of_all_columns_and_buffers // 2
+                self.window_width // 2 - self.width_of_of_all_columns_and_buffers // 2
         )
         for column in self.column_list:
             index = self.column_list.index(column)
             if pos[1] in range(
-                self.column_display_y, self.column_display_y + self.column_height
+                    self.column_display_y, self.column_display_y + self.column_height
             ):
                 if pos[0] in range(
-                    column_display_x, column_display_x + self.column_width
+                        column_display_x, column_display_x + self.column_width
                 ):
                     return self.spawn_list[index]
             column_display_x += self.column_width + self.x_buffer_between_columns
@@ -2033,7 +2401,7 @@ class RitualCosts(CostMenu):
         self.column_width = self.ritual_width
 
         total_height_of_cost_column = (
-            self.y_buffer_between_costs * 3 + self.x_buffer_between_columns
+                self.y_buffer_between_costs * 3 + self.x_buffer_between_columns
         )
         self.highlight_width = self.ritual_width
         self.highlight_dimensions = (self.highlight_width, total_height_of_cost_column)
@@ -2049,9 +2417,9 @@ class RitualCosts(CostMenu):
         self.bar_width = self.prayer_bar.get_width()
 
         self.piece_display_x = (
-            (self.win.get_width() // 2)
-            - self.column_width // 2
-            - (self.ritual_width // 2) * len(self.highlight_list)
+                (self.win.get_width() // 2)
+                - self.column_width // 2
+                - (self.ritual_width // 2) * len(self.highlight_list)
         )
         self.piece_display_y = self.win.get_height() // 2
 
@@ -2068,7 +2436,7 @@ class RitualCosts(CostMenu):
         self.win.blit(self.text_surf, (self.text_display_x, self.text_display_y))
         if self.menu_logo:
             self.win.blit(
-                self.menu_logo, (self.menu_logo_display_x, self.menu_logo_display_y)
+                    self.menu_logo, (self.menu_logo_display_x, self.menu_logo_display_y)
             )
         piece_display_x = self.piece_display_x
         for i in range(len(self.spawn_list)):
@@ -2085,13 +2453,13 @@ class RitualCosts(CostMenu):
             length_of_this_prayer_bar = self.full_length_of_prayer_bar(cost["prayer"])
 
             bar_end_edge = (
-                piece_display_x
-                + self.ritual_width // 2
-                - length_of_this_prayer_bar // 2
+                    piece_display_x
+                    + self.ritual_width // 2
+                    - length_of_this_prayer_bar // 2
             )
 
             self.win.blit(
-                self.prayer_bar, (bar_end_edge - self.bar_width, self.bar_display_y)
+                    self.prayer_bar, (bar_end_edge - self.bar_width, self.bar_display_y)
             )
 
             for z in range(cost["prayer"]):
@@ -2119,807 +2487,19 @@ class MonolithCosts(RitualCosts):
         return "monolith"
 
 
-class SideMenu:
-    def __init__(self, win, engine):
-        self.win = win
-        self.engine = engine
-        self.menu_height = Constant.SIDE_MENU_HEIGHT
-        self.menu_width = Constant.SIDE_MENU_WIDTH
-        self.menu = pygame.Surface((self.menu_width, self.menu_height))
-        # Scale paper texture
-        self.paper_texture = self.engine.get_current_state().scale_paper_texture(
-            self.menu
-        )
-
-    def draw(self):
-        pass
-
-    def mouse_move(self):
-        pass
-
-    def left_click(self):
-        pass
-
-    def right_click(self):
-        pass
-
-
-class Empty(SideMenu):
-    def __init__(self, win, engine):
-        super().__init__(win, engine)
-
-    def draw(self):
-        self.menu.fill(Constant.MENU_COLOR)
-        # Draw paper texture blended with background
-        self.engine.get_current_state().draw_paper_texture(self.menu)
-        self.win.blit(self.menu, (Constant.BOARD_WIDTH_SQ * Constant.SQ_SIZE, 0))
-
-
-class PieceInspector(SideMenu):
-    def __init__(
-        self, win: pygame.Surface, engine: "Engine", currently_selected: "Unit"
-    ) -> None:
-        # Initialize the parent class with window and engine
-        super().__init__(win, engine)
-
-        # Dictionary mapping player colors to their respective pieces and buildings
-        self.PIECES: Dict[str, Dict[str, pygame.Surface]] = {
-            "w": Constant.W_PIECES | Constant.W_BUILDINGS,
-            "b": Constant.B_PIECES | Constant.B_BUILDINGS,
-        }
-
-        # Define font sizes based on the square size constant
-        self.font_size: int = round(Constant.SQ_SIZE / 3.5)
-        self.small_font_size: int = round(Constant.SQ_SIZE / 4)
-
-        # Load fonts from the specified file path
-        self.font: pygame.font.Font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.font_size
-        )
-        self.small_font: pygame.font.Font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.small_font_size
-        )
-
-        # Get the current player based on engine's turn
-        self.player = self.engine.players[self.engine.turn]
-
-        # Set buffer space size
-        self.buffer: int = Constant.SQ_SIZE // 2
-
-        # Dictionary mapping resource names to their corresponding menu icons
-        self.RESOURCES: Dict[str, pygame.Surface] = {
-            "wood": Constant.MENU_ICONS["log"],
-            "gold": Constant.MENU_ICONS["gold_coin"],
-            "stone": Constant.MENU_ICONS["stone"],
-        }
-
-        # Render a space character to be used for spacing
-        self.space: pygame.Surface = self.small_font.render(" ", True, Constant.WHITE)
-
-        # Store the currently selected piece
-        self.piece: Unit = currently_selected
-
-        # Determine the piece's color based on turn mapping
-        self.color: tuple = Constant.turn_to_color[self.piece.color]
-
-        # Retrieve the description text for the selected piece
-        self.description_text: List[str] = Constant.DESCRIPTIONS[str(self.piece)]
-
-        # List to store rendered description text surfaces
-        self.description_text_surfaces: List[List[pygame.Surface]] = []
-
-        # Process description text and ensure each new string starts on a new line
-        for line in self.description_text:
-            if line[0] == "?":
-                line = " "
-            words = line.split()
-            line_surfaces = [
-                self.small_font.render(word, True, self.color) for word in words
-            ]
-            self.description_text_surfaces.append(line_surfaces)
-
-        # Store the width and height of the first rendered word if description is not empty
-        if self.description_text_surfaces and self.description_text_surfaces[0]:
-            self.description_text_width: int = self.description_text_surfaces[0][
-                0
-            ].get_width()
-            self.description_text_height: int = self.description_text_surfaces[0][
-                0
-            ].get_height()
-
-        # Construct the piece identifier string
-        self.piece_identifier: str = self.piece.color + "_" + str(self.piece)
-
-        # Retrieve the sprite for the selected piece based on its identifier
-        self.sprite: pygame.Surface = self.PIECES[self.piece.color][
-            self.piece_identifier
-        ]
-
-    def draw(self) -> None:
-        """Draws the piece details onto the menu screen."""
-        self.menu.fill(Constant.MENU_COLOR)
-
-        # Draw paper texture blended with background
-        self.engine.get_current_state().draw_paper_texture(self.menu)
-
-        # Display sprite
-        self.menu.blit(
-            self.sprite,
-            (self.menu_width // 2 - self.sprite.get_width() // 2, self.buffer),
-        )
-
-        # Display name
-        name = self.make_name_more_readable()
-        name_surface = self.font.render(name, True, self.color)
-        self.menu.blit(
-            name_surface,
-            (
-                self.menu_width // 2 - name_surface.get_width() // 2,
-                self.buffer + self.sprite.get_height(),
-            ),
-        )
-
-        # Display cost
-        cost = Constant.PIECE_COSTS[str(self.piece)]
-        y_buffer = self.buffer + name_surface.get_height() + self.sprite.get_height()
-        for resource in cost:
-            if cost[resource] != 0:
-                color = (
-                    self.color
-                    if getattr(self.player, Constant.RESOURCE_KEY[resource])
-                    >= cost[resource]
-                    else Constant.RED
-                )
-                text_surf = self.font.render(str(cost[resource]), True, color)
-                resource_icon = self.RESOURCES[Constant.RESOURCE_KEY[resource]]
-                resource_x = self.menu_width // 2 - (
-                    text_surf.get_width() // 2 + resource_icon.get_width() // 2
-                )
-                self.menu.blit(resource_icon, (resource_x, y_buffer))
-                self.menu.blit(
-                    text_surf,
-                    (
-                        resource_x + resource_icon.get_width(),
-                        y_buffer - text_surf.get_height() // 8,
-                    ),
-                )
-            y_buffer += name_surface.get_height()
-
-        # Display piece description with line breaks
-        if self.description_text_surfaces:
-            original_x = self.menu_width // 16
-            x = original_x
-            for line in self.description_text_surfaces:
-                y_buffer += (
-                    self.description_text_height
-                )  # Move to the next line for each description entry
-                x = original_x
-                for word in line:
-                    if x + word.get_width() + self.space.get_width() >= self.menu_width:
-                        y_buffer += self.description_text_height
-                        x = original_x
-                    self.menu.blit(word, (x, y_buffer))
-                    x += word.get_width()
-                    self.menu.blit(self.space, (x, y_buffer))
-                    x += self.space.get_width()
-
-        # Render the menu onto the game window
-        self.win.blit(self.menu, (Constant.BOARD_WIDTH_SQ * Constant.SQ_SIZE, 0))
-
-    def make_name_more_readable(self):
-        name = str(self.piece)
-
-        if name == "prayer_stone":
-            name = "floating stone"
-
-        name = name.replace("_", " ")
-        return name
-
-
-class StartMenu(SideMenu):
-    def __init__(self, win, engine):
-        super().__init__(win, engine)
-        # Select a random color for the logo and intro text
-        # Used by main menu to vary the wording
-        self.faction_name = self.reselect_faction_name()
-        self.color = self.reselect_menu_color()
-
-        self.font_size = round(Constant.SQ_SIZE / 3)
-        self.font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.font_size
-        )
-        self.small_font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.font_size // 2
-        )
-
-        self.ver_text = Constant.VERSION + " " + Constant.NUMBER
-        self.version_text_surf = self.font.render(self.ver_text, True, self.color)
-        self.version_text_display_x = (
-            self.menu_width // 2 - self.version_text_surf.get_width() // 2
-        )
-        self.reset_map_image = Constant.RESOURCES[random.choice(Constant.resources)]
-        self.map_image_height = self.reset_map_image.get_height()
-        self.map_image_width = self.reset_map_image.get_width()
-
-        self.introduction = [self.ver_text, " ", "select", "your", "_"]
-
-        self.w_boat = Constant.IMAGES["w_boat"]
-        self.b_boat = Constant.IMAGES["b_boat"]
-        self.boat_display_x = self.menu_width // 2 - self.b_boat.get_width() // 2
-        a = self.menu_height * 1 / 5
-        self.r = round((self.menu_height - a))
-        self.display_y = Constant.SQ_SIZE * 6
-
-        self.w_piece_highlight = False
-        self.b_piece_highlight = False
-        self.randomize_resources_highlight = False
-        self.scale = Constant.IMAGES_IMAGE_MODIFY["w_boat"]["SCALE"]
-        self.buffer = self.scale[0]
-        self.square = pygame.Surface(self.scale)
-        self.square_highlight_buffer = Constant.SQ_SIZE // 5
-
-        self.resources_square = pygame.Surface((self.menu_width, round(a)))
-        self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
-        self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
-        self.resources_square.set_alpha(Constant.HIGHLIGHT_ALPHA)
-        self.resources_square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
-
-        self.resource_highlight_height = round(Constant.BOARD_HEIGHT_PX * 4 / 5)
-        self.reset_map_display_x = (
-            self.menu_width // 2 - self.reset_map_image.get_width() // 2
-        )
-        self.reset_map_display_y = (
-            Constant.BOARD_HEIGHT_PX
-            - self.resources_square.get_height() // 2
-            - self.map_image_height // 2
-        )
-
-    def draw(self):
-        self.menu.fill(Constant.MENU_COLOR)
-        # Draw paper texture blended with background
-        self.engine.get_current_state().draw_paper_texture(self.menu)
-
-        y_buffer = Constant.SQ_SIZE // 2
-        for line in self.introduction:
-            if line == "_":
-                line = self.faction_name
-            if line == self.introduction[0]:
-                surface = self.small_font.render(line, True, self.color)
-            else:
-                surface = self.font.render(line, True, self.color)
-            text_x = self.menu_width // 2 - surface.get_width() // 2
-            self.menu.blit(surface, (text_x, y_buffer))
-            y_buffer += surface.get_height()
-
-        self.w_display_y = self.menu_height // 2 - self.b_boat.get_height() // 2
-        self.b_display_y = self.w_display_y + self.buffer + self.b_boat.get_height()
-        self.menu.blit(self.w_boat, (self.boat_display_x, self.w_display_y))
-        self.menu.blit(self.b_boat, (self.boat_display_x, self.b_display_y))
-        if self.b_piece_highlight:
-            self.menu.blit(self.square, (self.boat_display_x, self.b_display_y))
-        elif self.w_piece_highlight:
-            self.menu.blit(self.square, (self.boat_display_x, self.w_display_y))
-        elif self.randomize_resources_highlight:
-            self.menu.blit(self.resources_square, (0, self.resource_highlight_height))
-        self.menu.blit(
-            self.reset_map_image, (self.reset_map_display_x, self.reset_map_display_y)
-        )
-
-        self.win.blit(self.menu, (Constant.BOARD_WIDTH_PX, 0))
-
-    def left_click(self):
-        starting = False
-        pos = pygame.mouse.get_pos()
-        if pos[0] > Constant.BOARD_WIDTH_PX:
-            menu_mouse_x_position = pos[0] - Constant.BOARD_WIDTH_PX
-            if menu_mouse_x_position in range(
-                self.boat_display_x, self.boat_display_x + self.w_boat.get_width()
-            ):
-                if pos[1] in range(
-                    self.w_display_y, self.w_display_y + self.w_boat.get_height()
-                ):
-                    self.engine.turn = "w"
-                    starting = True
-                elif pos[1] in range(
-                    self.b_display_y, self.b_display_y + self.w_boat.get_height()
-                ):
-                    self.engine.turn = "b"
-                    starting = True
-                if starting:
-                    if not Constant.DEBUG_START:
-                        new_state = "select starting pieces"
-                        self.engine.set_state(new_state)
-                    else:
-                        new_state = "debug"
-                        self.engine.set_state(new_state)
-            if pos[1] in range(self.r, self.menu_height):
-                self.engine.reset_board()
-                self.engine.generate_resources()
-                self.reset_map_image = Constant.RESOURCES[
-                    random.choice(Constant.resources)
-                ]
-                self.reset_map_display_x = (
-                    self.menu_width // 2 - self.reset_map_image.get_width() // 2
-                )
-                self.reset_map_display_y = (
-                    Constant.BOARD_HEIGHT_PX
-                    - self.resources_square.get_height() // 2
-                    - self.map_image_height // 2
-                )
-                self.faction_name = self.reselect_faction_name()
-
-    def reselect_faction_name(self):
-        rand = random.randint(0, len(Constant.FACTION_NAMES) - 1)
-        return Constant.FACTION_NAMES[rand]
-
-    def reselect_menu_color(self):
-        rand = random.randint(0, 2)
-        if rand == 0:
-            return Constant.WHITE
-        else:
-            return Constant.BLACK
-
-    def mouse_move(self):
-        """
-        Handles mouse movement over the board and the menu area. It highlights the pieces
-        and shows the appropriate cursor when hovering over specific areas of the board or menu.
-        """
-        # Get the current mouse position
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-
-        # Initialize cursor to default
-        cursor_set = False
-
-        # Check if the mouse is within the bounds of the menu (right of the board)
-        if mouse_x > Constant.BOARD_WIDTH_PX:
-            # Calculate the mouse's position relative to the menu
-            menu_mouse_x_position = mouse_x - Constant.BOARD_WIDTH_PX
-
-            # Check if the mouse is over the white piece area
-            if menu_mouse_x_position in range(
-                self.boat_display_x, self.boat_display_x + self.w_boat.get_width()
-            ):
-                if mouse_y in range(
-                    self.w_display_y, self.w_display_y + self.w_boat.get_height()
-                ):
-                    # Highlight white piece if hovering
-                    self.w_piece_highlight = True
-                    if not cursor_set:
-                        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
-                        cursor_set = True
-                else:
-                    self.w_piece_highlight = False
-
-                # Check if the mouse is over the black piece area
-                if mouse_y in range(
-                    self.b_display_y, self.b_display_y + self.w_boat.get_height()
-                ):
-                    # Highlight black piece if hovering
-                    self.b_piece_highlight = True
-                    if not cursor_set:
-                        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
-                        cursor_set = True
-                else:
-                    self.b_piece_highlight = False
-
-            else:
-                self.w_piece_highlight = False
-                self.b_piece_highlight = False
-
-            # Check if the mouse is within the range for the randomize resources button
-            if mouse_y in range(self.r, self.menu_height):
-                self.randomize_resources_highlight = True
-                if not cursor_set:
-                    # Set cursor to hand when hovering over randomize button
-                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
-                    cursor_set = True
-            else:
-                self.randomize_resources_highlight = False
-
-        else:
-            # Reset highlights when the mouse is not in the menu area
-            self.w_piece_highlight = False
-            self.b_piece_highlight = False
-            self.randomize_resources_highlight = False
-
-        # If no other condition has set the cursor, set it back to default arrow
-        if not cursor_set:
-            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
-
-
-class SurrenderMenu(SideMenu):
-    def __init__(self, win, engine):
-        super().__init__(win, engine)
-        self.fontSize = round(Constant.SQ_SIZE // 3)
-        self.font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.fontSize
-        )
-        self.surrender_text = "Surrender?"
-        self.yes_text = "yes"
-        self.no_text = "no"
-        self.surrender_text_surface = self.font.render(
-            self.surrender_text, True, Constant.turn_to_color[self.engine.turn]
-        )
-        self.yes_button_address = self.engine.turn + "_" + self.yes_text
-        self.no_button_address = self.engine.turn + "_" + self.no_text
-        self.yes_button_image = Constant.IMAGES[self.yes_button_address]
-        self.no_button_image = Constant.IMAGES[self.no_button_address]
-        self.question_display_y = (
-            self.menu_height // 2 - self.surrender_text_surface.get_height() // 2
-        )
-        self.question_display_x = (
-            self.menu_width // 2 - self.surrender_text_surface.get_width() // 2
-        )
-        self.buffer = Constant.SQ_SIZE // 2
-        self.yes_display_y = self.question_display_y + 2 * self.buffer
-        self.no_display_y = (
-            self.yes_display_y + self.yes_button_image.get_height() + self.buffer
-        )
-        self.answer_surface_height = self.yes_button_image.get_height()
-        self.answer_surface_width = self.yes_button_image.get_width()
-        self.yes_display_x = (
-            self.menu_width // 2 - self.yes_button_image.get_width() // 2
-        )
-        self.no_display_x = self.menu_width // 2 - self.no_button_image.get_width() // 2
-
-        self.yes_highlight = False
-        self.no_highlight = False
-        self.square = pygame.Surface(Constant.YES_NO_BUTTON_SCALE)
-        self.yes_square_display_x = self.yes_display_x
-        self.no_square_display_x = self.no_display_x
-
-    def mouse_move(self):
-        """
-        Handles mouse movement over the menu area, highlighting the 'Yes' and 'No' buttons
-        based on the mouse position and updating the highlight state accordingly.
-        It also changes the mouse cursor when hovering over the buttons.
-        """
-        # Get the current mouse position
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-
-        # Initialize cursor state to the default arrow
-        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
-
-        # Check if the mouse is within the bounds of the menu (right of the board)
-        if mouse_x > Constant.BOARD_WIDTH_PX:
-            # Calculate the mouse's position relative to the menu
-            menu_x = mouse_x - Constant.BOARD_WIDTH_PX
-
-            # Check if the mouse is over the 'Yes' button
-            if mouse_y in range(
-                self.yes_display_y, self.yes_display_y + self.answer_surface_height
-            ):
-                if menu_x in range(
-                    self.yes_display_x, self.yes_display_x + self.answer_surface_width
-                ):
-                    # Highlight 'Yes' button if hovering
-                    self.yes_highlight = True
-                    # Set cursor to hand if hovering over 'Yes'
-                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
-                else:
-                    self.yes_highlight = False
-
-            # Check if the mouse is over the 'No' button
-            elif mouse_y in range(
-                self.no_display_y, self.no_display_y + self.answer_surface_height
-            ):
-                if menu_x in range(
-                    self.no_display_x, self.no_display_x + self.answer_surface_width
-                ):
-                    # Highlight 'No' button if hovering
-                    self.no_highlight = True
-                    # Set cursor to hand if hovering over 'No'
-                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
-                else:
-                    self.no_highlight = False
-
-            else:
-                # Reset highlights if not hovering over either button
-                self.yes_highlight = False
-                self.no_highlight = False
-        else:
-            # Reset highlights when the mouse is not in the menu area
-            self.yes_highlight = False
-            self.no_highlight = False
-
-    def left_click(self):
-        pos = pygame.mouse.get_pos()
-        if pos[0] > Constant.BOARD_WIDTH_PX:
-            menu_x = pos[0] - Constant.BOARD_WIDTH_PX
-            if pos[1] in range(
-                self.yes_display_y, self.yes_display_y + self.answer_surface_height
-            ):
-                if menu_x in range(
-                    self.yes_display_x, self.yes_display_x + self.answer_surface_width
-                ):
-                    self.engine.change_turn()
-                    self.engine.surrendering = True
-                    return True
-            if pos[1] in range(
-                self.no_display_y, self.no_display_y + self.answer_surface_height
-            ):
-                if menu_x in range(
-                    self.no_display_x, self.no_display_x + self.answer_surface_width
-                ):
-                    return self.engine.state[-1].revert_to_playing_state()
-
-    def draw(self):
-        self.menu.fill(Constant.MENU_COLOR)
-        # Draw paper texture blended with background
-        self.engine.get_current_state().draw_paper_texture(self.menu)
-        self.menu.blit(
-            self.surrender_text_surface,
-            (self.question_display_x, self.question_display_y),
-        )
-        if self.yes_highlight:
-            self.menu.blit(self.square, (self.yes_square_display_x, self.yes_display_y))
-        elif self.no_highlight:
-            self.menu.blit(self.square, (self.no_square_display_x, self.no_display_y))
-        self.menu.blit(self.yes_button_image, (self.yes_display_x, self.yes_display_y))
-        self.menu.blit(self.no_button_image, (self.no_display_x, self.no_display_y))
-        self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
-        self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
-
-        self.win.blit(self.menu, (Constant.BOARD_WIDTH_SQ * Constant.SQ_SIZE, 0))
-
-
-class Hud(SideMenu):
-    def __init__(self, win, engine):
-        super().__init__(win, engine)
-        self.title_icon_width = Constant.IMAGES["w_game_name"].get_width()
-        self.title_icon_height = Constant.IMAGES["w_game_name"].get_height()
-        self.title_icon_display_x = self.menu_width // 2 - self.title_icon_width // 2
-        self.title_icon_display_y = self.menu_height // 8 - self.title_icon_height // 2
-        self.font_size = Constant.SQ_SIZE // 2
-        self.small_font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.font_size // 2
-        )
-
-        self.font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.font_size
-        )
-        self.counter_icon_display_x = Constant.BOARD_WIDTH_PX + 10
-        self.coin_icon_display_y = round(self.menu_height * (8 / 10))
-        self.icon_y_offset = Constant.SQ_SIZE // 1.2
-        self.stone_icon_display_y = self.coin_icon_display_y + self.icon_y_offset
-        self.log_icon_display_y = self.coin_icon_display_y - self.icon_y_offset
-        self.prayer_icon_display_y = self.log_icon_display_y - self.icon_y_offset
-        self.action_icon_display_y = self.prayer_icon_display_y - self.icon_y_offset
-        self.units_icon_display_y = self.action_icon_display_y - self.icon_y_offset
-        self.turn_icon_display_y = self.units_icon_display_y - self.icon_y_offset
-        self.bar_end_width = Constant.IMAGES["prayer_bar_end"].get_width()
-        self.bar_width = Constant.IMAGES["prayer_bar"].get_width()
-        self.bar_height = Constant.IMAGES["prayer_bar"].get_height()
-        self.counter_text_buffer = Constant.SQ_SIZE // 2
-        self.prayer_bar_height = (
-            self.prayer_icon_display_y
-            + round(Constant.MENU_ICONS["prayer"].get_height() // 2)
-            - round(self.bar_height // 2)
-        )
-        self.prayer_bar_edge = self.counter_icon_display_x + self.counter_text_buffer
-        self.prayer_bar_end_edge = self.prayer_bar_edge + self.bar_width
-        self.empty_text_surface = self.font.render("0", True, Constant.WHITE)
-        self.text_vertical_offset = (
-            self.empty_text_surface.get_height() // 2
-            - Constant.MENU_ICONS["log"].get_height() // 2
-        )
-        self.square = pygame.Surface(
-            (Constant.SIDE_MENU_WIDTH, round(Constant.SIDE_MENU_HEIGHT * 0.25))
-        )
-        self.title_bar_highlight = False
-        self.square.set_alpha(Constant.HIGHLIGHT_ALPHA)
-        self.square.fill(Constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
-
-    def draw(self):
-        self.menu.fill(Constant.MENU_COLOR)
-        # Draw paper texture blended with background
-        self.engine.get_current_state().draw_paper_texture(self.menu)
-        if Constant.DISPLAY_STATE_IN_HUD:
-            state_text_surf = self.small_font.render(
-                str(self.engine.state[-1]),
-                True,
-                Constant.turn_to_color[self.engine.turn],
-            )
-            selected = self.small_font.render(
-                str(self.engine.update_previously_selected()),
-                True,
-                Constant.turn_to_color[self.engine.turn],
-            )
-            self.menu.blit(
-                state_text_surf,
-                (
-                    self.menu_width // 2 - state_text_surf.get_width() // 2,
-                    self.square.get_height(),
-                ),
-            )
-            self.menu.blit(
-                selected,
-                (
-                    self.menu_width // 2 - selected.get_width() // 2,
-                    self.square.get_height() * 2,
-                ),
-            )
-        if self.title_bar_highlight:
-            self.menu.blit(self.square, (0, 0))
-        self.menu.blit(
-            Constant.IMAGES[self.engine.turn + "_game_name"],
-            (self.title_icon_display_x, self.title_icon_display_y),
-        )
-        self.win.blit(self.menu, (Constant.BOARD_WIDTH_PX, 0))
-
-        # Gold Counter
-        if not self.engine.players[self.engine.turn].gold == 0:
-            self.win.blit(
-                Constant.IMAGES["gold_coin"],
-                (self.counter_icon_display_x, self.coin_icon_display_y),
-            )
-            white_coin_text = self.font.render(
-                str(self.engine.players[self.engine.turn].gold),
-                True,
-                Constant.turn_to_color[self.engine.turn],
-            )
-            self.win.blit(
-                white_coin_text,
-                (
-                    (self.counter_icon_display_x + self.counter_text_buffer),
-                    self.coin_icon_display_y - self.text_vertical_offset,
-                ),
-            )
-
-        # Wood Counter
-        if not self.engine.players[self.engine.turn].wood == 0:
-            self.win.blit(
-                Constant.IMAGES["log"],
-                (self.counter_icon_display_x, self.log_icon_display_y),
-            )
-            white_log_text = self.font.render(
-                str(self.engine.players[self.engine.turn].wood),
-                True,
-                Constant.turn_to_color[self.engine.turn],
-            )
-            self.win.blit(
-                white_log_text,
-                (
-                    (self.counter_icon_display_x + self.counter_text_buffer),
-                    self.log_icon_display_y - self.text_vertical_offset,
-                ),
-            )
-
-        # Stone Counter
-        if not self.engine.players[self.engine.turn].stone == 0:
-            self.win.blit(
-                Constant.IMAGES["stone"],
-                (self.counter_icon_display_x, self.stone_icon_display_y),
-            )
-            white_log_text = self.font.render(
-                str(self.engine.players[self.engine.turn].stone),
-                True,
-                Constant.turn_to_color[self.engine.turn],
-            )
-            self.win.blit(
-                white_log_text,
-                (
-                    (self.counter_icon_display_x + self.counter_text_buffer),
-                    self.stone_icon_display_y - self.text_vertical_offset,
-                ),
-            )
-
-        # Prayer Counter
-        if not self.engine.players[self.engine.turn].prayer == 0:
-            self.win.blit(
-                Constant.MENU_ICONS["prayer"],
-                (self.counter_icon_display_x, self.prayer_icon_display_y),
-            )
-            self.win.blit(
-                Constant.IMAGES["prayer_bar"],
-                (self.prayer_bar_edge, self.prayer_bar_height),
-            )
-            for x in range(self.engine.players[self.engine.turn].prayer):
-                new_edge = self.prayer_bar_end_edge + self.bar_end_width * (x)
-                self.win.blit(
-                    Constant.IMAGES["prayer_bar_end"],
-                    (new_edge, self.prayer_bar_height),
-                )
-
-        # Actions Remaining Counter
-        self.win.blit(
-            Constant.IMAGES["action"],
-            (self.counter_icon_display_x, self.action_icon_display_y),
-        )
-        actions_remaining_text = self.font.render(
-            str(self.engine.players[self.engine.turn].get_actions_remaining()),
-            True,
-            Constant.turn_to_color[self.engine.turn],
-        )
-        self.win.blit(
-            actions_remaining_text,
-            (
-                (self.counter_icon_display_x + self.counter_text_buffer),
-                self.action_icon_display_y - self.text_vertical_offset,
-            ),
-        )
-
-        # Unit Limit Counter
-        self.win.blit(
-            Constant.IMAGES["units"],
-            (self.counter_icon_display_x, self.units_icon_display_y),
-        )
-        t = (
-            str(self.engine.players[self.engine.turn].get_current_population())
-            + "/"
-            + str(self.engine.players[self.engine.turn].get_piece_limit())
-        )
-        units_text = self.font.render(t, True, Constant.turn_to_color[self.engine.turn])
-        self.win.blit(
-            units_text,
-            (
-                (self.counter_icon_display_x + self.counter_text_buffer),
-                self.units_icon_display_y - self.text_vertical_offset,
-            ),
-        )
-
-        # Turn Counter
-        self.win.blit(
-            Constant.IMAGES["hour_glass"],
-            (self.counter_icon_display_x, self.turn_icon_display_y),
-        )
-        turn_number_text = str(self.engine.turn_count_display)
-        text_surf = self.font.render(
-            turn_number_text, True, Constant.turn_to_color[self.engine.turn]
-        )
-        self.win.blit(
-            text_surf,
-            (
-                self.counter_icon_display_x + self.counter_text_buffer,
-                self.turn_icon_display_y - self.text_vertical_offset,
-            ),
-        )
-
-    def mouse_move(self):
-        """
-        Handles mouse movement over the title bar area. It highlights the title bar based on the
-        mouse position and updates the mouse cursor to a hand when hovering over the title bar.
-        """
-        # Get the current mouse position
-        pos = pygame.mouse.get_pos()
-
-        # Check if the mouse is within the board area (right of the board)
-        if pos[0] > Constant.BOARD_WIDTH_PX:
-            # Check if the mouse is over the title bar area (top 25% of the screen)
-            if 0 < pos[1] < Constant.BOARD_HEIGHT_PX * 0.25:
-                self.title_bar_highlight = True
-                pygame.mouse.set_cursor(
-                    pygame.SYSTEM_CURSOR_HAND
-                )  # Set cursor to hand when over title bar
-            else:
-                self.title_bar_highlight = False
-                pygame.mouse.set_cursor(
-                    pygame.SYSTEM_CURSOR_ARROW
-                )  # Reset cursor to arrow when not over title bar
-        else:
-            # Reset title bar highlight and cursor if not in the menu area
-            self.title_bar_highlight = False
-
-    def left_click(self):
-        pos = pygame.mouse.get_pos()
-        if pos[0] > Constant.BOARD_WIDTH_PX:
-            if 0 < pos[1] < Constant.BOARD_HEIGHT_PX * 0.25:
-                return self.engine.transfer_to_piece_cost_screen()
-
-
 class Contextual(Menu):
     def __init__(self, row, col, win, engine, menu_list):
         super().__init__(win, engine)
         # Scale paper texture
         self.paper_texture = self.engine.get_current_state().scale_paper_texture(
-            self.win
+                self.win
         )
         self.menu_list = menu_list
         self.row = row
         self.col = col
         self.font_size = round(Constant.SQ_SIZE / 4)
         self.font = pygame.font.Font(
-            os.path.join("files/fonts", "font.ttf"), self.font_size
+                os.path.join("files/fonts", "font.ttf"), self.font_size
         )
         self.test_text = self.font.render("10", True, Constant.RED)
         self.sprite_list = list()
@@ -2929,37 +2509,37 @@ class Contextual(Menu):
         self.cost_text_surface = self.font.render(str(self.cost), True, self.color)
         self.engine.get_occupying(row, col).pre_selected = True
         self.contextual_options = {
-            "pray": self.engine.transfer_to_praying_state,
-            "mine": self.engine.transfer_to_mining_state,
-            "king": self.engine.transfer_to_surrender_state,
-            "queen": self.engine.decree,
-            "trade": self.engine.transfer_to_trading_state,
+            "pray"    : self.engine.transfer_to_praying_state,
+            "mine"    : self.engine.transfer_to_mining_state,
+            "king"    : self.engine.transfer_to_surrender_state,
+            "queen"   : self.engine.decree,
+            "trade"   : self.engine.transfer_to_trading_state,
             "persuade": self.engine.transfer_to_persuading_state,
-            "steal": self.engine.transfer_to_stealing_state,
-            "build": self.engine.transfer_to_building_state,
-            "ritual": self.engine.transfer_to_pre_ritual_state,
+            "steal"   : self.engine.transfer_to_stealing_state,
+            "build"   : self.engine.transfer_to_building_state,
+            "ritual"  : self.engine.transfer_to_pre_ritual_state,
         }
         standard_requirements = (
-            self.engine.players[self.engine.turn].can_act()
-            and self.engine.get_occupying(self.row, self.col).can_act()
+                self.engine.players[self.engine.turn].can_act()
+                and self.engine.get_occupying(self.row, self.col).can_act()
         )
         pray_requirements = standard_requirements and not self.engine.rituals_banned
         half_requirements = self.engine.get_occupying(self.row, self.col).can_act()
         no_requirements = True
         trade_requirements = half_requirements and self.engine.can_trade()
         queen_requirements = standard_requirements and self.engine.can_decree(
-            self.row, self.col
+                self.row, self.col
         )
         self.requirements = {
-            "pray": pray_requirements,
-            "mine": half_requirements,
-            "king": no_requirements,
-            "queen": queen_requirements,
-            "trade": trade_requirements,
+            "pray"    : pray_requirements,
+            "mine"    : half_requirements,
+            "king"    : no_requirements,
+            "queen"   : queen_requirements,
+            "trade"   : trade_requirements,
             "persuade": standard_requirements,
-            "steal": half_requirements,
-            "build": no_requirements,
-            "ritual": no_requirements,
+            "steal"   : half_requirements,
+            "build"   : no_requirements,
+            "ritual"  : no_requirements,
         }
         for item in menu_list:
             if item == "king":
@@ -2975,7 +2555,7 @@ class Contextual(Menu):
 
         self.menu_width = 2 * Constant.CONTEXTUAL_MENU_ICON_DEFAULT_SCALE[1]
         self.menu_height = (
-            len(self.menu_list) * Constant.SQ_SIZE
+                len(self.menu_list) * Constant.SQ_SIZE
         )  # **Exact height based on list length**
 
         self.menu_position_x, self.menu_position_y = self.correct_menu_boundary()
@@ -2995,10 +2575,10 @@ class Contextual(Menu):
         try:
             self.engine.update_squares()
             squares = {
-                "pray": self.piece.praying_squares_list,
-                "mine": self.piece.mining_squares_list,
+                "pray"    : self.piece.praying_squares_list,
+                "mine"    : self.piece.mining_squares_list,
                 "persuade": self.piece.persuader_squares_list,
-                "steal": self.piece.stealing_squares_list,
+                "steal"   : self.piece.stealing_squares_list,
             }
             if not squares[item]:
                 return False
@@ -3020,7 +2600,7 @@ class Contextual(Menu):
 
         # Check if the click is inside the menu’s X boundaries
         if not (
-            self.menu_position_x <= mouse_x <= self.menu_position_x + self.menu_width
+                self.menu_position_x <= mouse_x <= self.menu_position_x + self.menu_width
         ):
             return  # Click is outside the menu
 
@@ -3080,7 +2660,7 @@ class Contextual(Menu):
             # If the mouse is outside the menu area, reset all highlights and set cursor to arrow
             self.item_highlight_list = [False] * len(self.menu_list)  # Reset highlights
             pygame.mouse.set_cursor(
-                pygame.SYSTEM_CURSOR_ARROW
+                    pygame.SYSTEM_CURSOR_ARROW
             )  # Reset cursor to default
 
     def draw(self):
@@ -3103,16 +2683,16 @@ class Contextual(Menu):
                 resource = get_decree_resource_sprite()
                 resource_x = self.menu_width // 6
                 resource_y = (
-                    self.menu.get_height() * 1 // 3
+                        self.menu.get_height() * 1 // 3
                 )  # Center in the bottom third of the menu
                 self.menu.blit(resource, (resource_x, resource_y))
                 # Position the cost text to the right of the icon
                 cost_x = resource_x + resource.get_width() * 3 // 4
                 cost_y = (
-                    resource_y
-                    + (resource.get_height() - self.cost_text_surface.get_height())
-                    * 3
-                    // 4
+                        resource_y
+                        + (resource.get_height() - self.cost_text_surface.get_height())
+                        * 3
+                        // 4
                 )  # Center vertically
                 if not self.engine.can_decree(self.row, self.col):
                     color = Constant.RED
@@ -3124,7 +2704,7 @@ class Contextual(Menu):
             icon_width, icon_height = icon_surface.get_size()
             icon_x = (self.menu_width - icon_width) // 2  # Center horizontally
             icon_y = (
-                y_position + (Constant.SQ_SIZE - icon_height) // 2
+                    y_position + (Constant.SQ_SIZE - icon_height) // 2
             )  # Center vertically inside section
 
             self.menu.blit(icon_surface, (icon_x, icon_y))

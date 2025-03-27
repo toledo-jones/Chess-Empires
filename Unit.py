@@ -31,6 +31,8 @@ class Unit:
         self.check: Optional[bool] = None
         self.offset: tuple[int, int] = self.get_sprite_offset()
         self.dragging: bool = False
+
+        # This piece has not moved yet
         self.first_move: bool = True
         self.rect: pygame.Rect = pygame.Rect(
             col * Constant.SQ_SIZE,
@@ -110,7 +112,7 @@ class Unit:
             ("praying", ["praying"]),
             ("mining", ["mining"]),
             ("selected", ["move", "capture"]),
-            ("pre_selected", ["spawn"]),
+            ("pre_selected", []),
             ("performing_ritual", ["ritual"]),
             ("persuading", ["persuader"]),
         ]
@@ -273,13 +275,9 @@ class Unit:
                 # Update the squares list for the action using the attribute
                 setattr(self, f"{action}_squares_list", update_method(engine))
 
-                if action == "spawn":
-                    print(f"Updated {action} squares list")
-                    print(getattr(self, f"{action}_squares_list"))
 
             # Many pieces will not have a method for each action
             except AttributeError as e:
-                print(e)
                 continue
 
     def change_pos(self, row: int, col: int):
@@ -606,6 +604,24 @@ class Piece(Unit):
         """
         return True
 
+    def base_spawn_criteria(self, engine: "Engine", row: int, col: int) -> bool:
+        """
+        Determines if the builder can spawn at the given position based on base criteria.
+
+        :param engine: The game engine.
+        :param row: The row position to check.
+        :param col: The column position to check.
+        :return: True if the builder can spawn, False otherwise.
+        """
+        # Check if the tile is within bounds
+        if engine.tile_in_bounds(row, col):
+            return (
+                engine.has_none_occupying(row, col)
+                and not engine.has_portal(row, col)
+                and not engine.has_trap(row, col)
+                and not engine.board[row][col].is_protected_by_opposite_color(self.color)
+            )
+        return False
 
 class King(Piece):
     """
@@ -1676,7 +1692,7 @@ class Pawn(Piece):
             # Get the piece occupying the calculated position
             occupying_piece = engine.get_occupying(row, col)
 
-            # Check if the tile has a mineable resource
+            # Check if the tile has a mine-able resource
             if engine.has_mineable_resource(row, col):
                 # If there is an occupying piece, check its color
                 if occupying_piece:
@@ -2257,7 +2273,7 @@ class RoguePawn(Piece):
             # Get the piece occupying the calculated position
             occupying_piece = engine.get_occupying(row, col)
 
-            # Check if the tile has mineable resources
+            # Check if the tile has mine-able resources
             if engine.has_mineable_resource(row, col):
                 # If there is no occupying piece or the occupying piece is of the same color
                 if (
@@ -2506,24 +2522,6 @@ class Monk(Piece):
         # Return the list of move squares
         return squares
 
-    def base_spawn_criteria(self, engine: "Engine", row: int, col: int) -> bool:
-        """
-        Determines if the monk can spawn at the given position based on base criteria.
-
-        :param engine: The game engine.
-        :param row: The row position to check.
-        :param col: The column position to check.
-        :return: True if the monk can spawn, False otherwise.
-        """
-        # Check if the tile is within bounds
-        if engine.tile_in_bounds(row, col):
-            # Check if the tile has no occupying piece, no portal, and no trap
-            return (
-                engine.has_none_occupying(row, col)
-                and not engine.has_portal(row, col)
-                and not engine.has_trap(row, col)
-            )
-        return False
 
     def spawn_squares(self, engine: "Engine") -> list[tuple[int, int]]:
         """
@@ -2573,7 +2571,7 @@ class Monk(Piece):
             row: int = self.row + direction[0]
             col: int = self.col + direction[1]
 
-            # Check if the tile has a prayable building
+            # Check if the tile has a pray-able building
             if engine.has_prayable_building(row, col):
                 # Check if the occupying piece is of the same color
                 if engine.get_occupying(row, col).color is self.color:
@@ -3251,7 +3249,7 @@ class Builder(Piece):
             row: int = self.row - direction[0]
             col: int = self.col - direction[1]
 
-            # Check if the tile has a mineable resource
+            # Check if the tile has a mine-able resource
             if engine.has_mineable_resource(row, col):
                 if engine.get_occupying(row, col):
                     if engine.get_occupying_color(row, col) is not self.color:
@@ -3266,23 +3264,7 @@ class Builder(Piece):
         # Return the list of mining squares
         return mining_squares
 
-    def base_spawn_criteria(self, engine: "Engine", row: int, col: int) -> bool:
-        """
-        Determines if the builder can spawn at the given position based on base criteria.
 
-        :param engine: The game engine.
-        :param row: The row position to check.
-        :param col: The column position to check.
-        :return: True if the builder can spawn, False otherwise.
-        """
-        # Check if the tile is within bounds
-        if engine.tile_in_bounds(row, col):
-            return (
-                engine.has_none_occupying(row, col)
-                and not engine.has_portal(row, col)
-                and not engine.has_trap(row, col)
-            )
-        return False
 
     def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
         """
@@ -3546,7 +3528,7 @@ class Champion(Piece):
             row: int = self.row - direction_tuple[0]
             col: int = self.col - direction_tuple[1]
 
-            # Check if the tile has a prayable building
+            # Check if the tile has a pray-able building
             if engine.has_prayable_building(row, col):
                 if engine.get_occupying(row, col).color is self.color:
                     moves.append((row, col))
@@ -3566,7 +3548,7 @@ class Champion(Piece):
 
         # Iterate over each direction in the capture directions
         for direction in self.directions:
-            extra_directions: tuple[int, int] = self.extra_move_directions[direction]
+            extra_directions: dict[Tuple[int, int]] = self.extra_move_directions[direction]
             for extra_direction in extra_directions:
                 for distance in range(0, self.distance):
                     row: int = self.row + direction[0] + extra_direction[0] * distance
@@ -3601,7 +3583,7 @@ class Champion(Piece):
 
         # Iterate over each direction in the move directions
         for direction in self.directions:
-            extra_directions: tuple[int, int] = self.extra_move_directions[direction]
+            extra_directions: dict[tuple[int, int]] = self.extra_move_directions[direction]
             for extra_direction in extra_directions:
                 for distance in range(0, self.distance):
                     row: int = self.row + direction[0] + extra_direction[0] * distance
@@ -3924,7 +3906,7 @@ class GoldGeneral(Piece):
             row: int = self.row + direction[0]
             col: int = self.col + direction[1]
 
-            # Check if the square has a prayable building
+            # Check if the square has a pray-able building
             if engine.has_prayable_building(row, col):
                 if engine.get_occupying(row, col).color == self.color:
                     squares.append((row, col))
@@ -4910,7 +4892,7 @@ class Ferz(Piece):
             row: int = self.row - direction[0]
             col: int = self.col - direction[1]
 
-            # Check if the square has mineable resources
+            # Check if the square has mine-able resources
             if engine.has_mineable_resource(row, col):
                 if engine.get_occupying(row, col):
                     if engine.get_occupying_color(row, col) is not self.color:
@@ -5117,7 +5099,7 @@ class Cavalry(Piece):
             row: int = self.row - direction[0]
             col: int = self.col - direction[1]
 
-            # Check if the square has mineable resources
+            # Check if the square has mine-able resources
             if engine.has_mineable_resource(row, col):
                 if engine.get_occupying(row, col):
                     if engine.get_occupying_color(row, col) is not self.color:

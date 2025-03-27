@@ -10,7 +10,7 @@ if typing.TYPE_CHECKING:
 
 from GameEvent import *
 from Menu import *
-
+from SideBar import *
 
 def exit_game():
     """
@@ -136,7 +136,7 @@ class State:
         self.engine: Engine = engine
 
         # Sidebar element, initially set to None
-        self.side_bar: Optional[SideMenu] = None
+        self.side_bar: Optional[SideBar] = None
 
         # Boolean flag indicating whether an object is currently being dragged
         self.dragging: bool = False
@@ -1390,7 +1390,7 @@ class Inspector(State):
         self.currently_selected: Unit = currently_selected
 
         # Initialize the sidebar for displaying piece information
-        self.side_bar: SideMenu = PieceInspector(win, engine, currently_selected)
+        self.side_bar: SideBar = PieceInspector(win, engine, currently_selected)
 
     def __repr__(self) -> str:
         """
@@ -1525,7 +1525,7 @@ class Playing(State):
         super().__init__(win, engine)
 
         # Create the sidebar for this state
-        self.side_bar: SideMenu = Hud(win, engine)
+        self.side_bar: SideBar = Hud(win, engine)
 
     def __repr__(self) -> str:
         """
@@ -2027,7 +2027,7 @@ class Starting(State):
         self.engine.create_player("b")
 
         # Initialize the sidebar with the StartMenu
-        self.side_bar: SideMenu = StartMenu(win, engine)
+        self.side_bar: SideBar = Start(win, engine)
 
         # If resources should not be preserved
         if not preserve_resources:
@@ -2815,7 +2815,7 @@ class DebugStart(StartingSpawn):
         super().__init__(win, engine)
 
         # Initialize the sidebar with an empty state
-        self.side_bar: SideMenu = Empty(win, engine)
+        self.side_bar: SideBar = Empty(win, engine)
 
         # Set the first flag to True
         self.first: bool = True
@@ -3890,7 +3890,7 @@ class Surrender(State):
         super().__init__(win, engine)
 
         # Initialize the sidebar with a SurrenderMenu
-        self.side_bar = SurrenderMenu(win, engine)
+        self.side_bar = Surrender(win, engine)
 
     def __repr__(self) -> str:
         """
@@ -4153,7 +4153,7 @@ class SummonGoldGeneral(Ritual):
         super().__init__(win, engine)
 
         # Initialize the sidebar with a HUD
-        self.side_bar: SideMenu = Hud(self.win, self.engine)
+        self.side_bar: SideBar = Hud(self.win, self.engine)
 
         # Set the ritual squares list for the previously selected piece
         self.previously_selected.ritual_squares_list = (
@@ -4241,7 +4241,7 @@ class PerformSmite(Ritual):
         super().__init__(win, engine)
 
         # Initialize the sidebar with a HUD
-        self.side_bar: SideMenu = Hud(self.win, self.engine)
+        self.side_bar: SideBar = Hud(self.win, self.engine)
 
         # Close all menus in the engine
         self.engine.close_menus()
@@ -4333,7 +4333,7 @@ class PerformDestroyResource(Ritual):
         super().__init__(win, engine)
 
         # Initialize the sidebar with a HUD
-        self.side_bar: SideMenu = Hud(self.win, self.engine)
+        self.side_bar: SideBar = Hud(self.win, self.engine)
 
         # Close all menus in the engine
         self.engine.close_menus()
@@ -4430,7 +4430,7 @@ class PerformCreateResource(Ritual):
         super().__init__(win, engine)
 
         # Initialize the sidebar with a HUD
-        self.side_bar: SideMenu = Hud(self.win, self.engine)
+        self.side_bar: SideBar = Hud(self.win, self.engine)
 
         # Close all menus in the engine
         self.engine.close_menus()

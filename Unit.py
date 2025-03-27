@@ -275,7 +275,6 @@ class Unit:
                 # Update the squares list for the action using the attribute
                 setattr(self, f"{action}_squares_list", update_method(engine))
 
-
             # Many pieces will not have a method for each action
             except AttributeError as e:
                 continue
@@ -619,9 +618,12 @@ class Piece(Unit):
                 engine.has_none_occupying(row, col)
                 and not engine.has_portal(row, col)
                 and not engine.has_trap(row, col)
-                and not engine.board[row][col].is_protected_by_opposite_color(self.color)
+                and not engine.board[row][col].is_protected_by_opposite_color(
+                    self.color
+                )
             )
         return False
+
 
 class King(Piece):
     """
@@ -2522,7 +2524,6 @@ class Monk(Piece):
         # Return the list of move squares
         return squares
 
-
     def spawn_squares(self, engine: "Engine") -> list[tuple[int, int]]:
         """
         Determines the squares the monk can spawn at.
@@ -3264,8 +3265,6 @@ class Builder(Piece):
         # Return the list of mining squares
         return mining_squares
 
-
-
     def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
         """
         Determines the squares the builder can move to.
@@ -3548,7 +3547,9 @@ class Champion(Piece):
 
         # Iterate over each direction in the capture directions
         for direction in self.directions:
-            extra_directions: dict[Tuple[int, int]] = self.extra_move_directions[direction]
+            extra_directions: dict[Tuple[int, int]] = self.extra_move_directions[
+                direction
+            ]
             for extra_direction in extra_directions:
                 for distance in range(0, self.distance):
                     row: int = self.row + direction[0] + extra_direction[0] * distance
@@ -3583,7 +3584,9 @@ class Champion(Piece):
 
         # Iterate over each direction in the move directions
         for direction in self.directions:
-            extra_directions: dict[tuple[int, int]] = self.extra_move_directions[direction]
+            extra_directions: dict[tuple[int, int]] = self.extra_move_directions[
+                direction
+            ]
             for extra_direction in extra_directions:
                 for distance in range(0, self.distance):
                     row: int = self.row + direction[0] + extra_direction[0] * distance

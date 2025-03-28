@@ -1,17 +1,17 @@
-from GameEvent import *
+from game_event import *
 
 
 class Behavior:
     def __init__(self):
         self.directions = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
         self.can_perform_move = {
             "pray": self.can_pray,
@@ -47,7 +47,7 @@ class Behavior:
         material = 0
         for piece in player.pieces:
             value = 10
-            cost = Constant.PIECE_COSTS[str(piece)]
+            cost = constant.PIECE_COSTS[str(piece)]
             for resource in cost:
                 value += cost[resource] * self.resource_values[resource]
             material += value
@@ -76,7 +76,7 @@ class Behavior:
         return True
 
     def can_spawn(self, piece, engine):
-        for spawn in Constant.SPAWN_LISTS[str(piece)]:
+        for spawn in constant.SPAWN_LISTS[str(piece)]:
             if engine.is_legal_spawn(spawn):
                 return True
 
@@ -139,7 +139,7 @@ class MaterialCounter(Behavior):
 
     def select_starting_square(self, engine):
         if self.starting_square is None:
-            w_starting_squares, b_starting_squares = Constant.starting_squares()
+            w_starting_squares, b_starting_squares = constant.starting_squares()
             w_candidates = self.analyze_starting_squares(engine, w_starting_squares)
             b_candidates = self.analyze_starting_squares(engine, b_starting_squares)
             choice = None
@@ -187,8 +187,8 @@ class MaterialCounter(Behavior):
 
     def select_starting_pieces(self):
         if self.piece_choices is None:
-            starting_pieces = Constant.SELECTABLE_STARTING_PIECES
-            number_of_starting_pieces = Constant.NUMBER_OF_STARTING_PIECES - 3
+            starting_pieces = constant.SELECTABLE_STARTING_PIECES
+            number_of_starting_pieces = constant.NUMBER_OF_STARTING_PIECES - 3
             # Force AI to choose a few pawns
             choices = ["pawn", "pawn", "builder"]
 
@@ -289,7 +289,7 @@ class MaterialCounter(Behavior):
 
     def desired_spawn(self, engine, acting_tile):
         spawner = acting_tile.get_occupying()
-        spawn_list = Constant.SPAWN_LISTS[str(spawner)]
+        spawn_list = constant.SPAWN_LISTS[str(spawner)]
         legal_spawns = []
         for spawn in spawn_list:
             if engine.is_legal_spawn(spawn):

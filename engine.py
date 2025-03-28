@@ -1,10 +1,11 @@
 import sys
 
-from Map import *
-from Player import *
-from Sounds import *
-from State import *
-from Trades import *
+from map import *
+from player import *
+from encyclopedia import *
+from sound import *
+from state import *
+from trades import *
 
 
 def exit_game() -> Never:
@@ -12,7 +13,7 @@ def exit_game() -> Never:
     Exits the game.
     """
     # Save settings to file
-    Constant.save_settings()
+    constant.save_settings()
     # Quit the game
     pygame.quit()
     # Exit the program
@@ -27,17 +28,17 @@ class Engine:
         self.window = window
 
         # Board Setup
-        self.cols = Constant.BOARD_WIDTH_SQ
-        self.rows = Constant.BOARD_HEIGHT_SQ
+        self.cols = constant.BOARD_WIDTH_SQ
+        self.rows = constant.BOARD_HEIGHT_SQ
         if not board:
             self.board = [
                 [Tile(x, y) for y in range(self.cols)] for x in range(self.rows)
             ]
             self.board_surface = pygame.Surface(
-                (self.cols * Constant.SQ_SIZE, self.rows * Constant.SQ_SIZE)
+                (self.cols * constant.SQ_SIZE, self.rows * constant.SQ_SIZE)
             )
             self.display_surface = pygame.Surface(
-                (self.window.get_width(), self.rows * Constant.SQ_SIZE)
+                (self.window.get_width(), self.rows * constant.SQ_SIZE)
             )
             self.map = None
 
@@ -94,7 +95,7 @@ class Engine:
         self.events = []
         self.decrees = 0
 
-        # Constants & Mapping
+        # constants & Mapping
         self.COLORS = {0: "dark", 1: "light"}
         self.PIECES = self.initialize_pieces()
         self.STATES = self.initialize_states()
@@ -131,32 +132,32 @@ class Engine:
 
     def initialize_rituals(self):
         """Initializes rituals based on debug mode."""
-        if Constant.DEBUG_RITUALS:
+        if constant.DEBUG_RITUALS:
             return (
-                [Constant.MONOLITH_RITUALS],
-                [Constant.PRAYER_STONE_RITUALS],
-                [Constant.MAGICIAN_RITUALS],
+                [constant.MONOLITH_RITUALS],
+                [constant.PRAYER_STONE_RITUALS],
+                [constant.MAGICIAN_RITUALS],
             )
 
         return [
             self.generate_available_rituals(
-                Constant.MONOLITH_RITUALS, Constant.MAX_MONOLITH_RITUALS_PER_TURN
+                constant.MONOLITH_RITUALS, constant.MAX_MONOLITH_RITUALS_PER_TURN
             ),
             self.generate_available_rituals(
-                Constant.PRAYER_STONE_RITUALS,
-                Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN,
+                constant.PRAYER_STONE_RITUALS,
+                constant.MAX_PRAYER_STONE_RITUALS_PER_TURN,
             ),
             self.generate_available_rituals(
-                Constant.MAGICIAN_RITUALS, Constant.MAX_MAGICIAN_RITUALS_PER_TURN
+                constant.MAGICIAN_RITUALS, constant.MAX_MAGICIAN_RITUALS_PER_TURN
             ),
         ]
 
     def initialize_stealing_offsets(self):
         """Initializes stealing offsets for pieces, buildings, and traders."""
         return [
-            [self.generate_stealing_offsets(Constant.STEALING_KEY["piece"])],
-            [self.generate_stealing_offsets(Constant.STEALING_KEY["building"])],
-            [self.generate_stealing_offsets(Constant.STEALING_KEY["trader"])],
+            [self.generate_stealing_offsets(constant.STEALING_KEY["piece"])],
+            [self.generate_stealing_offsets(constant.STEALING_KEY["building"])],
+            [self.generate_stealing_offsets(constant.STEALING_KEY["trader"])],
         ]
 
     def initialize_pieces(self):
@@ -336,18 +337,18 @@ class Engine:
         self.praying = False
 
     def get_decree_cost(self):
-        decree_cost = Constant.DECREE_COST
+        decree_cost = constant.DECREE_COST
         keys = list(decree_cost.keys())
-        return Constant.DECREE_COST[keys[-1]] + (
-            self.decrees * Constant.DECREE_INCREMENT
+        return constant.DECREE_COST[keys[-1]] + (
+                self.decrees * constant.DECREE_INCREMENT
         )
 
     def stealing_values(self, resource, kind):
         offset_list = self.KIND_TO_STEALING_LIST[kind]
         offset = offset_list[self.turn_count_actual][self.STEALING_VALUES[resource]]
-        base_value = Constant.STEALING_KEY[kind][resource]["value"]
+        base_value = constant.STEALING_KEY[kind][resource]["value"]
         value = base_value + offset
-        enemy_player = self.players[Constant.TURNS[self.turn]]
+        enemy_player = self.players[constant.TURNS[self.turn]]
         if resource == "wood":
             if enemy_player.wood - value < 0:
                 value = enemy_player.wood
@@ -374,7 +375,7 @@ class Engine:
 
     def count_resources(self):
         # Resource counts are Gold, Wood, Stone
-        weights = Constant.BASE_TOTAL_YIELD
+        weights = constant.BASE_TOTAL_YIELD
         resource_count = {"gold": 0, "wood": 0, "quarry": 0}
         for r in range(self.rows):
             for c in range(self.cols):
@@ -411,7 +412,7 @@ class Engine:
         else:
             # Accepts 'state' string and converts it to state Object. Then adds it to State List
             if state == "main menu":
-                from Splash import SplashScreen
+                from splash import SplashScreen
                 window: pygame.Surface = self.get_current_state().get_window()
                 splash_screen: SplashScreen = SplashScreen(self.state[-1].win)
                 new_state: State = self.STATES[state](window, self, splash_screen)
@@ -471,7 +472,7 @@ class Engine:
     def draw(self, win):
         try:
             # Define the alternating colors for the squares
-            colors = [Constant.DARK_SQUARE_COLOR, Constant.LIGHT_SQUARE_COLOR]
+            colors = [constant.DARK_SQUARE_COLOR, constant.LIGHT_SQUARE_COLOR]
 
             # Calculate the total size of the board
             board_height = self.board_surface.get_height()
@@ -487,15 +488,15 @@ class Engine:
                     color = colors[(r + c) % 2]
 
                     # Determine the rectangle size for the current square
-                    rect_size = (Constant.SQ_SIZE, Constant.SQ_SIZE)
+                    rect_size = (constant.SQ_SIZE, constant.SQ_SIZE)
 
                     # Calculate position for the square, with the offset
-                    x = c * Constant.SQ_SIZE
-                    y = r * Constant.SQ_SIZE
+                    x = c * constant.SQ_SIZE
+                    y = r * constant.SQ_SIZE
 
-                    if Constant.SHOW_STONE:
+                    if constant.SHOW_STONE:
                         if self.board[r][c].can_contain_quarry:
-                            color = Constant.RED
+                            color = constant.RED
                     # Draw the square
                     pygame.draw.rect(
                         self.board_surface,
@@ -506,7 +507,7 @@ class Engine:
                     # Draw the tile using blend mode (avoid re-evaluating color calculation)
                     tile_color = self.COLORS[(r + c) % 2]
                     self.board_surface.blit(
-                        Constant.BOARD_TILES[tile_color][self.board[r][c].index],
+                        constant.BOARD_TILES[tile_color][self.board[r][c].index],
                         (x, y),
                         special_flags=pygame.BLEND_RGBA_MULT,
                     )
@@ -573,7 +574,7 @@ class Engine:
 
     def enemy_player_king_does_not_exist(self):
         does_king_exist = False
-        for piece in self.players[Constant.TURNS[self.turn]].pieces:
+        for piece in self.players[constant.TURNS[self.turn]].pieces:
             if isinstance(piece, King):
                 does_king_exist = True
         return not does_king_exist
@@ -680,7 +681,7 @@ class Engine:
 
 
     def reset_piece_limit(self, color):
-        self.players[color].piece_limit = Constant.DEFAULT_PIECE_LIMIT
+        self.players[color].piece_limit = constant.DEFAULT_PIECE_LIMIT
 
     def reset_player_actions_remaining(self, color):
         self.players[color].reset_actions_remaining()
@@ -722,7 +723,7 @@ class Engine:
     def untrap(self, row, col):
         color = self.board[row][col].trap.get_color()
         self.players[color].pieces.remove(self.board[row][col].trap)
-        self.board[row][col].untrap()
+        self.board[row][col].undo_trap()
 
     def set_trap(self, row, col, trap):
         self.board[row][col].set_trap(trap)
@@ -743,7 +744,7 @@ class Engine:
         #
         #   Remove from captured piece from piece list
         #
-        self.players[Constant.TURNS[self.turn]].pieces.remove(
+        self.players[constant.TURNS[self.turn]].pieces.remove(
             self.board[dest_row][dest_col].get_occupying()
         )
         #
@@ -1211,7 +1212,7 @@ class Engine:
 
         # Determine if the game is over. This is when the king is captured.
         if self.player_king_does_not_exist():
-            self.turn = Constant.TURNS[self.turn]
+            self.turn = constant.TURNS[self.turn]
             self.set_winner()
         elif self.enemy_player_king_does_not_exist():
             self.set_winner()
@@ -1284,7 +1285,7 @@ class Engine:
         if not cost_type:
             ritual_cost = None
         else:
-            ritual_cost = Constant.PRAYER_COSTS[ritual][cost_type]
+            ritual_cost = constant.PRAYER_COSTS[ritual][cost_type]
         if self.valid_ritual(ritual_cost, cost_type):
             return True
 
@@ -1294,7 +1295,7 @@ class Engine:
                 return True
 
     def is_legal_spawn(self, spawning, spawner):
-        piece_cost = Constant.PIECE_COSTS[spawning]
+        piece_cost = constant.PIECE_COSTS[spawning]
 
         # Anything after this requires a piece action
         if not spawner.can_act():
@@ -1518,7 +1519,7 @@ class Engine:
                 self.prayer_stone_rituals[self.turn_count_actual],
             ),
             "monolith": ("prayer", self.monolith_rituals[self.turn_count_actual]),
-            "assassin": (None, Constant.ASSASSIN_RITUALS),
+            "assassin": (None, constant.ASSASSIN_RITUALS),
         }
         cost_type, ritual_list = ritual_key[str(self.get_occupying(row, col))]
         return self.create_ritual_menu(row, col, ritual_list, cost_type)
@@ -1534,7 +1535,7 @@ class Engine:
     def can_decree(self, row, col):
         # Check if the current player has enough gold to perform the decree action.
         # If the player has enough resources, return True, otherwise return False.
-        decree_cost = Constant.DECREE_COST
+        decree_cost = constant.DECREE_COST
         keys = list(decree_cost.keys())
         current_resource = getattr(self.players[self.turn], keys[-1])
         return current_resource >= self.get_decree_cost()
@@ -1586,7 +1587,7 @@ class Engine:
         return True
 
     def create_popup_menu(self, row, col, messages=None):
-        if Constant.POP_UPS_ON:
+        if constant.POP_UPS_ON:
             if messages is None:
                 messages = self.popup_reason
             self.menus.append(

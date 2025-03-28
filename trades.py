@@ -1,6 +1,6 @@
 import random
 
-import Constant
+import constant
 
 
 class Trades:
@@ -30,14 +30,14 @@ class Trades:
 
         # Upper and lower bounds for giving resources
         self.give_upper_bound, self.give_lower_bound = (
-            Constant.TRADING_GIVE_BOUNDS[0],
-            Constant.TRADING_GIVE_BOUNDS[1],
+            constant.TRADING_GIVE_BOUNDS[0],
+            constant.TRADING_GIVE_BOUNDS[1],
         )
 
         # Upper and lower bounds for receiving resources
         self.receive_upper_bound, self.receive_lower_bound = (
-            Constant.TRADING_RECEIVE_BOUNDS[0],
-            Constant.TRADING_RECEIVE_BOUNDS[1],
+            constant.TRADING_RECEIVE_BOUNDS[0],
+            constant.TRADING_RECEIVE_BOUNDS[1],
         )
 
     def get_conversions(self) -> dict[str, tuple[float, float]]:

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import List, Tuple
 
-import Constant
+import constant
 
 
 def quarter() -> Tuple[
@@ -31,7 +31,7 @@ def quarter() -> Tuple[
     top_left, top_right, bottom_left, bottom_right = [], [], [], []
 
     # Get the maximum board indices (x and y)
-    x_max, y_max = Constant.board_max_index()
+    x_max, y_max = constant.board_max_index()
 
     # Precompute the mid points to avoid redundant calculations
     mid_x = x_max // 2
@@ -71,7 +71,7 @@ def big_center() -> List[Tuple[int, int]]:
     )  # Initialize an empty list to store the coordinates
 
     # Get the maximum x (columns) and y (rows) values for the board
-    x_max, y_max = Constant.board_max_index()
+    x_max, y_max = constant.board_max_index()
 
     # Define the range for the columns (around the center with 6 columns width)
     start_col = x_max // 2 - 2  # Starting column
@@ -102,7 +102,7 @@ def center() -> List[Tuple[int, int]]:
     squares = []
 
     # Get the maximum x and y values of the board (the dimensions of the board)
-    x, y = Constant.board_max_index()
+    x, y = constant.board_max_index()
 
     # Loop over the columns and rows to get the 2x2 center squares
     # The range is centered around x // 2 and y // 2
@@ -122,7 +122,7 @@ def quarter_triangle_a():
     top_left = []
     top_right = []
     # x, y equal max val col, row
-    x, y = Constant.board_max_index()
+    x, y = constant.board_max_index()
 
     for r in range(6, y + 1):
         for c in range(0, r - 2):
@@ -144,7 +144,7 @@ def quarter_triangle_b():
     top_left = []
     top_right = []
     # x, y equal max val col, row
-    x, y = Constant.board_max_index()
+    x, y = constant.board_max_index()
 
     for r in range(6, y + 1):
         for c in range(x, x - (r - 2), -1):
@@ -166,7 +166,7 @@ def quarter_triangle_c():
     bottom_right = []
     top_right = []
     # x, y equal max val col, row
-    x, y = Constant.board_max_index()
+    x, y = constant.board_max_index()
 
     for r in range(6, y + 1):
         for c in range(0, r - 2):
@@ -188,7 +188,7 @@ def quarter_triangle_d():
     top_left = []
     top_right = []
     # x, y equal max val col, row
-    x, y = Constant.board_max_index()
+    x, y = constant.board_max_index()
 
     for r in range(5, y + 1):
         for c in range(0, r - 2):
@@ -209,7 +209,7 @@ def left_and_right_triangle_top():
     left_triangle = []
     right_triangle = []
     # x, y equal max val col, row
-    y, x = Constant.board_max_index()
+    y, x = constant.board_max_index()
 
     # Top-left triangle (unchanged)
     for r in range(0, 7):  # Iterate over the rows starting from 0 to 6 (top)
@@ -235,7 +235,7 @@ def left_and_right_triangle_bottom():
     left_triangle = []
     right_triangle = []
     # x, y equal max val col, row
-    x, y = Constant.board_max_index()
+    x, y = constant.board_max_index()
 
     for r in range(4, y + 1):
         for c in range(0, r - 2):
@@ -253,7 +253,7 @@ def top_and_bottom():
     bottom_squares = []
 
     # x, y equal max val col, row
-    x, y = Constant.board_max_index()
+    x, y = constant.board_max_index()
     for c in range(3, x - 2):
         for r in range(1, 3):
             square = (r, c)
@@ -267,7 +267,7 @@ def top_and_bottom():
 def edge():
     squares = []
     # Get the maximum column and row indices (board size)
-    x, y = Constant.board_max_index()
+    x, y = constant.board_max_index()
 
     # Top 2 rows
     for c in range(0, x + 1):
@@ -286,7 +286,7 @@ def edge():
 
 def top_pyramid():
     squares = []
-    x, y = Constant.board_max_index()
+    x, y = constant.board_max_index()
     height_of_island = min(x, y) // 2 - 1
 
     # Loop through rows
@@ -304,7 +304,7 @@ def top_pyramid():
 
 def bottom_pyramid():
     squares = []
-    x, y = Constant.board_max_index()
+    x, y = constant.board_max_index()
     height_of_pyramid = y // 2 + 1
 
     # Loop through rows in reverse order
@@ -323,7 +323,7 @@ def bottom_pyramid():
 
 def center_circle():
     squares = []
-    x, y = Constant.board_max_index()
+    x, y = constant.board_max_index()
     x += 1
     radius = 5
     increment = 0
@@ -347,7 +347,7 @@ def quarter_triangle():
     bottom_right = []
     top_left = []
     top_right = []
-    x, y = Constant.board_max_index()
+    x, y = constant.board_max_index()
 
     # D TYPE:
     for r in range(5, y + 1):
@@ -374,7 +374,7 @@ def quarter_triangle_e():
     bottom_right = []
     top_left = []
     top_right = []
-    x, y = Constant.board_max_index()
+    x, y = constant.board_max_index()
 
     for r in range(y - 3, y + 1):
         for c in range(0, r - 5):
@@ -406,7 +406,7 @@ def top_third() -> list[tuple[int, int]]:
     Returns:
         list[tuple[int, int]]: List of (r, c) pairs in the top third.
     """
-    cols, rows = Constant.board_max_index()
+    cols, rows = constant.board_max_index()
     top_limit = rows // 3  # Define upper bound for the top third
     return [(r, c) for r in range(top_limit) for c in range(cols)]
 
@@ -422,14 +422,14 @@ def bottom_third() -> list[tuple[int, int]]:
     Returns:
         list[tuple[int, int]]: List of (r, c) pairs in the bottom third.
     """
-    cols, rows = Constant.board_max_index()
+    cols, rows = constant.board_max_index()
     bottom_start = rows - (rows // 3)  # Define lower bound for the bottom third
     return [(r, c) for r in range(bottom_start, rows) for c in range(cols)]
 
 
 def left_right():
     left_squares, right_squares = [], []
-    x, y = Constant.board_max_index()
+    x, y = constant.board_max_index()
     for r in range(0, y + 1):
         for c in range(0, 3):
             square = (r, c)
@@ -442,7 +442,7 @@ def left_right():
 
 def alt_starting_a():
     w_starting_squares, b_starting_squares = [], []
-    x, y = Constant.board_max_index()
+    x, y = constant.board_max_index()
     y_center = y // 2
     for c in range(1, 3):
         for r in range(y_center - 2, y_center + 4):
@@ -457,7 +457,7 @@ def alt_starting_a():
 
 def alt_starting():
     w_starting_squares, b_starting_squares = [], []
-    x, y = Constant.board_max_index()
+    x, y = constant.board_max_index()
     y_center = y // 2
     for c in range(2, 4):
         for r in range(y_center - 2, y_center + 4):
@@ -472,7 +472,7 @@ def alt_starting():
 
 def starting():
     w_starting_squares, b_starting_squares = [], []
-    x, y = Constant.board_max_index()
+    x, y = constant.board_max_index()
     y_center = y // 2
     for c in range(0, 5):
         for r in range(y_center - 2, y_center + 4):
@@ -486,7 +486,7 @@ def starting():
 
 
 def outside_corner():
-    c, r = Constant.board_max_index()
+    c, r = constant.board_max_index()
     squares = [(0, 0), (0, c), (r, c), (r, 0)]
     return squares
 

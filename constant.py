@@ -17,7 +17,7 @@ STARTING_GOLD = 0
 STARTING_STONE = 0
 
 # Configurable stuff goes here
-from Settings import *
+from settings import *
 
 # Dictionaries for commonly used string conversions
 RESOURCE_YIELD_KEY = {

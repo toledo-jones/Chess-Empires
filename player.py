@@ -1,6 +1,6 @@
 from typing import List, Dict
 
-from Behavior import *
+from behavior import *
 
 
 class Player:
@@ -14,15 +14,15 @@ class Player:
         self.color: str = color
 
         # Initialize the player's resources (gold, wood, stone)
-        self.gold: int = Constant.STARTING_GOLD
-        self.wood: int = Constant.STARTING_WOOD
-        self.stone: int = Constant.STARTING_STONE
+        self.gold: int = constant.STARTING_GOLD
+        self.wood: int = constant.STARTING_WOOD
+        self.stone: int = constant.STARTING_STONE
 
         # Initialize the player's prayer points
-        self.prayer: int = Constant.STARTING_PRAYER
+        self.prayer: int = constant.STARTING_PRAYER
 
         # Set the number of actions the player can take this turn
-        self.actions_remaining: int = Constant.DEFAULT_ACTIONS_REMAINING
+        self.actions_remaining: int = constant.DEFAULT_ACTIONS_REMAINING
 
         # Initialize the king's position and object (optional)
         self.king_position: Optional[tuple] = None
@@ -37,7 +37,7 @@ class Player:
         self.total_additional_actions_this_turn: int = 0
 
         # Set the player's piece limit
-        self.piece_limit: int = Constant.DEFAULT_PIECE_LIMIT
+        self.piece_limit: int = constant.DEFAULT_PIECE_LIMIT
 
     def __repr__(self) -> str:
         """
@@ -91,7 +91,7 @@ class Player:
         :param resource: The type of resource to mine.
         :param harvest: The amount of resource to add.
         """
-        player_resource = Constant.RESOURCE_KEY[resource]
+        player_resource = constant.RESOURCE_KEY[resource]
         current_resource = getattr(self, player_resource)
         setattr(self, player_resource, current_resource + harvest)
 
@@ -102,7 +102,7 @@ class Player:
         :param resource: The type of resource to un-mine.
         :param harvest: The amount of resource to subtract.
         """
-        player_resource = Constant.RESOURCE_KEY[resource]
+        player_resource = constant.RESOURCE_KEY[resource]
         current_resource = getattr(self, player_resource)
         setattr(self, player_resource, current_resource - harvest)
 
@@ -130,10 +130,10 @@ class Player:
 
         :return: None
         """
-        if Constant.DEBUG_START:
-            self.prayer = Constant.DEBUG_STARTING_PRAYER
+        if constant.DEBUG_START:
+            self.prayer = constant.DEBUG_STARTING_PRAYER
         else:
-            self.prayer = Constant.STARTING_PRAYER
+            self.prayer = constant.STARTING_PRAYER
 
     def get_prayer(self) -> int:
         """
@@ -226,10 +226,10 @@ class Player:
         population = self.get_current_population()
 
         # Get the population value of the piece
-        piece_population = Constant.PIECE_POPULATION[piece]
+        piece_population = constant.PIECE_POPULATION[piece]
 
         # Get the additional piece limit for the piece (default to 0 if not found)
-        additional_limit = Constant.ADDITIONAL_PIECE_LIMIT.get(piece, 0)
+        additional_limit = constant.ADDITIONAL_PIECE_LIMIT.get(piece, 0)
 
         # Check if the player's current population plus the piece's population is within the piece limit
         if piece_population + population <= self.piece_limit:
@@ -284,7 +284,7 @@ class Player:
 
         :return: None
         """
-        self.actions_remaining = Constant.DEFAULT_ACTIONS_REMAINING
+        self.actions_remaining = constant.DEFAULT_ACTIONS_REMAINING
 
     def set_actions_remaining(self, actions: int) -> None:
         """
@@ -324,7 +324,7 @@ class Player:
 
         :return: None
         """
-        self.piece_limit = Constant.DEFAULT_PIECE_LIMIT
+        self.piece_limit = constant.DEFAULT_PIECE_LIMIT
 
     def can_act(self) -> bool:
         """

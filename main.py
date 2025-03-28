@@ -9,9 +9,9 @@ def main():
     window = pygame.display.set_mode((0, 0), pygame.NOFRAME)
     pygame.display.toggle_fullscreen()  # Toggle full screen twice to force it on
 
-    import Constant
+    import constant
 
-    from Engine import Engine
+    from engine import Engine
 
     # Set the volume for the background music (0.0 is mute, 1.0 is full volume)
     pygame.mixer.music.set_volume(0.1)
@@ -29,23 +29,23 @@ def main():
     engine = Engine(window)
 
     # Create and display the splash screen
-    from Splash import SplashScreen
+    from splash import SplashScreen
 
     splash_screen = SplashScreen(engine.display_surface)
     splash_screen.display()
 
-    Constant.load_settings()
+    constant.load_settings()
 
     # Load images required for the game (pieces, board, etc.)\
-    Constant.load_images()
+    constant.load_images()
 
     # Load background music
-    Constant.load_music(Constant.MUSIC_ON)
+    constant.load_music(constant.MUSIC_ON)
 
     # Load sound effects (clicks, moves, etc.)
-    Constant.load_sounds()
+    constant.load_sounds()
 
-    from State import MainMenu
+    from state import MainMenu
     import time
 
     # Set the initial game state to the Main Menu
@@ -55,7 +55,7 @@ def main():
     # Set the game window's title and icon
     pygame.display.set_caption("Chess Empires")
     pygame.display.set_icon(
-        Constant.IMAGES["icon"]
+        constant.IMAGES["icon"]
     )  # Set the window icon from loaded images
 
     # Main game loop
@@ -108,11 +108,11 @@ def main():
 
             # Handle other events (music end, etc.)
             elif event.type == MUSIC_END:
-                Constant.load_music(Constant.MUSIC_ON)  # Reload music when it ends
+                constant.load_music(constant.MUSIC_ON)  # Reload music when it ends
 
             # Exit game
             elif event.type == pygame.QUIT:
-                from Engine import exit_game
+                from engine import exit_game
 
                 exit_game()
 
@@ -131,7 +131,7 @@ def main():
         pygame.display.update()
 
         # Control the frame rate (to limit FPS)
-        clock.tick(Constant.MAX_FPS)
+        clock.tick(constant.MAX_FPS)
 
     if not engine.running:
         main()

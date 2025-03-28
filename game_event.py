@@ -1,11 +1,11 @@
 from typing import Never, TYPE_CHECKING, List
 
 if TYPE_CHECKING:
-    import Engine
+    from engine import Engine
 
-from Resource import *
-from Tile import Tile
-from Unit import *
+from resource import *
+from tile import Tile
+from unit import *
 
 
 def action_tile_has_effective_trap(
@@ -80,7 +80,7 @@ class GameEvent:
 
         # Retrieve the player and enemy objects based on the current turn.
         player = self.engine.players[self.engine.get_turn()]
-        enemy = self.engine.players[Constant.TURNS[self.engine.get_turn()]]
+        enemy = self.engine.players[constant.TURNS[self.engine.get_turn()]]
 
         # Determine the attacking and defending sides based on is_player_checking flag.
         attacker, defender = (enemy, player) if is_player_checking else (player, enemy)
@@ -333,12 +333,12 @@ class Steal(GameEvent):
         self.engine.players[self.engine.turn].steal(self.resource_stolen, self.amount)
 
         # Remove the stolen resource from the victim's player.
-        self.engine.players[Constant.TURNS[self.engine.turn]].invert_steal(
+        self.engine.players[constant.TURNS[self.engine.turn]].invert_steal(
             self.resource_stolen, self.amount
         )
 
         # If stealing costs an action, mark it as used.
-        if Constant.STEALING_COSTS_ACTION:
+        if constant.STEALING_COSTS_ACTION:
             self.engine.players[self.engine.turn].do_action()
 
     def undo(self) -> None:
@@ -361,12 +361,12 @@ class Steal(GameEvent):
         )
 
         # Remove the stolen resource from the thief's player.
-        self.engine.players[Constant.TURNS[self.engine.turn]].steal(
+        self.engine.players[constant.TURNS[self.engine.turn]].steal(
             self.resource_stolen, self.amount
         )
 
         # If stealing costs an action, undo the action usage.
-        if Constant.STEALING_COSTS_ACTION:
+        if constant.STEALING_COSTS_ACTION:
             self.engine.players[self.engine.turn].undo_action()
 
         # Count the number of unused pieces on the board.
@@ -444,7 +444,7 @@ class Mine(GameEvent):
         self.miner.actions_remaining -= 1
 
         # Play the appropriate mining sound effect.
-        kind = Constant.RESOURCE_KEY[str(self.mined)]
+        kind = constant.RESOURCE_KEY[str(self.mined)]
         self.engine.sounds.play("mine_" + kind)
 
         # Check if the resource is fully depleted.
@@ -471,7 +471,7 @@ class Mine(GameEvent):
                 self.engine.delete_resource(row, col)
 
         # If mining costs an action, mark it as used.
-        if Constant.MINING_COSTS_ACTION:
+        if constant.MINING_COSTS_ACTION:
             self.engine.players[self.engine.turn].do_action()
 
     def undo(self) -> None:
@@ -496,7 +496,7 @@ class Mine(GameEvent):
         )
 
         # Play the appropriate mining sound effect.
-        kind = Constant.RESOURCE_KEY[str(self.mined)]
+        kind = constant.RESOURCE_KEY[str(self.mined)]
         self.engine.sounds.play("mine_" + kind)
 
         # Restore the mined resource to the game board.
@@ -514,7 +514,7 @@ class Mine(GameEvent):
         self.engine.reset_unused_piece_highlight()
 
         # If mining originally cost an action, undo that action usage.
-        if Constant.MINING_COSTS_ACTION:
+        if constant.MINING_COSTS_ACTION:
             self.engine.players[self.engine.turn].undo_action()
 
         # Restore highlights for all unused pieces.
@@ -549,7 +549,7 @@ class Pray(GameEvent):
 
         # If the praying piece is a monk, apply additional prayer effects.
         if str(self.praying_piece) == "monk":
-            self.additional_prayer = Constant.ADDITIONAL_PRAYER_FROM_MONK
+            self.additional_prayer = constant.ADDITIONAL_PRAYER_FROM_MONK
 
     def __repr__(self) -> str:
         """
@@ -578,7 +578,7 @@ class Pray(GameEvent):
         )
 
         # If praying costs an action, mark it as used.
-        if Constant.PRAYING_COSTS_ACTION:
+        if constant.PRAYING_COSTS_ACTION:
             self.engine.players[self.engine.turn].do_action()
 
     def undo(self) -> None:
@@ -603,7 +603,7 @@ class Pray(GameEvent):
         )
 
         # If praying originally cost an action, undo that action usage.
-        if Constant.PRAYING_COSTS_ACTION:
+        if constant.PRAYING_COSTS_ACTION:
             self.engine.players[self.engine.turn].undo_action()
 
         # Restore unused piece highlights.
@@ -689,7 +689,7 @@ class Persuade(GameEvent):
             piece.unused_piece_highlight = True
 
         # If persuasion costs an action, mark it as used.
-        if Constant.PERSUADE_COSTS_ACTION:
+        if constant.PERSUADE_COSTS_ACTION:
             self.engine.players[self.engine.turn].do_action()
 
     def undo(self) -> None:
@@ -730,7 +730,7 @@ class Persuade(GameEvent):
                 piece.unused_piece_highlight = True
 
         # If persuasion originally cost an action, undo that action usage.
-        if Constant.PERSUADE_COSTS_ACTION:
+        if constant.PERSUADE_COSTS_ACTION:
             self.engine.players[self.engine.turn].undo_action()
 
 
@@ -760,7 +760,7 @@ class Decree(GameEvent):
         self.cost: int = self.engine.get_decree_cost()
 
         # Identify the resource type required to issue a decree.
-        self.resource: str = list(Constant.DECREE_COST.keys())[-1]
+        self.resource: str = list(constant.DECREE_COST.keys())[-1]
 
         # Track any disabled monoliths (if rituals get banned).
         self.disabled_monoliths: Optional[List] = None
@@ -929,7 +929,7 @@ class ChangeTurn(GameEvent):
         self.engine.menus = []
 
         # Switch to the next player's turn.
-        self.engine.turn = Constant.TURNS[self.engine.turn]
+        self.engine.turn = constant.TURNS[self.engine.turn]
 
         # Update the turn count displays.
         self.engine.turn_count_display += 0.5
@@ -961,17 +961,17 @@ class ChangeTurn(GameEvent):
         self.engine.tick_protected_tiles(self.engine.protected_tiles)
 
         # Debug mode: Always append the full ritual set.
-        if Constant.DEBUG_RITUALS:
-            self.engine.monolith_rituals.append(Constant.MONOLITH_RITUALS)
-            self.engine.prayer_stone_rituals.append(Constant.PRAYER_STONE_RITUALS)
-            self.engine.magician_rituals.append(Constant.MAGICIAN_RITUALS)
+        if constant.DEBUG_RITUALS:
+            self.engine.monolith_rituals.append(constant.MONOLITH_RITUALS)
+            self.engine.prayer_stone_rituals.append(constant.PRAYER_STONE_RITUALS)
+            self.engine.magician_rituals.append(constant.MAGICIAN_RITUALS)
         else:
             # Generate new available rituals for each category if needed.
             if self.engine.turn_count_actual == len(self.engine.monolith_rituals) - 1:
                 self.engine.monolith_rituals.append(
                     self.engine.generate_available_rituals(
-                        Constant.MONOLITH_RITUALS,
-                        Constant.MAX_MONOLITH_RITUALS_PER_TURN,
+                        constant.MONOLITH_RITUALS,
+                        constant.MAX_MONOLITH_RITUALS_PER_TURN,
                     )
                 )
             if (
@@ -980,15 +980,15 @@ class ChangeTurn(GameEvent):
             ):
                 self.engine.prayer_stone_rituals.append(
                     self.engine.generate_available_rituals(
-                        Constant.PRAYER_STONE_RITUALS,
-                        Constant.MAX_PRAYER_STONE_RITUALS_PER_TURN,
+                        constant.PRAYER_STONE_RITUALS,
+                        constant.MAX_PRAYER_STONE_RITUALS_PER_TURN,
                     )
                 )
             if self.engine.turn_count_actual == len(self.engine.magician_rituals) - 1:
                 self.engine.magician_rituals.append(
                     self.engine.generate_available_rituals(
-                        Constant.MAGICIAN_RITUALS,
-                        Constant.MAX_MAGICIAN_RITUALS_PER_TURN,
+                        constant.MAGICIAN_RITUALS,
+                        constant.MAX_MAGICIAN_RITUALS_PER_TURN,
                     )
                 )
 
@@ -999,21 +999,21 @@ class ChangeTurn(GameEvent):
             )
         if self.engine.turn_count_actual == len(self.engine.piece_stealing_offsets) - 1:
             self.engine.piece_stealing_offsets.append(
-                self.engine.generate_stealing_offsets(Constant.STEALING_KEY["piece"])
+                self.engine.generate_stealing_offsets(constant.STEALING_KEY["piece"])
             )
         if (
             self.engine.turn_count_actual
             == len(self.engine.building_stealing_offsets) - 1
         ):
             self.engine.building_stealing_offsets.append(
-                self.engine.generate_stealing_offsets(Constant.STEALING_KEY["building"])
+                self.engine.generate_stealing_offsets(constant.STEALING_KEY["building"])
             )
         if (
             self.engine.turn_count_actual
             == len(self.engine.trader_stealing_offsets) - 1
         ):
             self.engine.trader_stealing_offsets.append(
-                self.engine.generate_stealing_offsets(Constant.STEALING_KEY["trader"])
+                self.engine.generate_stealing_offsets(constant.STEALING_KEY["trader"])
             )
 
         # Highlight all unused pieces.
@@ -1032,7 +1032,7 @@ class ChangeTurn(GameEvent):
         self.engine.sounds.play("change_turn")
 
         # Revert to the previous player's turn.
-        self.engine.turn = Constant.TURNS[self.engine.turn]
+        self.engine.turn = constant.TURNS[self.engine.turn]
 
         # Update turn counters.
         self.engine.turn_count_display -= 0.5
@@ -1114,7 +1114,7 @@ class SpawnResource(GameEvent):
         self.spawner = self.acting_tile.get_occupying()
 
         # Get the cost associated with spawning the resource.
-        self.piece_cost = Constant.PIECE_COSTS[self.engine.spawning]
+        self.piece_cost = constant.PIECE_COSTS[self.engine.spawning]
 
     def __repr__(self) -> str:
         """
@@ -1138,7 +1138,7 @@ class SpawnResource(GameEvent):
         self.engine.create_resource(self.dest[0], self.dest[1], resource)
 
         # Deduct resource cost if quarrying consumes resources.
-        if Constant.QUARRY_COSTS_RESOURCE:
+        if constant.QUARRY_COSTS_RESOURCE:
             self.engine.players[self.engine.turn].purchase(self.piece_cost)
 
         # Play the resource mining sound effect.
@@ -1157,7 +1157,7 @@ class SpawnResource(GameEvent):
         self.engine.reset_selected()
 
         # Deduct an action from the player if quarrying costs an action.
-        if Constant.QUARRY_COSTS_ACTION:
+        if constant.QUARRY_COSTS_ACTION:
             self.engine.players[self.engine.turn].do_action()
 
     def undo(self) -> None:
@@ -1174,7 +1174,7 @@ class SpawnResource(GameEvent):
         self.engine.sounds.play("mine_stone")
 
         # Refund the resource cost if it was deducted.
-        if Constant.QUARRY_COSTS_RESOURCE:
+        if constant.QUARRY_COSTS_RESOURCE:
             self.engine.players[self.engine.turn].un_purchase(self.piece_cost)
 
         # Remove the resource from the game engine.
@@ -1187,7 +1187,7 @@ class SpawnResource(GameEvent):
         self.engine.reset_unused_piece_highlight()
 
         # Restore the player's action if it was deducted.
-        if Constant.QUARRY_COSTS_ACTION:
+        if constant.QUARRY_COSTS_ACTION:
             self.engine.players[self.engine.turn].undo_action()
 
         # Reapply highlighting to all unused pieces.
@@ -1257,7 +1257,7 @@ class PortalSpawn(GameEvent):
         self.additional_actions = 0
 
         # Store the cost of the piece being spawned.
-        self.piece_cost = Constant.PIECE_COSTS[self.engine.spawning]
+        self.piece_cost = constant.PIECE_COSTS[self.engine.spawning]
 
     def __repr__(self) -> str:
         """
@@ -1295,7 +1295,7 @@ class PortalSpawn(GameEvent):
         self.engine.players[self.engine.turn].purchase(self.piece_cost)
 
         # Update additional actions if applicable.
-        if Constant.ACTIONS_UPDATE_ON_SPAWN:
+        if constant.ACTIONS_UPDATE_ON_SPAWN:
             self.additional_actions = self.engine.get_occupying(
                 self.dest[0], self.dest[1]
             ).get_additional_actions()
@@ -1384,7 +1384,7 @@ class PortalSpawn(GameEvent):
         self.engine.players[self.engine.turn].undo_action()
 
         # Remove additional actions if applicable.
-        if Constant.ACTIONS_UPDATE_ON_SPAWN:
+        if constant.ACTIONS_UPDATE_ON_SPAWN:
             self.engine.players[self.engine.turn].remove_additional_actions(
                 self.additional_actions
             )
@@ -1438,7 +1438,7 @@ class SpawnTrap(GameEvent):
         self.spawner = self.acting_tile.get_occupying()
 
         # Store the cost of the piece being spawned.
-        self.piece_cost = Constant.PIECE_COSTS[self.engine.spawning]
+        self.piece_cost = constant.PIECE_COSTS[self.engine.spawning]
 
     def __repr__(self) -> str:
         """
@@ -1477,7 +1477,7 @@ class SpawnTrap(GameEvent):
         self.engine.reset_selected()
 
         # Deduct an action from the player if trap costs an action.
-        if Constant.TRAP_COSTS_ACTION:
+        if constant.TRAP_COSTS_ACTION:
             self.engine.players[self.engine.turn].do_action()
 
         # Deduct the cost of the piece from the player's resources.
@@ -1513,7 +1513,7 @@ class SpawnTrap(GameEvent):
         self.engine.untrap(self.dest[0], self.dest[1])
 
         # Undo the action deduction if trap costs an action.
-        if Constant.TRAP_COSTS_ACTION:
+        if constant.TRAP_COSTS_ACTION:
             self.engine.players[self.engine.turn].undo_action()
 
         # Correct any interceptions.
@@ -1564,7 +1564,7 @@ class TrapSpawn(GameEvent):
         self.additional_actions = 0
 
         # Store the cost of the piece being spawned.
-        self.piece_cost = Constant.PIECE_COSTS[self.engine.spawning]
+        self.piece_cost = constant.PIECE_COSTS[self.engine.spawning]
 
         # Store the trap at the action tile.
         self.trap = action_tile.trap
@@ -1706,7 +1706,7 @@ class Spawn(GameEvent):
         self.additional_actions = 0
 
         # Store the cost of the piece being spawned.
-        self.piece_cost = Constant.PIECE_COSTS[self.engine.spawning]
+        self.piece_cost = constant.PIECE_COSTS[self.engine.spawning]
 
     def __repr__(self) -> str:
         """
@@ -1755,7 +1755,7 @@ class Spawn(GameEvent):
         self.engine.players[self.engine.turn].purchase(self.piece_cost)
 
         # Update additional actions if applicable.
-        if Constant.ACTIONS_UPDATE_ON_SPAWN:
+        if constant.ACTIONS_UPDATE_ON_SPAWN:
             self.additional_actions = self.engine.get_occupying(
                 self.dest[0], self.dest[1]
             ).get_additional_actions()
@@ -1812,7 +1812,7 @@ class Spawn(GameEvent):
             self.engine.players[self.engine.turn].undo_action()
 
         # Remove additional actions if applicable.
-        if Constant.ACTIONS_UPDATE_ON_SPAWN:
+        if constant.ACTIONS_UPDATE_ON_SPAWN:
             self.engine.players[self.engine.turn].remove_additional_actions(
                 self.additional_actions
             )
@@ -2708,13 +2708,13 @@ class RitualEvent(GameEvent):
 
         # Set the ritual cost if the cost type is available.
         if self.cost_type:
-            self.ritual_cost = Constant.PRAYER_COSTS[str(self)][self.cost_type]
+            self.ritual_cost = constant.PRAYER_COSTS[str(self)][self.cost_type]
 
         # Set the monk cost based on the cost type.
         if self.cost_type == "gold" or not self.cost_type:
             self.monk_cost = 0
         else:
-            self.monk_cost = Constant.PRAYER_COSTS[str(self)]["monk"]
+            self.monk_cost = constant.PRAYER_COSTS[str(self)]["monk"]
 
         # Store the current turn and player.
         self.turn = self.engine.turn
@@ -2859,7 +2859,7 @@ class GoldGeneralEvent(RitualEvent):
         if action_tile_has_effective_trap(self.acting_tile, self.action_tile):
             # Store and remove the trap.
             self.trap = self.engine.board[self.row][self.col].trap
-            self.engine.board[self.row][self.col].untrap()
+            self.engine.board[self.row][self.col].undo_trap()
             return
 
         # Create the piece on the board.
@@ -3379,8 +3379,8 @@ class Trade(GameEvent):
         self.receive_resource, self.receive_amount = self.receive[0], self.receive[1]
 
         # Map the resource keys to their respective constants.
-        self.give_resource = Constant.RESOURCE_KEY[self.give_resource]
-        self.receive_resource = Constant.RESOURCE_KEY[self.receive_resource]
+        self.give_resource = constant.RESOURCE_KEY[self.give_resource]
+        self.receive_resource = constant.RESOURCE_KEY[self.receive_resource]
 
         # Store the piece initiating the trade.
         self.piece = self.acting_tile.get_occupying()

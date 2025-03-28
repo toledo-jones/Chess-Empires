@@ -1,7 +1,7 @@
 import random
 from typing import Optional, Tuple
 
-import Constant
+import constant
 
 
 class Resource:
@@ -28,7 +28,7 @@ class Resource:
         self.sprite_offset: Optional[Tuple[int, int]] = None
 
         # Determine resource key based on predefined constants
-        self.key: Optional[str] = Constant.RESOURCE_YIELD_KEY.get(str(self))
+        self.key: Optional[str] = constant.RESOURCE_YIELD_KEY.get(str(self))
 
         # Initialize harvesting-related attributes if key is valid
         if self.key is not None:
@@ -53,7 +53,7 @@ class Resource:
         :return: Randomized variance value within predefined bounds.
         """
         # Fetch the variance range for the resource type
-        variance_range = Constant.HARVEST_YIELD_VARIANCE[self.key]
+        variance_range = constant.HARVEST_YIELD_VARIANCE[self.key]
 
         # Randomly return a variance within the range
         return random.randint(variance_range[0], variance_range[1])
@@ -71,7 +71,7 @@ class Resource:
             self.harvest_yield_variance.append(self.get_harvest_yield_variance())
 
         # Determine base harvest amount
-        base_harvest = Constant.BASE_YIELD_PER_HARVEST[piece][self.key]
+        base_harvest = constant.BASE_YIELD_PER_HARVEST[piece][self.key]
 
         # Apply variance
         harvest_yield = base_harvest + self.harvest_yield_variance[self.harvest_history]
@@ -100,10 +100,10 @@ class Resource:
         :return: The total resource yield after applying variance.
         """
         # Base yield amount
-        base_yield = Constant.BASE_TOTAL_YIELD[self.key]
+        base_yield = constant.BASE_TOTAL_YIELD[self.key]
 
         # Yield variance range
-        variance_range = Constant.TOTAL_YIELD_VARIANCE[self.key]
+        variance_range = constant.TOTAL_YIELD_VARIANCE[self.key]
 
         # Random variance
         total_variation = random.randint(variance_range[0], variance_range[1])
@@ -118,10 +118,10 @@ class Resource:
         :return: The x and y offset for positioning the resource sprite.
         """
         # Retrieve the size of the resource image as a tuple (width, height)
-        image_size = Constant.RESOURCES_IMAGE_MODIFY[str(self)]["SCALE"]
+        image_size = constant.RESOURCES_IMAGE_MODIFY[str(self)]["SCALE"]
 
         # Get the size of the square where the image will be placed
-        square_size = Constant.SQ_SIZE
+        square_size = constant.SQ_SIZE
 
         # Calculate the horizontal offset to center the image within the square
         offset_x = (square_size - image_size[0]) // 2
@@ -165,11 +165,11 @@ class Resource:
         :param win: The window to draw the sprite on.
         """
         # Retrieve the sprite associated with the resource
-        sprite = Constant.RESOURCES[str(self)]
+        sprite = constant.RESOURCES[str(self)]
 
         # Calculate the x and y position of the resource based on its grid location
-        x = self.col * Constant.SQ_SIZE + self.sprite_offset[0]
-        y = self.row * Constant.SQ_SIZE + self.sprite_offset[1]
+        x = self.col * constant.SQ_SIZE + self.sprite_offset[0]
+        y = self.row * constant.SQ_SIZE + self.sprite_offset[1]
 
         # Draw the resource sprite at the calculated position on the window
         win.blit(sprite, (x, y))

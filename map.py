@@ -1,17 +1,17 @@
 import math
 
-import Squares
-from Resource import *
+import squares
+from resource import *
 
 
 class Map:
     def __init__(self, engine):
         self.engine = engine
-        self.w_starting_squares, self.b_starting_squares = Squares.starting()
-        self.default_start_squares = Squares.starting()
+        self.w_starting_squares, self.b_starting_squares = squares.starting()
+        self.default_start_squares = squares.starting()
         self.starting_squares = self.w_starting_squares + self.b_starting_squares
         self.top_left, self.top_right, self.bottom_left, self.bottom_right = (
-            Squares.quarter()
+            squares.quarter()
         )
         self.quarters = [
             self.top_left,
@@ -19,13 +19,13 @@ class Map:
             self.bottom_left,
             self.bottom_right,
         ]
-        self.center_squares_list = Squares.center()
-        self.edge_squares = Squares.edge()
+        self.center_squares_list = squares.center()
+        self.edge_squares = squares.edge()
         self.left_triangle_bottom, self.right_triangle_bottom = (
-            Squares.left_and_right_triangle_bottom()
+            squares.left_and_right_triangle_bottom()
         )
         self.left_triangle_top, self.right_triangle_top = (
-            Squares.left_and_right_triangle_top()
+            squares.left_and_right_triangle_top()
         )
         self.triangle_sections = [self.left_triangle_bottom, self.right_triangle_bottom]
         self.all_triangle_sections = [
@@ -35,14 +35,14 @@ class Map:
             self.right_triangle_bottom,
         ]
         self.directions = (
-            Constant.UP,
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.DOWN_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_LEFT,
+            constant.UP,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.DOWN_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_LEFT,
         )
         self.PIECE_COSTS = {}
 
@@ -56,7 +56,7 @@ class Map:
         # Calculate the decree cost using the formula, applying a logarithmic function
         # This adjusts the cost based on the value of 'x', ensuring the cost changes non-linearly
         decree_cost = round(10 * math.log10(x + 7))
-        Constant.DECREE_INCREMENT = round(decree_cost / 3)
+        constant.DECREE_INCREMENT = round(decree_cost / 3)
 
         if resource == "quarry":
             resource = "stone"
@@ -80,7 +80,7 @@ class Map:
         """
         center_r, center_c = center
         placed_trees = set()
-        cols, rows = Constant.board_max_index()
+        cols, rows = constant.board_max_index()
         tree_count = radius * radius
 
         while len(placed_trees) < tree_count:
@@ -110,7 +110,7 @@ class Map:
         )
 
         # Set Decree Cost
-        Constant.DECREE_COST = self.set_decree_cost(resource_count)
+        constant.DECREE_COST = self.set_decree_cost(resource_count)
 
         # Define initial piece costs
         initial_piece_costs = self.get_initial_piece_costs()
@@ -140,11 +140,11 @@ class Map:
         return points_per_resource
 
     def get_initial_piece_costs(self):
-        return Constant.PIECE_COSTS
+        return constant.PIECE_COSTS
 
     def assign_piece_costs(self, initial_piece_costs, points_per_resource):
         for piece, costs in initial_piece_costs.items():
-            points_to_fill = Constant.PIECE_POINT_VALUES[piece]
+            points_to_fill = constant.PIECE_POINT_VALUES[piece]
 
             # Assign random weights for resources
             wood_points, stone_points, gold_points = (
@@ -163,7 +163,7 @@ class Map:
                 "gold": gold_cost,
             }
 
-        Constant.PIECE_COSTS = self.PIECE_COSTS
+        constant.PIECE_COSTS = self.PIECE_COSTS
 
     def assign_resource_random_weights(
         self, points_to_fill: int
@@ -258,22 +258,22 @@ class Map:
         self.spawn_wood(r, c)
 
     def spawn_wood_clover(self, row, col, distance=None):
-        directions = (Constant.UP, Constant.RIGHT, Constant.LEFT, Constant.DOWN)
+        directions = (constant.UP, constant.RIGHT, constant.LEFT, constant.DOWN)
         self.spawn_wood(row, col)
         for direction in directions:
             r = row + direction[0]
             c = col + direction[1]
-            if Constant.tile_in_bounds(r, c):
+            if constant.tile_in_bounds(r, c):
                 self.spawn_wood(r, c)
 
     def spawn_wood_line(self, row, col, distance):
-        directions = (Constant.UP, Constant.RIGHT, Constant.LEFT, Constant.DOWN)
+        directions = (constant.UP, constant.RIGHT, constant.LEFT, constant.DOWN)
         self.spawn_wood(row, col)
         for direction in directions:
             for d in range(distance):
                 r = row + direction[0] * d
                 c = col + direction[1] * d
-                if Constant.tile_in_bounds(r, c):
+                if constant.tile_in_bounds(r, c):
                     self.spawn_wood(r, c)
 
     def spawn_wood_nearby_pattern(self, row, col):
@@ -338,7 +338,7 @@ class Map:
             None: The function modifies the board in-place by clearing resources.
         """
         center_r, center_c = center
-        cols, rows = Constant.board_max_index()
+        cols, rows = constant.board_max_index()
 
         # Iterate over a square region defined by the radius
         for r in range(center_r - radius, center_r + radius + 1):
@@ -348,8 +348,8 @@ class Map:
                     # Check if the square contains a resource to clear
                     self.engine.delete_resource(r, c)
 
-    def spawn_gold_randomly(self, squares):
-        square = random.choice(squares)
+    def spawn_gold_randomly(self, squares_list):
+        square = random.choice(squares_list)
         r, c = square[0], square[1]
         self.spawn_gold(r, c)
 
@@ -358,7 +358,7 @@ class Map:
 
     def delete_resources_in_sequential_cols(self, boundaries=None, iterations=1):
         if boundaries is None:
-            boundaries = [0, Constant.BOARD_WIDTH_SQ]
+            boundaries = [0, constant.BOARD_WIDTH_SQ]
         else:
             pass
 
@@ -378,10 +378,10 @@ class Map:
     def delete_resources_in_random_row(self, boundaries=None, iterations=1):
         # If no boundaries are provided, default to the entire board height range.
         if boundaries is None:
-            boundaries = [0, Constant.BOARD_HEIGHT_SQ]
+            boundaries = [0, constant.BOARD_HEIGHT_SQ]
         else:
             # Adjust the second boundary value to be based on BOARD_HEIGHT_SQ.
-            boundaries[-1] = Constant.BOARD_HEIGHT_SQ - boundaries[-1]
+            boundaries[-1] = constant.BOARD_HEIGHT_SQ - boundaries[-1]
 
         # Create a list of row indices within the specified boundaries.
         boundary_sequence = []
@@ -458,12 +458,12 @@ class OctoBalanced(Map):
     def generate_resources(self):
         super().generate_resources()
 
-        top_third = Squares.top_third()
-        center = Squares.find_center(top_third)
+        top_third = squares.top_third()
+        center = squares.find_center(top_third)
         self.place_trees_around_point(center, 2)
 
-        bottom_third = Squares.bottom_third()
-        center = Squares.find_center(bottom_third)
+        bottom_third = squares.bottom_third()
+        center = squares.find_center(bottom_third)
         self.place_trees_around_point(center, 2)
         #
         # for side in left_right_squares():
@@ -471,7 +471,7 @@ class OctoBalanced(Map):
         #         if self.get_random() > 90:
         #             self.spawn_wood_clover(square[0], square[1], 5)
 
-        for square_set in Squares.left_right():
+        for square_set in squares.left_right():
             # Randomly select 2 unique squares from the square_set
             selected_squares = random.sample(square_set, 1)
 
@@ -489,15 +489,15 @@ class HyperBalanced(Map):
     def generate_resources(self):
         super().generate_resources()
 
-        top_third = Squares.top_third()
-        center = Squares.find_center(top_third)
+        top_third = squares.top_third()
+        center = squares.find_center(top_third)
         self.place_trees_around_point(center, 2)
 
-        bottom_third = Squares.bottom_third()
-        center = Squares.find_center(bottom_third)
+        bottom_third = squares.bottom_third()
+        center = squares.find_center(bottom_third)
         self.place_trees_around_point(center, 2)
 
-        for square_set in Squares.top_and_bottom():
+        for square_set in squares.top_and_bottom():
             # Randomly select 2 unique squares from the square_set
             selected_squares = random.sample(square_set, 1)
 
@@ -522,13 +522,13 @@ class Default(Map):
             if rand > 35:
                 self.spawn_wood(r, c)
 
-        for square_set in Squares.top_and_bottom():
+        for square_set in squares.top_and_bottom():
             selected_squares = random.sample(square_set, 3)
             for square in selected_squares:
                 r, c = square[0], square[1]
                 self.spawn_wood_clover(r, c)
 
-        for square_set in Squares.top_and_bottom():
+        for square_set in squares.top_and_bottom():
             # Randomly select 2 unique squares from the square_set
             selected_squares = random.sample(square_set, 1)
 
@@ -542,8 +542,8 @@ class Default(Map):
 class IslandsModified(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.top_pyramid_squares = Squares.top_pyramid()
-        self.bottom_pyramid_squares = Squares.bottom_pyramid()
+        self.top_pyramid_squares = squares.top_pyramid()
+        self.bottom_pyramid_squares = squares.bottom_pyramid()
 
     def generate_resources(self):
         super().generate_resources()
@@ -574,7 +574,7 @@ class IslandsModified(Map):
                     # Occasionally, spawn a different resource like stone or quarry
                     self.spawn_stone_or_quarry(square[0], square[1])
 
-        board_width = Constant.BOARD_WIDTH_SQ
+        board_width = constant.BOARD_WIDTH_SQ
         approximate_center = board_width // 2
         boundaries = [approximate_center - 3, approximate_center + 3]
         self.delete_resources_in_sequential_cols(boundaries, iterations=2)
@@ -591,7 +591,7 @@ class Full(Map):
     def generate_resources(self):
         super().generate_resources()
 
-        x, y = Constant.board_max_index()
+        x, y = constant.board_max_index()
         clearing_threshold = 15
         wood_threshold = 80
         quarry_threshold = 10
@@ -631,8 +631,8 @@ class Full(Map):
 class Islands(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.top_pyramid_squares = Squares.top_pyramid()
-        self.bottom_pyramid_squares = Squares.bottom_pyramid()
+        self.top_pyramid_squares = squares.top_pyramid()
+        self.bottom_pyramid_squares = squares.bottom_pyramid()
 
     def generate_resources(self):
         super().generate_resources()
@@ -658,8 +658,8 @@ class Minimal(Map):
     def __init__(self, engine):
         super().__init__(engine)
         self.player_wood = 9
-        self.w_starting_squares, self.b_starting_squares = Squares.alt_starting()
-        self.directions = (Constant.UP, Constant.DOWN, Constant.LEFT, Constant.RIGHT)
+        self.w_starting_squares, self.b_starting_squares = squares.alt_starting()
+        self.directions = (constant.UP, constant.DOWN, constant.LEFT, constant.RIGHT)
 
     def generate_wood(self, squares):
         choice = random.choice(squares)
@@ -700,8 +700,8 @@ class GoldForest(Map):
     def __init__(self, engine):
         super().__init__(engine)
         # Set map dimensions based on constants
-        self.map_width = Constant.BOARD_WIDTH_SQ
-        self.map_height = Constant.BOARD_HEIGHT_SQ
+        self.map_width = constant.BOARD_WIDTH_SQ
+        self.map_height = constant.BOARD_HEIGHT_SQ
 
         # Set locations for resources
         self.center_squares_list = self.center_squares()
@@ -751,8 +751,8 @@ class WoodlandQuarries(Map):
 
     def __init__(self, engine):
         super().__init__(engine)
-        self.quarter_triangle_sections = Squares.quarter_triangle()
-        self.center_squares = Squares.center()
+        self.quarter_triangle_sections = squares.quarter_triangle()
+        self.center_squares = squares.center()
 
     def generate_resources(self):
         super().generate_resources()
@@ -858,12 +858,12 @@ class VTrees(Map):
 class GoldTopRight(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.quarter_triangle_sections = Squares.quarter_triangle_a()
+        self.quarter_triangle_sections = squares.quarter_triangle_a()
         self.top_right_squares = self.top_right_squares()
 
     def top_right_squares(self):
         # x, y equal max val col, row
-        x, y = Constant.board_max_index()
+        x, y = constant.board_max_index()
         top_right = []
         for r in range(0, 5):
             for c in range(x, x - (5 - r), -1):
@@ -894,12 +894,12 @@ class GoldTopRight(Map):
 class GoldTopLeft(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.quarter_triangle_sections = Squares.quarter_triangle_c()
+        self.quarter_triangle_sections = squares.quarter_triangle_c()
         self.top_left = self.top_left_squares()
 
     def top_left_squares(self):
         top_left = []
-        x, y = Constant.board_max_index()
+        x, y = constant.board_max_index()
         for r in range(0, 5):
             for c in range(5 - r, -1, -1):
                 top_left.append((r, c))
@@ -929,7 +929,7 @@ class GoldTopLeft(Map):
 class TriangleTrees(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.quarter_triangle_sections = Squares.quarter_triangle()
+        self.quarter_triangle_sections = squares.quarter_triangle()
 
     def generate_resources(self):
         super().generate_resources()
@@ -947,8 +947,8 @@ class TriangleTrees(Map):
 class UnbalancedForestA(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.w_starting_squares, self.b_starting_squares = Squares.alt_starting_a()
-        self.center_squares = Squares.big_center()
+        self.w_starting_squares, self.b_starting_squares = squares.alt_starting_a()
+        self.center_squares = squares.big_center()
 
     def generate_resources(self):
         super().generate_resources()
@@ -983,8 +983,8 @@ class UnbalancedForestA(Map):
 class UnbalancedForestB(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.w_starting_squares, self.b_starting_squares = Squares.alt_starting_a()
-        self.center_squares = Squares.big_center()
+        self.w_starting_squares, self.b_starting_squares = squares.alt_starting_a()
+        self.center_squares = squares.big_center()
 
     def generate_resources(self):
         super().generate_resources()
@@ -1002,8 +1002,8 @@ class UnbalancedForestB(Map):
 class UltraBalanced(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.w_starting_squares, self.b_starting_squares = Squares.alt_starting_a()
-        self.center_squares = Squares.big_center()
+        self.w_starting_squares, self.b_starting_squares = squares.alt_starting_a()
+        self.center_squares = squares.big_center()
 
     def generate_resources(self):
         super().generate_resources()
@@ -1021,19 +1021,19 @@ class UltraBalanced(Map):
 class TopBottomModified(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.side_squares = Squares.top_and_bottom()  # Adjusted to use top and bottom
+        self.side_squares = squares.top_and_bottom()  # Adjusted to use top and bottom
         self.halfs = (
-            Squares.left_right()
+            squares.left_right()
         )  # These could be adjusted based on how you want them to behave
         self.directions = [
-            Constant.UP,
-            Constant.RIGHT,
-            Constant.DOWN,
-            Constant.LEFT,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.UP,
+            constant.RIGHT,
+            constant.DOWN,
+            constant.LEFT,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         ]
 
     def generate_resources(self):
@@ -1069,7 +1069,7 @@ class TopBottomModified(Map):
                     break
 
         # Add a single gold near the center with variation
-        center_square = random.choice(Squares.center())
+        center_square = random.choice(squares.center())
         variation_range = 3  # Set a variation range around the center
 
         rand_offset_row = random.randint(-variation_range, variation_range)
@@ -1086,17 +1086,17 @@ class TopBottomModified(Map):
 class LeftRightModified(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.side_squares = Squares.left_right()
-        self.halfs = Squares.top_and_bottom()
+        self.side_squares = squares.left_right()
+        self.halfs = squares.top_and_bottom()
         self.directions = [
-            Constant.UP,
-            Constant.RIGHT,
-            Constant.DOWN,
-            Constant.LEFT,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.UP,
+            constant.RIGHT,
+            constant.DOWN,
+            constant.LEFT,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         ]
 
     def generate_resources(self):
@@ -1132,17 +1132,17 @@ class LeftRightModified(Map):
 class LeftRight(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.side_squares = Squares.left_right()
-        self.halfs = Squares.top_and_bottom()
+        self.side_squares = squares.left_right()
+        self.halfs = squares.top_and_bottom()
         self.directions = [
-            Constant.UP,
-            Constant.RIGHT,
-            Constant.DOWN,
-            Constant.LEFT,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.UP,
+            constant.RIGHT,
+            constant.DOWN,
+            constant.LEFT,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         ]
 
     def generate_resources(self):
@@ -1183,7 +1183,7 @@ class OnlyStoneAndGold(Map):
             if rand > 74:
                 r, c = square[0], square[1]
                 random.choice(self.choices)(r, c)
-        for section in Squares.left_right():
+        for section in squares.left_right():
             sample = random.sample(section, 2)
             for square in sample:
                 r, c = square[0], square[1]
@@ -1193,16 +1193,16 @@ class OnlyStoneAndGold(Map):
 class CenterCircleA(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.circle_center_squares = Squares.center_circle()
+        self.circle_center_squares = squares.center_circle()
         self.directions = [
-            Constant.UP,
-            Constant.RIGHT,
-            Constant.DOWN,
-            Constant.LEFT,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.UP,
+            constant.RIGHT,
+            constant.DOWN,
+            constant.LEFT,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         ]
         self.choices = [
             self.spawn_sunken_quarry,
@@ -1230,16 +1230,16 @@ class CenterCircleA(Map):
 class CenterCircleB(Map):
     def __init__(self, engine):
         super().__init__(engine)
-        self.circle_center_squares = Squares.center_circle()
+        self.circle_center_squares = squares.center_circle()
         self.directions = [
-            Constant.UP,
-            Constant.RIGHT,
-            Constant.DOWN,
-            Constant.LEFT,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.UP,
+            constant.RIGHT,
+            constant.DOWN,
+            constant.LEFT,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         ]
         self.choices = [
             self.spawn_sunken_quarry,
@@ -1268,16 +1268,16 @@ class FourCorners(Map):
     def __init__(self, engine):
         super().__init__(engine)
         self.player_wood = 9
-        self.triangle_sections = Squares.quarter_triangle_d()
+        self.triangle_sections = squares.quarter_triangle_d()
         self.directions = [
-            Constant.UP,
-            Constant.RIGHT,
-            Constant.DOWN,
-            Constant.LEFT,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.UP,
+            constant.RIGHT,
+            constant.DOWN,
+            constant.LEFT,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         ]
         self.choices = [self.spawn_depleted_quarry, self.spawn_quarry, self.spawn_wood]
 
@@ -1302,9 +1302,9 @@ class FourCorners(Map):
                     if rand > 95:
                         self.populate_randomly(r, c)
 
-    def generate_wood(self, squares):
+    def generate_wood(self, squares_list):
         super().generate_resources()
-        choice = random.choice(squares)
+        choice = random.choice(squares_list)
         row, col = choice[0], choice[1]
         for direction in self.directions:
             r = row + direction[0]
@@ -1326,7 +1326,7 @@ class GoldCornersB(Map):
 
     def generate_resources(self):
         rand = random.randint(0, 1)
-        for section in Squares.quarter_triangle_e():
+        for section in squares.quarter_triangle_e():
             for square in section:
                 (r, c) = square[0], square[1]
                 self.spawn_wood(r, c)
@@ -1335,11 +1335,11 @@ class GoldCornersB(Map):
                 (r, c) = square[0], square[1]
                 self.spawn_gold(r, c)
         if rand == 1:
-            for square in Constant.outside_corner_squares():
+            for square in constant.outside_corner_squares():
                 (r, c) = square[0], square[1]
                 self.spawn_gold(r, c)
 
-        center_section = random.sample(Squares.big_center(), 2)
+        center_section = random.sample(squares.big_center(), 2)
         for square in center_section:
             (r, c) = square[0], square[1]
             random.choice(self.choices)(r, c)
@@ -1356,7 +1356,7 @@ class GoldCornersA(Map):
 
     def generate_resources(self):
         rand = random.randint(0, 1)
-        for section in Squares.quarter_triangle_e():
+        for section in squares.quarter_triangle_e():
             for square in section:
                 (r, c) = square[0], square[1]
                 self.spawn_wood(r, c)
@@ -1365,11 +1365,11 @@ class GoldCornersA(Map):
                 (r, c) = square[0], square[1]
                 self.spawn_gold(r, c)
         if rand == 1:
-            for square in Constant.outside_corner_squares():
+            for square in constant.outside_corner_squares():
                 (r, c) = square[0], square[1]
                 self.spawn_gold(r, c)
 
-        center_section = random.sample(Squares.big_center(), 4)
+        center_section = random.sample(squares.big_center(), 4)
         for square in center_section:
             (r, c) = square[0], square[1]
             random.choice(self.choices)(r, c)

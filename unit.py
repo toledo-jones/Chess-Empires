@@ -2,11 +2,11 @@ import typing
 from typing import Optional, Tuple
 
 if typing.TYPE_CHECKING:
-    from Engine import Engine
+    from engine import Engine
 
 import pygame
 
-import Constant
+import constant
 
 
 class Unit:
@@ -35,18 +35,18 @@ class Unit:
         # This piece has not moved yet
         self.first_move: bool = True
         self.rect: pygame.Rect = pygame.Rect(
-            col * Constant.SQ_SIZE,
-            row * Constant.SQ_SIZE,
-            Constant.SQ_SIZE,
-            Constant.SQ_SIZE,
+            col * constant.SQ_SIZE,
+            row * constant.SQ_SIZE,
+            constant.SQ_SIZE,
+            constant.SQ_SIZE,
         )
 
         # Initialize sprites
         self.sprites: dict = (
-            Constant.W_PIECES
-            | Constant.W_BUILDINGS
-            | Constant.B_PIECES
-            | Constant.B_BUILDINGS
+            constant.W_PIECES
+            | constant.W_BUILDINGS
+            | constant.B_PIECES
+            | constant.B_BUILDINGS
         )
 
         # Initialize state flags
@@ -72,8 +72,8 @@ class Unit:
 
         self.additional_actions: int = 0
         self.actions_remaining: int = 0
-        self.population_value: int = Constant.PIECE_POPULATION[str(self)]
-        self.additional_piece_limit: int = Constant.ADDITIONAL_PIECE_LIMIT[str(self)]
+        self.population_value: int = constant.PIECE_POPULATION[str(self)]
+        self.additional_piece_limit: int = constant.ADDITIONAL_PIECE_LIMIT[str(self)]
 
         # Initialize square lists
         self.praying_squares_list: list[Tuple[int, int]] = []
@@ -88,12 +88,12 @@ class Unit:
 
         # Initialize drawing attributes
         self.square: pygame.Surface = pygame.Surface(
-            (Constant.SQ_SIZE, Constant.SQ_SIZE), pygame.SRCALPHA
+            (constant.SQ_SIZE, constant.SQ_SIZE), pygame.SRCALPHA
         )
-        self.self_selected_square_color: tuple = Constant.SELF_SQUARE_HIGHLIGHT_COLOR
-        self.unused_square_color: tuple = Constant.UNUSED_PIECE_HIGHLIGHT_COLOR
-        self.move_square_color: tuple = Constant.MOVE_SQUARE_HIGHLIGHT_COLOR
-        self.check_color: tuple = Constant.CHECK_SQUARE_HIGHLIGHT_COLOR
+        self.self_selected_square_color: tuple = constant.SELF_SQUARE_HIGHLIGHT_COLOR
+        self.unused_square_color: tuple = constant.UNUSED_PIECE_HIGHLIGHT_COLOR
+        self.move_square_color: tuple = constant.MOVE_SQUARE_HIGHLIGHT_COLOR
+        self.check_color: tuple = constant.CHECK_SQUARE_HIGHLIGHT_COLOR
         self.is_effected_by_jester: bool = True
         self.square_list: dict[str, list] = {
             "spawn": self.spawn_squares_list,
@@ -115,6 +115,7 @@ class Unit:
             ("pre_selected", []),
             ("performing_ritual", ["ritual"]),
             ("persuading", ["persuader"]),
+            ("display_moves", ["move", "capture"]),
         ]
 
     def draw_highlights(self, win: pygame.Surface):
@@ -165,10 +166,10 @@ class Unit:
             sprite = self.sprites[self.color + "_" + str(self)]
 
             # Calculate the x position based on the column and offset
-            x = (self.col * Constant.SQ_SIZE) + self.offset[0]
+            x = (self.col * constant.SQ_SIZE) + self.offset[0]
 
             # Calculate the y position based on the row and offset
-            y = (self.row * Constant.SQ_SIZE) + self.offset[1]
+            y = (self.row * constant.SQ_SIZE) + self.offset[1]
 
             # Draw the piece sprite at the calculated position on the window
             win.blit(sprite, (x, y))
@@ -183,7 +184,7 @@ class Unit:
         # Fill the square with the specified color
         self.square_fill(color)
         win.blit(
-            self.square, (self.col * Constant.SQ_SIZE, self.row * Constant.SQ_SIZE)
+            self.square, (self.col * constant.SQ_SIZE, self.row * constant.SQ_SIZE)
         )
 
     def draw_squares_in_list(
@@ -202,7 +203,7 @@ class Unit:
         for square in square_list:
             win.blit(
                 self.square,
-                (square[1] * Constant.SQ_SIZE, square[0] * Constant.SQ_SIZE),
+                (square[1] * constant.SQ_SIZE, square[0] * constant.SQ_SIZE),
             )
 
     def draw_highlight(self, win: pygame.Surface, square_type: str):
@@ -247,8 +248,8 @@ class Unit:
         """
         # Draw the sparkle image on the unit's square
         win.blit(
-            Constant.IMAGES["sparkle"],
-            (self.col * Constant.SQ_SIZE, self.row * Constant.SQ_SIZE),
+            constant.IMAGES["sparkle"],
+            (self.col * constant.SQ_SIZE, self.row * constant.SQ_SIZE),
         )
 
     def highlight_self_square(self, win: pygame.Surface):
@@ -290,8 +291,8 @@ class Unit:
         self.row = row
         self.col = col
         # Update the rectangle position
-        self.rect.x = col * Constant.SQ_SIZE
-        self.rect.y = row * Constant.SQ_SIZE
+        self.rect.x = col * constant.SQ_SIZE
+        self.rect.y = row * constant.SQ_SIZE
 
     def get_additional_piece_limit(self) -> int:
         """
@@ -318,7 +319,7 @@ class Unit:
         :return: The population value.
         """
         # Return the population value from the constant
-        return Constant.PIECE_POPULATION[str(self)]
+        return constant.PIECE_POPULATION[str(self)]
 
     def get_sprite_offset(self) -> Tuple[int, int]:
         """
@@ -327,7 +328,7 @@ class Unit:
         :return: The sprite offset.
         """
         # Return the sprite offset from the constant
-        return Constant.PIECE_IMAGE_MODIFY[str(self)]["OFFSET"]
+        return constant.PIECE_IMAGE_MODIFY[str(self)]["OFFSET"]
 
     def get_rect(self) -> pygame.Rect:
         """
@@ -364,7 +365,7 @@ class Unit:
         :return: True if the unit can spawn, False otherwise.
         """
         # Get the spawn list for the unit
-        spawn_list = Constant.SPAWN_LISTS[str(self)]
+        spawn_list = constant.SPAWN_LISTS[str(self)]
         legal_spawns = []
 
         # Check each spawn in the list
@@ -653,14 +654,14 @@ class King(Piece):
 
         # Directions the king can move
         self.move_directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Contextual options available for the king
@@ -735,18 +736,18 @@ class Queen(Piece):
 
         # Directions the queen can move
         self.directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Maximum distance the queen can move
-        self.distance: int = Constant.BOARD_WIDTH_SQ
+        self.distance: int = constant.BOARD_WIDTH_SQ
 
         # Contextual options available for the queen
         self.contextual_options: list[str] = ["queen"]
@@ -832,18 +833,18 @@ class Duke(Piece):
 
         # Directions the duke can move
         self.directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Maximum distance the duke can move
-        self.distance: int = Constant.BOARD_WIDTH_SQ
+        self.distance: int = constant.BOARD_WIDTH_SQ
 
         # Contextual options available for the duke
         self.contextual_options: list[str] = ["pray"]
@@ -948,14 +949,14 @@ class FireSpinner(Piece):
 
         # Directions the FireSpinner can move
         self.knight_directions: tuple = (
-            Constant.TWO_UP_RIGHT,
-            Constant.TWO_RIGHT_UP,
-            Constant.TWO_DOWN_RIGHT,
-            Constant.TWO_RIGHT_DOWN,
-            Constant.TWO_UP_LEFT,
-            Constant.TWO_LEFT_UP,
-            Constant.TWO_DOWN_LEFT,
-            Constant.TWO_LEFT_DOWN,
+            constant.TWO_UP_RIGHT,
+            constant.TWO_RIGHT_UP,
+            constant.TWO_DOWN_RIGHT,
+            constant.TWO_RIGHT_DOWN,
+            constant.TWO_UP_LEFT,
+            constant.TWO_LEFT_UP,
+            constant.TWO_DOWN_LEFT,
+            constant.TWO_LEFT_DOWN,
         )
 
         # Depth of movement for the FireSpinner
@@ -1041,26 +1042,26 @@ class Lion(Piece):
 
         # Directions the Lion can move
         self.directions: tuple = (
-            Constant.UP,
-            Constant.RIGHT,
-            Constant.DOWN,
-            Constant.LEFT,
+            constant.UP,
+            constant.RIGHT,
+            constant.DOWN,
+            constant.LEFT,
         )
 
         # Knight-like directions the Lion can move
         self.knight_directions: tuple = (
-            Constant.TWO_UP_RIGHT,
-            Constant.TWO_RIGHT_UP,
-            Constant.TWO_DOWN_RIGHT,
-            Constant.TWO_RIGHT_DOWN,
-            Constant.TWO_UP_LEFT,
-            Constant.TWO_LEFT_UP,
-            Constant.TWO_DOWN_LEFT,
-            Constant.TWO_LEFT_DOWN,
+            constant.TWO_UP_RIGHT,
+            constant.TWO_RIGHT_UP,
+            constant.TWO_DOWN_RIGHT,
+            constant.TWO_RIGHT_DOWN,
+            constant.TWO_UP_LEFT,
+            constant.TWO_LEFT_UP,
+            constant.TWO_DOWN_LEFT,
+            constant.TWO_LEFT_DOWN,
         )
 
         # Maximum distance the Lion can move
-        self.distance: int = Constant.BOARD_WIDTH_SQ
+        self.distance: int = constant.BOARD_WIDTH_SQ
 
     def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
         """
@@ -1149,26 +1150,26 @@ class Rook(Piece):
 
         # Directions the rook can move
         self.directions: tuple = (
-            Constant.UP,
-            Constant.RIGHT,
-            Constant.DOWN,
-            Constant.LEFT,
+            constant.UP,
+            constant.RIGHT,
+            constant.DOWN,
+            constant.LEFT,
         )
 
         # Directions the rook can pray
         self.praying_directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Maximum distance the rook can move
-        self.distance: int = Constant.BOARD_WIDTH_SQ
+        self.distance: int = constant.BOARD_WIDTH_SQ
 
         # Contextual options available for the rook
         self.contextual_options: list[str] = ["pray"]
@@ -1274,14 +1275,14 @@ class Acrobat(Piece):
 
         # Directions the Acrobat can move
         self.directions: tuple = (
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
-            Constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
+            constant.UP_RIGHT,
         )
 
         # Maximum distance the Acrobat can move
-        self.distance: int = Constant.BOARD_WIDTH_SQ
+        self.distance: int = constant.BOARD_WIDTH_SQ
 
         # The square the Acrobat has leaped over
         self.leaped_square: Optional[tuple[int, int]] = None
@@ -1429,26 +1430,26 @@ class Bishop(Piece):
 
         # Directions the bishop can move
         self.directions: tuple = (
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
-            Constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
+            constant.UP_RIGHT,
         )
 
         # Directions the bishop can pray
         self.praying_directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Maximum distance the bishop can move
-        self.distance: int = Constant.BOARD_WIDTH_SQ
+        self.distance: int = constant.BOARD_WIDTH_SQ
 
         # Contextual options available for the bishop
         self.contextual_options: list[str] = ["pray"]
@@ -1559,14 +1560,14 @@ class Knight(Piece):
 
         # Directions the knight can move
         self.directions: tuple = (
-            Constant.TWO_UP_RIGHT,
-            Constant.TWO_RIGHT_UP,
-            Constant.TWO_DOWN_RIGHT,
-            Constant.TWO_RIGHT_DOWN,
-            Constant.TWO_UP_LEFT,
-            Constant.TWO_LEFT_UP,
-            Constant.TWO_DOWN_LEFT,
-            Constant.TWO_LEFT_DOWN,
+            constant.TWO_UP_RIGHT,
+            constant.TWO_RIGHT_UP,
+            constant.TWO_DOWN_RIGHT,
+            constant.TWO_RIGHT_DOWN,
+            constant.TWO_UP_LEFT,
+            constant.TWO_LEFT_UP,
+            constant.TWO_DOWN_LEFT,
+            constant.TWO_LEFT_DOWN,
         )
 
         # Maximum distance the knight can move
@@ -1641,30 +1642,30 @@ class Pawn(Piece):
 
         # Directions the pawn can mine
         self.mining_directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Directions the pawn can move
         self.move_directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
         )
 
         # Directions the pawn can capture
         self.capture_directions: tuple = (
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Maximum distance the pawn can move
@@ -1800,25 +1801,25 @@ class RogueRook(Piece):
 
         # Directions the rogue rook can move
         self.directions: tuple = (
-            Constant.UP,
-            Constant.RIGHT,
-            Constant.DOWN,
-            Constant.LEFT,
+            constant.UP,
+            constant.RIGHT,
+            constant.DOWN,
+            constant.LEFT,
         )
 
         # Maximum distance the rogue rook can move
-        self.distance: int = Constant.BOARD_WIDTH_SQ
+        self.distance: int = constant.BOARD_WIDTH_SQ
 
         # Directions the rogue rook can steal
         self.stealing_directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Indicates if the rogue rook is a rogue
@@ -1939,26 +1940,26 @@ class RogueBishop(Piece):
 
         # Directions the rogue bishop can steal
         self.stealing_directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Directions the rogue bishop can move
         self.directions: tuple = (
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
-            Constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
+            constant.UP_RIGHT,
         )
 
         # Maximum distance the rogue bishop can move
-        self.distance: int = Constant.BOARD_WIDTH_SQ
+        self.distance: int = constant.BOARD_WIDTH_SQ
 
         # Indicates if the rogue bishop is a rogue
         self.is_rogue: bool = True
@@ -2078,26 +2079,26 @@ class RogueKnight(Piece):
 
         # Directions the rogue knight can move
         self.directions: tuple = (
-            Constant.TWO_UP_RIGHT,
-            Constant.TWO_RIGHT_UP,
-            Constant.TWO_DOWN_RIGHT,
-            Constant.TWO_RIGHT_DOWN,
-            Constant.TWO_UP_LEFT,
-            Constant.TWO_LEFT_UP,
-            Constant.TWO_DOWN_LEFT,
-            Constant.TWO_LEFT_DOWN,
+            constant.TWO_UP_RIGHT,
+            constant.TWO_RIGHT_UP,
+            constant.TWO_DOWN_RIGHT,
+            constant.TWO_RIGHT_DOWN,
+            constant.TWO_UP_LEFT,
+            constant.TWO_LEFT_UP,
+            constant.TWO_DOWN_LEFT,
+            constant.TWO_LEFT_DOWN,
         )
 
         # Directions the rogue knight can steal
         self.stealing_directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Maximum distance the rogue knight can move
@@ -2207,42 +2208,42 @@ class RoguePawn(Piece):
 
         # Directions the rogue pawn can mine
         self.mining_directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Directions the rogue pawn can move
         self.move_directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
         )
 
         # Directions the rogue pawn can capture
         self.capture_directions: tuple = (
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Directions the rogue pawn can steal
         self.stealing_directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Maximum distance the rogue pawn can move
@@ -2400,14 +2401,14 @@ class Magician(Piece):
 
         # Directions the magician can move
         self.directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Maximum distance the magician can move
@@ -2475,14 +2476,14 @@ class Monk(Piece):
 
         # Directions the monk can move
         self.directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Maximum distance the monk can move
@@ -2608,14 +2609,14 @@ class Ram(Piece):
 
         # Directions the ram can move
         self.directions: tuple = (
-            Constant.TWO_UP_RIGHT,
-            Constant.TWO_UP_LEFT,
-            Constant.TWO_RIGHT_UP,
-            Constant.TWO_RIGHT_DOWN,
-            Constant.TWO_LEFT_UP,
-            Constant.TWO_LEFT_DOWN,
-            Constant.TWO_DOWN_LEFT,
-            Constant.TWO_DOWN_RIGHT,
+            constant.TWO_UP_RIGHT,
+            constant.TWO_UP_LEFT,
+            constant.TWO_RIGHT_UP,
+            constant.TWO_RIGHT_DOWN,
+            constant.TWO_LEFT_UP,
+            constant.TWO_LEFT_DOWN,
+            constant.TWO_DOWN_LEFT,
+            constant.TWO_DOWN_RIGHT,
         )
 
         # Indicates if the ram is cavalry
@@ -2623,18 +2624,18 @@ class Ram(Piece):
 
         # Extra move directions for the ram
         self.extra_move_directions: dict = {
-            Constant.TWO_UP_RIGHT: Constant.UP_RIGHT,
-            Constant.TWO_UP_LEFT: Constant.UP_LEFT,
-            Constant.TWO_RIGHT_UP: Constant.UP_RIGHT,
-            Constant.TWO_RIGHT_DOWN: Constant.DOWN_RIGHT,
-            Constant.TWO_LEFT_UP: Constant.UP_LEFT,
-            Constant.TWO_LEFT_DOWN: Constant.DOWN_LEFT,
-            Constant.TWO_DOWN_LEFT: Constant.DOWN_LEFT,
-            Constant.TWO_DOWN_RIGHT: Constant.DOWN_RIGHT,
+            constant.TWO_UP_RIGHT: constant.UP_RIGHT,
+            constant.TWO_UP_LEFT: constant.UP_LEFT,
+            constant.TWO_RIGHT_UP: constant.UP_RIGHT,
+            constant.TWO_RIGHT_DOWN: constant.DOWN_RIGHT,
+            constant.TWO_LEFT_UP: constant.UP_LEFT,
+            constant.TWO_LEFT_DOWN: constant.DOWN_LEFT,
+            constant.TWO_DOWN_LEFT: constant.DOWN_LEFT,
+            constant.TWO_DOWN_RIGHT: constant.DOWN_RIGHT,
         }
 
         # Maximum distance the ram can move
-        self.distance: int = Constant.BOARD_WIDTH_SQ
+        self.distance: int = constant.BOARD_WIDTH_SQ
 
     def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
         """
@@ -2648,7 +2649,7 @@ class Ram(Piece):
 
         # Iterate over each direction in the capture directions
         for direction in self.directions:
-            for distance in range(0, Constant.BOARD_WIDTH_SQ):
+            for distance in range(0, constant.BOARD_WIDTH_SQ):
                 # Calculate the new row and column based on the current direction and distance
                 extra_direction: tuple[int, int] = self.extra_move_directions[direction]
                 row: int = self.row + direction[0] + extra_direction[0] * distance
@@ -2682,7 +2683,7 @@ class Ram(Piece):
 
         # Iterate over each direction in the move directions
         for direction in self.directions:
-            for distance in range(0, Constant.BOARD_WIDTH_SQ):
+            for distance in range(0, constant.BOARD_WIDTH_SQ):
                 # Calculate the new row and column based on the current direction and distance
                 extra_direction: tuple[int, int] = self.extra_move_directions[direction]
                 row: int = self.row + direction[0] + extra_direction[0] * distance
@@ -2728,26 +2729,26 @@ class Elephant(Piece):
 
         # Directions the elephant can move
         self.directions: tuple = (
-            Constant.TWO_UP_RIGHT,
-            Constant.TWO_RIGHT_UP,
-            Constant.TWO_DOWN_RIGHT,
-            Constant.TWO_RIGHT_DOWN,
-            Constant.TWO_UP_LEFT,
-            Constant.TWO_LEFT_UP,
-            Constant.TWO_DOWN_LEFT,
-            Constant.TWO_LEFT_DOWN,
+            constant.TWO_UP_RIGHT,
+            constant.TWO_RIGHT_UP,
+            constant.TWO_DOWN_RIGHT,
+            constant.TWO_RIGHT_DOWN,
+            constant.TWO_UP_LEFT,
+            constant.TWO_LEFT_UP,
+            constant.TWO_DOWN_LEFT,
+            constant.TWO_LEFT_DOWN,
         )
 
         # Extra move directions for the elephant
         self.directions_to_extra_moves: dict = {
-            Constant.TWO_UP_RIGHT: Constant.UP,
-            Constant.TWO_RIGHT_UP: Constant.RIGHT,
-            Constant.TWO_DOWN_RIGHT: Constant.DOWN,
-            Constant.TWO_RIGHT_DOWN: Constant.RIGHT,
-            Constant.TWO_UP_LEFT: Constant.UP,
-            Constant.TWO_LEFT_UP: Constant.LEFT,
-            Constant.TWO_DOWN_LEFT: Constant.DOWN,
-            Constant.TWO_LEFT_DOWN: Constant.LEFT,
+            constant.TWO_UP_RIGHT: constant.UP,
+            constant.TWO_RIGHT_UP: constant.RIGHT,
+            constant.TWO_DOWN_RIGHT: constant.DOWN,
+            constant.TWO_RIGHT_DOWN: constant.RIGHT,
+            constant.TWO_UP_LEFT: constant.UP,
+            constant.TWO_LEFT_UP: constant.LEFT,
+            constant.TWO_DOWN_LEFT: constant.DOWN,
+            constant.TWO_LEFT_DOWN: constant.LEFT,
         }
 
         # Maximum distance the elephant can move
@@ -2851,18 +2852,18 @@ class Assassin(Piece):
 
         # Directions the assassin can move
         self.directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Maximum distance the assassin can move
-        self.distance: int = Constant.BOARD_WIDTH_SQ
+        self.distance: int = constant.BOARD_WIDTH_SQ
 
         # Contextual options available for the assassin
         self.contextual_options: list[str] = ["ritual"]
@@ -2916,18 +2917,18 @@ class Jester(Piece):
 
         # Directions the jester can move
         self.directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Maximum distance the jester can move
-        self.distance: int = Constant.BOARD_WIDTH_SQ
+        self.distance: int = constant.BOARD_WIDTH_SQ
 
     def move_squares(self, engine: "Engine") -> list[tuple[int, int]]:
         """
@@ -3010,26 +3011,26 @@ class Doe(Piece):
 
         # Directions the doe can move like a knight
         self.knight_directions: tuple = (
-            Constant.TWO_UP_RIGHT,
-            Constant.TWO_RIGHT_UP,
-            Constant.TWO_DOWN_RIGHT,
-            Constant.TWO_RIGHT_DOWN,
-            Constant.TWO_UP_LEFT,
-            Constant.TWO_LEFT_UP,
-            Constant.TWO_DOWN_LEFT,
-            Constant.TWO_LEFT_DOWN,
+            constant.TWO_UP_RIGHT,
+            constant.TWO_RIGHT_UP,
+            constant.TWO_DOWN_RIGHT,
+            constant.TWO_RIGHT_DOWN,
+            constant.TWO_UP_LEFT,
+            constant.TWO_LEFT_UP,
+            constant.TWO_DOWN_LEFT,
+            constant.TWO_LEFT_DOWN,
         )
 
         # Directions the doe can move like a bishop
         self.bishop_directions: tuple = (
-            Constant.UP_LEFT,
-            Constant.UP_RIGHT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.UP_LEFT,
+            constant.UP_RIGHT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Maximum distance the doe can move
-        self.distance: int = Constant.BOARD_WIDTH_SQ
+        self.distance: int = constant.BOARD_WIDTH_SQ
 
         # Indicates if the doe is cavalry
         self.is_cavalry: bool = True
@@ -3125,14 +3126,14 @@ class Pikeman(Piece):
 
         # Directions the pikeman can move
         self.directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Maximum distance the pikeman can move
@@ -3207,26 +3208,26 @@ class Builder(Piece):
 
         # Directions the builder can move
         self.directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Directions the builder can mine
         self.mining_directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Maximum distance the builder can move
@@ -3354,34 +3355,34 @@ class Unicorn(Piece):
 
         # Directions the unicorn can move like a knight
         self.knight_directions: tuple = (
-            Constant.TWO_UP_RIGHT,
-            Constant.TWO_RIGHT_UP,
-            Constant.TWO_DOWN_RIGHT,
-            Constant.TWO_RIGHT_DOWN,
-            Constant.TWO_UP_LEFT,
-            Constant.TWO_LEFT_UP,
-            Constant.TWO_DOWN_LEFT,
-            Constant.TWO_LEFT_DOWN,
+            constant.TWO_UP_RIGHT,
+            constant.TWO_RIGHT_UP,
+            constant.TWO_DOWN_RIGHT,
+            constant.TWO_RIGHT_DOWN,
+            constant.TWO_UP_LEFT,
+            constant.TWO_LEFT_UP,
+            constant.TWO_DOWN_LEFT,
+            constant.TWO_LEFT_DOWN,
         )
 
         # Directions the unicorn can move in cardinal directions
         self.cardinal_directions: tuple = (
-            Constant.THREE_RIGHT,
-            Constant.THREE_DOWN,
-            Constant.THREE_UP,
-            Constant.THREE_LEFT,
+            constant.THREE_RIGHT,
+            constant.THREE_DOWN,
+            constant.THREE_UP,
+            constant.THREE_LEFT,
         )
 
         # Mapping of knight directions to extra moves
         self.knight_directions_to_extra_moves: dict = {
-            Constant.TWO_UP_RIGHT: Constant.TWO_RIGHT_UP,
-            Constant.TWO_RIGHT_UP: Constant.TWO_UP_RIGHT,
-            Constant.TWO_DOWN_RIGHT: Constant.TWO_RIGHT_DOWN,
-            Constant.TWO_RIGHT_DOWN: Constant.TWO_DOWN_RIGHT,
-            Constant.TWO_UP_LEFT: Constant.TWO_LEFT_UP,
-            Constant.TWO_LEFT_UP: Constant.TWO_UP_LEFT,
-            Constant.TWO_DOWN_LEFT: Constant.TWO_LEFT_DOWN,
-            Constant.TWO_LEFT_DOWN: Constant.TWO_DOWN_LEFT,
+            constant.TWO_UP_RIGHT: constant.TWO_RIGHT_UP,
+            constant.TWO_RIGHT_UP: constant.TWO_UP_RIGHT,
+            constant.TWO_DOWN_RIGHT: constant.TWO_RIGHT_DOWN,
+            constant.TWO_RIGHT_DOWN: constant.TWO_DOWN_RIGHT,
+            constant.TWO_UP_LEFT: constant.TWO_LEFT_UP,
+            constant.TWO_LEFT_UP: constant.TWO_UP_LEFT,
+            constant.TWO_DOWN_LEFT: constant.TWO_LEFT_DOWN,
+            constant.TWO_LEFT_DOWN: constant.TWO_DOWN_LEFT,
         }
 
         # Maximum distance the unicorn can move
@@ -3479,37 +3480,37 @@ class Champion(Piece):
 
         # Directions the champion can move
         self.directions: tuple = (
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Directions the champion can pray
         self.praying_directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Extra move directions for the champion
         self.extra_move_directions: dict = {
-            Constant.UP_RIGHT: (Constant.UP, Constant.RIGHT),
-            Constant.UP_LEFT: (Constant.UP, Constant.LEFT),
-            Constant.DOWN_RIGHT: (Constant.DOWN, Constant.RIGHT),
-            Constant.DOWN_LEFT: (Constant.DOWN, Constant.LEFT),
+            constant.UP_RIGHT: (constant.UP, constant.RIGHT),
+            constant.UP_LEFT: (constant.UP, constant.LEFT),
+            constant.DOWN_RIGHT: (constant.DOWN, constant.RIGHT),
+            constant.DOWN_LEFT: (constant.DOWN, constant.LEFT),
         }
 
         # Contextual options available for the champion
         self.contextual_options: list[str] = ["pray"]
 
         # Maximum distance the champion can move
-        self.distance: int = Constant.BOARD_WIDTH_SQ
+        self.distance: int = constant.BOARD_WIDTH_SQ
 
     def praying_squares(self, engine: "Engine") -> list[tuple[int, int]]:
         """
@@ -3641,14 +3642,14 @@ class Oxen(Piece):
 
         # Directions the oxen can move
         self.directions: tuple = (
-            Constant.TWO_UP_RIGHT,
-            Constant.TWO_RIGHT_UP,
-            Constant.TWO_DOWN_RIGHT,
-            Constant.TWO_RIGHT_DOWN,
-            Constant.TWO_UP_LEFT,
-            Constant.TWO_LEFT_UP,
-            Constant.TWO_DOWN_LEFT,
-            Constant.TWO_LEFT_DOWN,
+            constant.TWO_UP_RIGHT,
+            constant.TWO_RIGHT_UP,
+            constant.TWO_DOWN_RIGHT,
+            constant.TWO_RIGHT_DOWN,
+            constant.TWO_UP_LEFT,
+            constant.TWO_LEFT_UP,
+            constant.TWO_DOWN_LEFT,
+            constant.TWO_LEFT_DOWN,
         )
 
         # Indicates if the oxen is cavalry
@@ -3656,18 +3657,18 @@ class Oxen(Piece):
 
         # Extra move directions for the oxen
         self.extra_move_directions: dict = {
-            Constant.TWO_UP_RIGHT: Constant.UP,
-            Constant.TWO_RIGHT_UP: Constant.RIGHT,
-            Constant.TWO_DOWN_RIGHT: Constant.DOWN,
-            Constant.TWO_RIGHT_DOWN: Constant.RIGHT,
-            Constant.TWO_UP_LEFT: Constant.UP,
-            Constant.TWO_LEFT_UP: Constant.LEFT,
-            Constant.TWO_DOWN_LEFT: Constant.DOWN,
-            Constant.TWO_LEFT_DOWN: Constant.LEFT,
+            constant.TWO_UP_RIGHT: constant.UP,
+            constant.TWO_RIGHT_UP: constant.RIGHT,
+            constant.TWO_DOWN_RIGHT: constant.DOWN,
+            constant.TWO_RIGHT_DOWN: constant.RIGHT,
+            constant.TWO_UP_LEFT: constant.UP,
+            constant.TWO_LEFT_UP: constant.LEFT,
+            constant.TWO_DOWN_LEFT: constant.DOWN,
+            constant.TWO_LEFT_DOWN: constant.LEFT,
         }
 
         # Maximum distance the oxen can move
-        self.distance: int = Constant.BOARD_WIDTH_SQ
+        self.distance: int = constant.BOARD_WIDTH_SQ
 
     def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
         """
@@ -3760,18 +3761,18 @@ class Persuader(Piece):
 
         # Directions the persuader can move
         self.directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Maximum distance the persuader can move
-        self.distance: int = Constant.BOARD_WIDTH_SQ
+        self.distance: int = constant.BOARD_WIDTH_SQ
 
         # Contextual options available for the persuader
         self.contextual_options: list[str] = ["persuade"]
@@ -3863,29 +3864,29 @@ class GoldGeneral(Piece):
 
         # Directions the gold general can move
         self.directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Maximum distance the gold general can move
-        self.distance: int = Constant.BOARD_WIDTH_SQ
+        self.distance: int = constant.BOARD_WIDTH_SQ
 
         # Directions the gold general can pray
         self.praying_directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Indicates if the gold general is a general
@@ -4013,30 +4014,30 @@ class Trapper(Piece):
 
         # Directions the trapper can trap
         self.trapping_directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Directions the trapper can move
         self.move_directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
         )
 
         # Directions the trapper can capture
         self.capture_directions: tuple = (
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Maximum distance the trapper can move
@@ -4053,14 +4054,14 @@ class Trapper(Piece):
 
         # Directions the trapper can steal
         self.stealing_directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
     def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
@@ -4093,7 +4094,7 @@ class Trapper(Piece):
         :return: True if the trapper can spawn, False otherwise.
         """
         # Get the list of legal spawns for the trapper
-        spawn_list: list = Constant.SPAWN_LISTS[str(self)]
+        spawn_list: list = constant.SPAWN_LISTS[str(self)]
         legal_spawns: list = []
 
         # Iterate over each spawn in the spawn list
@@ -4236,14 +4237,14 @@ class Trader(Piece):
 
         # Directions the trader can move
         self.directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Contextual options available for the trader
@@ -4306,21 +4307,21 @@ class Stable(Building):
 
         # Directions the stable can spawn units
         self.directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Maximum distance the stable can spawn units
         self.distance: int = 1
 
         # Additional actions available for the stable
-        self.additional_actions: list[str] = Constant.STABLE_ADDITIONAL_ACTIONS
+        self.additional_actions: list[str] = constant.STABLE_ADDITIONAL_ACTIONS
 
     def spawn_squares(self, engine: "Engine") -> list[tuple[int, int]]:
         """
@@ -4384,21 +4385,21 @@ class Barracks(Building):
 
         # Directions the barracks can spawn units
         self.directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Maximum distance the barracks can spawn units
         self.distance: int = 1
 
         # Additional actions available for the barracks
-        self.additional_actions: list[str] = Constant.BARRACKS_ADDITIONAL_ACTIONS
+        self.additional_actions: list[str] = constant.BARRACKS_ADDITIONAL_ACTIONS
 
     def spawn_squares(self, engine: "Engine") -> list[tuple[int, int]]:
         """
@@ -4462,21 +4463,21 @@ class Castle(Building):
 
         # Directions the castle can spawn units
         self.directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Maximum distance the castle can spawn units
         self.distance: int = 1
 
         # Additional actions available for the castle
-        self.additional_actions: list[str] = Constant.CASTLE_ADDITIONAL_ACTIONS
+        self.additional_actions: list[str] = constant.CASTLE_ADDITIONAL_ACTIONS
 
     def spawn_squares(self, engine: "Engine") -> list[tuple[int, int]]:
         """
@@ -4545,21 +4546,21 @@ class Circus(Building):
 
         # Directions the circus can spawn units
         self.directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Maximum distance the circus can spawn units
         self.distance: int = 1
 
         # Additional actions available for the circus
-        self.additional_actions: list[str] = Constant.CIRCUS_ADDITIONAL_ACTIONS
+        self.additional_actions: list[str] = constant.CIRCUS_ADDITIONAL_ACTIONS
 
     def spawn_squares(self, engine: "Engine") -> list[tuple[int, int]]:
         """
@@ -4624,21 +4625,21 @@ class Fortress(Building):
 
         # Directions the fortress can spawn units
         self.directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Maximum distance the fortress can spawn units
         self.distance: int = 1
 
         # Additional actions available for the fortress
-        self.additional_actions: list[str] = Constant.FORTRESS_ADDITIONAL_ACTIONS
+        self.additional_actions: list[str] = constant.FORTRESS_ADDITIONAL_ACTIONS
 
     def spawn_squares(self, engine: "Engine") -> list[tuple[int, int]]:
         """
@@ -4711,13 +4712,13 @@ class PrayerStone(Building):
         self.remaining: int = 0
 
         # Yield when the prayer stone is prayed
-        self.yield_when_prayed: int = Constant.PRAYER_STONE_YIELD
+        self.yield_when_prayed: int = constant.PRAYER_STONE_YIELD
 
         # Indicates if the prayer stone is affected by the jester
         self.is_effected_by_jester: bool = False
 
         # Additional actions available for the prayer stone
-        self.additional_actions: list[str] = Constant.PRAYER_STONE_ADDITIONAL_ACTIONS
+        self.additional_actions: list[str] = constant.PRAYER_STONE_ADDITIONAL_ACTIONS
 
         # Contextual options available for the prayer stone
         self.contextual_options: list[str] = ["ritual"]
@@ -4757,14 +4758,14 @@ class Monolith(Building):
 
         # Directions the monolith can spawn units
         self.directions: tuple = (
-            Constant.UP,
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.DOWN,
-            Constant.UP_LEFT,
-            Constant.DOWN_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.UP_RIGHT,
+            constant.UP,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.DOWN,
+            constant.UP_LEFT,
+            constant.DOWN_LEFT,
+            constant.DOWN_RIGHT,
+            constant.UP_RIGHT,
         )
 
         # Maximum distance the monolith can spawn units
@@ -4774,13 +4775,13 @@ class Monolith(Building):
         self.remaining: int = 0
 
         # Yield when the monolith is prayed
-        self.yield_when_prayed: int = Constant.MONOLITH_YIELD
+        self.yield_when_prayed: int = constant.MONOLITH_YIELD
 
         # Indicates if the monolith is affected by the jester
         self.is_effected_by_jester: bool = False
 
         # Additional actions available for the monolith
-        self.additional_actions: list[str] = Constant.MONOLITH_ADDITIONAL_ACTIONS
+        self.additional_actions: list[str] = constant.MONOLITH_ADDITIONAL_ACTIONS
 
         # Contextual options available for the monolith
         self.contextual_options: list[str] = ["ritual"]
@@ -4845,30 +4846,30 @@ class Ferz(Piece):
 
         # Directions the Ferz can mine
         self.mining_directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Directions the Ferz can capture
         self.capture_directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
         )
 
         # Directions the Ferz can move
         self.move_directions: tuple = (
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Maximum distance the Ferz can move
@@ -4999,42 +5000,42 @@ class Cavalry(Piece):
 
         # Directions the Cavalry can move in a knight-like pattern
         self.directions: tuple = (
-            Constant.TWO_UP_RIGHT,
-            Constant.TWO_RIGHT_UP,
-            Constant.TWO_DOWN_RIGHT,
-            Constant.TWO_RIGHT_DOWN,
-            Constant.TWO_UP_LEFT,
-            Constant.TWO_LEFT_UP,
-            Constant.TWO_DOWN_LEFT,
-            Constant.TWO_LEFT_DOWN,
+            constant.TWO_UP_RIGHT,
+            constant.TWO_RIGHT_UP,
+            constant.TWO_DOWN_RIGHT,
+            constant.TWO_RIGHT_DOWN,
+            constant.TWO_UP_LEFT,
+            constant.TWO_LEFT_UP,
+            constant.TWO_DOWN_LEFT,
+            constant.TWO_LEFT_DOWN,
         )
 
         # Directions the Cavalry can mine
         self.mining_directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_RIGHT,
-            Constant.DOWN_LEFT,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_RIGHT,
+            constant.DOWN_LEFT,
         )
 
         # Directions the Cavalry can move in a straight line
         self.move_directions: tuple = (
-            Constant.RIGHT,
-            Constant.LEFT,
-            Constant.UP,
-            Constant.DOWN,
+            constant.RIGHT,
+            constant.LEFT,
+            constant.UP,
+            constant.DOWN,
         )
 
         # Directions the Cavalry can capture
         self.capture_directions: tuple = (
-            Constant.UP_RIGHT,
-            Constant.UP_LEFT,
-            Constant.DOWN_LEFT,
-            Constant.DOWN_RIGHT,
+            constant.UP_RIGHT,
+            constant.UP_LEFT,
+            constant.DOWN_LEFT,
+            constant.DOWN_RIGHT,
         )
 
         # Contextual options available for the Cavalry

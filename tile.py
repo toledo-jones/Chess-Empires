@@ -1,7 +1,13 @@
 import random
 from typing import Optional
+import typing
+if typing.TYPE_CHECKING:
+    from unit import Unit, Trap
+    from resource import Resource
+    import pygame
 
-import Constant
+
+import constant
 
 
 class Tile:
@@ -66,12 +72,12 @@ class Tile:
         self.portal_image: Optional[str] = None
 
         # Offset for the protected image
-        self.protect_image_offset: tuple[int, int] = Constant.IMAGES_IMAGE_MODIFY[
+        self.protect_image_offset: tuple[int, int] = constant.IMAGES_IMAGE_MODIFY[
             "w_protect"
         ]["OFFSET"]
 
         # Offset for the portal image
-        self.portal_image_offset: tuple[int, int] = Constant.IMAGES_IMAGE_MODIFY[
+        self.portal_image_offset: tuple[int, int] = constant.IMAGES_IMAGE_MODIFY[
             "w_portal"
         ]["OFFSET"]
 
@@ -170,8 +176,8 @@ class Tile:
         :param win: The window surface to draw the image on.
         """
         # Calculate the position of the portal image on the tile
-        x: int = (self.col * Constant.SQ_SIZE) + self.protect_image_offset[0]
-        y: int = (self.row * Constant.SQ_SIZE) + self.protect_image_offset[1]
+        x: int = (self.col * constant.SQ_SIZE) + self.protect_image_offset[0]
+        y: int = (self.row * constant.SQ_SIZE) + self.protect_image_offset[1]
 
         # Draw the portal image at the calculated position
         win.blit(self.portal_image, (x, y))
@@ -210,8 +216,8 @@ class Tile:
         :param win: The window surface to draw the image on.
         """
         # Calculate the position of the protected image on the tile
-        x: int = (self.col * Constant.SQ_SIZE) + self.protect_image_offset[0]
-        y: int = (self.row * Constant.SQ_SIZE) + self.protect_image_offset[1]
+        x: int = (self.col * constant.SQ_SIZE) + self.protect_image_offset[0]
+        y: int = (self.row * constant.SQ_SIZE) + self.protect_image_offset[1]
 
         # Draw the protected image at the calculated position
         win.blit(self.protected_image, (x, y))
@@ -238,7 +244,7 @@ class Tile:
         # Re-create protection if necessary
         if re_create_protect:
             self.protected: bool = True
-            self.protected_image: Optional[str] = Constant.IMAGES[color + "_protect"]
+            self.protected_image: Optional[str] = constant.IMAGES[color + "_protect"]
             engine.protected_tiles.append(self)
 
     def tick_protect_timer(self, engine) -> None:
@@ -277,7 +283,7 @@ class Tile:
         :param color: The color that is protecting the tile.
         """
         # Set the protection image based on the color
-        self.protected_image = Constant.IMAGES[color + "_" + "protect"]
+        self.protected_image = constant.IMAGES[color + "_" + "protect"]
 
         # Mark the tile as protected
         self.protected = True
@@ -296,7 +302,7 @@ class Tile:
         :param connected_portal: The portal this tile is connected to.
         """
         # Set the portal image based on the color
-        self.portal_image = Constant.IMAGES[color + "_" + "portal"]
+        self.portal_image = constant.IMAGES[color + "_" + "portal"]
 
         # Set the color of the portal
         self.portal_color = color
@@ -361,7 +367,7 @@ class Tile:
         # Return True if the tile has a trap, else False
         return self.trap is not None
 
-    def untrap(self) -> None:
+    def undo_trap(self) -> None:
         """
         Removes the trap from the tile.
         """

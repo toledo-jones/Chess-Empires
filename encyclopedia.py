@@ -1,14 +1,15 @@
 from __future__ import annotations
 
+import os
 import typing
+from typing import List, Tuple, Dict, Optional
+
+import pygame
 
 import constant
-import pygame
-import os
-
-from typing import List, Tuple, Dict, Optional
-from tile import Tile
 from menu import Menu
+from tile import Tile
+
 if typing.TYPE_CHECKING:
     pass
 
@@ -19,7 +20,7 @@ class Encyclopedia(Menu):
         self.engine = engine
         # Scale paper texture
         self.paper_texture = self.engine.get_current_state().scale_paper_texture(
-                self.win
+            self.win
         )
         self.description = False
 
@@ -33,10 +34,10 @@ class Encyclopedia(Menu):
 
         # Initialize Fonts
         self.large_font = pygame.font.Font(
-                os.path.join("files/fonts", "font.ttf"), self.large_font_size
+            os.path.join("files/fonts", "font.ttf"), self.large_font_size
         )
         self.small_font = pygame.font.Font(
-                os.path.join("files/fonts", "font.ttf"), self.small_font_size
+            os.path.join("files/fonts", "font.ttf"), self.small_font_size
         )
 
         # Boiler Plate
@@ -47,17 +48,17 @@ class Encyclopedia(Menu):
             self.color = pygame.Color("black")
             self.player = None
         self.resources = {
-            "wood" : constant.MENU_ICONS["log"],
-            "gold" : constant.MENU_ICONS["gold_coin"],
+            "wood": constant.MENU_ICONS["log"],
+            "gold": constant.MENU_ICONS["gold_coin"],
             "stone": constant.MENU_ICONS["stone"],
         }
         self.icons = (
-                constant.W_PIECES
-                | constant.W_BUILDINGS
-                | constant.B_PIECES
-                | constant.B_BUILDINGS
-                | constant.PRAYER_RITUALS
-                | constant.RESOURCES
+            constant.W_PIECES
+            | constant.W_BUILDINGS
+            | constant.B_PIECES
+            | constant.B_BUILDINGS
+            | constant.PRAYER_RITUALS
+            | constant.RESOURCES
         )
         self.title_text_format_key = {"prayer_stone": "floating stone"}
         self.menu_logo = self.get_menu_logo(str(self))
@@ -70,7 +71,7 @@ class Encyclopedia(Menu):
         # Graphics Math
         self.title_text_display_x = self.window_width // 2 - self.title_text_width // 2
         self.title_text_display_y = (
-                round(self.window_height * 1 / 6) - self.title_text_height // 2
+            round(self.window_height * 1 / 6) - self.title_text_height // 2
         )
         self.menu_logo_display_x, self.menu_logo_display_y = (
             self.get_menu_logo_position()
@@ -134,7 +135,7 @@ class PieceDescription(Encyclopedia):
         # Define font size and load the font
         self.small_font_size: int = round(constant.SQ_SIZE * (1 / 3))
         self.small_font: pygame.font.Font = pygame.font.Font(
-                os.path.join("files/fonts", "font.ttf"), self.small_font_size
+            os.path.join("files/fonts", "font.ttf"), self.small_font_size
         )
 
         # Define board dimensions
@@ -149,7 +150,7 @@ class PieceDescription(Encyclopedia):
 
         # Create the board surface
         self.board_surface: pygame.Surface = pygame.Surface(
-                (self.cols * constant.SQ_SIZE, self.rows * constant.SQ_SIZE)
+            (self.cols * constant.SQ_SIZE, self.rows * constant.SQ_SIZE)
         )
 
         # Define board positioning on the window
@@ -182,10 +183,10 @@ class PieceDescription(Encyclopedia):
         # Define text box positioning
         self.text_box_x: int = self.board_surface.get_width() + self.board_x * 2
         self.text_box_width: int = self.window_width - (
-                self.board_surface.get_width() + self.board_x * 3
+            self.board_surface.get_width() + self.board_x * 3
         )
         self.text_box: pygame.Surface = pygame.Surface(
-                (self.text_box_width, self.window_height // 2.2)
+            (self.text_box_width, self.window_height // 2.2)
         )
 
         # Scale Paper surface to text box
@@ -207,48 +208,48 @@ class PieceDescription(Encyclopedia):
 
         # Define layout calculations for cost display
         self.cost_display_y: int = (
-                self.window_height // 2 - self.resources["wood"].get_height() // 2
+            self.window_height // 2 - self.resources["wood"].get_height() // 2
         )
         self.x_buffer_between_costs: int = round(constant.SQ_SIZE * 1.5)
         self.description_text_y: int = (
-                self.cost_display_y + self.description_text_height
+            self.cost_display_y + self.description_text_height
         )
         self.cost_display_x: int = 0
 
         # Determine cost display positioning based on type
         if self.type == "piece":
             count = sum(
-                    1
-                    for cost in constant.PIECE_COSTS[self.selected]
-                    if constant.PIECE_COSTS[self.selected][cost] != 0
+                1
+                for cost in constant.PIECE_COSTS[self.selected]
+                if constant.PIECE_COSTS[self.selected][cost] != 0
             )
             full_length = (
-                    self.resources["wood"].get_width() * count
-                    + (self.x_buffer_between_costs // 2) * count
+                self.resources["wood"].get_width() * count
+                + (self.x_buffer_between_costs // 2) * count
             )
             self.cost_display_x = (
-                    self.window_width // 2
-                    - full_length // 2
-                    + self.board_x // 2
-                    + self.board_surface.get_width() // 2
+                self.window_width // 2
+                - full_length // 2
+                + self.board_x // 2
+                + self.board_surface.get_width() // 2
             )
             self.title_text_display_x = (
-                    self.window_width // 2
-                    - self.title_text_width // 2
-                    + self.board_x // 2
-                    + self.board_surface.get_width() // 2
+                self.window_width // 2
+                - self.title_text_width // 2
+                + self.board_x // 2
+                + self.board_surface.get_width() // 2
             )
             self.menu_logo_display_x = (
-                    self.window_width // 2
-                    - self.menu_logo.get_width() // 2
-                    + self.board_x // 2
-                    + self.board_surface.get_width() // 2
+                self.window_width // 2
+                - self.menu_logo.get_width() // 2
+                + self.board_x // 2
+                + self.board_surface.get_width() // 2
             )
             self.set_up_demonstration_board()
         elif self.type == "ritual":
             length_of_this_prayer_bar: int = self.full_length_of_prayer_bar(self.cost)
             self.cost_display_x = (
-                    self.window_width // 2 - length_of_this_prayer_bar // 2
+                self.window_width // 2 - length_of_this_prayer_bar // 2
             )
             self.text_box_x = (self.window_width - self.text_box_width) // 2
 
@@ -273,10 +274,10 @@ class PieceDescription(Encyclopedia):
 
         # Render title and menu logo
         self.win.blit(
-                self.text_surf, (self.title_text_display_x, self.title_text_display_y)
+            self.text_surf, (self.title_text_display_x, self.title_text_display_y)
         )
         self.win.blit(
-                self.menu_logo, (self.menu_logo_display_x, self.menu_logo_display_y)
+            self.menu_logo, (self.menu_logo_display_x, self.menu_logo_display_y)
         )
 
         # Set initial position for description text rendering
@@ -288,7 +289,7 @@ class PieceDescription(Encyclopedia):
 
         # Render and justify description text
         for line_surface in self.justify_text(
-                self.small_font, " ".join(self.description_text), max_width, self.color
+            self.small_font, " ".join(self.description_text), max_width, self.color
         ):
             x_position: int = (max_width - line_surface.get_width()) // 2
             self.text_box.blit(line_surface, (x_position, y_buffer))
@@ -324,7 +325,7 @@ class PieceDescription(Encyclopedia):
         # }
         row, col = 3, 3
         self.board[row][col].set_occupying(
-                self.engine.PIECES[self.selected](row, col, color)
+            self.engine.PIECES[self.selected](row, col, color)
         )
         self.board[row][col].get_occupying().update_squares(self.engine)
         self.board[row][col].get_occupying().display_moves = True
@@ -382,8 +383,8 @@ class PieceDescription(Encyclopedia):
 
                 try:
                     if (
-                            getattr(self.player, constant.RESOURCE_KEY[resource])
-                            >= self.cost[resource]
+                        getattr(self.player, constant.RESOURCE_KEY[resource])
+                        >= self.cost[resource]
                     ):
                         color = self.color
                     else:
@@ -391,12 +392,12 @@ class PieceDescription(Encyclopedia):
                 except AttributeError:
                     color = self.color
                 text_surf = self.small_font.render(
-                        " " + str(self.cost[resource]), True, color
+                    " " + str(self.cost[resource]), True, color
                 )
                 resource_position = (cost_x, self.cost_display_y)
 
                 self.win.blit(
-                        self.resources[constant.RESOURCE_KEY[resource]], resource_position
+                    self.resources[constant.RESOURCE_KEY[resource]], resource_position
                 )
 
                 cost_text_position = (
@@ -410,7 +411,7 @@ class PieceDescription(Encyclopedia):
     def draw_ritual_cost(self):
         bar_end_edge = self.cost_display_x
         self.win.blit(
-                self.prayer_bar, (bar_end_edge - self.bar_width, self.cost_display_y)
+            self.prayer_bar, (bar_end_edge - self.bar_width, self.cost_display_y)
         )
         for z in range(self.cost):
             new_edge = bar_end_edge + self.bar_end_width * z
@@ -432,17 +433,17 @@ class PieceDescription(Encyclopedia):
 
                 # Draw the square
                 pygame.draw.rect(
-                        self.board_surface,
-                        color,
-                        pygame.Rect(x, y, rect_size[0], rect_size[1]),
+                    self.board_surface,
+                    color,
+                    pygame.Rect(x, y, rect_size[0], rect_size[1]),
                 )
 
                 # Draw the tile using blend mode (avoid re-evaluating color calculation)
                 tile_color = self.color_key[(r + c) % 2]
                 self.board_surface.blit(
-                        constant.BOARD_TILES[tile_color][self.board[r][c].index],
-                        (x, y),
-                        special_flags=pygame.BLEND_RGBA_MULT,
+                    constant.BOARD_TILES[tile_color][self.board[r][c].index],
+                    (x, y),
+                    special_flags=pygame.BLEND_RGBA_MULT,
                 )
         # Draw the board pieces
         for r in range(self.rows):
@@ -494,19 +495,19 @@ class Cost(Encyclopedia):
         self.text_display_x = self.window_width // 2 - self.title_text_width // 2
 
         self.text_display_y = (
-                round(self.window_height * 1 / 6) - self.title_text_height // 2
+            round(self.window_height * 1 / 6) - self.title_text_height // 2
         )
 
         self.width_of_of_all_columns_and_buffers = (
-                                                           self.column_width + self.x_buffer_between_columns
-                                                   ) * len(self.spawn_list)
+            self.column_width + self.x_buffer_between_columns
+        ) * len(self.spawn_list)
 
         self.column_display_y = round(self.window_height * 1 / 2)
 
         for _ in self.spawn_list:
             self.highlight_list.append(False)
             column = pygame.Surface(
-                    [self.column_width, self.column_height], pygame.SRCALPHA, 32
+                [self.column_width, self.column_height], pygame.SRCALPHA, 32
             )
             column = column.convert_alpha()
             self.column_list.append(column)
@@ -525,21 +526,21 @@ class Cost(Encyclopedia):
 
         # Calculate the initial position for displaying the columns
         column_display_x = (
-                self.window_width // 2 - self.width_of_of_all_columns_and_buffers // 2
+            self.window_width // 2 - self.width_of_of_all_columns_and_buffers // 2
         )
 
         # Iterate over each column to check if the mouse is hovering over it
         for index, column in enumerate(self.column_list):
             # Check if the mouse is within the vertical bounds of the column
             is_within_column_y = (
-                    self.column_display_y
-                    <= mouse_y
-                    <= self.column_display_y + self.column_height
+                self.column_display_y
+                <= mouse_y
+                <= self.column_display_y + self.column_height
             )
 
             # Check if the mouse is within the horizontal bounds of the column
             is_within_column_x = (
-                    column_display_x <= mouse_x <= column_display_x + self.column_width
+                column_display_x <= mouse_x <= column_display_x + self.column_width
             )
 
             if is_within_column_x and is_within_column_y:
@@ -569,11 +570,11 @@ class Cost(Encyclopedia):
         self.win.blit(self.text_surf, (self.text_display_x, self.text_display_y))
         if self.menu_logo:
             self.win.blit(
-                    self.menu_logo, (self.menu_logo_display_x, self.menu_logo_display_y)
+                self.menu_logo, (self.menu_logo_display_x, self.menu_logo_display_y)
             )
 
         column_display_x = (
-                self.window_width // 2 - self.width_of_of_all_columns_and_buffers // 2
+            self.window_width // 2 - self.width_of_of_all_columns_and_buffers // 2
         )
         for column in self.column_list:
             index = self.column_list.index(column)
@@ -590,7 +591,7 @@ class Cost(Encyclopedia):
 
             # Graphics Math
             piece_display_x = (
-                    self.column_width // 2 - self.icons[piece].get_width() // 2
+                self.column_width // 2 - self.icons[piece].get_width() // 2
             )
 
             column.blit(self.icons[piece], (piece_display_x, 0))
@@ -600,8 +601,8 @@ class Cost(Encyclopedia):
                 if cost[resource] != 0:
                     try:
                         if (
-                                getattr(self.player, constant.RESOURCE_KEY[resource])
-                                >= cost[resource]
+                            getattr(self.player, constant.RESOURCE_KEY[resource])
+                            >= cost[resource]
                         ):
                             color = self.color
                         else:
@@ -609,7 +610,7 @@ class Cost(Encyclopedia):
                     except AttributeError:
                         color = self.color
                     text_surface = self.small_font.render(
-                            str(cost[resource]), True, color
+                        str(cost[resource]), True, color
                     )
                     resource_position = (
                         self.column_width // 4 - resource_sprite.get_width() // 2,
@@ -629,15 +630,15 @@ class Cost(Encyclopedia):
     def piece_selected(self):
         pos = pygame.mouse.get_pos()
         column_display_x = (
-                self.window_width // 2 - self.width_of_of_all_columns_and_buffers // 2
+            self.window_width // 2 - self.width_of_of_all_columns_and_buffers // 2
         )
         for column in self.column_list:
             index = self.column_list.index(column)
             if pos[1] in range(
-                    self.column_display_y, self.column_display_y + self.column_height
+                self.column_display_y, self.column_display_y + self.column_height
             ):
                 if pos[0] in range(
-                        column_display_x, column_display_x + self.column_width
+                    column_display_x, column_display_x + self.column_width
                 ):
                     return self.spawn_list[index]
             column_display_x += self.column_width + self.x_buffer_between_columns
@@ -738,7 +739,7 @@ class RitualCosts(Cost):
         self.column_width = self.ritual_width
 
         total_height_of_cost_column = (
-                self.y_buffer_between_costs * 3 + self.x_buffer_between_columns
+            self.y_buffer_between_costs * 3 + self.x_buffer_between_columns
         )
         self.highlight_width = self.ritual_width
         self.highlight_dimensions = (self.highlight_width, total_height_of_cost_column)
@@ -754,9 +755,9 @@ class RitualCosts(Cost):
         self.bar_width = self.prayer_bar.get_width()
 
         self.piece_display_x = (
-                (self.win.get_width() // 2)
-                - self.column_width // 2
-                - (self.ritual_width // 2) * len(self.highlight_list)
+            (self.win.get_width() // 2)
+            - self.column_width // 2
+            - (self.ritual_width // 2) * len(self.highlight_list)
         )
         self.piece_display_y = self.win.get_height() // 2
 
@@ -773,7 +774,7 @@ class RitualCosts(Cost):
         self.win.blit(self.text_surf, (self.text_display_x, self.text_display_y))
         if self.menu_logo:
             self.win.blit(
-                    self.menu_logo, (self.menu_logo_display_x, self.menu_logo_display_y)
+                self.menu_logo, (self.menu_logo_display_x, self.menu_logo_display_y)
             )
         piece_display_x = self.piece_display_x
         for i in range(len(self.spawn_list)):
@@ -790,13 +791,13 @@ class RitualCosts(Cost):
             length_of_this_prayer_bar = self.full_length_of_prayer_bar(cost["prayer"])
 
             bar_end_edge = (
-                    piece_display_x
-                    + self.ritual_width // 2
-                    - length_of_this_prayer_bar // 2
+                piece_display_x
+                + self.ritual_width // 2
+                - length_of_this_prayer_bar // 2
             )
 
             self.win.blit(
-                    self.prayer_bar, (bar_end_edge - self.bar_width, self.bar_display_y)
+                self.prayer_bar, (bar_end_edge - self.bar_width, self.bar_display_y)
             )
 
             for z in range(cost["prayer"]):

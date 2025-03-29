@@ -1,57 +1,130 @@
 from __future__ import annotations
 
-import typing
-import constant
-import pygame
 import os
 import random
-from typing import Dict, List
+import typing
+from typing import Dict, List, Union
+
+import pygame
+
+import constant
 
 if typing.TYPE_CHECKING:
     from unit import Unit
     from engine import Engine
+    from player import Player
 
 
 class SideBar:
-    def __init__(self, win, engine):
-        self.win = win
-        self.engine = engine
-        self.menu_height = constant.SIDE_MENU_HEIGHT
-        self.menu_width = constant.SIDE_MENU_WIDTH
-        self.menu = pygame.Surface((self.menu_width, self.menu_height))
+    """
+    Represents a sidebar in the game with various attributes and methods.
+    """
+
+    def __init__(self, win: pygame.Surface, engine: "Engine"):
+        """
+        Initializes the sidebar with the given window and engine.
+
+        :param win: The game window surface.
+        :param engine: The game engine.
+        """
+        # Set the game window surface
+        self.win: pygame.Surface = win
+
+        # Default sidebar has no icon
+        self.icon = None
+
+        # Set the game engine
+        self.engine: "Engine" = engine
+
+        # Set the menu dimensions
+        self.menu_height: int = constant.SIDE_MENU_HEIGHT
+        self.menu_width: int = constant.SIDE_MENU_WIDTH
+
+        # Create the menu surface
+        self.menu: pygame.Surface = pygame.Surface((self.menu_width, self.menu_height))
+
         # Scale paper texture
-        self.paper_texture = self.engine.get_current_state().scale_paper_texture(
-                self.menu
+        self.paper_texture: pygame.Surface = (
+            self.engine.get_current_state().scale_paper_texture(self.menu)
         )
 
+    def update_icon(self):
+        icon = f"{self.engine.turn}_game_name" if self.engine.turn else "w_game_name"
+        self.icon = constant.IMAGES[icon]
+
     def draw(self):
+        """
+        Draws the sidebar on the game window.
+        Does nothing by default, child classes can override this method.
+        """
         pass
 
     def mouse_move(self):
+        """
+        Handles mouse movement over the sidebar.
+        Does nothing by default, child classes can override this method.
+        """
         pass
 
     def left_click(self):
+        """
+        Handles the left-click action on the sidebar.
+        Does nothing by default, child classes can override this method.
+        """
         pass
 
     def right_click(self):
+        """
+        Handles the right-click action on the sidebar.
+        Does nothing by default, child classes can override this method.
+        """
         pass
 
 
 class Empty(SideBar):
-    def __init__(self, win, engine):
+    """
+    Represents an empty sidebar in the game with various attributes and methods.
+    """
+
+    def __init__(self, win: pygame.Surface, engine: "Engine"):
+        """
+        Initializes the empty sidebar with the given window and engine.
+
+        :param win: The game window surface.
+        :param engine: The game engine.
+        """
+        # Initialize the parent SideBar class
         super().__init__(win, engine)
 
     def draw(self):
+        """
+        Draws the empty sidebar on the game window.
+        """
+        # Fill the menu with the background color
         self.menu.fill(constant.MENU_COLOR)
+
         # Draw paper texture blended with background
         self.engine.get_current_state().draw_paper_texture(self.menu)
+
+        # Blit the menu surface onto the game window
         self.win.blit(self.menu, (constant.BOARD_WIDTH_SQ * constant.SQ_SIZE, 0))
 
 
 class PieceInspector(SideBar):
+    """
+    Represents a piece inspector in the game with various attributes and methods.
+    """
+
     def __init__(
-            self, win: pygame.Surface, engine: "Engine", currently_selected: "Unit"
+        self, win: pygame.Surface, engine: "Engine", currently_selected: "Unit"
     ) -> None:
+        """
+        Initializes the piece inspector with the given window, engine, and currently selected piece.
+
+        :param win: The game window surface.
+        :param engine: The game engine.
+        :param currently_selected: The currently selected unit.
+        """
         # Initialize the parent class with window and engine
         super().__init__(win, engine)
 
@@ -67,22 +140,22 @@ class PieceInspector(SideBar):
 
         # Load fonts from the specified file path
         self.font: pygame.font.Font = pygame.font.Font(
-                os.path.join("files/fonts", "font.ttf"), self.font_size
+            os.path.join("files/fonts", "font.ttf"), self.font_size
         )
         self.small_font: pygame.font.Font = pygame.font.Font(
-                os.path.join("files/fonts", "font.ttf"), self.small_font_size
+            os.path.join("files/fonts", "font.ttf"), self.small_font_size
         )
 
         # Get the current player based on engine's turn
-        self.player = self.engine.players[self.engine.turn]
+        self.player: "Player" = self.engine.players[self.engine.turn]
 
         # Set buffer space size
         self.buffer: int = constant.SQ_SIZE // 2
 
         # Dictionary mapping resource names to their corresponding menu icons
         self.RESOURCES: Dict[str, pygame.Surface] = {
-            "wood" : constant.MENU_ICONS["log"],
-            "gold" : constant.MENU_ICONS["gold_coin"],
+            "wood": constant.MENU_ICONS["log"],
+            "gold": constant.MENU_ICONS["gold_coin"],
             "stone": constant.MENU_ICONS["stone"],
         }
 
@@ -129,644 +202,871 @@ class PieceInspector(SideBar):
         ]
 
     def draw(self) -> None:
-        """Draws the piece details onto the menu screen."""
+        """
+        Draws the piece details onto the menu screen.
+        """
+        # Fill the menu with the background color
         self.menu.fill(constant.MENU_COLOR)
 
-        # Draw paper texture blended with background
-        self.engine.get_current_state().draw_paper_texture(self.menu)
+        # Get the current state and draw the paper texture
+        state = self.engine.get_current_state()
+        state.draw_paper_texture(self.menu)
 
-        # Display sprite
-        self.menu.blit(
-                self.sprite,
-                (self.menu_width // 2 - self.sprite.get_width() // 2, self.buffer),
+        # Center the sprite on the menu
+        sprite_x = (self.menu_width - self.sprite.get_width()) // 2
+        self.menu.blit(self.sprite, (sprite_x, self.buffer))
+
+        # Render and display the piece name
+        name_surface = self.font.render(
+            self.make_name_more_readable(), True, self.color
         )
+        name_x = (self.menu_width - name_surface.get_width()) // 2
+        y_buffer = self.buffer + self.sprite.get_height()
+        self.menu.blit(name_surface, (name_x, y_buffer))
 
-        # Display name
-        name = self.make_name_more_readable()
-        name_surface = self.font.render(name, True, self.color)
-        self.menu.blit(
-                name_surface,
-                (
-                    self.menu_width // 2 - name_surface.get_width() // 2,
-                    self.buffer + self.sprite.get_height(),
-                ),
-        )
-
-        # Display cost
+        # Display the cost of the piece
+        y_buffer += name_surface.get_height()
         cost = constant.PIECE_COSTS[str(self.piece)]
-        y_buffer = self.buffer + name_surface.get_height() + self.sprite.get_height()
-        for resource in cost:
-            if cost[resource] != 0:
-                color = (
-                    self.color
-                    if getattr(self.player, constant.RESOURCE_KEY[resource])
-                       >= cost[resource]
-                    else constant.RED
-                )
-                text_surf = self.font.render(str(cost[resource]), True, color)
-                resource_icon = self.RESOURCES[constant.RESOURCE_KEY[resource]]
-                resource_x = self.menu_width // 2 - (
-                        text_surf.get_width() // 2 + resource_icon.get_width() // 2
-                )
-                self.menu.blit(resource_icon, (resource_x, y_buffer))
-                self.menu.blit(
-                        text_surf,
-                        (
-                            resource_x + resource_icon.get_width(),
-                            y_buffer - text_surf.get_height() // 8,
-                        ),
-                )
+
+        for resource, amount in cost.items():
+            if amount == 0:
+                continue
+
+            player_has_enough = (
+                getattr(self.player, constant.RESOURCE_KEY[resource]) >= amount
+            )
+            color = self.color if player_has_enough else constant.RED
+            text_surf = self.font.render(str(amount), True, color)
+            resource_icon = self.RESOURCES[constant.RESOURCE_KEY[resource]]
+
+            # Center the resource icon and text together
+            combined_width = resource_icon.get_width() + text_surf.get_width()
+            resource_x = (self.menu_width - combined_width) // 2
+            text_x = resource_x + resource_icon.get_width()
+
+            self.menu.blit(resource_icon, (resource_x, y_buffer))
+            self.menu.blit(text_surf, (text_x, y_buffer - text_surf.get_height() // 8))
+
             y_buffer += name_surface.get_height()
 
-        # Display piece description with line breaks
+        # Display the piece description with line breaks
         if self.description_text_surfaces:
-            original_x = self.menu_width // 16
-            x = original_x
-            for line in self.description_text_surfaces:
-                y_buffer += (
-                    self.description_text_height
-                )  # Move to the next line for each description entry
-                x = original_x
-                for word in line:
-                    if x + word.get_width() + self.space.get_width() >= self.menu_width:
-                        y_buffer += self.description_text_height
-                        x = original_x
-                    self.menu.blit(word, (x, y_buffer))
-                    x += word.get_width()
-                    self.menu.blit(self.space, (x, y_buffer))
-                    x += self.space.get_width()
+            # Set the starting x position for the text
+            x_start = self.menu_width // 16
+            x = x_start
 
+            # Iterate over each line of description text surfaces
+            for line in self.description_text_surfaces:
+                # Move to the next line by increasing the y buffer
+                y_buffer += self.description_text_height
+                # Reset x position for the new line
+                x = x_start
+
+                # Iterate over each word in the line
+                for word in line:
+                    # Check if the word exceeds the menu width
+                    if x + word.get_width() >= self.menu_width:
+                        # Move to the next line if the word exceeds the width
+                        y_buffer += self.description_text_height
+                        # Reset x position for the new line
+                        x = x_start
+
+                    # Blit the word surface onto the menu at the current x and y buffer positions
+                    self.menu.blit(word, (x, y_buffer))
+                    # Move the x position to the right by the width of the word and the space width
+                    x += word.get_width() + self.space.get_width()
         # Render the menu onto the game window
         self.win.blit(self.menu, (constant.BOARD_WIDTH_SQ * constant.SQ_SIZE, 0))
 
-    def make_name_more_readable(self):
-        name = str(self.piece)
+    def make_name_more_readable(self) -> str:
+        """
+        Converts the piece name to a more readable format by replacing underscores with spaces
+        and handling special cases.
 
-        if name == "prayer_stone":
-            name = "floating stone"
+        :return: The more readable name of the piece.
+        """
+        # Convert the piece to a string
+        name: str = str(self.piece)
 
+        # Replace underscores with spaces
         name = name.replace("_", " ")
+
         return name
 
 
+def reselect_menu_color():
+    return random.choice([constant.WHITE, constant.BLACK])
+
+
+def reselect_faction_name():
+    return random.choice(constant.FACTION_NAMES)
+
+
 class Start(SideBar):
-    def __init__(self, win, engine):
+    """
+    Represents the start sidebar in the game with various attributes and methods.
+    """
+
+    def __init__(self, win: pygame.Surface, engine: "Engine"):
+        """
+        Initializes the start sidebar with the given window and engine.
+
+        :param win: The game window surface.
+        :param engine: The game engine.
+        """
+        # Initialize the parent SideBar class
         super().__init__(win, engine)
-        # Select a random color for the logo and intro text
-        # Used by main menu to vary the wording
-        self.faction_name = self.reselect_faction_name()
-        self.color = self.reselect_menu_color()
 
-        self.font_size = round(constant.SQ_SIZE / 3)
-        self.font = pygame.font.Font(
-                os.path.join("files/fonts", "font.ttf"), self.font_size
-        )
-        self.small_font = pygame.font.Font(
-                os.path.join("files/fonts", "font.ttf"), self.font_size // 2
-        )
+        # Randomized faction name and color for menu
+        self.faction_name: str = reselect_faction_name()
+        self.color: tuple = reselect_menu_color()
 
-        self.ver_text = constant.VERSION + " " + constant.NUMBER
-        self.version_text_surf = self.font.render(self.ver_text, True, self.color)
-        self.version_text_display_x = (
-                self.menu_width // 2 - self.version_text_surf.get_width() // 2
-        )
-        self.reset_map_image = constant.RESOURCES[random.choice(constant.resources)]
-        self.map_image_height = self.reset_map_image.get_height()
-        self.map_image_width = self.reset_map_image.get_width()
-
-        self.introduction = [self.ver_text, " ", "select", "your", "_"]
-
-        self.w_boat = constant.IMAGES["w_boat"]
-        self.b_boat = constant.IMAGES["b_boat"]
-        self.boat_display_x = self.menu_width // 2 - self.b_boat.get_width() // 2
-        a = self.menu_height * 1 / 5
-        self.r = round((self.menu_height - a))
-        self.display_y = constant.SQ_SIZE * 6
-
-        self.w_piece_highlight = False
-        self.b_piece_highlight = False
-        self.randomize_resources_highlight = False
-        self.scale = constant.IMAGES_IMAGE_MODIFY["w_boat"]["SCALE"]
-        self.buffer = self.scale[0]
-        self.square = pygame.Surface(self.scale)
-        self.square_highlight_buffer = constant.SQ_SIZE // 5
-
-        self.resources_square = pygame.Surface((self.menu_width, round(a)))
-        self.square.set_alpha(constant.HIGHLIGHT_ALPHA)
-        self.square.fill(constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
-        self.resources_square.set_alpha(constant.HIGHLIGHT_ALPHA)
-        self.resources_square.fill(constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
-
-        self.resource_highlight_height = round(constant.BOARD_HEIGHT_PX * 4 / 5)
-        self.reset_map_display_x = (
-                self.menu_width // 2 - self.reset_map_image.get_width() // 2
-        )
-        self.reset_map_display_y = (
-                constant.BOARD_HEIGHT_PX
-                - self.resources_square.get_height() // 2
-                - self.map_image_height // 2
+        # Font settings
+        self.font_size: int = round(constant.SQ_SIZE / 3)
+        font_path: str = os.path.join("files/fonts", "font.ttf")
+        self.font: pygame.font.Font = pygame.font.Font(font_path, self.font_size)
+        self.small_font: pygame.font.Font = pygame.font.Font(
+            font_path, self.font_size // 2
         )
 
-    def draw(self):
+        # Version text display
+        self.ver_text: str = f"{constant.VERSION} {constant.NUMBER}"
+        self.version_text_surf: pygame.Surface = self.font.render(
+            self.ver_text, True, self.color
+        )
+        self.version_text_display_x: int = (
+            self.menu_width - self.version_text_surf.get_width()
+        ) // 2
+
+        # Map Image Selection
+        self.reset_map_image: pygame.Surface = constant.RESOURCES[
+            random.choice(constant.resources)
+        ]
+        self.map_image_height: int = self.reset_map_image.get_height()
+
+        # Introduction Text
+        self.introduction: list[str] = [self.ver_text, " ", "select", "your", "_"]
+
+        # Boat Images
+        self.w_boat: pygame.Surface = constant.IMAGES["w_boat"]
+        self.b_boat: pygame.Surface = constant.IMAGES["b_boat"]
+        self.boat_display_x: int = (self.menu_width - self.b_boat.get_width()) // 2
+
+        # Positioning and Sizing
+        section_height: float = self.menu_height * 1 / 5
+        self.r: int = round(self.menu_height - section_height)
+        self.display_y: int = constant.SQ_SIZE * 6
+
+        # Highlighting States
+        self.w_piece_highlight: bool = False
+        self.b_piece_highlight: bool = False
+        self.randomize_resources_highlight: bool = False
+
+        # Scaling & Highlight Buffers
+        self.scale: tuple = constant.IMAGES_IMAGE_MODIFY["w_boat"]["SCALE"]
+        self.buffer: int = self.scale[0]
+        self.square_highlight_buffer: int = constant.SQ_SIZE // 5
+
+        # Create Highlight Squares
+        self.square: pygame.Surface = constant.create_highlight_surface(self.scale)
+        self.resources_square: pygame.Surface = constant.create_highlight_surface(
+            (self.menu_width, round(section_height))
+        )
+
+        # Resource Highlight Height
+        self.resource_highlight_height: int = round(constant.BOARD_HEIGHT_PX * 4 / 5)
+
+        # Map Display Position
+        self.reset_map_display_x: int = (
+            self.menu_width - self.reset_map_image.get_width()
+        ) // 2
+        self.reset_map_display_y: int = (
+            constant.BOARD_HEIGHT_PX
+            - self.resources_square.get_height() // 2
+            - self.map_image_height // 2
+        )
+
+        # Menu Display Position
+        self.w_display_y: int = self.menu_height // 2 - self.b_boat.get_height() // 2
+        self.b_display_y: int = (
+            self.w_display_y + self.buffer + self.b_boat.get_height()
+        )
+
+    def draw(self) -> None:
+        """
+        Draws the start sidebar on the game window, including the introduction text, boats, highlights, and reset map image.
+        """
+        # Fill the menu with the background color
         self.menu.fill(constant.MENU_COLOR)
+
         # Draw paper texture blended with background
         self.engine.get_current_state().draw_paper_texture(self.menu)
 
-        y_buffer = constant.SQ_SIZE // 2
+        # Precompute menu center to avoid repeated calculations
+        menu_center_x: int = self.menu_width // 2
+        y_buffer: int = constant.SQ_SIZE // 2
+
+        # Render and display introduction text
         for line in self.introduction:
-            if line == "_":
-                line = self.faction_name
-            if line == self.introduction[0]:
-                surface = self.small_font.render(line, True, self.color)
-            else:
-                surface = self.font.render(line, True, self.color)
-            text_x = self.menu_width // 2 - surface.get_width() // 2
+            # Determine the text to render
+            text: str = self.faction_name if line == "_" else line
+            # Choose the appropriate font
+            font_to_use: pygame.font.Font = (
+                self.small_font if line == self.introduction[0] else self.font
+            )
+            # Render the text surface
+            surface: pygame.Surface = font_to_use.render(text, True, self.color)
+            # Calculate the x position to center the text
+            text_x: int = menu_center_x - surface.get_width() // 2
+            # Blit the text surface onto the menu
             self.menu.blit(surface, (text_x, y_buffer))
+            # Update the y buffer for the next line
             y_buffer += surface.get_height()
 
-        self.w_display_y = self.menu_height // 2 - self.b_boat.get_height() // 2
-        self.b_display_y = self.w_display_y + self.buffer + self.b_boat.get_height()
+        # Display boats
         self.menu.blit(self.w_boat, (self.boat_display_x, self.w_display_y))
         self.menu.blit(self.b_boat, (self.boat_display_x, self.b_display_y))
+
+        # Display highlights efficiently
         if self.b_piece_highlight:
             self.menu.blit(self.square, (self.boat_display_x, self.b_display_y))
         elif self.w_piece_highlight:
             self.menu.blit(self.square, (self.boat_display_x, self.w_display_y))
         elif self.randomize_resources_highlight:
             self.menu.blit(self.resources_square, (0, self.resource_highlight_height))
+
+        # Display reset map image
         self.menu.blit(
-                self.reset_map_image, (self.reset_map_display_x, self.reset_map_display_y)
+            self.reset_map_image, (self.reset_map_display_x, self.reset_map_display_y)
         )
 
+        # Render the menu onto the game window
         self.win.blit(self.menu, (constant.BOARD_WIDTH_PX, 0))
 
     def left_click(self):
-        starting = False
-        pos = pygame.mouse.get_pos()
-        if pos[0] > constant.BOARD_WIDTH_PX:
-            menu_mouse_x_position = pos[0] - constant.BOARD_WIDTH_PX
-            if menu_mouse_x_position in range(
-                    self.boat_display_x, self.boat_display_x + self.w_boat.get_width()
-            ):
-                if pos[1] in range(
-                        self.w_display_y, self.w_display_y + self.w_boat.get_height()
-                ):
-                    self.engine.turn = "w"
-                    starting = True
-                elif pos[1] in range(
-                        self.b_display_y, self.b_display_y + self.w_boat.get_height()
-                ):
-                    self.engine.turn = "b"
-                    starting = True
-                if starting:
-                    if not constant.DEBUG_START:
-                        new_state = "select starting pieces"
-                        self.engine.set_state(new_state)
-                    else:
-                        new_state = "debug"
-                        self.engine.set_state(new_state)
-            if pos[1] in range(self.r, self.menu_height):
-                self.engine.reset_board()
-                self.engine.generate_resources()
-                self.reset_map_image = constant.RESOURCES[
-                    random.choice(constant.resources)
-                ]
-                self.reset_map_display_x = (
-                        self.menu_width // 2 - self.reset_map_image.get_width() // 2
-                )
-                self.reset_map_display_y = (
-                        constant.BOARD_HEIGHT_PX
-                        - self.resources_square.get_height() // 2
-                        - self.map_image_height // 2
-                )
-                self.faction_name = self.reselect_faction_name()
-
-    def reselect_faction_name(self):
-        rand = random.randint(0, len(constant.FACTION_NAMES) - 1)
-        return constant.FACTION_NAMES[rand]
-
-    def reselect_menu_color(self):
-        rand = random.randint(0, 2)
-        if rand == 0:
-            return constant.WHITE
-        else:
-            return constant.BLACK
-
-    def mouse_move(self):
         """
-        Handles mouse movement over the board and the menu area. It highlights the pieces
-        and shows the appropriate cursor when hovering over specific areas of the board or menu.
+        Handles left-click interactions on the menu.
         """
         # Get the current mouse position
+        pos: tuple[int, int] = pygame.mouse.get_pos()
+
+        # Check if the click is on the menu (outside the board)
+        if pos[0] <= constant.BOARD_WIDTH_PX:
+            return
+
+        # Calculate the mouse's position relative to the menu
+        menu_mouse_x_position: int = pos[0] - constant.BOARD_WIDTH_PX
+
+        # Check for boat selection
+        if self.is_within_boat_area(menu_mouse_x_position, pos[1]):
+            self.start_game()
+            return
+
+        # Check for reset action
+        if self.is_within_reset_area(pos[1]):
+            self.generate_new_resources()
+
+    def is_within_boat_area(self, x: int, y: int) -> bool:
+        """
+        Checks if the click is within the boat selection area.
+
+        :param x: The x-coordinate of the mouse position.
+        :param y: The y-coordinate of the mouse position.
+        :return: True if the click is within the boat selection area, otherwise False.
+        """
+        # Get the width of the boat image
+        boat_width: int = self.w_boat.get_width()
+
+        # Check if the click is within the bounds of the boat selection area
+        return self.boat_display_x <= x <= self.boat_display_x + boat_width and (
+            self.w_display_y <= y <= self.w_display_y + self.w_boat.get_height()
+            or self.b_display_y <= y <= self.b_display_y + self.w_boat.get_height()
+        )
+
+    def start_game(self):
+        """
+        Starts the game with the selected turn color.
+        """
+        # Determine the turn color based on the mouse's y-coordinate
+        self.engine.turn = "w" if pygame.mouse.get_pos()[1] < self.b_display_y else "b"
+
+        # Set the new state of the game
+        new_state: str = (
+            "select starting pieces" if not constant.DEBUG_START else "debug"
+        )
+        self.engine.set_state(new_state)
+
+    def is_within_reset_area(self, y: int) -> bool:
+        """
+        Checks if the click is within the reset button area.
+
+        :param y: The y-coordinate of the mouse position.
+        :return: True if the click is within the reset button area, otherwise False.
+        """
+        # Check if the y-coordinate is within the reset button area
+        return self.menu_height * 4 // 5 <= y <= self.menu_height
+
+    def generate_new_resources(self):
+        """
+        Resets the tiles of the board and randomizes resources.
+        """
+        # Reset the game board
+        self.engine.reset_board()
+
+        # Generate new resources
+        self.engine.generate_resources()
+
+        # Randomize the displayed reset map image
+        self.reset_map_image: pygame.Surface = random.choice(
+            list(constant.RESOURCES.values())
+        )
+        self.reset_map_display_x: int = (
+            self.menu_width - self.reset_map_image.get_width()
+        ) // 2
+        self.reset_map_display_y: int = (
+            constant.BOARD_HEIGHT_PX
+            - self.resources_square.get_height() // 2
+            - self.map_image_height // 2
+        )
+
+        # Reselect the faction name
+        self.faction_name: str = reselect_faction_name()
+
+    def mouse_move(self) -> None:
+        """
+        Handles mouse movement to update highlights and cursor appearance.
+        """
+        # Get the current mouse position
+        mouse_x: int
+        mouse_y: int
         mouse_x, mouse_y = pygame.mouse.get_pos()
 
-        # Initialize cursor to default
-        cursor_set = False
+        # Reset all highlights initially
+        self.w_piece_highlight = False
+        self.b_piece_highlight = False
+        self.randomize_resources_highlight = False
 
-        # Check if the mouse is within the bounds of the menu (right of the board)
-        if mouse_x > constant.BOARD_WIDTH_PX:
-            # Calculate the mouse's position relative to the menu
-            menu_mouse_x_position = mouse_x - constant.BOARD_WIDTH_PX
+        # Set default cursor to arrow
+        cursor: int = pygame.SYSTEM_CURSOR_ARROW
 
-            # Check if the mouse is over the white piece area
-            if menu_mouse_x_position in range(
-                    self.boat_display_x, self.boat_display_x + self.w_boat.get_width()
-            ):
-                if mouse_y in range(
-                        self.w_display_y, self.w_display_y + self.w_boat.get_height()
-                ):
-                    # Highlight white piece if hovering
-                    self.w_piece_highlight = True
-                    if not cursor_set:
-                        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
-                        cursor_set = True
-                else:
-                    self.w_piece_highlight = False
+        # Exit early if the mouse is not in the menu area
+        if mouse_x <= constant.BOARD_WIDTH_PX:
+            pygame.mouse.set_cursor(cursor)
+            return
 
-                # Check if the mouse is over the black piece area
-                if mouse_y in range(
-                        self.b_display_y, self.b_display_y + self.w_boat.get_height()
-                ):
-                    # Highlight black piece if hovering
-                    self.b_piece_highlight = True
-                    if not cursor_set:
-                        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
-                        cursor_set = True
-                else:
-                    self.b_piece_highlight = False
+        # Calculate relative menu position
+        menu_mouse_x_position: int = mouse_x - constant.BOARD_WIDTH_PX
 
-            else:
-                self.w_piece_highlight = False
-                self.b_piece_highlight = False
+        # Check if hovering over the white piece
+        if (
+            self.boat_display_x
+            <= menu_mouse_x_position
+            < self.boat_display_x + self.w_boat.get_width()
+            and self.w_display_y
+            <= mouse_y
+            < self.w_display_y + self.w_boat.get_height()
+        ):
+            self.w_piece_highlight = True
+            cursor = pygame.SYSTEM_CURSOR_HAND
 
-            # Check if the mouse is within the range for the randomize resources button
-            if mouse_y in range(self.r, self.menu_height):
-                self.randomize_resources_highlight = True
-                if not cursor_set:
-                    # Set cursor to hand when hovering over randomize button
-                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
-                    cursor_set = True
-            else:
-                self.randomize_resources_highlight = False
+        # Check if hovering over the black piece
+        elif (
+            self.boat_display_x
+            <= menu_mouse_x_position
+            < self.boat_display_x + self.w_boat.get_width()
+            and self.b_display_y
+            <= mouse_y
+            < self.b_display_y + self.w_boat.get_height()
+        ):
+            self.b_piece_highlight = True
+            cursor = pygame.SYSTEM_CURSOR_HAND
 
-        else:
-            # Reset highlights when the mouse is not in the menu area
-            self.w_piece_highlight = False
-            self.b_piece_highlight = False
-            self.randomize_resources_highlight = False
+        # Check if hovering over the randomize resources button
+        elif self.r <= mouse_y < self.menu_height:
+            self.randomize_resources_highlight = True
+            cursor = pygame.SYSTEM_CURSOR_HAND
 
-        # If no other condition has set the cursor, set it back to default arrow
-        if not cursor_set:
-            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+        # Apply the final cursor setting
+        pygame.mouse.set_cursor(cursor)
 
 
-class Surrender(SideBar):
-    def __init__(self, win, engine):
+class SurrenderMenu(SideBar):
+    """
+    Represents the surrender sidebar in the game with various attributes and methods.
+    """
+
+    def __init__(self, win: pygame.Surface, engine: "Engine"):
+        """
+        Initializes the surrender sidebar with the given window and engine.
+
+        :param win: The game window surface.
+        :param engine: The game engine.
+        """
         super().__init__(win, engine)
-        self.fontSize = round(constant.SQ_SIZE // 3)
-        self.font = pygame.font.Font(
-                os.path.join("files/fonts", "font.ttf"), self.fontSize
-        )
-        self.surrender_text = "Surrender?"
-        self.yes_text = "yes"
-        self.no_text = "no"
-        self.surrender_text_surface = self.font.render(
-                self.surrender_text, True, constant.turn_to_color[self.engine.turn]
-        )
-        self.yes_button_address = self.engine.turn + "_" + self.yes_text
-        self.no_button_address = self.engine.turn + "_" + self.no_text
-        self.yes_button_image = constant.IMAGES[self.yes_button_address]
-        self.no_button_image = constant.IMAGES[self.no_button_address]
-        self.question_display_y = (
-                self.menu_height // 2 - self.surrender_text_surface.get_height() // 2
-        )
-        self.question_display_x = (
-                self.menu_width // 2 - self.surrender_text_surface.get_width() // 2
-        )
-        self.buffer = constant.SQ_SIZE // 2
-        self.yes_display_y = self.question_display_y + 2 * self.buffer
-        self.no_display_y = (
-                self.yes_display_y + self.yes_button_image.get_height() + self.buffer
-        )
-        self.answer_surface_height = self.yes_button_image.get_height()
-        self.answer_surface_width = self.yes_button_image.get_width()
-        self.yes_display_x = (
-                self.menu_width // 2 - self.yes_button_image.get_width() // 2
-        )
-        self.no_display_x = self.menu_width // 2 - self.no_button_image.get_width() // 2
 
-        self.yes_highlight = False
-        self.no_highlight = False
-        self.square = pygame.Surface(constant.YES_NO_BUTTON_SCALE)
-        self.yes_square_display_x = self.yes_display_x
-        self.no_square_display_x = self.no_display_x
+        # Font settings
+        self.font_size: int = round(constant.SQ_SIZE // 3)
+        self.font: pygame.font.Font = pygame.font.Font(
+            os.path.join("files/fonts", "font.ttf"), self.font_size
+        )
+
+        # Text settings
+        self.surrender_text: str = "Surrender?"
+        self.surrender_text_surface: pygame.Surface = self.font.render(
+            self.surrender_text, True, constant.turn_to_color[self.engine.turn]
+        )
+
+        # Button settings
+        self.yes_button_address: str = self.engine.turn + "_yes"
+        self.no_button_address: str = self.engine.turn + "_no"
+        self.yes_button_image: pygame.Surface = constant.IMAGES[self.yes_button_address]
+        self.no_button_image: pygame.Surface = constant.IMAGES[self.no_button_address]
+
+        # Answer surface size
+        self.answer_surface_width: int = self.yes_button_image.get_width()
+        self.answer_surface_height: int = self.yes_button_image.get_height()
+
+        # Highlight states
+        self.yes_highlight: bool = False
+        self.no_highlight: bool = False
+
+        # Highlight squares
+        self.square: pygame.Surface = constant.create_highlight_surface(
+            (constant.SQ_SIZE * 2 // 3, constant.SQ_SIZE * 2 // 3)
+        )
+
+        # Positioning calculations
+        self.buffer: int = constant.SQ_SIZE // 2
+
+        self.question_display_x: int = (
+            self.menu_width // 2 - self.surrender_text_surface.get_width() // 2
+        )
+        self.question_display_y: int = (
+            self.menu_height // 2 - self.surrender_text_surface.get_height() // 2
+        )
+        self.yes_display_x: int = (
+            self.menu_width // 2 - self.yes_button_image.get_width() // 2
+        )
+        self.yes_display_y: int = self.question_display_y + 2 * self.buffer
+
+        self.no_display_x: int = (
+            self.menu_width // 2 - self.no_button_image.get_width() // 2
+        )
+        self.no_display_y: int = (
+            self.yes_display_y + self.yes_button_image.get_height() + self.buffer
+        )
+        self.yes_square_display_x: int = (
+            self.yes_display_x
+            + self.answer_surface_width // 2
+            - self.square.get_width() // 2
+        )
+        self.no_square_display_x: int = (
+            self.no_display_x
+            + self.answer_surface_width // 2
+            - self.square.get_width() // 2
+        )
+        self.yes_square_display_y: int = (
+            self.yes_display_y
+            + self.answer_surface_height // 2
+            - self.square.get_height() // 2
+        )
+        self.no_square_display_y: int = (
+            self.no_display_y
+            + self.answer_surface_height // 2
+            - self.square.get_height() // 2
+        )
 
     def mouse_move(self):
         """
-        Handles mouse movement over the menu area, highlighting the 'Yes' and 'No' buttons
-        based on the mouse position and updating the highlight state accordingly.
-        It also changes the mouse cursor when hovering over the buttons.
+        Handles mouse movement over the menu area, highlighting buttons and changing cursor.
         """
         # Get the current mouse position
+        mouse_x: int
+        mouse_y: int
         mouse_x, mouse_y = pygame.mouse.get_pos()
 
-        # Initialize cursor state to the default arrow
+        # Set the default cursor to arrow
         pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
-        # Check if the mouse is within the bounds of the menu (right of the board)
-        if mouse_x > constant.BOARD_WIDTH_PX:
-            # Calculate the mouse's position relative to the menu
-            menu_x = mouse_x - constant.BOARD_WIDTH_PX
+        # Reset highlights for 'Yes' and 'No' buttons
+        self.yes_highlight = False
+        self.no_highlight = False
 
-            # Check if the mouse is over the 'Yes' button
-            if mouse_y in range(
-                    self.yes_display_y, self.yes_display_y + self.answer_surface_height
-            ):
-                if menu_x in range(
-                        self.yes_display_x, self.yes_display_x + self.answer_surface_width
-                ):
-                    # Highlight 'Yes' button if hovering
-                    self.yes_highlight = True
-                    # Set cursor to hand if hovering over 'Yes'
-                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
-                else:
-                    self.yes_highlight = False
+        # Exit early if the mouse is not in the menu area
+        if mouse_x <= constant.BOARD_WIDTH_PX:
+            return
 
-            # Check if the mouse is over the 'No' button
-            elif mouse_y in range(
-                    self.no_display_y, self.no_display_y + self.answer_surface_height
-            ):
-                if menu_x in range(
-                        self.no_display_x, self.no_display_x + self.answer_surface_width
-                ):
-                    # Highlight 'No' button if hovering
-                    self.no_highlight = True
-                    # Set cursor to hand if hovering over 'No'
-                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
-                else:
-                    self.no_highlight = False
+        # Calculate the mouse's position relative to the menu
+        menu_x: int = mouse_x - constant.BOARD_WIDTH_PX
 
-            else:
-                # Reset highlights if not hovering over either button
-                self.yes_highlight = False
-                self.no_highlight = False
-        else:
-            # Reset highlights when the mouse is not in the menu area
-            self.yes_highlight = False
-            self.no_highlight = False
+        # Check if hovering over 'Yes' button
+        if (
+            self.yes_display_y
+            <= mouse_y
+            < self.yes_display_y + self.answer_surface_height
+            and self.yes_display_x
+            <= menu_x
+            < self.yes_display_x + self.answer_surface_width
+        ):
+            self.yes_highlight = True
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+            return
 
-    def left_click(self):
-        pos = pygame.mouse.get_pos()
-        if pos[0] > constant.BOARD_WIDTH_PX:
-            menu_x = pos[0] - constant.BOARD_WIDTH_PX
-            if pos[1] in range(
-                    self.yes_display_y, self.yes_display_y + self.answer_surface_height
-            ):
-                if menu_x in range(
-                        self.yes_display_x, self.yes_display_x + self.answer_surface_width
-                ):
-                    self.engine.change_turn()
-                    self.engine.surrendering = True
-                    return True
-            if pos[1] in range(
-                    self.no_display_y, self.no_display_y + self.answer_surface_height
-            ):
-                if menu_x in range(
-                        self.no_display_x, self.no_display_x + self.answer_surface_width
-                ):
-                    return self.engine.state[-1].revert_to_playing_state()
+        # Check if hovering over 'No' button
+        if (
+            self.no_display_y
+            <= mouse_y
+            < self.no_display_y + self.answer_surface_height
+            and self.no_display_x
+            <= menu_x
+            < self.no_display_x + self.answer_surface_width
+        ):
+            self.no_highlight = True
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
 
-    def draw(self):
+    def left_click(self) -> bool:
+        """
+        Handles the left-click action on the surrender menu.
+        :return: True if the "Yes" button was clicked, otherwise None.
+        """
+        # Get the current mouse position
+        pos: tuple[int, int] = pygame.mouse.get_pos()
+
+        # Exit early if the click is not in the menu area
+        if pos[0] <= constant.BOARD_WIDTH_PX:
+            return False
+
+        # Calculate the mouse's position relative to the menu
+        menu_x: int = pos[0] - constant.BOARD_WIDTH_PX
+        menu_y: int = pos[1]
+
+        # Check if "Yes" was clicked
+        if (
+            self.yes_display_y
+            <= menu_y
+            < self.yes_display_y + self.answer_surface_height
+            and self.yes_display_x
+            <= menu_x
+            < self.yes_display_x + self.answer_surface_width
+        ):
+            self.engine.change_turn()
+            self.engine.surrendering = True
+            return True
+
+        # Check if "No" was clicked
+        if (
+            self.no_display_y <= menu_y < self.no_display_y + self.answer_surface_height
+            and self.no_display_x
+            <= menu_x
+            < self.no_display_x + self.answer_surface_width
+        ):
+            return self.engine.state[-1].revert_to_playing_state()
+        return False
+
+    def draw(self) -> None:
+        """
+        Draws the surrender sidebar on the game window, including the surrender text, buttons, and highlights.
+        """
+        # Fill the menu with the background color
         self.menu.fill(constant.MENU_COLOR)
+
         # Draw paper texture blended with background
         self.engine.get_current_state().draw_paper_texture(self.menu)
+
+        # Blit the surrender text surface onto the menu
         self.menu.blit(
-                self.surrender_text_surface,
-                (self.question_display_x, self.question_display_y),
+            self.surrender_text_surface,
+            (self.question_display_x, self.question_display_y),
         )
+
+        # Display highlights for the 'Yes' and 'No' buttons
         if self.yes_highlight:
-            self.menu.blit(self.square, (self.yes_square_display_x, self.yes_display_y))
+            self.menu.blit(
+                self.square, (self.yes_square_display_x, self.yes_square_display_y)
+            )
         elif self.no_highlight:
-            self.menu.blit(self.square, (self.no_square_display_x, self.no_display_y))
+            self.menu.blit(
+                self.square, (self.no_square_display_x, self.no_square_display_y)
+            )
+
+        # Blit the 'Yes' and 'No' button images onto the menu
         self.menu.blit(self.yes_button_image, (self.yes_display_x, self.yes_display_y))
         self.menu.blit(self.no_button_image, (self.no_display_x, self.no_display_y))
-        self.square.set_alpha(constant.HIGHLIGHT_ALPHA)
-        self.square.fill(constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
 
+        # Render the menu onto the game window
         self.win.blit(self.menu, (constant.BOARD_WIDTH_SQ * constant.SQ_SIZE, 0))
 
 
 class Hud(SideBar):
-    def __init__(self, win, engine):
+    """
+    Represents the HUD (Heads-Up Display) sidebar in the game with various attributes and methods.
+    """
+
+    def __init__(self, win: pygame.Surface, engine: "Engine"):
+        """
+        Initializes the HUD sidebar with the given window and engine.
+
+        :param win: The game window surface.
+        :param engine: The game engine.
+        """
         super().__init__(win, engine)
-        self.title_icon_width = constant.IMAGES["w_game_name"].get_width()
-        self.title_icon_height = constant.IMAGES["w_game_name"].get_height()
-        self.title_icon_display_x = self.menu_width // 2 - self.title_icon_width // 2
-        self.title_icon_display_y = self.menu_height // 8 - self.title_icon_height // 2
-        self.font_size = constant.SQ_SIZE // 2
-        self.small_font = pygame.font.Font(
-                os.path.join("files/fonts", "font.ttf"), self.font_size // 2
+
+        # Get the width and height of the title icon
+        self.title_icon_width: int = constant.IMAGES["w_game_name"].get_width()
+        self.title_icon_height: int = constant.IMAGES["w_game_name"].get_height()
+
+        # Update the icon
+        self.update_icon()
+
+        # Calculate the display position for the title icon
+        self.title_icon_display_x: int = (
+            self.menu_width // 2 - self.title_icon_width // 2
+        )
+        self.title_icon_display_y: int = (
+            self.menu_height // 8 - self.title_icon_height // 2
         )
 
-        self.font = pygame.font.Font(
-                os.path.join("files/fonts", "font.ttf"), self.font_size
+        # Set font sizes and load fonts
+        self.font_size: int = constant.SQ_SIZE // 2
+        self.small_font: pygame.font.Font = pygame.font.Font(
+            os.path.join("files/fonts", "font.ttf"), self.font_size // 2
         )
-        self.counter_icon_display_x = constant.BOARD_WIDTH_PX + 10
-        self.coin_icon_display_y = round(self.menu_height * (8 / 10))
-        self.icon_y_offset = constant.SQ_SIZE // 1.2
-        self.stone_icon_display_y = self.coin_icon_display_y + self.icon_y_offset
-        self.log_icon_display_y = self.coin_icon_display_y - self.icon_y_offset
-        self.prayer_icon_display_y = self.log_icon_display_y - self.icon_y_offset
-        self.action_icon_display_y = self.prayer_icon_display_y - self.icon_y_offset
-        self.units_icon_display_y = self.action_icon_display_y - self.icon_y_offset
-        self.turn_icon_display_y = self.units_icon_display_y - self.icon_y_offset
-        self.bar_end_width = constant.IMAGES["prayer_bar_end"].get_width()
-        self.bar_width = constant.IMAGES["prayer_bar"].get_width()
-        self.bar_height = constant.IMAGES["prayer_bar"].get_height()
-        self.counter_text_buffer = constant.SQ_SIZE // 2
-        self.prayer_bar_height = (
-                self.prayer_icon_display_y
-                + round(constant.MENU_ICONS["prayer"].get_height() // 2)
-                - round(self.bar_height // 2)
+        self.font: pygame.font.Font = pygame.font.Font(
+            os.path.join("files/fonts", "font.ttf"), self.font_size
         )
-        self.prayer_bar_edge = self.counter_icon_display_x + self.counter_text_buffer
-        self.prayer_bar_end_edge = self.prayer_bar_edge + self.bar_width
-        self.empty_text_surface = self.font.render("0", True, constant.WHITE)
-        self.text_vertical_offset = (
-                self.empty_text_surface.get_height() // 2
-                - constant.MENU_ICONS["log"].get_height() // 2
+
+        # Set display positions for various icons
+        self.counter_icon_display_x: int = constant.BOARD_WIDTH_PX + 10
+        self.coin_icon_display_y: int = round(self.menu_height * (8 / 10))
+        self.icon_y_offset: int = constant.SQ_SIZE // 1.2
+        self.stone_icon_display_y: int = self.coin_icon_display_y + self.icon_y_offset
+        self.log_icon_display_y: int = self.coin_icon_display_y - self.icon_y_offset
+        self.prayer_icon_display_y: int = self.log_icon_display_y - self.icon_y_offset
+        self.action_icon_display_y: int = (
+            self.prayer_icon_display_y - self.icon_y_offset
         )
-        self.square = pygame.Surface(
-                (constant.SIDE_MENU_WIDTH, round(constant.SIDE_MENU_HEIGHT * 0.25))
+        self.units_icon_display_y: int = self.action_icon_display_y - self.icon_y_offset
+        self.turn_icon_display_y: int = self.units_icon_display_y - self.icon_y_offset
+
+        # Resource Counters
+        self.resources: dict[str, tuple[str, int]] = {
+            "gold_coin": ("gold", self.coin_icon_display_y),
+            "log": ("wood", self.log_icon_display_y),
+            "stone": ("stone", self.stone_icon_display_y),
+        }
+
+        # Get the width and height of the prayer bar
+        self.bar_end_width: int = constant.IMAGES["prayer_bar_end"].get_width()
+        self.bar_width: int = constant.IMAGES["prayer_bar"].get_width()
+        self.bar_height: int = constant.IMAGES["prayer_bar"].get_height()
+
+        # Set buffer for counter text
+        self.counter_text_buffer: int = constant.SQ_SIZE // 2
+
+        # Calculate the height and edges for the prayer bar
+        self.prayer_bar_height: int = (
+            self.prayer_icon_display_y
+            + round(constant.MENU_ICONS["prayer"].get_height() // 2)
+            - round(self.bar_height // 2)
         )
-        self.title_bar_highlight = False
+        self.prayer_bar_edge: int = (
+            self.counter_icon_display_x + self.counter_text_buffer
+        )
+        self.prayer_bar_end_edge: int = self.prayer_bar_edge + self.bar_width
+
+        # Create an empty text surface
+        self.empty_text_surface: pygame.Surface = self.font.render(
+            "0", True, constant.WHITE
+        )
+
+        # Calculate the vertical offset for text
+        self.text_vertical_offset: int = (
+            self.empty_text_surface.get_height() // 2
+            - constant.MENU_ICONS["log"].get_height() // 2
+        )
+
+        # Create a highlight square surface
+        self.square: pygame.Surface = pygame.Surface(
+            (constant.SIDE_MENU_WIDTH, round(constant.SIDE_MENU_HEIGHT * 0.25))
+        )
+        self.title_bar_highlight: bool = False
         self.square.set_alpha(constant.HIGHLIGHT_ALPHA)
         self.square.fill(constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
 
-    def draw(self):
+    def draw(self) -> None:
+        """
+        Draws the menu, HUD elements, and various counters.
+
+        :param self: The instance of the class.
+        """
+        # Fill the menu with the background color
         self.menu.fill(constant.MENU_COLOR)
+
         # Draw paper texture blended with background
         self.engine.get_current_state().draw_paper_texture(self.menu)
+
+        # Display State in HUD
         if constant.DISPLAY_STATE_IN_HUD:
-            state_text_surf = self.small_font.render(
-                    str(self.engine.state[-1]),
-                    True,
-                    constant.turn_to_color[self.engine.turn],
-            )
-            selected = self.small_font.render(
-                    str(self.engine.update_previously_selected()),
-                    True,
-                    constant.turn_to_color[self.engine.turn],
-            )
-            self.menu.blit(
-                    state_text_surf,
-                    (
-                        self.menu_width // 2 - state_text_surf.get_width() // 2,
-                        self.square.get_height(),
-                    ),
-            )
-            self.menu.blit(
-                    selected,
-                    (
-                        self.menu_width // 2 - selected.get_width() // 2,
-                        self.square.get_height() * 2,
-                    ),
-            )
+            self._draw_hud_text()
+
+        # Highlight Title Bar
         if self.title_bar_highlight:
             self.menu.blit(self.square, (0, 0))
+
+        # Draw Title Icon
         self.menu.blit(
-                constant.IMAGES[self.engine.turn + "_game_name"],
-                (self.title_icon_display_x, self.title_icon_display_y),
+            self.icon, (self.title_icon_display_x, self.title_icon_display_y)
         )
+
+        # Render the menu onto the game window
         self.win.blit(self.menu, (constant.BOARD_WIDTH_PX, 0))
 
-        # Gold Counter
-        if not self.engine.players[self.engine.turn].gold == 0:
-            self.win.blit(
-                    constant.IMAGES["gold_coin"],
-                    (self.counter_icon_display_x, self.coin_icon_display_y),
-            )
-            white_coin_text = self.font.render(
-                    str(self.engine.players[self.engine.turn].gold),
-                    True,
-                    constant.turn_to_color[self.engine.turn],
-            )
-            self.win.blit(
-                    white_coin_text,
-                    (
-                        (self.counter_icon_display_x + self.counter_text_buffer),
-                        self.coin_icon_display_y - self.text_vertical_offset,
-                    ),
+        # Draw resource counters
+        for img_key, (resource, y_pos) in self.resources.items():
+            value: int = getattr(self.engine.players[self.engine.turn], resource)
+            if value:
+                self._draw_resource_counter(img_key, value, y_pos)
+
+        # Draw prayer counter
+        self._draw_prayer_counter()
+
+        # Draw actions remaining counter
+        actions_remaining: int = self.engine.players[
+            self.engine.turn
+        ].get_actions_remaining()
+        self._draw_basic_counter(
+            "action", self.action_icon_display_y, actions_remaining
+        )
+
+        # Draw unit limit counter
+        current_population: int = self.engine.players[
+            self.engine.turn
+        ].get_current_population()
+        piece_limit: int = self.engine.players[self.engine.turn].get_piece_limit()
+        self._draw_basic_counter(
+            "units", self.units_icon_display_y, f"{current_population}/{piece_limit}"
+        )
+
+        # Draw turn counter
+        turn_count_display: int = self.engine.turn_count_display
+        self._draw_basic_counter(
+            "hour_glass", self.turn_icon_display_y, turn_count_display
+        )
+
+    def _draw_hud_text(self) -> None:
+        """
+        Draws state and selected text in the HUD.
+
+        :param self: The instance of the class.
+        """
+        # Render the current state text
+        state_text: pygame.Surface = self.small_font.render(
+            str(self.engine.state[-1]), True, constant.turn_to_color[self.engine.turn]
+        )
+
+        # Render the previously selected text
+        selected_text: pygame.Surface = self.small_font.render(
+            str(self.engine.update_previously_selected()),
+            True,
+            constant.turn_to_color[self.engine.turn],
+        )
+
+        # Blit the state and selected text onto the menu
+        for i, text in enumerate([state_text, selected_text], start=1):
+            self.menu.blit(
+                text,
+                (
+                    self.menu_width // 2 - text.get_width() // 2,
+                    self.square.get_height() * i,
+                ),
             )
 
-        # Wood Counter
-        if not self.engine.players[self.engine.turn].wood == 0:
+    def _draw_resource_counter(self, img_key: str, value: int, y_pos: int) -> None:
+        """
+        Draws a single resource counter.
+
+        :param self: The instance of the class.
+        :param img_key: The key for the resource image.
+        :param value: The value of the resource.
+        :param y_pos: The y-coordinate position to draw the counter.
+        """
+        # Blit the resource image onto the window
+        self.win.blit(constant.IMAGES[img_key], (self.counter_icon_display_x, y_pos))
+
+        # Render the resource value text
+        text_surf: pygame.Surface = self.font.render(
+            str(value), True, constant.turn_to_color[self.engine.turn]
+        )
+
+        # Blit the resource value text onto the window
+        self.win.blit(
+            text_surf,
+            (
+                self.counter_icon_display_x + self.counter_text_buffer,
+                y_pos - self.text_vertical_offset,
+            ),
+        )
+
+    def _draw_basic_counter(
+        self, img_key: str, y_pos: int, value: Union[float, int, str]
+    ) -> None:
+        """
+        Draws a basic counter (actions, units, turn).
+
+        :param self: The instance of the class.
+        :param img_key: The key for the counter image.
+        :param y_pos: The y-coordinate position to draw the counter.
+        :param value: The value of the counter.
+        """
+        # Blit the counter image onto the window
+        self.win.blit(constant.IMAGES[img_key], (self.counter_icon_display_x, y_pos))
+
+        # Render the counter value text
+        text_surf: pygame.Surface = self.font.render(
+            str(value), True, constant.turn_to_color[self.engine.turn]
+        )
+
+        # Blit the counter value text onto the window
+        self.win.blit(
+            text_surf,
+            (
+                self.counter_icon_display_x + self.counter_text_buffer,
+                y_pos - self.text_vertical_offset,
+            ),
+        )
+
+    def _draw_prayer_counter(self) -> None:
+        """
+        Draws the prayer counter and progress bar.
+
+        :param self: The instance of the class.
+        """
+        # Get the current player
+        player: Player = self.engine.players[self.engine.turn]
+
+        # Check if the player has prayer points
+        if player.prayer:
+            # Blit the prayer icon onto the window
             self.win.blit(
-                    constant.IMAGES["log"],
-                    (self.counter_icon_display_x, self.log_icon_display_y),
-            )
-            white_log_text = self.font.render(
-                    str(self.engine.players[self.engine.turn].wood),
-                    True,
-                    constant.turn_to_color[self.engine.turn],
-            )
-            self.win.blit(
-                    white_log_text,
-                    (
-                        (self.counter_icon_display_x + self.counter_text_buffer),
-                        self.log_icon_display_y - self.text_vertical_offset,
-                    ),
+                constant.MENU_ICONS["prayer"],
+                (self.counter_icon_display_x, self.prayer_icon_display_y),
             )
 
-        # Stone Counter
-        if not self.engine.players[self.engine.turn].stone == 0:
+            # Blit the prayer bar onto the window
             self.win.blit(
-                    constant.IMAGES["stone"],
-                    (self.counter_icon_display_x, self.stone_icon_display_y),
-            )
-            white_log_text = self.font.render(
-                    str(self.engine.players[self.engine.turn].stone),
-                    True,
-                    constant.turn_to_color[self.engine.turn],
-            )
-            self.win.blit(
-                    white_log_text,
-                    (
-                        (self.counter_icon_display_x + self.counter_text_buffer),
-                        self.stone_icon_display_y - self.text_vertical_offset,
-                    ),
+                constant.IMAGES["prayer_bar"],
+                (self.prayer_bar_edge, self.prayer_bar_height),
             )
 
-        # Prayer Counter
-        if not self.engine.players[self.engine.turn].prayer == 0:
-            self.win.blit(
-                    constant.MENU_ICONS["prayer"],
-                    (self.counter_icon_display_x, self.prayer_icon_display_y),
-            )
-            self.win.blit(
-                    constant.IMAGES["prayer_bar"],
-                    (self.prayer_bar_edge, self.prayer_bar_height),
-            )
-            for x in range(self.engine.players[self.engine.turn].prayer):
-                new_edge = self.prayer_bar_end_edge + self.bar_end_width * (x)
+            # Blit the prayer bar end images based on the player's prayer points
+            for x in range(player.prayer):
                 self.win.blit(
-                        constant.IMAGES["prayer_bar_end"],
-                        (new_edge, self.prayer_bar_height),
+                    constant.IMAGES["prayer_bar_end"],
+                    (
+                        self.prayer_bar_end_edge + self.bar_end_width * x,
+                        self.prayer_bar_height,
+                    ),
                 )
-
-        # Actions Remaining Counter
-        self.win.blit(
-                constant.IMAGES["action"],
-                (self.counter_icon_display_x, self.action_icon_display_y),
-        )
-        actions_remaining_text = self.font.render(
-                str(self.engine.players[self.engine.turn].get_actions_remaining()),
-                True,
-                constant.turn_to_color[self.engine.turn],
-        )
-        self.win.blit(
-                actions_remaining_text,
-                (
-                    (self.counter_icon_display_x + self.counter_text_buffer),
-                    self.action_icon_display_y - self.text_vertical_offset,
-                ),
-        )
-
-        # Unit Limit Counter
-        self.win.blit(
-                constant.IMAGES["units"],
-                (self.counter_icon_display_x, self.units_icon_display_y),
-        )
-        t = (
-                str(self.engine.players[self.engine.turn].get_current_population())
-                + "/"
-                + str(self.engine.players[self.engine.turn].get_piece_limit())
-        )
-        units_text = self.font.render(t, True, constant.turn_to_color[self.engine.turn])
-        self.win.blit(
-                units_text,
-                (
-                    (self.counter_icon_display_x + self.counter_text_buffer),
-                    self.units_icon_display_y - self.text_vertical_offset,
-                ),
-        )
-
-        # Turn Counter
-        self.win.blit(
-                constant.IMAGES["hour_glass"],
-                (self.counter_icon_display_x, self.turn_icon_display_y),
-        )
-        turn_number_text = str(self.engine.turn_count_display)
-        text_surf = self.font.render(
-                turn_number_text, True, constant.turn_to_color[self.engine.turn]
-        )
-        self.win.blit(
-                text_surf,
-                (
-                    self.counter_icon_display_x + self.counter_text_buffer,
-                    self.turn_icon_display_y - self.text_vertical_offset,
-                ),
-        )
 
     def mouse_move(self):
         """
@@ -777,24 +1077,36 @@ class Hud(SideBar):
         pos = pygame.mouse.get_pos()
 
         # Check if the mouse is within the board area (right of the board)
-        if pos[0] > constant.BOARD_WIDTH_PX:
-            # Check if the mouse is over the title bar area (top 25% of the screen)
-            if 0 < pos[1] < constant.BOARD_HEIGHT_PX * 0.25:
-                self.title_bar_highlight = True
-                pygame.mouse.set_cursor(
-                        pygame.SYSTEM_CURSOR_HAND
-                )  # Set cursor to hand when over title bar
-            else:
-                self.title_bar_highlight = False
-                pygame.mouse.set_cursor(
-                        pygame.SYSTEM_CURSOR_ARROW
-                )  # Reset cursor to arrow when not over title bar
-        else:
-            # Reset title bar highlight and cursor if not in the menu area
-            self.title_bar_highlight = False
+        if pos[0] < constant.BOARD_WIDTH_PX:
+            return False
 
-    def left_click(self):
-        pos = pygame.mouse.get_pos()
-        if pos[0] > constant.BOARD_WIDTH_PX:
-            if 0 < pos[1] < constant.BOARD_HEIGHT_PX * 0.25:
-                return self.engine.transfer_to_piece_cost_screen()
+        # Check if the mouse is over the title bar area (top 25% of the screen)
+        if 0 < pos[1] < constant.BOARD_HEIGHT_PX * 0.25:
+            # Set highlight and cursor if the mouse is in the title bar area
+            self.title_bar_highlight = True
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+            return True
+
+        # Reset title bar highlight and cursor if not in the menu area
+        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+        self.title_bar_highlight = False
+        return False
+
+    def left_click(self) -> bool:
+        """
+        Handles the left-click action on the HUD.
+        :return: True if the click is within the title bar area and the screen is transferred, otherwise None.
+        """
+        # Get the current mouse position
+        pos: tuple[int, int] = pygame.mouse.get_pos()
+
+        # Check if the click is within the menu area (right of the board)
+        if pos[0] < constant.BOARD_WIDTH_PX:
+            return False
+
+        # Check if the click is within the title bar area (top 25% of the screen)
+        if 0 < pos[1] < constant.BOARD_HEIGHT_PX * 0.25:
+            # Transfer to the piece cost screen
+            return self.engine.transfer_to_piece_cost_screen()
+
+        return False

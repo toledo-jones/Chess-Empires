@@ -765,6 +765,14 @@ class Decree(GameEvent):
         # Track any disabled monoliths (if rituals get banned).
         self.disabled_monoliths: Optional[List] = None
 
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the Mine event.
+
+        :return: A string representing the event.
+        """
+        return "decree"
+
     def complete(self) -> None:
         """
         Completes the Decree action, consuming resources, altering rituals, and affecting monoliths.
@@ -953,6 +961,10 @@ class ChangeTurn(GameEvent):
         # Reset highlights for unused pieces.
         self.engine.reset_unused_piece_highlight()
 
+        # Update side menu to show the correct icon
+        if self.engine.get_current_state().side_bar:
+            self.engine.get_current_state().side_bar.update_icon()
+
         # Disable monoliths if rituals are banned.
         if self.engine.rituals_banned:
             self.engine.disable_monoliths()
@@ -1052,6 +1064,10 @@ class ChangeTurn(GameEvent):
         # Reset used pieces' actions.
         for used_piece in self.used_pieces:
             used_piece.actions_remaining = 0
+
+        # Update side menu to show the correct icon
+        if self.engine.get_current_state().side_bar:
+            self.engine.get_current_state().side_bar.update_icon()
 
         # Reset unused piece highlights.
         unused_pieces = self.engine.count_unused_pieces()
@@ -1309,11 +1325,7 @@ class PortalSpawn(GameEvent):
         ).get_additional_piece_limit()
 
         # Play the spawn sound effect.
-        kind = (
-            self.engine.board[self.dest[0]][self.dest[1]]
-            .get_occupying()
-            .unit_kind
-        )
+        kind = self.engine.board[self.dest[0]][self.dest[1]].get_occupying().unit_kind
         self.engine.sounds.play("spawn_" + kind)
 
         # Intercept pieces.
@@ -1367,11 +1379,7 @@ class PortalSpawn(GameEvent):
         )
 
         # Play the spawn sound effect.
-        kind = (
-            self.engine.board[self.dest[0]][self.dest[1]]
-            .get_occupying()
-            .unit_kind
-        )
+        kind = self.engine.board[self.dest[0]][self.dest[1]].get_occupying().unit_kind
         self.engine.sounds.play("spawn_" + kind)
 
         # Refund the cost of the piece to the player.
@@ -1597,11 +1605,7 @@ class TrapSpawn(GameEvent):
         self.engine.spawn(self.dest[0], self.dest[1], self.spawn)
 
         # Get the type of unit spawned.
-        kind = (
-            self.engine.board[self.dest[0]][self.dest[1]]
-            .get_occupying()
-            .unit_kind
-        )
+        kind = self.engine.board[self.dest[0]][self.dest[1]].get_occupying().unit_kind
 
         # Play the corresponding spawn sound effect.
         self.engine.sounds.play("spawn_" + kind)
@@ -1726,11 +1730,7 @@ class Spawn(GameEvent):
         self.engine.spawn(self.dest[0], self.dest[1], self.spawn)
 
         # Get the type of unit spawned.
-        kind = (
-            self.engine.board[self.dest[0]][self.dest[1]]
-            .get_occupying()
-            .unit_kind
-        )
+        kind = self.engine.board[self.dest[0]][self.dest[1]].get_occupying().unit_kind
 
         # Play the corresponding spawn sound effect.
         self.engine.sounds.play("spawn_" + kind)
@@ -1792,11 +1792,7 @@ class Spawn(GameEvent):
         self.spawner.actions_remaining += 1
 
         # Get the type of unit spawned.
-        kind = (
-            self.engine.board[self.dest[0]][self.dest[1]]
-            .get_occupying()
-            .unit_kind
-        )
+        kind = self.engine.board[self.dest[0]][self.dest[1]].get_occupying().unit_kind
 
         # Play the corresponding spawn sound effect.
         self.engine.sounds.play("spawn_" + kind)

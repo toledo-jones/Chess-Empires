@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import typing
-from typing import Callable, Union
+
+from pygame import BLEND_RGBA_MULT
 
 if typing.TYPE_CHECKING:
     from engine import Engine
@@ -151,10 +152,10 @@ class State:
 
         # Dictionary of spawn-able objects, mapping string keys to their respective images
         self.spawn_table: dict[str, pygame.Surface] = (
-                constant.W_BUILDINGS
-                | constant.W_PIECES
-                | constant.B_BUILDINGS
-                | constant.B_PIECES
+            constant.W_BUILDINGS
+            | constant.W_PIECES
+            | constant.B_BUILDINGS
+            | constant.B_PIECES
         )
 
         # Background paper texture used in the game interface
@@ -369,8 +370,8 @@ class State:
         player = self.engine.players[self.engine.turn]
         # Check if the player has any actions remaining
         number_of_actions_if_player_has_done_nothing = (
-                player.total_additional_actions_this_turn
-                + constant.DEFAULT_ACTIONS_REMAINING
+            player.total_additional_actions_this_turn
+            + constant.DEFAULT_ACTIONS_REMAINING
         )
         # Force the player to use their actions if they have any before changing turn
         if number_of_actions_if_player_has_done_nothing > player.actions_remaining:
@@ -1529,6 +1530,15 @@ class Playing(State):
         # Create the sidebar for this state
         self.side_bar: SideBar = Hud(win, engine)
 
+        # Highlight surface to be drawn at mouse_position
+        self.square = constant.create_highlight_surface(
+            (constant.SQ_SIZE, constant.SQ_SIZE)
+        )
+
+        # Highlight x and y
+        self.highlight_square_x: Optional[int] = None
+        self.highlight_square_y: Optional[int] = None
+
     def __repr__(self) -> str:
         """
         Returns a string representation of this state.
@@ -1664,6 +1674,41 @@ class Playing(State):
 
         # The move is valid
         return True
+
+    def draw(self):
+        """
+        Draws the playing state, including the game board and sidebar.
+        """
+
+        # Draw the base state (such as the board)
+        super().draw()
+
+        # Draw the sidebar displaying game information
+        self.side_bar.draw()
+
+        # Draw menus if there are any
+        if self.engine.menus:
+            for menu in self.engine.menus:
+                menu.draw()
+            return
+
+        # Draw the highlight square at the current mouse position
+        if self.highlight_square_x is not None and self.highlight_square_y is not None:
+            self.win.blit(
+                self.square,
+                (self.highlight_square_x, self.highlight_square_y),
+                special_flags=BLEND_RGBA_MULT,
+            )
+
+        # Get the current mouse position
+        pos = pygame.mouse.get_pos()
+
+        # Draw the piece at the mouse cursor if dragging
+        if self.dragging:
+            try:
+                self.draw_piece_at_mouse_cursor(pos, self.dragging_piece)
+            except KeyError:
+                pass
 
     def can_capture_piece(
         self,
@@ -1944,6 +1989,26 @@ class Playing(State):
             # Update the cursor based on whether the mouse is hovering over a piece
             self.update_cursor()
 
+        self.update_highlight_position()
+
+    def update_highlight_position(self):
+        """
+        Updates the position of the highlight square based on the current mouse position.
+        """
+        # Get the current mouse position
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        if mouse_x > constant.BOARD_WIDTH_PX:
+            self.highlight_square_x, self.highlight_square_y = None, None
+            return
+
+        # Convert pixel position to board coordinates
+        row, col = constant.convert_pos((mouse_x, mouse_y))
+
+        # Set the highlight square position
+        self.highlight_square_x = col * constant.SQ_SIZE
+        self.highlight_square_y = row * constant.SQ_SIZE
+
     def update_cursor(self):
         """
         Updates the system cursor based on whether the mouse is hovering over a game piece or not.
@@ -1972,30 +2037,6 @@ class Playing(State):
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
             else:
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
-
-    def draw(self):
-        """
-        Draws the game board, menus, and the sidebar on the window.
-        """
-        # Call the parent class's draw method (draw the base game state)
-        super().draw()
-
-        # Draw each menu if any are open
-        for menu in self.engine.menus:
-            menu.draw()
-
-        # Draw the sidebar
-        self.side_bar.draw()
-
-        # Get the current mouse position
-        pos = pygame.mouse.get_pos()
-
-        # Draw the piece at the mouse cursor if dragging
-        if self.dragging:
-            try:
-                self.draw_piece_at_mouse_cursor(pos, self.dragging_piece)
-            except KeyError:
-                pass
 
 
 class Starting(State):
@@ -2146,14 +2187,14 @@ class SelectStartingPieces(State):
 
         # Calculate total height of the grid and starting Y position
         total_height_of_grid: int = (
-                self.y_buffer * 2 * constant.NUMBER_OF_STARTING_PIECES
+            self.y_buffer * 2 * constant.NUMBER_OF_STARTING_PIECES
         )
         self.initial_y: int = (self.window_height - total_height_of_grid) // 2
 
         # Define grid dimensions
         self.cols: int = len(constant.SELECTABLE_STARTING_PIECES)
         self.rows: int = (
-                constant.NUMBER_OF_STARTING_PIECES + constant.NUMBER_OF_BONUS_PIECES
+            constant.NUMBER_OF_STARTING_PIECES + constant.NUMBER_OF_BONUS_PIECES
         )
 
         # Initialize the selection matrix (3D list to track piece status)
@@ -2407,7 +2448,7 @@ class SelectStartingPieces(State):
 
             # Draw selectable and bonus pieces
             for x in range(
-                    constant.NUMBER_OF_STARTING_PIECES + constant.NUMBER_OF_BONUS_PIECES
+                constant.NUMBER_OF_STARTING_PIECES + constant.NUMBER_OF_BONUS_PIECES
             ):
                 if x < constant.NUMBER_OF_STARTING_PIECES:
                     for p in constant.SELECTABLE_STARTING_PIECES:
@@ -2465,9 +2506,9 @@ class SelectStartingPieces(State):
                     spawn_list.append(self.selection_matrix[r][c][0])
         spawn_list.append(constant.STARTING_PIECES[-1])
         if len(spawn_list) == (
-                constant.NUMBER_OF_STARTING_PIECES
-                + len(constant.STARTING_PIECES)
-                + constant.NUMBER_OF_BONUS_PIECES
+            constant.NUMBER_OF_STARTING_PIECES
+            + len(constant.STARTING_PIECES)
+            + constant.NUMBER_OF_BONUS_PIECES
         ):
             self.engine.transfer_to_starting_spawn(spawn_list)
 
@@ -3558,7 +3599,7 @@ class Praying(State):
             row, col = constant.convert_pos(pos)
 
             # Check if the position has a pray-able building
-            if self.engine.has_prayable_building(row, col):
+            if self.engine.has_pray_able_building(row, col):
                 # Check if the building belongs to the current player
                 if self.engine.get_occupying(row, col).color == self.engine.turn:
                     self.win.blit(
@@ -3834,7 +3875,6 @@ class Winner(State):
         """
         self.engine.reset()
 
-
     def mouse_move(self):
         """
         Handles mouse movement events.
@@ -3866,13 +3906,11 @@ class Winner(State):
         """
         self.engine.reset()
 
-
     def tab(self):
         """
         Handles the tab key press event to revert to the playing state.
         """
         self.engine.reset()
-
 
 
 class Surrender(State):
@@ -3891,7 +3929,7 @@ class Surrender(State):
         super().__init__(win, engine)
 
         # Initialize the sidebar with a SurrenderMenu
-        self.side_bar = Surrender(win, engine)
+        self.side_bar = SurrenderMenu(win, engine)
 
     def __repr__(self) -> str:
         """

@@ -1531,10 +1531,11 @@ class SpawningMenu(Menu):
         self.test_text: pygame.Surface = self.font.render("10", True, constant.RED)
 
         # Calculate menu dimensions
-        self.menu_width: int = constant.SIDE_MENU_WIDTH + constant.SQ_SIZE
-        self.menu_height: int = len(
-            spawn_list
-        ) * constant.SPAWNING_MENU_HEIGHT_BUFFER + self.vertical_buffer_between_pieces
+        self.menu_width: int = constant.SQ_SIZE * 5
+        self.menu_height: int = (
+            len(spawn_list) * constant.SPAWNING_MENU_HEIGHT_BUFFER
+            + self.vertical_buffer_between_pieces
+        )
 
         # Set initial menu position
         self.initial_menu_position: Tuple[int, int] = (

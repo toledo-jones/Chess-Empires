@@ -1,15 +1,9 @@
 import pygame
 
-"""""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""
+"""
+Settings for the game. These values are meant to be tweaked and adjusted to quickly modify gameplay behaviors. 
+"""
 
-                                        SETTINGS FILE
-
-                                        -Debug
-                                        -Configuring game settings
-                                        -All values should be configurable
-                                        -Minimal boilerplate
-
-""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" """""" ""
 # Uncomment the section below to enable debug
 
 # DEBUG_START = True
@@ -24,7 +18,7 @@ DEBUG_STARTING_PRAYER = 200
 DEBUG_STARTING_WOOD = 100
 DEBUG_STARTING_GOLD = 100
 DEBUG_STARTING_STONE = 100
-DEBUG_STARTING_PIECES = ["castle", "king", "monolith",  "monk"]
+DEBUG_STARTING_PIECES = ["castle", "king", "queen", "rogue_pawn"]
 
 # Window and board sizes
 MAX_FPS = 120
@@ -462,7 +456,7 @@ DESCRIPTIONS = {
     ],
     "fire_spinner": [
         "leaps over another piece up two and over one.",
-        "makes an additional 2 knight moves if nothing obstruct's it's movement",
+        "makes an additional 2 knight moves if nothing obstructs it's movement",
     ],
     "acrobat": [
         "slides to capture and attack diagonally",
@@ -677,7 +671,7 @@ FORTRESS_OFFSET = (0, -10)
 WALL_OFFSET = (-10, -10)
 PRAYER_RITUAL_SCALE = (round(SQ_SIZE * 1.5), round(SQ_SIZE * 1.5))
 RESOURCES_BUTTON_SCALE = (SIDE_MENU_WIDTH, 2 * SQ_SIZE)
-YES_NO_BUTTON_SCALE = (SQ_SIZE // 2, SQ_SIZE // 2)
+YES_NO_BUTTON_SCALE = (SQ_SIZE // 3, SQ_SIZE // 3)
 CONTEXTUAL_MENU_ICON_DEFAULT_SCALE = (SQ_SIZE // 2, SQ_SIZE // 2)
 PROTECT_SQUARE_SCALE = (SQ_SIZE, SQ_SIZE)
 PROTECT_SQUARE_OFFSET = (

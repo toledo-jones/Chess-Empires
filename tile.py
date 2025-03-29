@@ -1,6 +1,7 @@
 import random
-from typing import Optional
 import typing
+from typing import Optional
+
 if typing.TYPE_CHECKING:
     from unit import Unit, Trap
     from resource import Resource

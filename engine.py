@@ -1,8 +1,6 @@
 import sys
 
 from map import *
-from player import *
-from encyclopedia import *
 from sound import *
 from state import *
 from trades import *
@@ -71,7 +69,6 @@ class Engine:
 
         # UI Elements
         self.menus = []
-        self.side_bar = None
         self.piece_cost_screen = False
 
         # Game Modifiers
@@ -121,7 +118,6 @@ class Engine:
         self.running = False
 
     def pause(self):
-        self.get_current_state().revert_to_playing_state()
         self.state.append(Pause(self.display_surface, self))
 
     def draw_display_surface(self):
@@ -228,7 +224,7 @@ class Engine:
             "piece cost screen": PieceCost,
             "building": PreBuilding,
             "winner": Winner,
-            "surrender": Surrender,
+            "surrender": SurrenderMenu,
             "gold_general": SummonGoldGeneral,
             "smite": PerformSmite,
             "select starting pieces": SelectStartingPieces,
@@ -340,7 +336,7 @@ class Engine:
         decree_cost = constant.DECREE_COST
         keys = list(decree_cost.keys())
         return constant.DECREE_COST[keys[-1]] + (
-                self.decrees * constant.DECREE_INCREMENT
+            self.decrees * constant.DECREE_INCREMENT
         )
 
     def stealing_values(self, resource, kind):
@@ -413,6 +409,7 @@ class Engine:
             # Accepts 'state' string and converts it to state Object. Then adds it to State List
             if state == "main menu":
                 from splash import SplashScreen
+
                 window: pygame.Surface = self.get_current_state().get_window()
                 splash_screen: SplashScreen = SplashScreen(self.state[-1].win)
                 new_state: State = self.STATES[state](window, self, splash_screen)
@@ -678,7 +675,6 @@ class Engine:
                 piece.praying_building = False
                 piece.display_moves = False
                 piece.performing_ritual = False
-
 
     def reset_piece_limit(self, color):
         self.players[color].piece_limit = constant.DEFAULT_PIECE_LIMIT
@@ -1322,7 +1318,7 @@ class Engine:
             return True
         return True
 
-    def has_mineable_resource(self, r, c):
+    def has_mine_able_resource(self, r, c):
         try:
             r = self.board[r][c].get_resource()
             if (
@@ -1337,11 +1333,11 @@ class Engine:
 
     def update_persuader_squares(self):
         for piece in self.players[self.turn].pieces:
-            piece.update_persuader_squares(self)
+            piece.update_squares(self)
 
     def update_praying_squares(self):
         for piece in self.players[self.turn].pieces:
-            piece.update_praying_squares(self)
+            piece.update_squares(self)
 
     def update_interceptor_squares(self):
         for player in self.players:
@@ -1354,7 +1350,7 @@ class Engine:
         except IndexError:
             return False
 
-    def has_prayable_building(self, r, c):
+    def has_pray_able_building(self, r, c):
         try:
             b = self.board[r][c].get_occupying()
             if not self.rituals_banned:
@@ -1373,7 +1369,7 @@ class Engine:
         return intercepted_pieces
 
     def find_interceptors(self):
-        self.update_interceptor_squares()
+        self.update_squares()
         interceptors = []
         for player in self.players:
             for p in self.players[player].pieces:
@@ -1443,11 +1439,11 @@ class Engine:
         return True
 
     def transfer_to_praying_state(self, row, col):
-        self.update_praying_squares()
+        self.update_squares()
         praying_squares = self.board[row][col].get_occupying().praying_squares_list
         allow_pray = False
         for square in praying_squares:
-            if self.has_prayable_building(square[0], square[1]):
+            if self.has_pray_able_building(square[0], square[1]):
                 allow_pray = True
         if allow_pray:
             self.board[row][col].get_occupying().praying = True
@@ -1457,7 +1453,7 @@ class Engine:
             return True
 
     def transfer_to_persuading_state(self, row, col):
-        self.update_persuader_squares()
+        self.update_squares()
         persuader_squares = self.board[row][col].get_occupying().persuader_squares_list
         if persuader_squares:
             self.board[row][col].get_occupying().persuading = True
@@ -1471,7 +1467,7 @@ class Engine:
         mining_squares = self.board[row][col].get_occupying().mining_squares_list
         allow_mine = False
         for m in mining_squares:
-            if self.has_mineable_resource(m[0], m[1]) or self.is_empty(m[0], m[1]):
+            if self.has_mine_able_resource(m[0], m[1]) or self.is_empty(m[0], m[1]):
                 allow_mine = True
         if allow_mine:
             self.board[row][col].get_occupying().mining = True

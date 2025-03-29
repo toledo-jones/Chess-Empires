@@ -85,6 +85,7 @@ class Unit:
         self.ritual_squares_list: list[Tuple[int, int]] = []
         self.capture_squares_list: list[Tuple[int, int]] = []
         self.persuader_squares_list: list[Tuple[int, int]] = []
+        self.contextual_options: list[str] = []
 
         # Initialize drawing attributes
         self.square: pygame.Surface = pygame.Surface(
@@ -862,7 +863,7 @@ class Duke(Piece):
         for direction in self.directions:
             row: int = self.row + direction[0]
             col: int = self.col + direction[0]
-            if engine.has_prayable_building(row, col):
+            if engine.has_pray_able_building(row, col):
                 if engine.get_occupying(row, col).color is self.color:
                     moves.append((row, col))
 
@@ -1188,7 +1189,7 @@ class Rook(Piece):
             direction_tuple: tuple[int, int] = self.praying_directions[direction]
             row: int = self.row - direction_tuple[0]
             col: int = self.col - direction_tuple[1]
-            if engine.has_prayable_building(row, col):
+            if engine.has_pray_able_building(row, col):
                 if engine.get_occupying(row, col).color == self.color:
                     moves.append((row, col))
 
@@ -1470,7 +1471,7 @@ class Bishop(Piece):
             col: int = self.col - direction_tuple[1]
 
             # Check if the building at the position can be prayed at
-            if engine.has_prayable_building(row, col):
+            if engine.has_pray_able_building(row, col):
                 # Check if the occupying piece is of the same color
                 if engine.get_occupying(row, col).color is self.color:
                     moves.append((row, col))
@@ -1696,7 +1697,7 @@ class Pawn(Piece):
             occupying_piece = engine.get_occupying(row, col)
 
             # Check if the tile has a mine-able resource
-            if engine.has_mineable_resource(row, col):
+            if engine.has_mine_able_resource(row, col):
                 # If there is an occupying piece, check its color
                 if occupying_piece:
                     # If the occupying piece is of the same color, add the position to mining squares
@@ -2277,7 +2278,7 @@ class RoguePawn(Piece):
             occupying_piece = engine.get_occupying(row, col)
 
             # Check if the tile has mine-able resources
-            if engine.has_mineable_resource(row, col):
+            if engine.has_mine_able_resource(row, col):
                 # If there is no occupying piece or the occupying piece is of the same color
                 if (
                     not occupying_piece
@@ -2574,7 +2575,7 @@ class Monk(Piece):
             col: int = self.col + direction[1]
 
             # Check if the tile has a pray-able building
-            if engine.has_prayable_building(row, col):
+            if engine.has_pray_able_building(row, col):
                 # Check if the occupying piece is of the same color
                 if engine.get_occupying(row, col).color is self.color:
                     # Add the position to the praying squares list
@@ -3252,7 +3253,7 @@ class Builder(Piece):
             col: int = self.col - direction[1]
 
             # Check if the tile has a mine-able resource
-            if engine.has_mineable_resource(row, col):
+            if engine.has_mine_able_resource(row, col):
                 if engine.get_occupying(row, col):
                     if engine.get_occupying_color(row, col) is not self.color:
                         pass
@@ -3529,7 +3530,7 @@ class Champion(Piece):
             col: int = self.col - direction_tuple[1]
 
             # Check if the tile has a pray-able building
-            if engine.has_prayable_building(row, col):
+            if engine.has_pray_able_building(row, col):
                 if engine.get_occupying(row, col).color is self.color:
                     moves.append((row, col))
 
@@ -3911,7 +3912,7 @@ class GoldGeneral(Piece):
             col: int = self.col + direction[1]
 
             # Check if the square has a pray-able building
-            if engine.has_prayable_building(row, col):
+            if engine.has_pray_able_building(row, col):
                 if engine.get_occupying(row, col).color == self.color:
                     squares.append((row, col))
 
@@ -4897,7 +4898,7 @@ class Ferz(Piece):
             col: int = self.col - direction[1]
 
             # Check if the square has mine-able resources
-            if engine.has_mineable_resource(row, col):
+            if engine.has_mine_able_resource(row, col):
                 if engine.get_occupying(row, col):
                     if engine.get_occupying_color(row, col) is not self.color:
                         pass
@@ -5104,7 +5105,7 @@ class Cavalry(Piece):
             col: int = self.col - direction[1]
 
             # Check if the square has mine-able resources
-            if engine.has_mineable_resource(row, col):
+            if engine.has_mine_able_resource(row, col):
                 if engine.get_occupying(row, col):
                     if engine.get_occupying_color(row, col) is not self.color:
                         pass

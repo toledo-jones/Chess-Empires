@@ -80,7 +80,7 @@ class Menu:
         return self._menu_width
 
     @menu_width.setter
-    def menu_width(self, value: int) -> None:
+    def menu_width(self, value: int):
         """
         Sets the menu width.
 
@@ -98,7 +98,7 @@ class Menu:
         return self._menu_height
 
     @menu_height.setter
-    def menu_height(self, value: int) -> None:
+    def menu_height(self, value: int):
         """
         Sets the menu height.
 
@@ -154,7 +154,7 @@ class Menu:
         return self._menu_position_x
 
     @menu_position_x.setter
-    def menu_position_x(self, value: int) -> None:
+    def menu_position_x(self, value: int):
         """
         Sets the x-coordinate of the menu position.
 
@@ -172,7 +172,7 @@ class Menu:
         return self._menu_position_y
 
     @menu_position_y.setter
-    def menu_position_y(self, value: int) -> None:
+    def menu_position_y(self, value: int):
         """
         Sets the y-coordinate of the menu position.
 
@@ -1112,7 +1112,7 @@ class StealingMenu(Menu):
 
     def __init__(
         self, row: int, col: int, win: pygame.Surface, engine: "Engine"
-    ) -> None:
+    ):
         """
         Initializes the StealingMenu.
 

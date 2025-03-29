@@ -253,7 +253,6 @@ class PieceInspector(SideBar):
         if self.description_text_surfaces:
             # Set the starting x position for the text
             x_start = self.menu_width // 16
-            x = x_start
 
             # Iterate over each line of description text surfaces
             for line in self.description_text_surfaces:
@@ -394,7 +393,8 @@ class Start(SideBar):
 
     def draw(self):
         """
-        Draws the start sidebar on the game window, including the introduction text, boats, highlights, and reset map image.
+        Draws the start sidebar on the game window, including the introduction text, boats, highlights,
+        and reset map image.
         """
         # Fill the menu with the background color
         self.menu.fill(constant.MENU_COLOR)
@@ -964,6 +964,11 @@ class Hud(SideBar):
             str(self.engine.state[-1]), True, constant.turn_to_color[self.engine.turn]
         )
 
+        # Render map text
+        map_text: pygame.Surface = self.small_font.render(
+            str(self.engine.map), True, constant.turn_to_color[self.engine.turn]
+        )
+
         # Render the previously selected text
         selected_text: pygame.Surface = self.small_font.render(
             str(self.engine.update_previously_selected()),
@@ -972,7 +977,7 @@ class Hud(SideBar):
         )
 
         # Blit the state and selected text onto the menu
-        for i, text in enumerate([state_text, selected_text], start=1):
+        for i, text in enumerate([state_text, selected_text, map_text], start=1):
             self.menu.blit(
                 text,
                 (

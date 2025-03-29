@@ -43,7 +43,7 @@ class Sounds:
             "start_game": self.START_GAME_SOUNDS,
         }
 
-    def play(self, sound_effect: str) -> None:
+    def play(self, sound_effect: str):
         """
         Plays the selected sound effect if sound effects are enabled.
 

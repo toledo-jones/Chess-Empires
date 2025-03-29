@@ -19,7 +19,7 @@ class Tile:
     and various properties related to highlighting, protection, and portals.
     """
 
-    def __init__(self, row: int, col: int) -> None:
+    def __init__(self, row: int, col: int):
         """
         Initializes a new Tile object.
 
@@ -98,7 +98,7 @@ class Tile:
         # Tile connected to the portal (if any)
         self.connected_portal: Optional["Tile"] = None
 
-    def set_occupying(self, occupying: Optional["Unit"]) -> None:
+    def set_occupying(self, occupying: Optional["Unit"]):
         """
         Sets the entity occupying the tile.
 
@@ -107,7 +107,7 @@ class Tile:
         # Set the occupying entity on the tile
         self.occupying = occupying
 
-    def set_resource(self, resource: Optional["Resource"]) -> None:
+    def set_resource(self, resource: Optional["Resource"]):
         """
         Sets the resource present on the tile.
 
@@ -161,7 +161,7 @@ class Tile:
         # Return the resource present on the tile
         return self.resource
 
-    def remove_resource(self) -> None:
+    def remove_resource(self):
         """
         Removes the resource from the tile.
 
@@ -170,7 +170,7 @@ class Tile:
         # Remove the resource from the tile
         self.resource = None
 
-    def draw_portal_image(self, win) -> None:
+    def draw_portal_image(self, win):
         """
         Draws the portal image on the tile at its position.
 
@@ -183,7 +183,7 @@ class Tile:
         # Draw the portal image at the calculated position
         win.blit(self.portal_image, (x, y))
 
-    def replace_values(self, protect_values: dict) -> None:
+    def replace_values(self, protect_values: dict):
         """
         Replaces the protection values for the tile.
 
@@ -210,7 +210,7 @@ class Tile:
             "timer": self.protect_timer,
         }
 
-    def draw_protected_image(self, win) -> None:
+    def draw_protected_image(self, win):
         """
         Draws the protected image on the tile at its position.
 
@@ -223,7 +223,7 @@ class Tile:
         # Draw the protected image at the calculated position
         win.blit(self.protected_image, (x, y))
 
-    def un_tick_protect_timer(self, engine, color: str) -> None:
+    def un_tick_protect_timer(self, engine, color: str):
         """
         Decreases the protection timer and updates the protection status.
 
@@ -248,7 +248,7 @@ class Tile:
             self.protected_image: Optional[str] = constant.IMAGES[color + "_protect"]
             engine.protected_tiles.append(self)
 
-    def tick_protect_timer(self, engine) -> None:
+    def tick_protect_timer(self, engine):
         """
         Decreases the protection timer and removes protection if the timer reaches zero.
 
@@ -263,7 +263,7 @@ class Tile:
             self.protected_image = None
             engine.protected_tiles.remove(self)
 
-    def remove_protection(self) -> None:
+    def remove_protection(self):
         """
         Removes the protection from the tile.
 
@@ -277,7 +277,7 @@ class Tile:
         self.protected_image = None
         self.protected_by = None
 
-    def protect(self, color: str) -> None:
+    def protect(self, color: str):
         """
         Applies protection to the tile.
 
@@ -295,7 +295,7 @@ class Tile:
         # Set the color of the protection
         self.protected_by = color
 
-    def create_portal(self, color: str, connected_portal: "Tile") -> None:
+    def create_portal(self, color: str, connected_portal: "Tile"):
         """
         Creates a portal on the tile.
 
@@ -314,7 +314,7 @@ class Tile:
         # Set the connected portal
         self.connected_portal = connected_portal
 
-    def remove_portal(self) -> None:
+    def remove_portal(self):
         """
         Removes the portal from the tile.
 
@@ -368,14 +368,14 @@ class Tile:
         # Return True if the tile has a trap, else False
         return self.trap is not None
 
-    def undo_trap(self) -> None:
+    def undo_trap(self):
         """
         Removes the trap from the tile.
         """
         # Set the trap to None to remove it
         self.trap = None
 
-    def set_trap(self, trap) -> None:
+    def set_trap(self, trap):
         """
         Sets a trap on the tile.
 
@@ -384,7 +384,7 @@ class Tile:
         # Assign the trap to the tile
         self.trap = trap
 
-    def draw_highlights(self, win: "pygame.Surface") -> None:
+    def draw_highlights(self, win: "pygame.Surface"):
         """
         Draws highlights for the tile if it is occupying a unit.
 
@@ -394,7 +394,7 @@ class Tile:
         if self.occupying:
             self.occupying.draw_highlights(win)
 
-    def draw(self, win: "pygame.Surface") -> None:
+    def draw(self, win: "pygame.Surface"):
         """
         Draws the tile, including any resources, protection, portal, and occupying entities.
 

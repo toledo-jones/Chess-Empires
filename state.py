@@ -2639,7 +2639,7 @@ class StartingSpawn(State):
         pos = pygame.mouse.get_pos()
 
         # Check if the position is within bounds
-        if constant.pos_in_bounds(pos):
+        if constant.pos_in_board(pos):
             row, col = constant.convert_pos(pos)
 
         return row, col
@@ -2808,7 +2808,7 @@ class StartingSpawn(State):
         displayPosY = pos[1] - constant.SQ_SIZE // 2
 
         # Check if the mouse position is within bounds
-        if constant.pos_in_bounds(pos):
+        if constant.pos_in_board(pos):
             try:
                 # Draw the piece being dragged at the calculated position
                 self.win.blit(
@@ -2994,7 +2994,7 @@ class Mining(State):
         display_pos_y = pos[1] - constant.SQ_SIZE // 2
 
         # Check if the mouse position is within bounds
-        if constant.pos_in_bounds(pos):
+        if constant.pos_in_board(pos):
             row, col = constant.convert_pos(pos)
 
             # Check if the position is in the mining squares list
@@ -3132,7 +3132,7 @@ class Persuading(State):
         display_pos_y = pos[1] - constant.SQ_SIZE // 2
 
         # Check if the mouse position is within bounds
-        if constant.pos_in_bounds(pos):
+        if constant.pos_in_board(pos):
             row, col = constant.convert_pos(pos)
 
             # Check if the position is in the persuader squares list
@@ -3255,7 +3255,7 @@ class Stealing(State):
                 menu.draw()
 
         # Draw the steal icon if hovering over a valid square
-        elif constant.pos_in_bounds(pos):
+        elif constant.pos_in_board(pos):
             row, col = constant.convert_pos(pos)
             if (row, col) in self.previously_selected.stealing_squares_list:
                 self.win.blit(constant.IMAGES["steal"], (display_pos_x, display_pos_y))
@@ -3595,7 +3595,7 @@ class Praying(State):
         display_pos_y = pos[1] - constant.SQ_SIZE // 2
 
         # Check if the mouse position is within bounds
-        if constant.pos_in_bounds(pos):
+        if constant.pos_in_board(pos):
             row, col = constant.convert_pos(pos)
 
             # Check if the position has a pray-able building
@@ -3728,7 +3728,7 @@ class Spawning(State):
         displayPosY = pos[1] - constant.SQ_SIZE // 2
 
         # Check if the mouse position is within bounds
-        if constant.pos_in_bounds(pos):
+        if constant.pos_in_board(pos):
             try:
                 # Draw the appropriate image based on the spawning type
                 if self.engine.spawning == "quarry_1":
@@ -4400,9 +4400,6 @@ class PerformDestroyResource(Ritual):
         # Draw the sidebar
         self.side_bar.draw()
 
-        # Highlight ritual squares on the board
-        self.previously_selected.highlight_ritual_squares(self.win)
-
         # Draw the ritual image at the mouse position
         self.draw_ritual_at_mouse_position()
 
@@ -4700,7 +4697,7 @@ class PerformTeleport(Ritual):
                 teleport_able_pieces.append((piece.row, piece.col))
 
         # Add all opponent-controlled pieces that are not Buildings or Kings
-        opponent_pieces: list[Piece] = self.engine.players[
+        opponent_pieces: list[Unit] = self.engine.players[
             constant.TURNS[self.turn]
         ].pieces
         for piece in opponent_pieces:
@@ -4824,7 +4821,7 @@ class PerformTeleport(Ritual):
         return self.revert_to_playing_state()
 
 
-def is_valid_swap_piece(piece: Piece) -> bool:
+def is_valid_swap_piece(piece: Unit) -> bool:
     """
     Determines if a given piece can be swapped.
 

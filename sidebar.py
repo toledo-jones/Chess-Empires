@@ -117,7 +117,7 @@ class PieceInspector(SideBar):
 
     def __init__(
         self, win: pygame.Surface, engine: "Engine", currently_selected: "Unit"
-    ) -> None:
+    ):
         """
         Initializes the piece inspector with the given window, engine, and currently selected piece.
 
@@ -201,7 +201,7 @@ class PieceInspector(SideBar):
             self.piece_identifier
         ]
 
-    def draw(self) -> None:
+    def draw(self):
         """
         Draws the piece details onto the menu screen.
         """
@@ -392,7 +392,7 @@ class Start(SideBar):
             self.w_display_y + self.buffer + self.b_boat.get_height()
         )
 
-    def draw(self) -> None:
+    def draw(self):
         """
         Draws the start sidebar on the game window, including the introduction text, boats, highlights, and reset map image.
         """
@@ -532,7 +532,7 @@ class Start(SideBar):
         # Reselect the faction name
         self.faction_name: str = reselect_faction_name()
 
-    def mouse_move(self) -> None:
+    def mouse_move(self):
         """
         Handles mouse movement to update highlights and cursor appearance.
         """
@@ -763,7 +763,7 @@ class SurrenderMenu(SideBar):
             return self.engine.state[-1].revert_to_playing_state()
         return False
 
-    def draw(self) -> None:
+    def draw(self):
         """
         Draws the surrender sidebar on the game window, including the surrender text, buttons, and highlights.
         """
@@ -893,7 +893,7 @@ class Hud(SideBar):
         self.square.set_alpha(constant.HIGHLIGHT_ALPHA)
         self.square.fill(constant.UNUSED_PIECE_HIGHLIGHT_COLOR)
 
-    def draw(self) -> None:
+    def draw(self):
         """
         Draws the menu, HUD elements, and various counters.
 
@@ -953,7 +953,7 @@ class Hud(SideBar):
             "hour_glass", self.turn_icon_display_y, turn_count_display
         )
 
-    def _draw_hud_text(self) -> None:
+    def _draw_hud_text(self):
         """
         Draws state and selected text in the HUD.
 
@@ -981,7 +981,7 @@ class Hud(SideBar):
                 ),
             )
 
-    def _draw_resource_counter(self, img_key: str, value: int, y_pos: int) -> None:
+    def _draw_resource_counter(self, img_key: str, value: int, y_pos: int):
         """
         Draws a single resource counter.
 
@@ -1009,7 +1009,7 @@ class Hud(SideBar):
 
     def _draw_basic_counter(
         self, img_key: str, y_pos: int, value: Union[float, int, str]
-    ) -> None:
+    ):
         """
         Draws a basic counter (actions, units, turn).
 
@@ -1035,7 +1035,7 @@ class Hud(SideBar):
             ),
         )
 
-    def _draw_prayer_counter(self) -> None:
+    def _draw_prayer_counter(self):
         """
         Draws the prayer counter and progress bar.
 

@@ -437,12 +437,13 @@ def top_and_bottom() -> Tuple[List[Tuple[int, int]], List[Tuple[int, int]]]:
     return top_squares, bottom_squares
 
 
-def edge() -> List[Tuple[int, int]]:
+def edge(distance: int = 2) -> List[Tuple[int, int]]:
     """
     Returns the coordinates of squares along the edges of the board.
 
-    The edges include the first two rows and the last two rows.
+    The edges include the first `distance` rows and the last `distance` rows.
 
+    :param distance: The number of rows from the top and bottom to include as edges.
     :return: A list of tuples where each tuple contains the coordinates (row, col) of a square along the edges.
     """
     # Initialize the list for edge squares
@@ -453,13 +454,13 @@ def edge() -> List[Tuple[int, int]]:
 
     # Populate the top edge squares
     for col in range(0, max_col + 1):
-        for row in range(0, 2):  # Only the first 2 rows (0, 1)
+        for row in range(0, distance):  # The first `distance` rows
             square: Tuple[int, int] = (row, col)
             squares.append(square)
 
     # Populate the bottom edge squares
     for col in range(0, max_col + 1):
-        for row in range(max_row - 1, max_row + 1):  # Last 2 rows (max_row-1, max_row)
+        for row in range(max_row - distance + 1, max_row + 1):  # The last `distance` rows
             square: Tuple[int, int] = (row, col)
             squares.append(square)
 
@@ -866,6 +867,45 @@ def thin_edge() -> List[Tuple[int, int]]:
                 squares.append((row, col))
 
     return squares
+
+
+def top_right_corner() -> List[Tuple[int, int]]:
+    """
+    Returns the coordinates of the top right squares of the board.
+
+    :return: A list of tuples where each tuple contains the coordinates (row, col) of a square in the top right.
+    """
+    # Get the maximum column and row indices (board size)
+    max_col, max_row = constant.board_max_index()
+
+    # Initialize the list for top right squares
+    squares_list: List[Tuple[int, int]] = []
+
+    # Loop through the first 5 rows
+    for row in range(0, 5):
+        # Loop through the columns in the top right section
+        for col in range(max_col, max_col - (5 - row), -1):
+            squares_list.append((row, col))
+
+    return squares_list
+
+
+def top_left_corner() -> List[Tuple[int, int]]:
+    """
+    Returns the coordinates of the top left squares of the board.
+
+    :return: A list of tuples where each tuple contains the coordinates (row, col) of a square in the top left.
+    """
+    # Initialize the list for top left squares
+    top_left: List[Tuple[int, int]] = []
+
+    # Loop through the first 5 rows
+    for row in range(0, 5):
+        # Loop through the columns in the top left section
+        for col in range(5 - row, -1, -1):
+            top_left.append((row, col))
+
+    return top_left
 
 
 def find_center(squares: List[Tuple[int, int]]) -> Tuple[int, int]:

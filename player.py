@@ -1,12 +1,17 @@
-from typing import List, Dict
+from typing import Dict
 
 from behavior import *
 
 
 class Player:
-    def __init__(self, color: str) -> None:
+    """
+    Represents a player in the game. Actions unique to each player should be performed inside this class
+    """
+    def __init__(self, color: str):
         """
         Initializes a new player with the given color.
+        The player starts with a certain amount of resources (gold, wood, stone) and prayer points.
+        The player also has a list of pieces, captured pieces (unimplemented) and other stored values.
 
         :param color: The color of the player.
         """
@@ -47,7 +52,7 @@ class Player:
         """
         return self.color
 
-    def begin_turn(self, engine: object) -> None:
+    def begin_turn(self, engine: object):
         """
         Starts the player's turn. This is currently implemented for AI only.
 
@@ -56,7 +61,7 @@ class Player:
         # only implemented for AI
         pass
 
-    def steal(self, kind: str, value: int) -> None:
+    def steal(self, kind: str, value: int):
         """
         Steals a specified amount of a resource from the opponent.
 
@@ -70,7 +75,7 @@ class Player:
         elif kind == "stone":
             self.stone += value
 
-    def invert_steal(self, kind: str, value: int) -> None:
+    def invert_steal(self, kind: str, value: int):
         """
         Reverts a steal operation, subtracting the stolen amount of a resource.
 
@@ -84,7 +89,7 @@ class Player:
         elif kind == "stone":
             self.stone -= value
 
-    def mine(self, resource: str, harvest: int) -> None:
+    def mine(self, resource: str, harvest: int):
         """
         Mines a specific resource and adds it to the player's resources.
 
@@ -95,7 +100,7 @@ class Player:
         current_resource = getattr(self, player_resource)
         setattr(self, player_resource, current_resource + harvest)
 
-    def un_mine(self, resource: str, harvest: int) -> None:
+    def un_mine(self, resource: str, harvest: int):
         """
         Reverts a mining operation by subtracting the mined resource.
 
@@ -106,7 +111,7 @@ class Player:
         current_resource = getattr(self, player_resource)
         setattr(self, player_resource, current_resource - harvest)
 
-    def pray(self, building: "Building", additional_prayer: int) -> None:
+    def pray(self, building: "Building", additional_prayer: int):
         """
         Increases the player's prayer based on a building's prayer yield and an additional prayer.
 
@@ -115,7 +120,7 @@ class Player:
         """
         self.prayer += building.yield_when_prayed + additional_prayer
 
-    def un_pray(self, building: "Building", additional_prayer: int) -> None:
+    def un_pray(self, building: "Building", additional_prayer: int):
         """
         Decreases the player's prayer based on a building's prayer yield and an additional prayer.
 
@@ -124,11 +129,9 @@ class Player:
         """
         self.prayer -= building.yield_when_prayed + additional_prayer
 
-    def reset_prayer(self) -> None:
+    def reset_prayer(self):
         """
         Resets the player's prayer to the default starting value or debug value.
-
-        :return: None
         """
         if constant.DEBUG_START:
             self.prayer = constant.DEBUG_STARTING_PRAYER
@@ -143,7 +146,7 @@ class Player:
         """
         return self.prayer
 
-    def do_ritual(self, cost: int, cost_type: str) -> None:
+    def do_ritual(self, cost: int, cost_type: str):
         """
         Performs a ritual, spending the specified amount of resource.
 
@@ -156,7 +159,7 @@ class Player:
         resource = getattr(self, cost_type)
         setattr(self, cost_type, resource - cost)
 
-    def undo_ritual(self, cost: int, cost_type: str) -> None:
+    def undo_ritual(self, cost: int, cost_type: str):
         """
         Undoes a ritual, refunding the specified amount of resource.
 
@@ -168,7 +171,7 @@ class Player:
         resource = getattr(self, cost_type)
         setattr(self, cost_type, resource + cost)
 
-    def set_prayer(self, prayer: int) -> None:
+    def set_prayer(self, prayer: int):
         """
         Sets the player's prayer to a specified value.
 
@@ -176,7 +179,7 @@ class Player:
         """
         self.prayer = prayer
 
-    def purchase(self, cost: Dict[str, int]) -> None:
+    def purchase(self, cost: Dict[str, int]):
         """
         Purchases an item by deducting the specified resources.
 
@@ -186,7 +189,7 @@ class Player:
         self.gold -= cost["gold"]
         self.stone -= cost["stone"]
 
-    def un_purchase(self, cost: Dict[str, int]) -> None:
+    def un_purchase(self, cost: Dict[str, int]):
         """
         Undoes a purchase by refunding the specified resources.
 
@@ -254,7 +257,7 @@ class Player:
         """
         return self.piece_limit
 
-    def set_piece_limit(self, limit: int) -> None:
+    def set_piece_limit(self, limit: int):
         """
         Sets the piece limit for the player.
 
@@ -262,7 +265,7 @@ class Player:
         """
         self.piece_limit = limit
 
-    def add_additional_piece_limit(self, limit: int) -> None:
+    def add_additional_piece_limit(self, limit: int):
         """
         Increases the player's piece limit by a specified amount.
 
@@ -270,7 +273,7 @@ class Player:
         """
         self.piece_limit += limit
 
-    def remove_additional_piece_limit(self, limit: int) -> None:
+    def remove_additional_piece_limit(self, limit: int):
         """
         Decreases the player's piece limit by a specified amount.
 
@@ -278,15 +281,13 @@ class Player:
         """
         self.piece_limit -= limit
 
-    def reset_actions_remaining(self) -> None:
+    def reset_actions_remaining(self):
         """
         Resets the player's remaining actions to the default value.
-
-        :return: None
         """
         self.actions_remaining = constant.DEFAULT_ACTIONS_REMAINING
 
-    def set_actions_remaining(self, actions: int) -> None:
+    def set_actions_remaining(self, actions: int):
         """
         Sets the number of remaining actions for the player.
 
@@ -302,7 +303,7 @@ class Player:
         """
         return self.actions_remaining
 
-    def add_additional_actions(self, actions: int) -> None:
+    def add_additional_actions(self, actions: int):
         """
         Increases the player's remaining actions by a specified amount.
 
@@ -310,7 +311,7 @@ class Player:
         """
         self.actions_remaining += actions
 
-    def remove_additional_actions(self, actions: int) -> None:
+    def remove_additional_actions(self, actions: int):
         """
         Decreases the player's remaining actions by a specified amount.
 
@@ -318,11 +319,9 @@ class Player:
         """
         self.actions_remaining -= actions
 
-    def reset_piece_limit(self) -> None:
+    def reset_piece_limit(self):
         """
         Resets the player's piece limit to the default value.
-
-        :return: None
         """
         self.piece_limit = constant.DEFAULT_PIECE_LIMIT
 
@@ -334,18 +333,14 @@ class Player:
         """
         return self.actions_remaining > 0
 
-    def do_action(self) -> None:
+    def do_action(self):
         """
         Performs an action by decreasing the number of remaining actions.
-
-        :return: None
         """
         self.actions_remaining -= 1
 
-    def undo_action(self) -> None:
+    def undo_action(self):
         """
         Undoes an action by increasing the number of remaining actions.
-
-        :return: None
         """
         self.actions_remaining += 1

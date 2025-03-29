@@ -7,7 +7,7 @@ import constant
 class Resource:
     """Represents a resource on the game board that can be harvested."""
 
-    def __init__(self, row: int, col: int, owner: Optional[str] = None) -> None:
+    def __init__(self, row: int, col: int, owner: Optional[str] = None):
         """
         Initializes a resource object.
 
@@ -84,7 +84,7 @@ class Resource:
         self.remaining -= harvest_yield
         return harvest_yield
 
-    def undo_harvest(self, harvest: int) -> None:
+    def undo_harvest(self, harvest: int):
         """
         Reverts a harvest operation by restoring the resource yield.
 
@@ -158,7 +158,7 @@ class Resource:
         # Return the owner of the resource
         return self.owner
 
-    def draw(self, win) -> None:
+    def draw(self, win):
         """
         Draws the resource sprite on the window.
 
@@ -185,7 +185,7 @@ class Gold(Resource):
         # Return a string representation of the gold resource
         return "gold_tile" + "_" + str(self.get_sprite_id())
 
-    def __init__(self, row: int, col: int, owner: Optional[str] = None) -> None:
+    def __init__(self, row: int, col: int, owner: Optional[str] = None):
         """
         Initializes a gold resource object.
 
@@ -219,7 +219,7 @@ class Wood(Resource):
         # Return a string representation of the wood resource
         return "tree_tile" + "_" + str(self.get_sprite_id())
 
-    def __init__(self, row: int, col: int, owner: Optional[str] = None) -> None:
+    def __init__(self, row: int, col: int, owner: Optional[str] = None):
         """
         Initializes a wood resource object.
 
@@ -254,7 +254,7 @@ class Quarry(Resource):
         # Return a string representation of the quarry resource
         return "quarry" + "_" + str(self.get_sprite_id())
 
-    def __init__(self, row: int, col: int, owner: Optional[str] = None) -> None:
+    def __init__(self, row: int, col: int, owner: Optional[str] = None):
         """
         Initializes a quarry resource object.
 
@@ -288,7 +288,7 @@ class SunkenQuarry(Resource):
         # Return a string representation of the sunken quarry resource
         return "sunken_quarry" + "_" + str(self.get_sprite_id())
 
-    def __init__(self, row: int, col: int, owner: Optional[str] = None) -> None:
+    def __init__(self, row: int, col: int, owner: Optional[str] = None):
         """
         Initializes a sunken quarry resource object.
 
@@ -322,7 +322,7 @@ class DepletedQuarry(Resource):
         # Return a string representation of the depleted quarry resource
         return "depleted_quarry" + "_" + str(self.get_sprite_id())
 
-    def __init__(self, row: int, col: int, owner: Optional[str] = None) -> None:
+    def __init__(self, row: int, col: int, owner: Optional[str] = None):
         """
         Initializes a depleted quarry resource object.
 

@@ -1,6 +1,8 @@
 import json
 import os
 import random
+from io import TextIOBase
+from typing import cast
 
 # Default Start
 DEBUG_START = False
@@ -21,35 +23,35 @@ from settings import *
 
 # Dictionaries for commonly used string conversions
 RESOURCE_YIELD_KEY = {
-    "gold_tile_1"      : "gold",
-    "quarry_1"         : "quarry",
-    "sunken_quarry_1"  : "sunken_quarry",
-    "tree_tile_1"      : "wood",
-    "tree_tile_4"      : "wood",
-    "tree_tile_2"      : "wood",
-    "tree_tile_3"      : "wood",
-    "tree_tile_5"      : "wood",
-    "tree_tile_6"      : "wood",
-    "tree_tile_7"      : "wood",
-    "tree_tile_8"      : "wood",
+    "gold_tile_1": "gold",
+    "quarry_1": "quarry",
+    "sunken_quarry_1": "sunken_quarry",
+    "tree_tile_1": "wood",
+    "tree_tile_4": "wood",
+    "tree_tile_2": "wood",
+    "tree_tile_3": "wood",
+    "tree_tile_5": "wood",
+    "tree_tile_6": "wood",
+    "tree_tile_7": "wood",
+    "tree_tile_8": "wood",
     "depleted_quarry_1": None,
 }
 RESOURCE_KEY = {
-    "gold_tile_1"    : "gold",
-    "quarry_1"       : "stone",
+    "gold_tile_1": "gold",
+    "quarry_1": "stone",
     "sunken_quarry_1": "stone",
-    "tree_tile_1"    : "wood",
-    "tree_tile_2"    : "wood",
-    "tree_tile_3"    : "wood",
-    "tree_tile_4"    : "wood",
-    "tree_tile_5"    : "wood",
-    "tree_tile_6"    : "wood",
-    "tree_tile_7"    : "wood",
-    "tree_tile_8"    : "wood",
-    "gold"           : "gold",
-    "log"            : "wood",
-    "gold_coin"      : "gold",
-    "stone"          : "stone",
+    "tree_tile_1": "wood",
+    "tree_tile_2": "wood",
+    "tree_tile_3": "wood",
+    "tree_tile_4": "wood",
+    "tree_tile_5": "wood",
+    "tree_tile_6": "wood",
+    "tree_tile_7": "wood",
+    "tree_tile_8": "wood",
+    "gold": "gold",
+    "log": "wood",
+    "gold_coin": "gold",
+    "stone": "stone",
 }
 turn_to_color = {None: BLACK, "w": WHITE, "b": BLACK}
 TURNS = {"w": "b", "b": "w"}
@@ -329,107 +331,107 @@ PAPER_TEXTURE = None
 BOARD_TILES = {"dark": {}, "light": {}}
 
 # Loops to add lists of numbers to empty asset lists
-for i in range(8):
-    ambience.append(i)
-for i in range(6):
-    building_spawning.append(i)
-for i in range(62):
-    captures.append(i)
-for i in range(63):
-    harvesting_rock.append(i)
-for i in range(36):
-    harvesting_wood.append(i)
-for i in range(118):
-    moves.append(i)
-for i in range(16):
-    piece_spawning.append(i)
-for i in range(25):
-    purchase.append(i)
-for i in range(54):
-    rituals.append(i)
-for i in range(12):
-    generate_resources.append(i)
-for i in range(19):
-    pray.append(i)
-for i in range(8):
-    change_turn.append(i)
-for i in range(4):
-    start_game.append(i)
-for i in range(14):
-    instructions.append(i)
+for j in range(8):
+    ambience.append(j)
+for j in range(6):
+    building_spawning.append(j)
+for j in range(62):
+    captures.append(j)
+for j in range(63):
+    harvesting_rock.append(j)
+for j in range(36):
+    harvesting_wood.append(j)
+for j in range(118):
+    moves.append(j)
+for j in range(16):
+    piece_spawning.append(j)
+for j in range(25):
+    purchase.append(j)
+for j in range(54):
+    rituals.append(j)
+for j in range(12):
+    generate_resources.append(j)
+for j in range(19):
+    pray.append(j)
+for j in range(8):
+    change_turn.append(j)
+for j in range(4):
+    start_game.append(j)
+for j in range(14):
+    instructions.append(j)
 
 
 def load_sounds():
     for i in building_spawning:
         filename = str(0) + str(building_spawning[i])
         BUILDING_SPAWNING_SOUNDS[i] = pygame.mixer.Sound(
-                os.path.join("files/sounds/building_spawning", filename + ".wav")
+            os.path.join("files/sounds/building_spawning", filename + ".wav")
         )
 
     for i in captures:
         filename = str(0) + str(captures[i])
         CAPTURE_SOUNDS[i] = pygame.mixer.Sound(
-                os.path.join("files/sounds/captures", filename + ".wav")
+            os.path.join("files/sounds/captures", filename + ".wav")
         )
 
     for i in harvesting_rock:
         filename = str(0) + str(harvesting_rock[i])
         HARVESTING_ROCK_SOUNDS[i] = pygame.mixer.Sound(
-                os.path.join("files/sounds/harvesting_rock", filename + ".wav")
+            os.path.join("files/sounds/harvesting_rock", filename + ".wav")
         )
 
     for i in harvesting_wood:
         filename = str(0) + str(harvesting_wood[i])
         HARVESTING_WOOD_SOUNDS[i] = pygame.mixer.Sound(
-                os.path.join("files/sounds/harvesting_wood", filename + ".wav")
+            os.path.join("files/sounds/harvesting_wood", filename + ".wav")
         )
 
     for i in moves:
         filename = str(0) + str(moves[i])
         MOVE_SOUNDS[i] = pygame.mixer.Sound(
-                os.path.join("files/sounds/moves", filename + ".wav")
+            os.path.join("files/sounds/moves", filename + ".wav")
         )
 
     for i in piece_spawning:
         filename = str(0) + str(piece_spawning[i])
         PIECE_SPAWNING_SOUNDS[i] = pygame.mixer.Sound(
-                os.path.join("files/sounds/piece_spawning", filename + ".wav")
+            os.path.join("files/sounds/piece_spawning", filename + ".wav")
         )
 
     for i in purchase:
         filename = str(0) + str(purchase[i])
         PURCHASE_SOUNDS[i] = pygame.mixer.Sound(
-                os.path.join("files/sounds/purchase", filename + ".wav")
+            os.path.join("files/sounds/purchase", filename + ".wav")
         )
 
     for i in generate_resources:
         filename = str(0) + str(generate_resources[i])
         GENERATE_RESOURCES_SOUNDS[i] = pygame.mixer.Sound(
-                os.path.join("files/sounds/generate_resources", filename + ".wav")
+            os.path.join("files/sounds/generate_resources", filename + ".wav")
         )
 
     for i in pray:
         filename = str(0) + str(pray[i])
         PRAY_SOUNDS[i] = pygame.mixer.Sound(
-                os.path.join("files/sounds/pray", filename + ".wav")
+            os.path.join("files/sounds/pray", filename + ".wav")
         )
 
     for i in change_turn:
         filename = str(0) + str(change_turn[i])
         CHANGE_TURN_SOUNDS[i] = pygame.mixer.Sound(
-                os.path.join("files/sounds/change_turn", filename + ".wav")
+            os.path.join("files/sounds/change_turn", filename + ".wav")
         )
 
     for i in start_game:
         filename = str(0) + str(start_game[i])
         START_GAME_SOUNDS[i] = pygame.mixer.Sound(
-                os.path.join("files/sounds/start_game", filename + ".wav")
+            os.path.join("files/sounds/start_game", filename + ".wav")
         )
 
     for i in rituals:
         filename = str(0) + str(rituals[i])
         PRAYER_RITUAL_SOUNDS[i] = pygame.mixer.Sound(
-                os.path.join("files/sounds/rituals", filename + ".wav")
+            os.path.join("files/sounds/rituals", filename + ".wav")
         )
 
 
@@ -442,7 +444,7 @@ def load_settings():
             # Load the flags from the file
             MUSIC_ON = settings.get("MUSIC_ON", True)  # Default to True if not set
             SOUND_EFFECTS_ON = settings.get(
-                    "SOUND_EFFECTS_ON", True
+                "SOUND_EFFECTS_ON", True
             )  # Default to True if not set
     except FileNotFoundError:
         # If the file doesn't exist, initialize with defaults
@@ -451,9 +453,13 @@ def load_settings():
 
 
 def save_settings():
+    """
+    Saves the current settings to a JSON file.
+    """
     settings = {"MUSIC_ON": MUSIC_ON, "SOUND_EFFECTS_ON": SOUND_EFFECTS_ON}
-    with open("settings.json", "w") as f:
-        json.dump(settings, f)
+
+    with open("settings.json", "w", encoding="utf-8") as f:
+        json.dump(settings, cast(TextIOBase, f))
 
 
 def load_music(play_music: bool):
@@ -466,132 +472,171 @@ def load_music(play_music: bool):
         pygame.mixer.music.stop()
 
 
+def load_and_scale_image(path: str, scale: tuple[int, int]) -> pygame.Surface:
+    """
+    Loads an image from the given path and scales it.
+
+    :param path: The path to the image file.
+    :param scale: The scale to resize the image to.
+    :return: The scaled image as a pygame.Surface.
+    """
+    # Load the image from the given path
+    image: pygame.Surface = pygame.image.load(path)
+    # Scale the image to the specified size
+    scaled_image: pygame.Surface = pygame.transform.scale(image, (scale[0], scale[1]))
+    # Convert the image to include alpha transparency
+    return scaled_image.convert_alpha()
+
+
 def load_images():
+    """
+    Loads and scales all required images.
+    """
+    # Load and scale general images
     for image in images:
-        scale = IMAGES_IMAGE_MODIFY[image]["SCALE"]
-        IMAGES[image] = pygame.transform.scale(
-                pygame.image.load(os.path.join("files/images", image + ".png")),
-                (scale[0], scale[1]),
-        ).convert_alpha()
-    for i in instructions:
-        image = pygame.image.load(
-                os.path.join(f"files/instructions/{i}.png")
-        ).convert_alpha()
-        INSTRUCTIONS[i] = image
+        # Load and scale each image
+        IMAGES[image] = load_and_scale_image(
+            os.path.join("files/images", f"{image}.png"),
+            IMAGES_IMAGE_MODIFY[image]["SCALE"],
+        )
 
+    # Load instructions without scaling
+    for instruction in instructions:
+        # Load each instruction image
+        INSTRUCTIONS[instruction] = pygame.image.load(
+            os.path.join("files/instructions", f"{instruction}.png")
+        ).convert_alpha()
+
+    # Load and scale resource images
     for resource in resources:
-        scale = RESOURCES_IMAGE_MODIFY[resource]["SCALE"]
-        image = pygame.image.load(
-                os.path.join("files/resources", resource + ".png")
-        ).convert_alpha()
+        # Load and scale each resource image
+        RESOURCES[resource] = load_and_scale_image(
+            os.path.join("files/resources", f"{resource}.png"),
+            RESOURCES_IMAGE_MODIFY[resource]["SCALE"],
+        )
 
-        # Scale the image first, then blit it onto the new surface
-        scaled_image = pygame.transform.scale(image, (scale[0], scale[1]))
-
-        RESOURCES[resource] = scaled_image  # Store the processed surface
-
+    # Load and scale menu icons
     for menu_icon in menu_icons:
-        scale = MENU_ICONS_IMAGE_MODIFY[menu_icon]["SCALE"]
-        MENU_ICONS[menu_icon] = pygame.transform.scale(
-                pygame.image.load(os.path.join("files/menu_icons", menu_icon + ".png")),
-                (scale[0], scale[1]),
-        ).convert_alpha()
-    for menu_icon in contextual_menu_icons:
-        scale = CONTEXTUAL_MENU_ICONS_IMAGE_MODIFY[menu_icon]["SCALE"]
-        CONTEXTUAL_MENU_ICONS[menu_icon] = pygame.transform.scale(
-                pygame.image.load(
-                        os.path.join("files/contextual_menu_icons", menu_icon + ".png")
-                ),
-                (scale[0], scale[1]),
-        ).convert_alpha()
+        # Load and scale each menu icon
+        MENU_ICONS[menu_icon] = load_and_scale_image(
+            os.path.join("files/menu_icons", f"{menu_icon}.png"),
+            MENU_ICONS_IMAGE_MODIFY[menu_icon]["SCALE"],
+        )
 
-    for piece in w_pieces:
-        scale = PIECE_IMAGE_MODIFY[piece_color_to_type(piece)]["SCALE"]
-        W_PIECES[piece] = pygame.transform.scale(
-                pygame.image.load(os.path.join("files/pieces", piece + ".png")),
-                (scale[0], scale[1]),
-        ).convert_alpha()
-    for piece in w_buildings:
-        scale = PIECE_IMAGE_MODIFY[piece_color_to_type(piece)]["SCALE"]
-        W_BUILDINGS[piece] = pygame.transform.scale(
-                pygame.image.load(os.path.join("files/pieces", piece + ".png")),
-                (scale[0], scale[1]),
-        ).convert_alpha()
-    for piece in b_pieces:
-        scale = PIECE_IMAGE_MODIFY[piece_color_to_type(piece)]["SCALE"]
-        B_PIECES[piece] = pygame.transform.scale(
-                pygame.image.load(os.path.join("files/pieces", piece + ".png")),
-                (scale[0], scale[1]),
-        ).convert_alpha()
-    for piece in b_buildings:
-        scale = PIECE_IMAGE_MODIFY[piece_color_to_type(piece)]["SCALE"]
-        B_BUILDINGS[piece] = pygame.transform.scale(
-                pygame.image.load(os.path.join("files/pieces", piece + ".png")),
-                (scale[0], scale[1]),
-        ).convert_alpha()
+    # Load and scale contextual menu icons
+    for contextual_menu_icon in contextual_menu_icons:
+        # Load and scale each contextual menu icon
+        CONTEXTUAL_MENU_ICONS[contextual_menu_icon] = load_and_scale_image(
+            os.path.join("files/contextual_menu_icons", f"{contextual_menu_icon}.png"),
+            CONTEXTUAL_MENU_ICONS_IMAGE_MODIFY[contextual_menu_icon]["SCALE"],
+        )
 
-    for ritual in w_prayer_rituals:
-        scale = RITUAL_IMAGE_MODIFY[piece_color_to_type(ritual)]["SCALE"]
-        PRAYER_RITUALS[ritual] = pygame.transform.scale(
-                pygame.image.load(os.path.join("files/prayer_rituals", ritual + ".png")),
-                (scale[0], scale[1]),
-        ).convert_alpha()
+    # Load and scale pieces and buildings for both white and black
+    for piece_set, storage in [
+        (w_pieces, W_PIECES),
+        (b_pieces, B_PIECES),
+        (w_buildings, W_BUILDINGS),
+        (b_buildings, B_BUILDINGS),
+    ]:
+        for piece in piece_set:
+            # Load and scale each piece or building
+            storage[piece] = load_and_scale_image(
+                os.path.join("files/pieces", f"{piece}.png"),
+                PIECE_IMAGE_MODIFY[piece_string_to_color(piece)]["SCALE"],
+            )
 
-    for ritual in b_prayer_rituals:
-        scale = RITUAL_IMAGE_MODIFY[piece_color_to_type(ritual)]["SCALE"]
-        PRAYER_RITUALS[ritual] = pygame.transform.scale(
-                pygame.image.load(os.path.join("files/prayer_rituals", ritual + ".png")),
-                (scale[0], scale[1]),
-        ).convert_alpha()
+    # Load and scale prayer rituals for both white and black
+    for ritual_set, storage in [
+        (w_prayer_rituals, PRAYER_RITUALS),
+        (b_prayer_rituals, PRAYER_RITUALS),
+    ]:
+        for ritual in ritual_set:
+            # Load and scale each prayer ritual
+            storage[ritual] = load_and_scale_image(
+                os.path.join("files/prayer_rituals", f"{ritual}.png"),
+                RITUAL_IMAGE_MODIFY[piece_string_to_color(ritual)]["SCALE"],
+            )
 
+    # Load and scale board tiles
     for board_tile in board_tiles:
         for index in range(47):
-            BOARD_TILES[board_tile][index] = pygame.transform.scale(
-                    pygame.image.load(
-                            os.path.join(f"files/board/{board_tile}/{index}.png")
-                    ),
-                    (SQ_SIZE, SQ_SIZE),
-            ).convert_alpha()
+            # Load and scale each board tile
+            BOARD_TILES[board_tile][index] = load_and_scale_image(
+                os.path.join(f"files/board/{board_tile}/{index}.png"),
+                (SQ_SIZE, SQ_SIZE),
+            )
 
 
-def piece_color_to_type(color_piece):
+def piece_string_to_color(color_piece: str) -> str:
+    """
+    Extracts the type of piece from its color-prefixed name.
+
+    :param color_piece: The name of the piece with color prefix.
+    :return: The type of the piece.
+    """
+    # Return the substring starting from the third character
     return color_piece[2:]
 
 
-def board_max_index():
-    x = BOARD_WIDTH_SQ - 1
-    y = BOARD_HEIGHT_SQ - 1
-    return x, y
+def board_max_index() -> tuple[int, int]:
+    """
+    Calculates the maximum indices for the board.
+
+    :return: A tuple containing the maximum row and column indices.
+    """
+    # Calculate the maximum row index
+    max_row: int = BOARD_WIDTH_SQ - 1
+    # Calculate the maximum column index
+    max_col: int = BOARD_HEIGHT_SQ - 1
+    return max_row, max_col
 
 
-def outside_corner_squares():
-    c, r = board_max_index()
-    squares = [(0, 0), (0, c), (r, c), (r, 0)]
-    return squares
+def pos_in_board(pos: tuple[int, int]) -> bool:
+    """
+    Checks if a position is within the board boundaries.
+
+    :param pos: The position to check.
+    :return: True if the position is within the board, False otherwise.
+    """
+    # Check if the position is within the board boundaries
+    return BOARD_WIDTH_PX > pos[0] > 0 and BOARD_HEIGHT_PX > pos[1] > 0
 
 
-def pos_in_bounds(pos):
-    if BOARD_WIDTH_PX > pos[0] > 0 and BOARD_HEIGHT_PX > pos[1] > 0:
-        return True
+def tile_in_bounds(row: int, col: int) -> bool:
+    """
+    Checks if a tile is within the board boundaries.
+
+    :param row: The row index of the tile.
+    :param col: The column index of the tile.
+    :return: True if the tile is within the board, False otherwise.
+    """
+    # Get the maximum row and column indices
+    max_row, max_col = board_max_index()
+    # Check if the tile is within the board boundaries
+    return 0 <= col <= max_col and 0 <= row <= max_row
 
 
-def tile_in_bounds(r, c):
-    # TODO: remove this and replace all calls with Try, except
-    x, y = board_max_index()
-    if c <= x and r <= y:
-        if c >= 0 and r >= 0:
-            return True
-    else:
-        return False
+def convert_pos(pos: tuple[int, int]) -> tuple[int, int]:
+    """
+    Converts a pixel position to board coordinates.
 
-
-def convert_pos(pos):
-    row = pos[1] // SQ_SIZE
-    col = pos[0] // SQ_SIZE
+    :param pos: The pixel position.
+    :return: The board coordinates as a tuple (row, col).
+    """
+    # Calculate the row index
+    row: int = pos[1] // SQ_SIZE
+    # Calculate the column index
+    col: int = pos[0] // SQ_SIZE
     return row, col
 
 
-def board_remainder():
+def board_remainder() -> float:
+    """
+    Calculates the remainder of the board height divided by the square size.
+
+    :return: The remainder of the division.
+    """
+    # Calculate the remainder of the board height divided by the square size
     return BOARD_HEIGHT_SQ / SQ_SIZE
 
 

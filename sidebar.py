@@ -514,7 +514,7 @@ class Start(SideBar):
         self.engine.reset_board()
 
         # Generate new resources
-        self.engine.generate_resources()
+        self.engine.select_map()
 
         # Randomize the displayed reset map image
         self.reset_map_image: pygame.Surface = random.choice(
@@ -948,7 +948,7 @@ class Hud(SideBar):
         )
 
         # Draw turn counter
-        turn_count_display: int = self.engine.turn_count_display
+        turn_count_display: float = self.engine.turn_count_display
         self._draw_basic_counter(
             "hour_glass", self.turn_icon_display_y, turn_count_display
         )

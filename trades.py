@@ -1,4 +1,9 @@
 import random
+import typing
+
+if typing.TYPE_CHECKING:
+    from engine import Engine
+    from player import Player
 
 import constant
 
@@ -71,7 +76,7 @@ class Trades:
         :param receive_resource: The resource that will be received in the trade.
         :return: The amount of the received resource after applying the conversion rate.
         """
-        # Retrieve the receive conversion rate for the given resource
+        # Retrieve the receiving conversion rate for the given resource
         receive_rate: float = self.engine.trade_conversions[
             self.engine.turn_count_actual
         ][receive_resource][1]

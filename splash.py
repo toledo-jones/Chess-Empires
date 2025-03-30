@@ -39,7 +39,7 @@ class SplashScreen:
             logo: pygame.Surface = pygame.image.load(logo_path)
             logo = pygame.transform.scale(logo, self.logo_size)
             return logo
-        except pygame.error as e:
+        except pygame.error:
             raise FileNotFoundError(f"Logo file not found at {logo_path}")
 
     def display(self):

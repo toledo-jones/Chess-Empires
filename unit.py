@@ -1,11 +1,11 @@
 import typing
+from resource import DepletedQuarry
 from typing import Optional, Tuple
 
 if typing.TYPE_CHECKING:
     from engine import Engine
 
 import pygame
-
 import constant
 
 
@@ -26,6 +26,7 @@ class Unit:
         self.row: int = row
         self.col: int = col
         self.color: str = color
+        self.unit_kind: Optional[str] = None
 
         # Initialize other attributes
         self.check: Optional[bool] = None
@@ -278,7 +279,7 @@ class Unit:
                 setattr(self, f"{action}_squares_list", update_method(engine))
 
             # Many pieces will not have a method for each action
-            except AttributeError as e:
+            except AttributeError:
                 continue
 
     def change_pos(self, row: int, col: int):
@@ -553,6 +554,10 @@ class Piece(Unit):
         :param can_be_occupied_function: Function to check if the tile can be occupied.
         :return: True if the piece can move, False otherwise.
         """
+        # Check if the tile is within bounds
+        if not engine.tile_in_bounds(row, col):
+            return False
+
         # Check if the tile can be occupied using the provided function
         if not can_be_occupied_function(row, col):
             return False
@@ -617,7 +622,7 @@ class Piece(Unit):
         # Check if the tile is within bounds
         if engine.tile_in_bounds(row, col):
             return (
-                engine.has_none_occupying(row, col)
+                not engine.has_occupying(row, col)
                 and not engine.has_portal(row, col)
                 and not engine.has_trap(row, col)
                 and not engine.board[row][col].is_protected_by_opposite_color(
@@ -1707,7 +1712,9 @@ class Pawn(Piece):
                     # If there is no occupying piece, add the position to mining squares
                     mining_squares.append((row, col))
             # Check if the tile can contain a quarry and is empty
-            elif engine.can_contain_quarry(row, col) and engine.is_empty(row, col):
+            elif engine.can_contain_quarry(
+                row, col
+            ) and engine.has_no_units_or_resources(row, col):
                 # Add the position to mining squares
                 mining_squares.append((row, col))
 
@@ -2287,7 +2294,9 @@ class RoguePawn(Piece):
                     # Add the position to the mining squares list
                     mining_squares.append((row, col))
             # Check if the tile can contain a quarry and is empty
-            elif engine.can_contain_quarry(row, col) and engine.is_empty(row, col):
+            elif engine.can_contain_quarry(
+                row, col
+            ) and engine.has_no_units_or_resources(row, col):
                 # Add the position to the mining squares list
                 mining_squares.append((row, col))
 
@@ -2549,8 +2558,8 @@ class Monk(Piece):
             # Check if the spawn criteria are met
             if self.base_spawn_criteria(engine, row, col):
                 # Check if the tile has no resource or has a depleted quarry
-                if engine.has_no_resource(row, col) or engine.has_depleted_quarry(
-                    row, col
+                if not engine.has_resource(row, col) or engine.has_resource(
+                    row, col, DepletedQuarry
                 ):
                     # Add the position to the spawn squares list
                     spawn_squares.append((row, col))
@@ -3259,9 +3268,11 @@ class Builder(Piece):
                         pass
                     elif engine.get_occupying_color(row, col) is self.color:
                         mining_squares.append((row, col))
-                elif engine.has_none_occupying(row, col):
+                elif not engine.has_occupying(row, col):
                     mining_squares.append((row, col))
-            elif engine.can_contain_quarry(row, col) and engine.is_empty(row, col):
+            elif engine.can_contain_quarry(
+                row, col
+            ) and engine.has_no_units_or_resources(row, col):
                 mining_squares.append((row, col))
 
         # Return the list of mining squares
@@ -3310,8 +3321,8 @@ class Builder(Piece):
 
             # Check if the base spawn criteria are met
             if self.base_spawn_criteria(engine, row, col):
-                if engine.has_no_resource(row, col) or engine.has_depleted_quarry(
-                    row, col
+                if not engine.has_resource(row, col) or engine.has_resource(
+                    row, col, DepletedQuarry
                 ):
                     spawn_squares.append((row, col))
 
@@ -4893,23 +4904,31 @@ class Ferz(Piece):
         mining_squares: list[tuple[int, int]] = []
 
         # Iterate over each direction in the mining directions
-        for direction in self.mining_directions:
-            row: int = self.row - direction[0]
-            col: int = self.col - direction[1]
+        for destination_row, destination_col in self.mining_directions:
+            # Calculate the target row and column
+            row: int = self.row - destination_row
+            col: int = self.col - destination_col
 
-            # Check if the square has mine-able resources
+            # Get the occupying unit on the target tile
+            occupying_unit: Optional[Unit] = engine.get_occupying(row, col)
+
+            # Check if the tile has a mine-able resource
             if engine.has_mine_able_resource(row, col):
-                if engine.get_occupying(row, col):
-                    if engine.get_occupying_color(row, col) is not self.color:
-                        pass
-                    elif engine.get_occupying_color(row, col) is self.color:
-                        mining_squares.append((row, col))
-                elif engine.has_none_occupying(row, col):
+                # Check if the tile is empty or occupied by a unit of the same color
+                if (
+                    not occupying_unit
+                    or engine.get_occupying_color(row, col) == self.color
+                ):
                     mining_squares.append((row, col))
-            elif engine.can_contain_quarry(row, col) and engine.is_empty(row, col):
+
+            # Check if the tile can contain a quarry and has no units or resources
+            elif engine.can_contain_quarry(
+                row, col
+            ) and engine.has_no_units_or_resources(row, col):
                 mining_squares.append((row, col))
 
-        # Return the list of mining squares
+        print(f"{str(self)} located at {self.row} {self.col} mining squares:")
+        print(mining_squares)
         return mining_squares
 
     def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
@@ -5111,9 +5130,11 @@ class Cavalry(Piece):
                         pass
                     elif engine.get_occupying_color(row, col) is self.color:
                         mining_squares.append((row, col))
-                elif engine.has_none_occupying(row, col):
+                elif not engine.has_occupying(row, col):
                     mining_squares.append((row, col))
-            elif engine.can_contain_quarry(row, col) and engine.is_empty(row, col):
+            elif engine.can_contain_quarry(
+                row, col
+            ) and engine.has_no_units_or_resources(row, col):
                 mining_squares.append((row, col))
 
         # Return the list of mining squares

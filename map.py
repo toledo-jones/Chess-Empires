@@ -10,6 +10,7 @@ from resource import *
 if typing.TYPE_CHECKING:
     pass
 
+
 def set_decree_cost(resource_count: Dict[str, int]) -> Dict[str, int]:
     """
     Calculates the decree cost based on the provided resource count.
@@ -356,7 +357,7 @@ class Map:
 
         # Recursively continue spawning resources with a certain probability
         if get_random() > 80:
-            self.populate_randomly(new_row, new_col)
+            self.populate_randomly(new_row, new_col, choices, directions)
 
     def spawn_wood_nearby(self, row: int, col: int):
         """
@@ -427,7 +428,7 @@ class Map:
             for d in range(distance):
                 new_row: int = row + direction[0] * d
                 new_col: int = col + direction[1] * d
-                if constant.tile_in_bounds(new_row, new_col):
+                if self.engine.tile_in_bounds(new_row, new_col):
                     # Spawn wood at the new coordinates
                     self.spawn_wood(new_row, new_col)
 
@@ -575,7 +576,7 @@ class Map:
         # Randomly select 'iterations' number of sequential columns to delete
         start_index: int = random.randint(0, len(column_sequence) - iterations)
         columns_to_delete: List[int] = column_sequence[
-            start_index: start_index + iterations
+            start_index : start_index + iterations
         ]
 
         # Delete resources in the selected columns sequentially
@@ -981,15 +982,14 @@ class Perfect(Map):
         # Define the gold tiles pattern
         gold_tiles: List[List[str]] = [
             [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-            [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", "x", "x", " ", " "],
             [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-            [" ", " ", "x", "x", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+            [" ", " ", "x", "x", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
         ]
 
@@ -1046,7 +1046,6 @@ class Full(Map):
             ["x", "x", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", "x", "x"],
             ["x", "x", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", "x", "x"],
             ["x", "x", " ", " ", " ", " ", " ", " ", " ", " ", " ", "x", "x", "x"],
-            ["x", "x", " ", " ", " ", " ", " ", " ", " ", " ", " ", "x", "x", "x"],
             ["x", "x", " ", " ", " ", " ", " ", " ", " ", " ", "x", "x", "x", "x"],
             ["x", "x", " ", " ", " ", " ", " ", " ", " ", " ", "x", "x", "x", "x"],
         ]
@@ -1070,7 +1069,6 @@ class Full(Map):
         gold_tiles: List[List[str]] = [
             [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", "x", "x", " ", " "],
             [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", "x", "x", " ", " "],
-            [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
@@ -1242,7 +1240,7 @@ class Minimal(Map):
             if rand > 98:
                 row: int = square[0]
                 col: int = square[1]
-                if self.engine.has_no_resource(row, col):
+                if not self.engine.has_resource(row, col):
                     random.choice(choices)(row, col)
 
 
@@ -2059,7 +2057,7 @@ class FourCorners(Map):
         for row in range(self.engine.rows):
             for col in range(self.engine.cols):
                 # Check if the tile has no resource and randomly decide to populate it
-                if self.engine.has_no_resource(row, col) and get_random() > 95:
+                if not self.engine.has_resource(row, col) and get_random() > 95:
                     self.populate_randomly(
                         row,
                         col,
@@ -2149,7 +2147,7 @@ class GoldCornersB(Map):
 
         # If rand is 1, spawn gold in the outside corner squares
         if rand == 1:
-            for square in constant.outside_corner_squares():
+            for square in squares.outside_corner():
                 row = square[0]
                 col = square[1]
                 self.spawn_gold(row, col)
@@ -2209,7 +2207,7 @@ class GoldCornersA(Map):
 
         # If rand is 1, spawn gold in the outside corner squares
         if rand == 1:
-            for square in constant.outside_corner_squares():
+            for square in squares.outside_corner():
                 row = square[0]
                 col = square[1]
                 self.spawn_gold(row, col)
@@ -2308,11 +2306,10 @@ class FirstClass(Map):
             [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-            [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
             [" ", "x", "x", "x", "x", " ", " ", " ", " ", "x", "x", "x", "x", " "],
+            [" ", "x", "x", "x", "x", " ", " ", "x", " ", "x", "x", "x", "x", " "],
+            [" ", "x", "x", "x", "x", " ", "x", " ", " ", "x", "x", "x", "x", " "],
             [" ", "x", "x", "x", "x", " ", " ", " ", " ", "x", "x", "x", "x", " "],
-            [" ", "x", "x", "x", "x", " ", " ", " ", " ", "x", "x", "x", "x", " "],
-            [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
@@ -2322,7 +2319,6 @@ class FirstClass(Map):
         gold_squares: List[List[str]] = [
             [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
             [" ", "x", "x", " ", " ", " ", " ", " ", " ", " ", " ", "x", "x", " "],
-            [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],

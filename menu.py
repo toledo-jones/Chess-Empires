@@ -61,6 +61,13 @@ class Menu:
         # Buffer to prevent menu from clipping the screen edges
         self._menu_boundary_buffer: int = 0
 
+    def draw(self):
+        """
+        Draws the menu on the game window.
+        This method should be overridden in subclasses to implement specific behavior.
+        """
+        return self.menu_position_x, self.menu_position_y
+
     @property
     def menu_boundary_buffer(self) -> int:
         """
@@ -309,6 +316,20 @@ class Menu:
             ]
             # Set cursor to hand to indicate an interactive element
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+
+    def left_click(self) -> bool:
+        """
+        Handles the left-click action on the menu.
+        This method should be overridden in subclasses to implement specific behavior.
+        """
+        return False
+
+    def right_click(self):
+        """
+        Handles the right-click action on the menu.
+        This method should be overridden in subclasses to implement specific behavior.
+        """
+        return False
 
 
 class Notification(Menu):
@@ -676,7 +697,7 @@ class RitualMenu(Menu):
         y_buffer_prayer: int = self.y_buffer
 
         # Cache values to avoid redundant dictionary lookups
-        turn: int = self.engine.turn
+        turn: str = self.engine.turn
         rituals: Dict[str, pygame.Surface] = self.rituals
         prayer_costs: Dict[str, Dict[str, int]] = constant.PRAYER_COSTS
         cost_type: str = self.cost_type
@@ -1110,9 +1131,7 @@ class StealingMenu(Menu):
     This menu handles displaying the resources available for stealing and updating the game state.
     """
 
-    def __init__(
-        self, row: int, col: int, win: pygame.Surface, engine: "Engine"
-    ):
+    def __init__(self, row: int, col: int, win: pygame.Surface, engine: "Engine"):
         """
         Initializes the StealingMenu.
 
@@ -1606,12 +1625,7 @@ class SpawningMenu(Menu):
         ):
             # Reset spawning state and revert to the playing state
             self.engine.spawning = None
-            pos: Tuple[int, int] = pygame.mouse.get_pos()
-            row: int
-            col: int
-            row, col = constant.convert_pos(pos)
             self.engine.state[-1].revert_to_playing_state()
-            self.engine.create_popup_menu(row, col)
             return True
 
         # Clear current menus and set the spawning state
@@ -2073,7 +2087,7 @@ class Contextual(Menu):
         self.sprite_list: list[pygame.Surface] = []
 
         # Get the piece occupying the current position
-        self.piece: "Piece" = self.engine.get_occupying(self.row, self.col)
+        self.piece: Optional["Unit"] = self.engine.get_occupying(self.row, self.col)
 
         # Set the color based on the current turn
         self.color: pygame.Color = constant.turn_to_color[self.engine.turn]

@@ -7,6 +7,7 @@ class Player:
     """
     Represents a player in the game. Actions unique to each player should be performed inside this class
     """
+
     def __init__(self, color: str):
         """
         Initializes a new player with the given color.

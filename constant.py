@@ -602,20 +602,6 @@ def pos_in_board(pos: tuple[int, int]) -> bool:
     return BOARD_WIDTH_PX > pos[0] > 0 and BOARD_HEIGHT_PX > pos[1] > 0
 
 
-def tile_in_bounds(row: int, col: int) -> bool:
-    """
-    Checks if a tile is within the board boundaries.
-
-    :param row: The row index of the tile.
-    :param col: The column index of the tile.
-    :return: True if the tile is within the board, False otherwise.
-    """
-    # Get the maximum row and column indices
-    max_row, max_col = board_max_index()
-    # Check if the tile is within the board boundaries
-    return 0 <= col <= max_col and 0 <= row <= max_row
-
-
 def convert_pos(pos: tuple[int, int]) -> tuple[int, int]:
     """
     Converts a pixel position to board coordinates.

@@ -135,6 +135,9 @@ class State:
         # The game window surface where all visuals are rendered
         self.win: pygame.Surface = win
 
+        # Used by ritual child classes
+        self.cost_type: Optional[str] = None
+
         # The game engine responsible for handling game logic and events
         self.engine: Engine = engine
 
@@ -1665,7 +1668,6 @@ class Playing(State):
 
         # Ensure the piece can still act (i.e., has actions remaining)
         if not currently_selected.can_act():
-            self.engine.set_popup_reason("piece_action")
             return False
 
         # Ensure the player can perform an action
@@ -1925,8 +1927,6 @@ class Playing(State):
         if piece and piece.color == self.engine.turn:
             # Perform right-click action for the piece
             if not piece.right_click(self.engine):
-                # If the right-click doesn't result in an action, show a popup menu
-                self.engine.create_popup_menu(row, col, self.engine.popup_reason)
                 # Revert to the 'playing' state
                 return self.revert_to_playing_state()
                 # Create ability menu for pieces with more than 1 ability
@@ -2076,7 +2076,7 @@ class Starting(State):
         if not preserve_resources:
             # If the board starts with resources, initialize them
             if constant.BOARD_STARTS_WITH_RESOURCES:
-                self.engine.generate_resources()
+                self.engine.select_map()
 
     def __repr__(self) -> str:
         """
@@ -2731,8 +2731,6 @@ class StartingSpawn(State):
         # Check if the clicked position is in the spawn squares list
         if (row, col) in previously_selected.spawn_squares_list:
             self.create_spawn_event(row, col, False)
-        else:
-            self.engine.create_popup_menu(row, col, "invalid_start_spawn")
 
     def _handle_no_previously_selected_piece(self, row: int, col: int):
         """
@@ -2744,8 +2742,6 @@ class StartingSpawn(State):
         # Check if the clicked position is a legal starting square
         if self.engine.is_legal_starting_square(row, col):
             self.create_spawn_event(row, col)
-        else:
-            self.engine.create_popup_menu(row, col, self.engine.popup_reason)
 
     def _update_spawn_squares(self):
         """
@@ -3000,16 +2996,16 @@ class Mining(State):
             # Check if the position is in the mining squares list
             if (row, col) in self.previously_selected.mining_squares_list:
                 if (
-                    self.engine.has_quarry(row, col)
-                    or self.engine.has_gold(row, col)
-                    or self.engine.has_sunken_quarry(row, col)
-                    or self.engine.is_empty(row, col)
+                    self.engine.has_resource(row, col, Quarry)
+                    or self.engine.has_resource(row, col, Gold)
+                    or self.engine.has_resource(row, col, SunkenQuarry)
+                    or self.engine.has_no_units_or_resources(row, col)
                 ):
                     # Draw the pickaxe image
                     self.win.blit(
                         constant.IMAGES["pickaxe"], (display_pos_x, display_pos_y)
                     )
-                elif self.engine.has_wood(row, col):
+                elif self.engine.has_resource(row, col, Wood):
                     # Draw the axe image
                     self.win.blit(
                         constant.IMAGES["axe"], (display_pos_x, display_pos_y)
@@ -3057,30 +3053,34 @@ class Mining(State):
         :param col: The column index of the selected square.
         """
         # Check if there is a previously selected piece
-        if self.previously_selected is not None:
-            # Check if the tile is within bounds
-            if constant.tile_in_bounds(row, col):
-                mining_squares = self.previously_selected.mining_squares_list
+        if not self.previously_selected:
+            return False
 
-                # Check if the selected square is in the mining squares list
-                if (row, col) in mining_squares:
-                    acting_tile = self.engine.board[self.previously_selected.row][
-                        self.previously_selected.col
-                    ]
-                    action_tile = self.engine.board[row][col]
+        # Check if the tile is within bounds
+        if not self.engine.tile_in_bounds(row, col):
+            return False
 
-                    # Create the appropriate event based on the resource
-                    if action_tile.get_resource():
-                        # Action tile has a resource, so mine it.
-                        event = Mine(self.engine, acting_tile, action_tile)
-                    else:
-                        # Action tile does not have a resource, so spawn a quarry there.
-                        self.engine.spawning = "quarry_1"
-                        event = SpawnResource(self.engine, acting_tile, action_tile)
+        mining_squares = self.previously_selected.mining_squares_list
+        # Check if the selected square is in the mining squares list
+        if (row, col) in mining_squares:
+            acting_tile = self.engine.board[self.previously_selected.row][
+                self.previously_selected.col
+            ]
+            action_tile = self.engine.board[row][col]
 
-                    # Add the event to the engine and reset the selected piece
-                    self.engine.add_event(event)
-                    return self.revert_to_playing_state()
+            # Create the appropriate event based on the resource
+            if action_tile.get_resource():
+                # Action tile has a resource, so mine it.
+                event = Mine(self.engine, acting_tile, action_tile)
+            else:
+                # Action tile does not have a resource, so spawn a quarry there.
+                self.engine.spawning = "quarry_1"
+                event = SpawnResource(self.engine, acting_tile, action_tile)
+
+            # Add the event to the engine and reset the selected piece
+            self.engine.add_event(event)
+            print("added event")
+            return self.revert_to_playing_state()
 
     def tab(self):
         """
@@ -3181,7 +3181,7 @@ class Persuading(State):
         # Check if there is a previously selected piece
         if self.previously_selected is not None:
             # Check if the tile is within bounds
-            if constant.tile_in_bounds(row, col):
+            if self.engine.tile_in_bounds(row, col):
                 persuader_squares = self.previously_selected.persuader_squares_list
 
                 # Check if the selected square is in the persuader squares list
@@ -3199,7 +3199,7 @@ class Persuading(State):
                     self.engine.add_event(event)
 
                     # Check if the enemy player's king does not exist
-                    if self.engine.enemy_player_king_does_not_exist():
+                    if self.engine.enemy_king_does_not_exist():
                         new_state = Winner(self.win, self.engine)
                         self.engine.set_state(new_state)
                         return True
@@ -3349,7 +3349,7 @@ class PreBuilding(State):
         self.side_bar = Hud(self.win, self.engine)
 
         # Update the previously selected piece
-        self.previously_selected_piece = self.engine.update_previously_selected()
+        self.previously_selected = self.engine.update_previously_selected()
 
         # Initialize menu queue and spawning piece
         self.menu_queue = None
@@ -3374,14 +3374,14 @@ class PreBuilding(State):
 
         # Get the row and column of the previously selected piece
         row, col = (
-            self.previously_selected_piece.row,
-            self.previously_selected_piece.col,
+            self.previously_selected.row,
+            self.previously_selected.col,
         )
 
         # Append the menu to the engine's menus
         self.engine.menus.append(
             self.engine.MENUS[self.menu_queue](
-                row, col, self.win, self.engine, self.previously_selected_piece
+                row, col, self.win, self.engine, self.previously_selected
             )
         )
 
@@ -3459,7 +3459,7 @@ class PreBuilding(State):
         :param col: The column index of the square.
         :return: True if the square is within the spawn squares, otherwise False.
         """
-        return (row, col) in self.previously_selected_piece.spawn_squares(self.engine)
+        return (row, col) in self.previously_selected.spawn_squares(self.engine)
 
     def tab(self):
         """
@@ -4229,7 +4229,7 @@ class SummonGoldGeneral(Ritual):
         :return: True if the square is valid, otherwise False.
         """
         # Check if the tile is within bounds
-        if constant.tile_in_bounds(row, col):
+        if self.engine.tile_in_bounds(row, col):
             # Check if the square is in the ritual squares list
             return (row, col) in self.previously_selected.ritual_squares_list
         return False
@@ -4526,7 +4526,7 @@ class PerformCreateResource(Ritual):
         for row in range(self.engine.rows):
             for col in range(self.engine.cols):
                 # Check if the tile is empty
-                if self.engine.is_empty(row, col):
+                if self.engine.has_no_units_or_resources(row, col):
                     list_of_all_empty_squares.append((row, col))
 
         return list_of_all_empty_squares
@@ -4719,7 +4719,7 @@ class PerformTeleport(Ritual):
             for col in range(self.engine.cols):
 
                 # Check if the square is empty
-                if self.engine.is_empty(row, col):
+                if self.engine.has_no_units_or_resources(row, col):
                     valid_squares.append((row, col))
                     continue
 
@@ -4772,7 +4772,7 @@ class PerformTeleport(Ritual):
         # Ensure the square is valid and no piece has been selected yet
         if self.click_valid_square(row, col) and self.selected is None:
             # Select the piece occupying the clicked square
-            self.selected: Piece = self.engine.get_occupying(row, col)
+            self.selected: Optional[Unit] = self.engine.get_occupying(row, col)
 
             # Update the list of valid teleportation squares
             self.previously_selected.ritual_squares_list = (
@@ -4951,7 +4951,7 @@ class PerformSwap(Ritual):
         # Ensure the square is valid and no piece has been selected yet
         if self.click_valid_square(row, col) and self.first_selected is None:
             # Select the piece occupying the clicked square
-            self.first_selected: Piece = self.engine.get_occupying(row, col)
+            self.first_selected: Optional[Unit] = self.engine.get_occupying(row, col)
 
             # Mark the piece as casting the ritual
             self.first_selected.casting = True
@@ -4983,7 +4983,7 @@ class PerformSwap(Ritual):
         """
 
         # Get the second selected piece
-        self.second_selected: Piece = self.engine.get_occupying(row, col)
+        self.second_selected: Optional[Unit] = self.engine.get_occupying(row, col)
 
         # Get the acting tile where the swap initiates
         acting_tile: Tile = self.engine.board[self.previously_selected.row][
@@ -5197,7 +5197,7 @@ class PerformLineDestroy(Ritual):
         self.engine.add_event(event)
 
         # If the enemy player's king is destroyed, transition to the Winner state
-        if self.engine.enemy_player_king_does_not_exist():
+        if self.engine.enemy_king_does_not_exist():
             new_state: Winner = Winner(self.win, self.engine)
             self.engine.set_state(new_state)
             return True
@@ -5259,7 +5259,7 @@ class PerformProtect(Ritual):
             for col in range(self.engine.cols):
 
                 # If the tile is empty, it can be protected
-                if self.engine.is_empty(row, col):
+                if self.engine.has_no_units_or_resources(row, col):
                     protect_able_squares.append((row, col))
                     continue
 
@@ -5372,7 +5372,7 @@ class PerformPortal(Ritual):
             for col in range(self.engine.cols):
 
                 # If the tile is empty, it can have a portal
-                if self.engine.is_empty(row, col):
+                if self.engine.has_no_units_or_resources(row, col):
                     valid_squares.append((row, col))
                     continue
 

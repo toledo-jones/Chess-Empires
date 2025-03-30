@@ -28,7 +28,7 @@ def custom(squares_list: list[list[str]]) -> list[tuple[int, int]]:
     This is useful for map design when algorithms are too cumbersome to implement.
 
     Keep in mind these strings will have to be manually adjusted if the board size ever changes.
-    Current height is 11 and current width is 14.
+    Current height is 10 and current width is 14.
     :param squares_list: A list of lists containing string representations of squares.
     :return: A list of tuples where each tuple represents the coordinates (row, col) of a square.
     """
@@ -44,8 +44,8 @@ def custom(squares_list: list[list[str]]) -> list[tuple[int, int]]:
     # [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
     # [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
     # [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
-    # [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
     # ]
+    #
     squares = []
     for row in range(len(squares_list)):
         for col in range(len(squares_list[row])):
@@ -212,7 +212,7 @@ def quarter_triangle_a() -> Tuple[
 
 
 def quarter_triangle_b() -> (
-        Tuple[List[Tuple[int, int]], List[Tuple[int, int]], List[Tuple[int, int]]]
+    Tuple[List[Tuple[int, int]], List[Tuple[int, int]], List[Tuple[int, int]]]
 ):
     """
     Divides the board into three triangular regions and returns a tuple of lists containing
@@ -253,7 +253,7 @@ def quarter_triangle_b() -> (
 
 
 def quarter_triangle_c() -> (
-        Tuple[List[Tuple[int, int]], List[Tuple[int, int]], List[Tuple[int, int]]]
+    Tuple[List[Tuple[int, int]], List[Tuple[int, int]], List[Tuple[int, int]]]
 ):
     """
     Divides the board into three triangular regions and returns a tuple of lists containing
@@ -294,7 +294,7 @@ def quarter_triangle_c() -> (
 
 
 def quarter_triangle_d() -> (
-        Tuple[List[Tuple[int, int]], List[Tuple[int, int]], List[Tuple[int, int]]]
+    Tuple[List[Tuple[int, int]], List[Tuple[int, int]], List[Tuple[int, int]]]
 ):
     """
     Divides the board into three triangular regions and returns a tuple of lists containing
@@ -335,7 +335,7 @@ def quarter_triangle_d() -> (
 
 
 def left_and_right_triangle_top() -> (
-        Tuple[List[Tuple[int, int]], List[Tuple[int, int]]]
+    Tuple[List[Tuple[int, int]], List[Tuple[int, int]]]
 ):
     """
     Divides the top part of the board into two triangular regions and returns a tuple of lists containing
@@ -355,14 +355,14 @@ def left_and_right_triangle_top() -> (
     # Populate the top left region
     for row in range(0, 7):  # Iterate over the rows starting from 0 to 6 (top)
         for col in range(
-                0, 7 - row
+            0, 7 - row
         ):  # Left triangle: columns from 0 to (7 - row) for each row
             left_triangle.append((row, col))
 
     # Populate the top right region
     for row in range(0, 7):  # Iterate over the rows starting from 0 to 6 (top)
         skip_columns = set(
-                range(7, 7 + row)
+            range(7, 7 + row)
         )  # Skip columns from 7 to 7+row-1 for each row
         for col in range(13, 6, -1):  # Iterate from column 13 to 7
             if col not in skip_columns:
@@ -372,7 +372,7 @@ def left_and_right_triangle_top() -> (
 
 
 def left_and_right_triangle_bottom() -> (
-        Tuple[List[Tuple[int, int]], List[Tuple[int, int]]]
+    Tuple[List[Tuple[int, int]], List[Tuple[int, int]]]
 ):
     """
     Divides the bottom part of the board into two triangular regions and returns a tuple of lists containing
@@ -460,7 +460,9 @@ def edge(distance: int = 2) -> List[Tuple[int, int]]:
 
     # Populate the bottom edge squares
     for col in range(0, max_col + 1):
-        for row in range(max_row - distance + 1, max_row + 1):  # The last `distance` rows
+        for row in range(
+            max_row - distance + 1, max_row + 1
+        ):  # The last `distance` rows
             square: Tuple[int, int] = (row, col)
             squares.append(square)
 
@@ -518,9 +520,9 @@ def bottom_pyramid() -> List[Tuple[int, int]]:
         for col in range(0, max_col + 1):
             # Check conditions to determine whether to append the square
             if (
-                    row == max_row
-                    or (row == max_row - 1 and 0 < col <= max_col - 1)
-                    or (row == max_row - 2 and 1 < col <= max_col - 2)
+                row == max_row
+                or (row == max_row - 1 and 0 < col <= max_col - 1)
+                or (row == max_row - 2 and 1 < col <= max_col - 2)
             ):
                 squares.append((row, col))
 
@@ -919,7 +921,7 @@ def find_center(squares: List[Tuple[int, int]]) -> Tuple[int, int]:
     # Raise an error if the list of squares is empty
     if not squares:
         raise ValueError(
-                "You must pass a list of square tuples [(row, col)] to find_center"
+            "You must pass a list of square tuples [(row, col)] to find_center"
         )
 
     # Calculate the total sum of rows and columns

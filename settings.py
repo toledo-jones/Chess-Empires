@@ -25,7 +25,7 @@ MAX_FPS = 120
 VERSION = "playtest alpha 0.03"
 NUMBER = ""
 BOARD_HEIGHT_PX = pygame.display.Info().current_h
-SQ_SIZE = BOARD_HEIGHT_PX // 11
+SQ_SIZE = BOARD_HEIGHT_PX // 10
 BOARD_HEIGHT_SQ = BOARD_HEIGHT_PX // SQ_SIZE
 BOARD_WIDTH_SQ = 14
 BOARD_WIDTH_PX = BOARD_WIDTH_SQ * SQ_SIZE
@@ -622,9 +622,9 @@ STEALING_KEY = {
         "stone": {"variance": (-2, 2), "value": 5},
     },
     "trader": {
-        "wood": {"variance": (-3, 4), "value": 10},
-        "gold": {"variance": (-3, 4), "value": 10},
-        "stone": {"variance": (-3, 4), "value": 10},
+        "wood": {"variance": (-3, 4), "value": 15},
+        "gold": {"variance": (-3, 4), "value": 15},
+        "stone": {"variance": (-3, 4), "value": 15},
     },
     "piece": {
         "wood": {"variance": (-2, 2), "value": 4},

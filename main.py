@@ -1,5 +1,4 @@
 def main():
-    import sys
     import pygame
 
     # Initialize Pygame and load all necessary game resources
@@ -135,8 +134,6 @@ def main():
 
     if not engine.running:
         main()
-
-
 
 
 if __name__ == "__main__":

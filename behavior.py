@@ -1,6 +1,10 @@
 from game_event import *
 
 
+# TODO: Add docstrings to all functions
+# TODO: Finish AI behavior
+
+
 class Behavior:
     def __init__(self):
         self.directions = (
@@ -168,7 +172,7 @@ class MaterialCounter(Behavior):
             if engine.get_occupying(row, col):
                 candidates = []
                 break
-            elif engine.is_empty(row, col):
+            elif engine.has_no_units_or_resources(row, col):
                 engine.create_piece(
                     row, col, engine.PIECES["castle"](row, col, engine.turn)
                 )
@@ -213,16 +217,28 @@ class MaterialCounter(Behavior):
         self.piece_placements = placements
         return placements
 
-    def search(self, engine, depth, maximizing_player):
+    def search(
+        self, engine: "Engine", depth: int, maximizing_player: bool
+    ) -> tuple[dict, int]:
+        """
+        Performs a minimax search to determine the best move.
+
+        :param self: The instance of the class.
+        :param engine: The game engine.
+        :param depth: The depth of the search.
+        :param maximizing_player: True if the current player is maximizing, False if minimizing.
+        :return: A tuple containing the best move and its evaluation.
+        """
         if depth == 0:
             return None, self.evaluate_position(engine)
-        possible_moves = self.all_possible_moves(
+
+        possible_moves: dict = self.all_possible_moves(
             engine.players[engine.turn].pieces, engine
         )
-        best_move = None
-        max_evaluation = 0
-        min_evaluation = 0
+        best_move: dict = None
+
         if maximizing_player:
+            max_evaluation: float = float("-inf")
             for piece in possible_moves:
                 for move_kind in possible_moves[piece]:
                     for move in possible_moves[piece][move_kind]:
@@ -250,6 +266,7 @@ class MaterialCounter(Behavior):
                             best_move = {piece: (move_kind, move)}
             return best_move, max_evaluation
         else:
+            min_evaluation: float = float("inf")
             for piece in possible_moves:
                 for move_kind in possible_moves[piece]:
                     for move in possible_moves[piece][move_kind]:
@@ -272,7 +289,7 @@ class MaterialCounter(Behavior):
                         if change_turn_event:
                             change_turn_event.undo()
                         event.undo()
-                        if current_evaluation > min_evaluation:
+                        if current_evaluation < min_evaluation:
                             min_evaluation = current_evaluation
                             best_move = {piece: (move_kind, move)}
             return best_move, min_evaluation

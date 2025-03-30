@@ -633,7 +633,7 @@ class Cost(Encyclopedia):
 
         # Calculate the initial position for displaying the columns
         column_display_x = (
-                self.window_width // 2 - self.width_of_of_all_columns_and_buffers // 2
+            self.window_width // 2 - self.width_of_of_all_columns_and_buffers // 2
         )
 
         # Flag to check if the cursor is over any column
@@ -643,14 +643,14 @@ class Cost(Encyclopedia):
         for index, column in enumerate(self.column_list):
             # Check if the mouse is within the vertical bounds of the column
             is_within_column_y = (
-                    self.column_display_y
-                    <= mouse_y
-                    <= self.column_display_y + self.column_height
+                self.column_display_y
+                <= mouse_y
+                <= self.column_display_y + self.column_height
             )
 
             # Check if the mouse is within the horizontal bounds of the column
             is_within_column_x = (
-                    column_display_x <= mouse_x <= column_display_x + self.column_width
+                column_display_x <= mouse_x <= column_display_x + self.column_width
             )
 
             if is_within_column_x and is_within_column_y:

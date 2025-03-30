@@ -1,4 +1,4 @@
-from typing import Never, TYPE_CHECKING, List
+from typing import Never, TYPE_CHECKING, List, Union
 
 if TYPE_CHECKING:
     from engine import Engine
@@ -47,7 +47,9 @@ class GameEvent:
         self,
         engine: "Engine",
         acting_tile: Optional["Tile"] = None,
-        action_tile: Optional["Tile"] = None,
+        action_tile: Optional[
+            Union["Tile", Tuple[Tuple[int, int], Tuple[int, int]]]
+        ] = None,
     ):
         """
         Initializes a new GameEvent.
@@ -125,7 +127,7 @@ class GameEvent:
         # Call the generic check function with is_player_checking set to False.
         return self.set_king_in_check(is_player_checking=False)
 
-    def constrain_check(self) -> None:
+    def constrain_check(self):
         """
         Sloppy early implementation of check
         Undo when a move puts our king in check
@@ -135,13 +137,13 @@ class GameEvent:
             self.set_player_in_check()
             del self.engine.events[-1]
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Super method for completing an event.
         """
         self.engine.reset_selected()
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Super method for undoing an event
         """
@@ -177,7 +179,7 @@ class StartSpawn(GameEvent):
         self.previously_selected: Optional[Piece] = None
 
         # Store the current turn's player index.
-        self.turn: int = self.engine.get_turn()
+        self.turn: str = self.engine.get_turn()
 
         # If there is an acting tile, store the piece occupying it.
         if acting_tile:
@@ -203,7 +205,7 @@ class StartSpawn(GameEvent):
         """
         return "start spawn"
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the spawn action, placing the unit on the board and handling necessary updates.
         """
@@ -231,7 +233,7 @@ class StartSpawn(GameEvent):
         # Reset the spawning state.
         self.engine.spawning = None
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes the spawn action, reverting the game state to before the spawn occurred.
         """
@@ -315,7 +317,7 @@ class Steal(GameEvent):
         """
         return "steal"
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the stealing action, deducting the resource from the victim
         and adding it to the thief's player.
@@ -341,7 +343,7 @@ class Steal(GameEvent):
         if constant.STEALING_COSTS_ACTION:
             self.engine.players[self.engine.turn].do_action()
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes the stealing action, returning resources to the original owner
         and resetting the game state.
@@ -426,7 +428,7 @@ class Mine(GameEvent):
         """
         return "mine"
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the mining action by extracting resources, updating game state,
         and playing sound effects.
@@ -474,7 +476,7 @@ class Mine(GameEvent):
         if constant.MINING_COSTS_ACTION:
             self.engine.players[self.engine.turn].do_action()
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes the mining action, restoring resources and game state.
         """
@@ -542,7 +544,7 @@ class Pray(GameEvent):
         self.praying_piece: Optional[Piece] = self.acting_tile.get_occupying()
 
         # Store the unit that is being prayed upon.
-        self.prayed_on: Optional[Piece] = self.action_tile.get_occupying()
+        self.prayed_on: Optional[Building] = self.action_tile.get_occupying()
 
         # Store any additional prayer effects, initially set to zero.
         self.additional_prayer: int = 0
@@ -559,7 +561,7 @@ class Pray(GameEvent):
         """
         return "pray"
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the prayer action, applying its effects and updating the game state.
         """
@@ -581,7 +583,7 @@ class Pray(GameEvent):
         if constant.PRAYING_COSTS_ACTION:
             self.engine.players[self.engine.turn].do_action()
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes the prayer action, reverting any effects and restoring game state.
         """
@@ -651,7 +653,7 @@ class Persuade(GameEvent):
         """
         return "persuade"
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the persuade action, converting the target unit to the persuader's team.
         """
@@ -692,7 +694,7 @@ class Persuade(GameEvent):
         if constant.PERSUADE_COSTS_ACTION:
             self.engine.players[self.engine.turn].do_action()
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes the persuade action, restoring the original state of the units.
         """
@@ -773,7 +775,7 @@ class Decree(GameEvent):
         """
         return "decree"
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the Decree action, consuming resources, altering rituals, and affecting monoliths.
         """
@@ -816,7 +818,7 @@ class Decree(GameEvent):
         # Mark an action as used.
         self.player.do_action()
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes the Decree action, restoring the previous game state.
         """
@@ -866,7 +868,7 @@ class ChangeTurn(GameEvent):
         """Returns the string representation of the event."""
         return "change turn"
 
-    def __init__(self, engine) -> None:
+    def __init__(self, engine):
         """
         Initializes the ChangeTurn event, storing relevant state information before the turn change.
 
@@ -915,10 +917,12 @@ class ChangeTurn(GameEvent):
         # Save the list of protected tiles.
         self.protected_tiles = self.engine.protected_tiles[:]
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the turn change, resetting game state and advancing to the next player.
         """
+        from engine import generate_available_rituals, generate_stealing_offsets
+
         # Call the parent class's complete method.
         super().complete()
 
@@ -981,7 +985,7 @@ class ChangeTurn(GameEvent):
             # Generate new available rituals for each category if needed.
             if self.engine.turn_count_actual == len(self.engine.monolith_rituals) - 1:
                 self.engine.monolith_rituals.append(
-                    self.engine.generate_available_rituals(
+                    generate_available_rituals(
                         constant.MONOLITH_RITUALS,
                         constant.MAX_MONOLITH_RITUALS_PER_TURN,
                     )
@@ -991,14 +995,14 @@ class ChangeTurn(GameEvent):
                 == len(self.engine.prayer_stone_rituals) - 1
             ):
                 self.engine.prayer_stone_rituals.append(
-                    self.engine.generate_available_rituals(
+                    generate_available_rituals(
                         constant.PRAYER_STONE_RITUALS,
                         constant.MAX_PRAYER_STONE_RITUALS_PER_TURN,
                     )
                 )
             if self.engine.turn_count_actual == len(self.engine.magician_rituals) - 1:
                 self.engine.magician_rituals.append(
-                    self.engine.generate_available_rituals(
+                    generate_available_rituals(
                         constant.MAGICIAN_RITUALS,
                         constant.MAX_MAGICIAN_RITUALS_PER_TURN,
                     )
@@ -1011,21 +1015,21 @@ class ChangeTurn(GameEvent):
             )
         if self.engine.turn_count_actual == len(self.engine.piece_stealing_offsets) - 1:
             self.engine.piece_stealing_offsets.append(
-                self.engine.generate_stealing_offsets(constant.STEALING_KEY["piece"])
+                generate_stealing_offsets(constant.STEALING_KEY["piece"])
             )
         if (
             self.engine.turn_count_actual
             == len(self.engine.building_stealing_offsets) - 1
         ):
             self.engine.building_stealing_offsets.append(
-                self.engine.generate_stealing_offsets(constant.STEALING_KEY["building"])
+                generate_stealing_offsets(constant.STEALING_KEY["building"])
             )
         if (
             self.engine.turn_count_actual
             == len(self.engine.trader_stealing_offsets) - 1
         ):
             self.engine.trader_stealing_offsets.append(
-                self.engine.generate_stealing_offsets(constant.STEALING_KEY["trader"])
+                generate_stealing_offsets(constant.STEALING_KEY["trader"])
             )
 
         # Highlight all unused pieces.
@@ -1036,7 +1040,7 @@ class ChangeTurn(GameEvent):
         # Check if the current player is in check.
         self.set_player_in_check()
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes the turn change, restoring the previous game state.
         """
@@ -1093,7 +1097,7 @@ class ChangeTurn(GameEvent):
 
         # Restore protected tiles and undo their protection effects.
         self.engine.protected_tiles = self.protected_tiles
-        self.engine.untick_protected_tiles(self.protected_tiles)
+        self.engine.un_tick_protected_tiles(self.protected_tiles)
 
         # Restore the board state for protected tiles.
         for tile in self.protected_tiles:
@@ -1106,7 +1110,7 @@ class SpawnResource(GameEvent):
     This event handles creating a resource, deducting costs, and updating game state.
     """
 
-    def __init__(self, engine, acting_tile, action_tile) -> None:
+    def __init__(self, engine, acting_tile, action_tile):
         """
         Initializes the SpawnResource event, storing relevant state information.
 
@@ -1140,7 +1144,7 @@ class SpawnResource(GameEvent):
         """
         return "spawn resource"
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the resource spawn event by creating the resource, updating costs, and modifying game state.
         """
@@ -1176,7 +1180,7 @@ class SpawnResource(GameEvent):
         if constant.QUARRY_COSTS_ACTION:
             self.engine.players[self.engine.turn].do_action()
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes the resource spawn event, restoring the previous game state.
         """
@@ -1216,9 +1220,7 @@ class PortalSpawn(GameEvent):
     This represents the event of spawning a unit at a portal, handling all necessary updates.
     """
 
-    def __init__(
-        self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"
-    ) -> None:
+    def __init__(self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"):
         """
         Initializes the PortalSpawn event.
 
@@ -1283,7 +1285,7 @@ class PortalSpawn(GameEvent):
         """
         return "spawn"
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the spawn action, placing the unit on the board and handling necessary updates.
         """
@@ -1350,14 +1352,14 @@ class PortalSpawn(GameEvent):
                 self.portal_end[0], self.portal_end[1]
             )
             self.engine.delete_piece(self.portal_end[0], self.portal_end[1])
-            self.engine.untrap(self.portal_end[0], self.portal_end[1])
+            self.engine.un_trap(self.portal_end[0], self.portal_end[1])
 
         # Highlight all unused pieces.
         unused_pieces = self.engine.count_unused_pieces()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes the spawn action, reverting the game state to before the spawn occurred.
         """
@@ -1421,9 +1423,7 @@ class SpawnTrap(GameEvent):
     This event handles creating a trap, updating game state, and managing resources.
     """
 
-    def __init__(
-        self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"
-    ) -> None:
+    def __init__(self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"):
         """
         Initializes the SpawnTrap event.
 
@@ -1456,7 +1456,7 @@ class SpawnTrap(GameEvent):
         """
         return "trap"
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the trap spawn action, placing the trap on the board and handling necessary updates.
         """
@@ -1502,7 +1502,7 @@ class SpawnTrap(GameEvent):
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes the trap spawn action, reverting the game state to before the spawn occurred.
         """
@@ -1518,7 +1518,7 @@ class SpawnTrap(GameEvent):
         self.engine.players[self.engine.turn].un_purchase(self.piece_cost)
 
         # Remove the trap from the board.
-        self.engine.untrap(self.dest[0], self.dest[1])
+        self.engine.un_trap(self.dest[0], self.dest[1])
 
         # Undo the action deduction if trap costs an action.
         if constant.TRAP_COSTS_ACTION:
@@ -1543,9 +1543,7 @@ class TrapSpawn(GameEvent):
     This event handles creating a piece, updating game state, and managing resources.
     """
 
-    def __init__(
-        self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"
-    ) -> None:
+    def __init__(self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"):
         """
         Initializes the TrapSpawn event.
 
@@ -1595,7 +1593,7 @@ class TrapSpawn(GameEvent):
         """
         return "spawn"
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the spawn action, placing the unit on the board and handling necessary updates.
         """
@@ -1631,7 +1629,7 @@ class TrapSpawn(GameEvent):
 
         # If the tile is not protected, remove the trap and delete the piece.
         if not self.is_protected:
-            self.engine.untrap(self.dest[0], self.dest[1])
+            self.engine.un_trap(self.dest[0], self.dest[1])
             self.engine.delete_piece(self.dest[0], self.dest[1])
 
         # Reset unused piece highlights.
@@ -1642,7 +1640,7 @@ class TrapSpawn(GameEvent):
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes the spawn action, reverting the game state to before the spawn occurred.
         """
@@ -1681,9 +1679,7 @@ class Spawn(GameEvent):
     This event handles creating a piece, updating game state, and managing resources.
     """
 
-    def __init__(
-        self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"
-    ) -> None:
+    def __init__(self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"):
         """
         Initializes the Spawn event.
 
@@ -1720,7 +1716,7 @@ class Spawn(GameEvent):
         """
         return "spawn"
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the spawn action, placing the unit on the board and handling necessary updates.
         """
@@ -1782,7 +1778,7 @@ class Spawn(GameEvent):
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes the spawn action, reverting the game state to before the spawn occurred.
         """
@@ -1837,9 +1833,7 @@ class PortalMove(GameEvent):
     This event handles moving a piece, updating game state, and managing resources.
     """
 
-    def __init__(
-        self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"
-    ) -> None:
+    def __init__(self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"):
         """
         Initializes the PortalMove event.
 
@@ -1900,7 +1894,7 @@ class PortalMove(GameEvent):
         """
         return "portal move"
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the move action, updating the game state accordingly.
         """
@@ -1926,7 +1920,7 @@ class PortalMove(GameEvent):
                 self.portal_end[0], self.portal_end[1]
             )
             self.engine.delete_piece(self.portal_end[0], self.portal_end[1])
-            self.engine.untrap(self.portal_end[0], self.portal_end[1])
+            self.engine.un_trap(self.portal_end[0], self.portal_end[1])
 
         # Play the move sound effect.
         self.engine.sounds.play("move")
@@ -1951,7 +1945,7 @@ class PortalMove(GameEvent):
         # Mark an action as used.
         self.engine.players[self.engine.turn].do_action()
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes the move action, restoring the game state to before the move occurred.
         """
@@ -2006,9 +2000,7 @@ class PortalCapture(GameEvent):
     This event handles capturing a piece, updating game state, and managing resources.
     """
 
-    def __init__(
-        self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"
-    ) -> None:
+    def __init__(self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"):
         """
         Initializes the PortalCapture event.
 
@@ -2072,7 +2064,7 @@ class PortalCapture(GameEvent):
         """
         return "portal capture"
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the capture action, updating the game state accordingly.
         """
@@ -2101,7 +2093,7 @@ class PortalCapture(GameEvent):
                 self.portal_end[0], self.portal_end[1]
             )
             self.engine.delete_piece(self.portal_end[0], self.portal_end[1])
-            self.engine.untrap(self.portal_end[0], self.portal_end[1])
+            self.engine.un_trap(self.portal_end[0], self.portal_end[1])
 
         # Mark an action as used.
         self.engine.players[self.engine.turn].do_action()
@@ -2120,7 +2112,7 @@ class PortalCapture(GameEvent):
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes the capture action, restoring the game state to before the capture occurred.
         """
@@ -2178,9 +2170,7 @@ class TrapMove(GameEvent):
     This event handles moving a piece, updating game state, and managing resources.
     """
 
-    def __init__(
-        self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"
-    ) -> None:
+    def __init__(self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"):
         """
         Initializes the TrapMove event.
 
@@ -2226,7 +2216,7 @@ class TrapMove(GameEvent):
         """
         return "trap move"
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the move action, updating the game state accordingly.
         """
@@ -2242,7 +2232,7 @@ class TrapMove(GameEvent):
         self.engine.move(self.start[0], self.start[1], self.end[0], self.end[1])
 
         # Remove the trap at the destination position.
-        self.engine.untrap(self.end[0], self.end[1])
+        self.engine.un_trap(self.end[0], self.end[1])
 
         # Delete the piece at the destination position.
         self.engine.delete_piece(self.end[0], self.end[1])
@@ -2270,7 +2260,7 @@ class TrapMove(GameEvent):
         # Mark an action as used.
         self.engine.players[self.engine.turn].do_action()
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes the move action, restoring the game state to before the move occurred.
         """
@@ -2319,9 +2309,7 @@ class TrapCapture(GameEvent):
     This event handles capturing a piece, updating game state, and managing resources.
     """
 
-    def __init__(
-        self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"
-    ) -> None:
+    def __init__(self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"):
         """
         Initializes the TrapCapture event.
 
@@ -2357,7 +2345,7 @@ class TrapCapture(GameEvent):
         """
         return "trap capture"
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the capture action, updating the game state accordingly.
         """
@@ -2379,7 +2367,7 @@ class TrapCapture(GameEvent):
         self.engine.delete_piece(self.end[0], self.end[1])
 
         # Remove the trap at the destination position.
-        self.engine.untrap(self.end[0], self.end[1])
+        self.engine.un_trap(self.end[0], self.end[1])
 
         # Mark an action as used.
         self.engine.players[self.engine.turn].do_action()
@@ -2398,7 +2386,7 @@ class TrapCapture(GameEvent):
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes the capture action, restoring the game state to before the capture occurred.
         """
@@ -2450,9 +2438,7 @@ class Capture(GameEvent):
     This event handles capturing a piece, updating game state, and managing resources.
     """
 
-    def __init__(
-        self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"
-    ) -> None:
+    def __init__(self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"):
         """
         Initializes the Capture event.
 
@@ -2485,7 +2471,7 @@ class Capture(GameEvent):
         """
         return "capture"
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the capture action, updating the game state accordingly.
         """
@@ -2520,7 +2506,7 @@ class Capture(GameEvent):
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes the capture action, restoring the game state to before the capture occurred.
         """
@@ -2563,9 +2549,7 @@ class Move(GameEvent):
     This event handles moving a piece, updating game state, and managing resources.
     """
 
-    def __init__(
-        self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"
-    ) -> None:
+    def __init__(self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"):
         """
         Initializes the Move event.
 
@@ -2595,7 +2579,7 @@ class Move(GameEvent):
         """
         return "move"
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the move action, updating the game state accordingly.
         """
@@ -2633,7 +2617,7 @@ class Move(GameEvent):
         # Mark an action as used.
         self.engine.players[self.engine.turn].do_action()
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes the move action, restoring the game state to before the move occurred.
         """
@@ -2673,8 +2657,11 @@ class RitualEvent(GameEvent):
     """
 
     def __init__(
-        self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"
-    ) -> None:
+        self,
+        engine: "Engine",
+        acting_tile: "Tile",
+        action_tile: Union["Tile", Tuple[Tuple[int, int], Tuple[int, int]]],
+    ):
         """
         Initializes the RitualEvent.
 
@@ -2695,7 +2682,7 @@ class RitualEvent(GameEvent):
 
         # Try to get the cost type from the current state.
         try:
-            self.cost_type = self.engine.state[-1].cost_type
+            self.cost_type = self.engine.get_current_state().cost_type
         except AttributeError:
             self.cost_type = None
 
@@ -2716,7 +2703,7 @@ class RitualEvent(GameEvent):
         self.turn = self.engine.turn
         self.player = self.engine.players[self.turn]
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the ritual action, updating the game state accordingly.
         """
@@ -2737,7 +2724,7 @@ class RitualEvent(GameEvent):
         # Reduce the ritual building's remaining actions by 1.
         self.ritual_building.actions_remaining -= 1
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes the ritual action, restoring the game state to before the ritual occurred.
         """
@@ -2758,7 +2745,7 @@ class RitualEvent(GameEvent):
         # Undo the action usage.
         self.player.undo_action()
 
-    def respawn_deleted_monks(self) -> None:
+    def respawn_deleted_monks(self):
         """
         Respawns the monks that were sacrificed during the ritual.
         """
@@ -2777,7 +2764,7 @@ class RitualEvent(GameEvent):
                     actions_remaining
                 )
 
-    def sacrifice_random_monks(self) -> None:
+    def sacrifice_random_monks(self):
         """
         Sacrifices a random selection of monks for the ritual.
         """
@@ -2811,9 +2798,7 @@ class GoldGeneralEvent(RitualEvent):
     This event handles summoning a Gold General, updating game state, and managing resources.
     """
 
-    def __init__(
-        self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"
-    ) -> None:
+    def __init__(self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"):
         """
         Initializes the GoldGeneralEvent.
 
@@ -2842,7 +2827,7 @@ class GoldGeneralEvent(RitualEvent):
         """
         return "gold_general"
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the ritual action, updating the game state accordingly.
         """
@@ -2879,9 +2864,9 @@ class GoldGeneralEvent(RitualEvent):
                 # Store and remove the trap at the portal end.
                 self.portal_end_trap = connected_portal.trap
                 self.engine.delete_piece(self.portal_end[0], self.portal_end[1])
-                self.engine.untrap(self.portal_end[0], self.portal_end[1])
+                self.engine.un_trap(self.portal_end[0], self.portal_end[1])
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes the ritual action, restoring the game state to before the ritual occurred.
         """
@@ -2935,7 +2920,7 @@ class Teleport(RitualEvent):
         engine: "Engine",
         acting_tile: "Tile",
         action_tile: Tuple[Tuple[int, int], Tuple[int, int]],
-    ) -> None:
+    ):
         """
         Initializes the Teleport event.
 
@@ -2993,7 +2978,7 @@ class Teleport(RitualEvent):
         """
         return "teleport"
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the teleport action, updating the game state accordingly.
         """
@@ -3012,7 +2997,7 @@ class Teleport(RitualEvent):
         if self.trap:
             self.deleted_piece = self.engine.get_occupying(self.dest_row, self.dest_col)
             self.engine.delete_piece(self.dest_row, self.dest_col)
-            self.engine.untrap(self.dest_row, self.dest_col)
+            self.engine.un_trap(self.dest_row, self.dest_col)
             return
 
         # Handle the portal if it exists.
@@ -3025,10 +3010,10 @@ class Teleport(RitualEvent):
                     self.portal_end[0], self.portal_end[1]
                 )
                 self.engine.delete_piece(self.portal_end[0], self.portal_end[1])
-                self.engine.untrap(self.portal_end[0], self.portal_end[1])
+                self.engine.un_trap(self.portal_end[0], self.portal_end[1])
                 return
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes the teleport action, restoring the game state to before the teleport occurred.
         """
@@ -3086,7 +3071,7 @@ class Swap(RitualEvent):
         engine: "Engine",
         acting_tile: "Tile",
         action_tile: Tuple[Tuple[int, int], Tuple[int, int]],
-    ) -> None:
+    ):
         """
         Initializes the Swap event.
 
@@ -3152,7 +3137,7 @@ class Swap(RitualEvent):
         """
         return "swap"
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the swap action, updating the game state accordingly.
         """
@@ -3169,7 +3154,7 @@ class Swap(RitualEvent):
         if self.first_trap:
             self.first_deleted_piece = self.engine.get_occupying(self.row, self.col)
             self.engine.delete_piece(self.row, self.col)
-            self.engine.untrap(self.row, self.col)
+            self.engine.un_trap(self.row, self.col)
         elif self.first_is_portal:
             connected_portal = self.engine.board[self.row][self.col].connected_portal
             self.engine.swap(
@@ -3180,7 +3165,7 @@ class Swap(RitualEvent):
                     connected_portal.row, connected_portal.col
                 )
                 self.engine.delete_piece(connected_portal.row, connected_portal.col)
-                self.engine.untrap(connected_portal.row, connected_portal.col)
+                self.engine.un_trap(connected_portal.row, connected_portal.col)
 
         # Handle the second tile's trap or portal.
         if self.second_trap:
@@ -3188,7 +3173,7 @@ class Swap(RitualEvent):
                 self.dest_row, self.dest_col
             )
             self.engine.delete_piece(self.dest_row, self.dest_col)
-            self.engine.untrap(self.dest_row, self.dest_col)
+            self.engine.un_trap(self.dest_row, self.dest_col)
         elif self.second_is_portal:
             connected_portal = self.engine.board[self.dest_row][
                 self.dest_col
@@ -3201,12 +3186,12 @@ class Swap(RitualEvent):
                     connected_portal.row, connected_portal.col
                 )
                 self.engine.delete_piece(connected_portal.row, connected_portal.col)
-                self.engine.untrap(connected_portal.row, connected_portal.col)
+                self.engine.un_trap(connected_portal.row, connected_portal.col)
 
         # Intercept pieces.
         self.engine.intercept_pieces()
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes the swap action, restoring the game state to before the swap occurred.
         """
@@ -3289,9 +3274,7 @@ class Smite(RitualEvent):
     This event handles deleting a piece, updating game state, and managing resources.
     """
 
-    def __init__(
-        self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"
-    ) -> None:
+    def __init__(self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"):
         """
         Initializes the Smite event.
 
@@ -3315,7 +3298,7 @@ class Smite(RitualEvent):
         """
         return "smite"
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the smite action, updating the game state accordingly.
         """
@@ -3324,7 +3307,7 @@ class Smite(RitualEvent):
         # Delete the piece from the board.
         self.engine.delete_piece(self.row, self.col)
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes smite action, restoring the game state to before smite occurred.
         """
@@ -3352,8 +3335,8 @@ class Trade(GameEvent):
     """
 
     def __init__(
-        self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"
-    ) -> None:
+        self, engine: "Engine", acting_tile: "Tile", action_tile: Optional["Tile"]
+    ):
         """
         Initializes the Trade event.
 
@@ -3389,7 +3372,7 @@ class Trade(GameEvent):
         """
         return "trade"
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the trade action, updating the game state accordingly.
         """
@@ -3414,7 +3397,7 @@ class Trade(GameEvent):
         self.engine.trading = []
         self.engine.piece_trading = None
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes the trade action, restoring the game state to before the trade occurred.
         """
@@ -3451,9 +3434,7 @@ class DestroyResource(RitualEvent):
     This event handles deleting a resource, updating game state, and managing resources.
     """
 
-    def __init__(
-        self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"
-    ) -> None:
+    def __init__(self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"):
         """
         Initializes the DestroyResource event.
 
@@ -3477,7 +3458,7 @@ class DestroyResource(RitualEvent):
         """
         return "destroy resource"
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the destroy resource action, updating the game state accordingly.
         """
@@ -3486,7 +3467,7 @@ class DestroyResource(RitualEvent):
         # Delete the resource from the board.
         self.engine.delete_resource(self.row, self.col)
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes destroy resource action, restoring the game state to before destroy occurred.
         """
@@ -3513,9 +3494,7 @@ class CreateResource(RitualEvent):
     This event handles creating a resource, updating game state, and managing resources.
     """
 
-    def __init__(
-        self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"
-    ) -> None:
+    def __init__(self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"):
         """
         Initializes the CreateResource event.
 
@@ -3542,7 +3521,7 @@ class CreateResource(RitualEvent):
         """
         return "create_resource"
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes create resource action, updating the game state accordingly.
         """
@@ -3551,7 +3530,7 @@ class CreateResource(RitualEvent):
         # Create the resource on the board.
         self.engine.create_resource(self.row, self.col, self.created_resource)
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes create resource action, restoring the game state to before create occurred.
         """
@@ -3578,9 +3557,7 @@ class LineDestroy(RitualEvent):
     This event handles deleting tiles and pieces, updating game state, and managing resources.
     """
 
-    def __init__(
-        self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"
-    ) -> None:
+    def __init__(self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"):
         """
         Initializes the LineDestroy event.
 
@@ -3635,7 +3612,7 @@ class LineDestroy(RitualEvent):
 
         return destroyed_squares
 
-    def destroy_squares(self) -> None:
+    def destroy_squares(self):
         """
         Destroys the squares in the selected range.
         """
@@ -3649,28 +3626,28 @@ class LineDestroy(RitualEvent):
             if col is not None and self.engine.board[row][col].is_protected():
                 break
 
-    def remove_destroyed_pieces_from_player_list(self) -> None:
+    def remove_destroyed_pieces_from_player_list(self):
         """
         Removes the destroyed pieces from the player's list.
         """
         for piece in self.destroyed_pieces:
             self.engine.players[piece.get_color()].pieces.remove(piece)
 
-    def restore_destroyed_pieces_to_player_list(self) -> None:
+    def restore_destroyed_pieces_to_player_list(self):
         """
         Restores the destroyed pieces to the player's list.
         """
         for piece in self.destroyed_pieces:
             self.engine.players[piece.color].pieces.append(piece)
 
-    def replace_destroyed_squares(self) -> None:
+    def replace_destroyed_squares(self):
         """
         Replaces the destroyed squares on the board.
         """
         for tile in self.destroyed_squares:
             self.engine.board[tile.row][tile.col] = tile
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the line destroy action, updating the game state accordingly.
         """
@@ -3688,7 +3665,7 @@ class LineDestroy(RitualEvent):
         # Clear the selected range for line destruction.
         self.engine.line_destroy_selected_range = None
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes line destroy action, restoring the game state to before destroy occurred.
         """
@@ -3720,9 +3697,7 @@ class Protect(RitualEvent):
     This event handles protecting a tile, updating game state, and managing resources.
     """
 
-    def __init__(
-        self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"
-    ) -> None:
+    def __init__(self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"):
         """
         Initializes the Protect event.
 
@@ -3749,7 +3724,7 @@ class Protect(RitualEvent):
         """
         return "protect"
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the protect action, updating the game state accordingly.
         """
@@ -3767,7 +3742,7 @@ class Protect(RitualEvent):
         # Intercept pieces.
         self.engine.intercept_pieces()
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes protect action, restoring the game state to before protect occurred.
         """
@@ -3807,7 +3782,7 @@ class Portal(RitualEvent):
         engine: "Engine",
         acting_tile: "Tile",
         action_tile: Tuple[Tuple[int, int], Tuple[int, int]],
-    ) -> None:
+    ):
         """
         Initializes the Portal event.
 
@@ -3837,7 +3812,7 @@ class Portal(RitualEvent):
         """
         return "portal"
 
-    def complete(self) -> None:
+    def complete(self):
         """
         Completes the portal creation action, updating the game state accordingly.
         """
@@ -3866,7 +3841,7 @@ class Portal(RitualEvent):
         # Intercept pieces.
         self.engine.intercept_pieces()
 
-    def undo(self) -> None:
+    def undo(self):
         """
         Undoes the portal creation action, restoring the game state to before the portal was created.
         """

@@ -1143,7 +1143,7 @@ class MainMenu(State):
                 # Perform action based on which button was clicked
                 if i == 0:
                     constant.PLAY_AGAINST_AI = False
-                    self.engine.set_state("play select")
+                    self.engine.set_state("starting")
                 elif i == 1:
                     # How to Play button
                     self.engine.state.append(Instructions(self.win, self.engine))

@@ -22,7 +22,7 @@ DEBUG_STARTING_PIECES = ["castle", "king", "queen", "rogue_pawn"]
 
 # Window and board sizes
 MAX_FPS = 120
-VERSION = "alpha 0.04 online update"
+VERSION = "alpha 0.04"
 NUMBER = ""
 BOARD_HEIGHT_PX = pygame.display.Info().current_h
 SQ_SIZE = BOARD_HEIGHT_PX // 10

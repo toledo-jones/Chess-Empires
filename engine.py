@@ -149,7 +149,7 @@ def initialize_states() -> dict[str, type]:
         "inspector": Inspector,
         "instructions": Instructions,
         "pause": Pause,
-        "play select": PlaySelect
+        "play select": PlaySelect,
     }
 
 
@@ -436,6 +436,51 @@ class Engine:
         # Initialize the piece cost screen flag
         self.piece_cost_screen: bool = False
 
+        self.PIECE_COSTS = {
+            "king": {"log": 0, "gold": 0, "stone": 0},
+            "gold_general": {"log": 0, "gold": 0, "stone": 0},
+            "quarry_1": {"log": 3, "gold": 0, "stone": 0},
+            "pawn": {"log": 6, "gold": 0, "stone": 0},
+            "builder": {"log": 6, "gold": 0, "stone": 0},
+            "monk": {"log": 6, "gold": 0, "stone": 1},
+            "pikeman": {"log": 0, "gold": 4, "stone": 4},
+            "castle": {"log": 10, "gold": 0, "stone": 0},
+            "stable": {"log": 10, "gold": 0, "stone": 10},
+            "barracks": {"log": 4, "gold": 10, "stone": 0},
+            "fortress": {"log": 0, "gold": 12, "stone": 12},
+            "queen": {"log": 0, "gold": 12, "stone": 12},
+            "rook": {"log": 0, "gold": 5, "stone": 5},
+            "bishop": {"log": 5, "gold": 5, "stone": 0},
+            "knight": {"log": 1, "gold": 0, "stone": 3},
+            "jester": {"log": 0, "gold": 10, "stone": 0},
+            "rogue_rook": {"log": 0, "gold": 10, "stone": 10},
+            "rogue_bishop": {"log": 7, "gold": 7, "stone": 0},
+            "rogue_knight": {"log": 5, "gold": 0, "stone": 5},
+            "rogue_pawn": {"log": 6, "gold": 0, "stone": 0},
+            "elephant": {"log": 8, "gold": 0, "stone": 8},
+            "ram": {"log": 8, "gold": 0, "stone": 8},
+            "unicorn": {"log": 12, "gold": 0, "stone": 12},
+            "monolith": {"log": 0, "gold": 0, "stone": 16},
+            "prayer_stone": {"log": 0, "gold": 0, "stone": 8},
+            "duke": {"log": 6, "gold": 12, "stone": 13},
+            "oxen": {"log": 12, "gold": 0, "stone": 12},
+            "champion": {"log": 0, "gold": 7, "stone": 7},
+            "wall": {"log": 0, "gold": 0, "stone": 3},
+            "persuader": {"log": 0, "gold": 14, "stone": 0},
+            "doe": {"log": 14, "gold": 0, "stone": 14},
+            "trader": {"log": 6, "gold": 0, "stone": 0},
+            "circus": {"log": 0, "gold": 10, "stone": 0},
+            "trapper": {"log": 6, "gold": 0, "stone": 0},
+            "trap": {"log": 0, "gold": 0, "stone": 1},
+            "lion": {"log": 0, "gold": 20, "stone": 0},
+            "fire_spinner": {"log": 0, "gold": 18, "stone": 0},
+            "acrobat": {"log": 0, "gold": 18, "stone": 0},
+            "magician": {"log": 0, "gold": 10, "stone": 0},
+            "cavalry": {"log": 4, "gold": 1, "stone": 0},
+            "ferz": {"log": 6, "gold": 0, "stone": 0},
+            "assassin": {"log": 0, "gold": 10, "stone": 0},
+        }
+
         # Game Modifiers
         # Initialize the protected tiles list
         self.protected_tiles: list[Tile] = []
@@ -625,16 +670,8 @@ class Engine:
         """
         Selects a random map, generates resources, and sets piece values.
         """
-        # Select a random map from the available maps
-        self.map: Map = random.choice(self.MAPS)(self)
-        # Generate stone resources on the map
-        self.map.generate_stone()
-        # Generate other resources on the map
-        self.map.generate_resources()
-        # Play the resource creation sound
-        self.sounds.play("create_resource")
-        # Set the values for the pieces based on the resources
-        self.set_piece_values()
+        event = SelectMap(self, None, None)
+        self.add_event(event, constrain_check=False, determine_winner=False)
 
     def set_piece_values(self):
         """
@@ -1040,14 +1077,8 @@ class Engine:
         """
         Resets the game board by reinitializing all tiles.
         """
-        # Play the resource creation sound
-        self.sounds.play("create_resource")
-        # Iterate over each row on the board
-        for row in range(self.rows):
-            # Iterate over each column in the current row
-            for col in range(self.cols):
-                # Reinitialize the tile at the current position
-                self.board[row][col] = Tile(row, col)
+        event = ResetBoard(self, None, None)
+        self.add_event(event, determine_winner=False)
 
     def has_enemy_occupying(self, color: str, row: int, col: int) -> bool:
         """
@@ -1587,7 +1618,16 @@ class Engine:
         """
         Sets the current player as the winner.
         """
-        self.winner = self.turn
+        # Determine if the game is over (king is captured)
+        winner = None
+        if self.player_king_does_not_exist():
+            self.turn = constant.TURNS[self.turn]
+            winner = self.turn
+
+        elif self.enemy_king_does_not_exist():
+            winner = self.turn
+
+        self.winner = winner
 
     def undo_last_event(self) -> bool:
         """
@@ -1608,28 +1648,55 @@ class Engine:
         del self.events[-1]
         return True
 
-    def add_event(self, event: GameEvent):
+    def add_network_event(self, event: GameEvent):
+        """
+        Adds a new event to the game and updates the game state.
+        This function is used for networked games to synchronize events across clients.
+
+        :param event: The event to add.
+        """
+        # Complete the event.
+        event.complete()
+        # Append it to our list of game events.
+        self.events.append(event)
+        # Synchronize our game state with the event
+        event.synchronize(self)
+
+    def add_event(
+        self,
+        event: GameEvent,
+        constrain_check: bool = True,
+        determine_winner: bool = True,
+    ):
         """
         Adds a new event to the game and updates the game state.
 
         :param event: The event to add.
+        :param constrain_check: When this is true the event will be un done if the player is determined to be in
+        check after the event is completed.
+        :param determine_winner: Allow the game to end if a king is not discovered. Some events will take place before
+        a king is spawned, so it is useful to be able to bypass this check.
         """
         # Complete the event
         event.complete()
         # Add the event to the list of events
         self.events.append(event)
 
+        # # If we are online, synchronize elements of the event which require it:
+        # if self.online:
+        #     event.synchronize() # Do we do this from add_network_event()
+
         # Check if the event is not a change turn event
-        if str(event) != "change turn":
+        if constrain_check:
             # Update the check status for the players
             event.constrain_check()
             event.set_enemy_in_check()
 
-        # Determine if the game is over (king is captured)
-        if self.player_king_does_not_exist():
-            self.turn = constant.TURNS[self.turn]
-            self.set_winner()
-        elif self.enemy_king_does_not_exist():
+        if event in self.events:
+            if self.online:
+                self.client.send_object(event)
+
+        if determine_winner:
             self.set_winner()
 
     def get_turn(self) -> str:
@@ -1647,7 +1714,7 @@ class Engine:
         # Create a change turn event
         event: ChangeTurn = ChangeTurn(self)
         # Add the event to the game
-        self.add_event(event)
+        self.add_event(event, constrain_check=False, determine_winner=False)
         # Begin the turn for the next player
         self.players[self.turn].begin_turn(self)
 
@@ -1788,7 +1855,7 @@ class Engine:
         :param spawner: The unit that is spawning the piece.
         :return: True if the piece can be legally spawned, False otherwise.
         """
-        piece_cost = constant.PIECE_COSTS[spawning]
+        piece_cost = self.PIECE_COSTS[spawning]
 
         # Check if the spawner can act
         if not spawner.can_act():

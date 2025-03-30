@@ -9,7 +9,7 @@ from unit import *
 
 
 def action_tile_has_effective_trap(
-    acting_tile: "Tile", action_tile: "Tile"
+        acting_tile: "Tile", action_tile: "Tile"
 ) -> Optional["Trap"]:
     """
     Determines if an action tile has an effective trap from the perspective of an acting tile.
@@ -28,7 +28,7 @@ def action_tile_has_effective_trap(
     if trap is not None:
         # Check if the trap's color doesn't match, and it protects against that color
         if (trap.color != color) and (
-            action_tile.is_protected() and action_tile.protected_by == color
+                action_tile.is_protected() and action_tile.protected_by == color
         ):
             is_protected = True
 
@@ -44,12 +44,12 @@ class GameEvent:
     """
 
     def __init__(
-        self,
-        engine: "Engine",
-        acting_tile: Optional["Tile"] = None,
-        action_tile: Optional[
-            Union["Tile", Tuple[Tuple[int, int], Tuple[int, int]]]
-        ] = None,
+            self,
+            engine: "Engine",
+            acting_tile: Optional["Tile"] = None,
+            action_tile: Optional[
+                Union["Tile", Tuple[Tuple[int, int], Tuple[int, int]]]
+            ] = None,
     ):
         """
         Initializes a new GameEvent.
@@ -81,8 +81,11 @@ class GameEvent:
         self.engine.update_squares()
 
         # Retrieve the player and enemy objects based on the current turn.
-        player = self.engine.players[self.engine.get_turn()]
-        enemy = self.engine.players[constant.TURNS[self.engine.get_turn()]]
+        try:
+            player = self.engine.players[self.engine.get_turn()]
+            enemy = self.engine.players[constant.TURNS[self.engine.get_turn()]]
+        except KeyError:
+            return False
 
         # Determine the attacking and defending sides based on is_player_checking flag.
         attacker, defender = (enemy, player) if is_player_checking else (player, enemy)
@@ -146,6 +149,18 @@ class GameEvent:
     def undo(self):
         """
         Super method for undoing an event
+        """
+        pass
+
+    def synchronize(self, engine: "Engine"):
+        """
+        Supports synchronizing randomized variables which occur as a result of any game event.
+        This is called after the event is completed, only if the game is being played online.
+        By default, this does nothing. It is assumed that the event itself will handle any synchronization.
+        self.engine will be the serialized engine from the other computer. It will likely contain many values
+        to update.
+
+        :param engine: The game engine instance of the game running on this computer.
         """
         pass
 
@@ -218,7 +233,7 @@ class StartSpawn(GameEvent):
         # If the spawned unit is a king, update the king reference for the player.
         if self.spawn == "king":
             self.engine.players[self.turn].king = self.engine.get_occupying(
-                self.dest[0], self.dest[1]
+                    self.dest[0], self.dest[1]
             )
 
         # Get the type of unit spawned.
@@ -336,7 +351,7 @@ class Steal(GameEvent):
 
         # Remove the stolen resource from the victim's player.
         self.engine.players[constant.TURNS[self.engine.turn]].invert_steal(
-            self.resource_stolen, self.amount
+                self.resource_stolen, self.amount
         )
 
         # If stealing costs an action, mark it as used.
@@ -359,12 +374,12 @@ class Steal(GameEvent):
 
         # Restore the stolen resource to the victim.
         self.engine.players[self.engine.turn].invert_steal(
-            self.resource_stolen, self.amount
+                self.resource_stolen, self.amount
         )
 
         # Remove the stolen resource from the thief's player.
         self.engine.players[constant.TURNS[self.engine.turn]].steal(
-            self.resource_stolen, self.amount
+                self.resource_stolen, self.amount
         )
 
         # If stealing costs an action, undo the action usage.
@@ -494,7 +509,7 @@ class Mine(GameEvent):
 
         # Remove the mined resources from the player's inventory.
         self.engine.players[self.engine.turn].un_mine(
-            str(self.mined), self.harvest_yield
+                str(self.mined), self.harvest_yield
         )
 
         # Play the appropriate mining sound effect.
@@ -576,7 +591,7 @@ class Pray(GameEvent):
 
         # Apply the prayer effect to the prayed-on piece.
         self.engine.players[self.engine.turn].pray(
-            self.prayed_on, self.additional_prayer
+                self.prayed_on, self.additional_prayer
         )
 
         # If praying costs an action, mark it as used.
@@ -592,7 +607,7 @@ class Pray(GameEvent):
 
         # Retrieve the praying piece's current position and reset actions.
         praying_piece = self.engine.get_occupying(
-            self.praying_piece.row, self.praying_piece.col
+                self.praying_piece.row, self.praying_piece.col
         )
         praying_piece.actions_remaining += 1
 
@@ -601,7 +616,7 @@ class Pray(GameEvent):
 
         # Revert the prayer effect.
         self.engine.players[self.engine.turn].un_pray(
-            self.prayed_on, self.additional_prayer
+                self.prayed_on, self.additional_prayer
         )
 
         # If praying originally cost an action, undo that action usage.
@@ -985,51 +1000,51 @@ class ChangeTurn(GameEvent):
             # Generate new available rituals for each category if needed.
             if self.engine.turn_count_actual == len(self.engine.monolith_rituals) - 1:
                 self.engine.monolith_rituals.append(
-                    generate_available_rituals(
-                        constant.MONOLITH_RITUALS,
-                        constant.MAX_MONOLITH_RITUALS_PER_TURN,
-                    )
+                        generate_available_rituals(
+                                constant.MONOLITH_RITUALS,
+                                constant.MAX_MONOLITH_RITUALS_PER_TURN,
+                        )
                 )
             if (
-                self.engine.turn_count_actual
-                == len(self.engine.prayer_stone_rituals) - 1
+                    self.engine.turn_count_actual
+                    == len(self.engine.prayer_stone_rituals) - 1
             ):
                 self.engine.prayer_stone_rituals.append(
-                    generate_available_rituals(
-                        constant.PRAYER_STONE_RITUALS,
-                        constant.MAX_PRAYER_STONE_RITUALS_PER_TURN,
-                    )
+                        generate_available_rituals(
+                                constant.PRAYER_STONE_RITUALS,
+                                constant.MAX_PRAYER_STONE_RITUALS_PER_TURN,
+                        )
                 )
             if self.engine.turn_count_actual == len(self.engine.magician_rituals) - 1:
                 self.engine.magician_rituals.append(
-                    generate_available_rituals(
-                        constant.MAGICIAN_RITUALS,
-                        constant.MAX_MAGICIAN_RITUALS_PER_TURN,
-                    )
+                        generate_available_rituals(
+                                constant.MAGICIAN_RITUALS,
+                                constant.MAX_MAGICIAN_RITUALS_PER_TURN,
+                        )
                 )
 
         # Generate trade and stealing offsets if needed.
         if self.engine.turn_count_actual == len(self.engine.trade_conversions) - 1:
             self.engine.trade_conversions.append(
-                self.engine.trade_handler.get_conversions()
+                    self.engine.trade_handler.get_conversions()
             )
         if self.engine.turn_count_actual == len(self.engine.piece_stealing_offsets) - 1:
             self.engine.piece_stealing_offsets.append(
-                generate_stealing_offsets(constant.STEALING_KEY["piece"])
+                    generate_stealing_offsets(constant.STEALING_KEY["piece"])
             )
         if (
-            self.engine.turn_count_actual
-            == len(self.engine.building_stealing_offsets) - 1
+                self.engine.turn_count_actual
+                == len(self.engine.building_stealing_offsets) - 1
         ):
             self.engine.building_stealing_offsets.append(
-                generate_stealing_offsets(constant.STEALING_KEY["building"])
+                    generate_stealing_offsets(constant.STEALING_KEY["building"])
             )
         if (
-            self.engine.turn_count_actual
-            == len(self.engine.trader_stealing_offsets) - 1
+                self.engine.turn_count_actual
+                == len(self.engine.trader_stealing_offsets) - 1
         ):
             self.engine.trader_stealing_offsets.append(
-                generate_stealing_offsets(constant.STEALING_KEY["trader"])
+                    generate_stealing_offsets(constant.STEALING_KEY["trader"])
             )
 
         # Highlight all unused pieces.
@@ -1090,7 +1105,7 @@ class ChangeTurn(GameEvent):
 
         # Restore player's actions, piece limits, and prayer values.
         self.engine.players[self.engine.turn].set_actions_remaining(
-            self.player_actions_remaining
+                self.player_actions_remaining
         )
         self.engine.players[self.engine.turn].set_piece_limit(self.player_piece_limit)
         self.engine.players[self.engine.turn].set_prayer(self.player_prayer)
@@ -1134,7 +1149,7 @@ class SpawnResource(GameEvent):
         self.spawner = self.acting_tile.get_occupying()
 
         # Get the cost associated with spawning the resource.
-        self.piece_cost = constant.PIECE_COSTS[self.engine.spawning]
+        self.piece_cost = engine.PIECE_COSTS[self.engine.spawning]
 
     def __repr__(self) -> str:
         """
@@ -1253,14 +1268,14 @@ class PortalSpawn(GameEvent):
 
         # Check if the trapped tile is protected by the current player.
         if (
-            self.trapped_tile.is_protected()
-            and self.trapped_tile.protected_by == self.color
+                self.trapped_tile.is_protected()
+                and self.trapped_tile.protected_by == self.color
         ):
             self.is_protected = True
 
         # Nullify the trap if it belongs to the current player or the tile is protected.
         if self.trap is not None and (
-            self.trap.color == self.color or self.is_protected
+                self.trap.color == self.color or self.is_protected
         ):
             self.trap = None
 
@@ -1275,7 +1290,7 @@ class PortalSpawn(GameEvent):
         self.additional_actions = 0
 
         # Store the cost of the piece being spawned.
-        self.piece_cost = constant.PIECE_COSTS[self.engine.spawning]
+        self.piece_cost = engine.PIECE_COSTS[self.engine.spawning]
 
     def __repr__(self) -> str:
         """
@@ -1315,15 +1330,15 @@ class PortalSpawn(GameEvent):
         # Update additional actions if applicable.
         if constant.ACTIONS_UPDATE_ON_SPAWN:
             self.additional_actions = self.engine.get_occupying(
-                self.dest[0], self.dest[1]
+                    self.dest[0], self.dest[1]
             ).get_additional_actions()
             self.engine.players[self.engine.turn].add_additional_actions(
-                self.additional_actions
+                    self.additional_actions
             )
 
         # Update additional piece limit.
         self.additional_piece_limit = self.engine.get_occupying(
-            self.dest[0], self.dest[1]
+                self.dest[0], self.dest[1]
         ).get_additional_piece_limit()
 
         # Play the spawn sound effect.
@@ -1335,7 +1350,7 @@ class PortalSpawn(GameEvent):
 
         # Add additional piece limit to the player.
         self.engine.players[self.engine.turn].add_additional_piece_limit(
-            self.additional_piece_limit
+                self.additional_piece_limit
         )
 
         # Reset unused piece highlights.
@@ -1343,13 +1358,13 @@ class PortalSpawn(GameEvent):
 
         # Swap the pieces at the destination and portal end positions.
         self.engine.swap(
-            self.dest[0], self.dest[1], self.portal_end[0], self.portal_end[1]
+                self.dest[0], self.dest[1], self.portal_end[0], self.portal_end[1]
         )
 
         # Handle the trap if it exists.
         if self.trap:
             self.deleted_piece = self.engine.get_occupying(
-                self.portal_end[0], self.portal_end[1]
+                    self.portal_end[0], self.portal_end[1]
             )
             self.engine.delete_piece(self.portal_end[0], self.portal_end[1])
             self.engine.un_trap(self.portal_end[0], self.portal_end[1])
@@ -1371,13 +1386,13 @@ class PortalSpawn(GameEvent):
         # Restore the deleted piece if it exists.
         if self.deleted_piece:
             self.engine.create_piece(
-                self.portal_end[0], self.portal_end[1], self.deleted_piece
+                    self.portal_end[0], self.portal_end[1], self.deleted_piece
             )
             self.engine.set_trap(self.portal_end[0], self.portal_end[1], self.trap)
 
         # Swap the pieces back to their original positions.
         self.engine.swap(
-            self.portal_end[0], self.portal_end[1], self.dest[0], self.dest[1]
+                self.portal_end[0], self.portal_end[1], self.dest[0], self.dest[1]
         )
 
         # Play the spawn sound effect.
@@ -1396,12 +1411,12 @@ class PortalSpawn(GameEvent):
         # Remove additional actions if applicable.
         if constant.ACTIONS_UPDATE_ON_SPAWN:
             self.engine.players[self.engine.turn].remove_additional_actions(
-                self.additional_actions
+                    self.additional_actions
             )
 
         # Remove additional piece limit from the player.
         self.engine.players[self.engine.turn].remove_additional_piece_limit(
-            self.additional_piece_limit
+                self.additional_piece_limit
         )
 
         # Reset unused piece highlights.
@@ -1446,7 +1461,7 @@ class SpawnTrap(GameEvent):
         self.spawner = self.acting_tile.get_occupying()
 
         # Store the cost of the piece being spawned.
-        self.piece_cost = constant.PIECE_COSTS[self.engine.spawning]
+        self.piece_cost = engine.PIECE_COSTS[self.engine.spawning]
 
     def __repr__(self) -> str:
         """
@@ -1464,9 +1479,9 @@ class SpawnTrap(GameEvent):
 
         # Set the trap at the designated location.
         self.engine.set_trap(
-            self.dest[0],
-            self.dest[1],
-            self.engine.PIECES["trap"](self.dest[0], self.dest[1], self.color),
+                self.dest[0],
+                self.dest[1],
+                self.engine.PIECES["trap"](self.dest[0], self.dest[1], self.color),
         )
 
         # Play the spawn building sound effect.
@@ -1570,7 +1585,7 @@ class TrapSpawn(GameEvent):
         self.additional_actions = 0
 
         # Store the cost of the piece being spawned.
-        self.piece_cost = constant.PIECE_COSTS[self.engine.spawning]
+        self.piece_cost = engine.PIECE_COSTS[self.engine.spawning]
 
         # Store the trap at the action tile.
         self.trap = action_tile.trap
@@ -1580,8 +1595,8 @@ class TrapSpawn(GameEvent):
 
         # Check if the action tile is protected by the current player.
         if (
-            self.action_tile.is_protected()
-            and self.action_tile.protected_by == self.color
+                self.action_tile.is_protected()
+                and self.action_tile.protected_by == self.color
         ):
             self.is_protected = True
 
@@ -1706,7 +1721,7 @@ class Spawn(GameEvent):
         self.additional_actions = 0
 
         # Store the cost of the piece being spawned.
-        self.piece_cost = constant.PIECE_COSTS[self.engine.spawning]
+        self.piece_cost = engine.PIECE_COSTS[self.engine.spawning]
 
     def __repr__(self) -> str:
         """
@@ -1753,18 +1768,18 @@ class Spawn(GameEvent):
         # Update additional actions if applicable.
         if constant.ACTIONS_UPDATE_ON_SPAWN:
             self.additional_actions = self.engine.get_occupying(
-                self.dest[0], self.dest[1]
+                    self.dest[0], self.dest[1]
             ).get_additional_actions()
             self.engine.players[self.engine.turn].add_additional_actions(
-                self.additional_actions
+                    self.additional_actions
             )
 
         # Update additional piece limit.
         self.additional_piece_limit = self.engine.get_occupying(
-            self.dest[0], self.dest[1]
+                self.dest[0], self.dest[1]
         ).get_additional_piece_limit()
         self.engine.players[self.engine.turn].add_additional_piece_limit(
-            self.additional_piece_limit
+                self.additional_piece_limit
         )
 
         # Intercept pieces.
@@ -1806,12 +1821,12 @@ class Spawn(GameEvent):
         # Remove additional actions if applicable.
         if constant.ACTIONS_UPDATE_ON_SPAWN:
             self.engine.players[self.engine.turn].remove_additional_actions(
-                self.additional_actions
+                    self.additional_actions
             )
 
         # Remove additional piece limit from the player.
         self.engine.players[self.engine.turn].remove_additional_piece_limit(
-            self.additional_piece_limit
+                self.additional_piece_limit
         )
 
         # Correct any interceptions.
@@ -1872,14 +1887,14 @@ class PortalMove(GameEvent):
 
         # Check if the trapped tile is protected by the current player.
         if (
-            self.trapped_tile.is_protected()
-            and self.trapped_tile.protected_by == self.color
+                self.trapped_tile.is_protected()
+                and self.trapped_tile.protected_by == self.color
         ):
             self.is_protected = True
 
         # Nullify the trap if it belongs to the current player or the tile is protected.
         if self.trap is not None and (
-            self.trap.color == self.color or self.is_protected
+                self.trap.color == self.color or self.is_protected
         ):
             self.trap = None
 
@@ -1911,13 +1926,13 @@ class PortalMove(GameEvent):
 
         # Swap the pieces at the destination and portal end positions.
         self.engine.swap(
-            self.end[0], self.end[1], self.portal_end[0], self.portal_end[1]
+                self.end[0], self.end[1], self.portal_end[0], self.portal_end[1]
         )
 
         # Handle the trap if it exists.
         if self.trap:
             self.deleted_piece = self.engine.get_occupying(
-                self.portal_end[0], self.portal_end[1]
+                    self.portal_end[0], self.portal_end[1]
             )
             self.engine.delete_piece(self.portal_end[0], self.portal_end[1])
             self.engine.un_trap(self.portal_end[0], self.portal_end[1])
@@ -1960,13 +1975,13 @@ class PortalMove(GameEvent):
         # Restore the deleted piece if it exists.
         if self.deleted_piece:
             self.engine.create_piece(
-                self.portal_end[0], self.portal_end[1], self.deleted_piece
+                    self.portal_end[0], self.portal_end[1], self.deleted_piece
             )
             self.engine.set_trap(self.portal_end[0], self.portal_end[1], self.trap)
 
         # Swap the pieces back to their original positions.
         self.engine.swap(
-            self.portal_end[0], self.portal_end[1], self.end[0], self.end[1]
+                self.portal_end[0], self.portal_end[1], self.end[0], self.end[1]
         )
 
         # Move the piece back to the starting position.
@@ -2042,14 +2057,14 @@ class PortalCapture(GameEvent):
 
         # Check if the trapped tile is protected by the current player.
         if (
-            self.trapped_tile.is_protected()
-            and self.trapped_tile.protected_by == self.color
+                self.trapped_tile.is_protected()
+                and self.trapped_tile.protected_by == self.color
         ):
             self.is_protected = True
 
         # Nullify the trap if it belongs to the current player or the tile is protected.
         if self.trap is not None and (
-            self.trap.color == self.color or self.is_protected
+                self.trap.color == self.color or self.is_protected
         ):
             self.trap = None
 
@@ -2084,13 +2099,13 @@ class PortalCapture(GameEvent):
 
         # Swap the pieces at the destination and portal end positions.
         self.engine.swap(
-            self.end[0], self.end[1], self.portal_end[0], self.portal_end[1]
+                self.end[0], self.end[1], self.portal_end[0], self.portal_end[1]
         )
 
         # Handle the trap if it exists.
         if self.trap:
             self.deleted_piece = self.engine.get_occupying(
-                self.portal_end[0], self.portal_end[1]
+                    self.portal_end[0], self.portal_end[1]
             )
             self.engine.delete_piece(self.portal_end[0], self.portal_end[1])
             self.engine.un_trap(self.portal_end[0], self.portal_end[1])
@@ -2127,7 +2142,7 @@ class PortalCapture(GameEvent):
         # Restore the deleted piece if it exists.
         if self.deleted_piece:
             self.engine.create_piece(
-                self.portal_end[0], self.portal_end[1], self.deleted_piece
+                    self.portal_end[0], self.portal_end[1], self.deleted_piece
             )
             self.engine.set_trap(self.portal_end[0], self.portal_end[1], self.trap)
 
@@ -2136,7 +2151,7 @@ class PortalCapture(GameEvent):
 
         # Swap the pieces back to their original positions.
         self.engine.swap(
-            self.portal_end[0], self.portal_end[1], self.end[0], self.end[1]
+                self.portal_end[0], self.portal_end[1], self.end[0], self.end[1]
         )
 
         # Move the piece back to the starting position.
@@ -2203,8 +2218,8 @@ class TrapMove(GameEvent):
 
         # Check if the action tile is protected by the current player.
         if (
-            self.action_tile.is_protected
-            and self.action_tile.protected_by == self.color
+                self.action_tile.is_protected
+                and self.action_tile.protected_by == self.color
         ):
             self.is_protected = True
 
@@ -2657,10 +2672,10 @@ class RitualEvent(GameEvent):
     """
 
     def __init__(
-        self,
-        engine: "Engine",
-        acting_tile: "Tile",
-        action_tile: Union["Tile", Tuple[Tuple[int, int], Tuple[int, int]]],
+            self,
+            engine: "Engine",
+            acting_tile: "Tile",
+            action_tile: Union["Tile", Tuple[Tuple[int, int], Tuple[int, int]]],
     ):
         """
         Initializes the RitualEvent.
@@ -2853,7 +2868,7 @@ class GoldGeneralEvent(RitualEvent):
 
             # Swap the pieces between the portals.
             self.engine.swap(
-                self.row, self.col, connected_portal.row, connected_portal.col
+                    self.row, self.col, connected_portal.row, connected_portal.col
             )
 
             # Store the portal end position.
@@ -2892,7 +2907,7 @@ class GoldGeneralEvent(RitualEvent):
             # Restore the trap at the portal end if it was removed.
             if self.portal_end_trap:
                 self.engine.set_trap(
-                    self.portal_end[0], self.portal_end[1], self.portal_end_trap
+                        self.portal_end[0], self.portal_end[1], self.portal_end_trap
                 )
                 return
 
@@ -2901,7 +2916,7 @@ class GoldGeneralEvent(RitualEvent):
 
             # Swap the pieces back to their original positions.
             self.engine.swap(
-                self.row, self.col, connected_portal.row, connected_portal.col
+                    self.row, self.col, connected_portal.row, connected_portal.col
             )
 
         # Delete the piece from the board.
@@ -2916,10 +2931,10 @@ class Teleport(RitualEvent):
     """
 
     def __init__(
-        self,
-        engine: "Engine",
-        acting_tile: "Tile",
-        action_tile: Tuple[Tuple[int, int], Tuple[int, int]],
+            self,
+            engine: "Engine",
+            acting_tile: "Tile",
+            action_tile: Tuple[Tuple[int, int], Tuple[int, int]],
     ):
         """
         Initializes the Teleport event.
@@ -2957,7 +2972,7 @@ class Teleport(RitualEvent):
 
         # Check if the destination tile has an effective trap.
         if action_tile_has_effective_trap(
-            self.acting_tile, self.engine.board[self.dest_row][self.dest_col]
+                self.acting_tile, self.engine.board[self.dest_row][self.dest_col]
         ):
             self.trap = self.engine.board[self.dest_row][self.dest_col].trap
 
@@ -3003,11 +3018,11 @@ class Teleport(RitualEvent):
         # Handle the portal if it exists.
         if self.engine.board[self.dest_row][self.dest_col].portal:
             self.engine.swap(
-                self.dest_row, self.dest_col, self.portal_end[0], self.portal_end[1]
+                    self.dest_row, self.dest_col, self.portal_end[0], self.portal_end[1]
             )
             if self.portal_end_trap:
                 self.deleted_piece = self.engine.get_occupying(
-                    self.portal_end[0], self.portal_end[1]
+                        self.portal_end[0], self.portal_end[1]
                 )
                 self.engine.delete_piece(self.portal_end[0], self.portal_end[1])
                 self.engine.un_trap(self.portal_end[0], self.portal_end[1])
@@ -3025,17 +3040,17 @@ class Teleport(RitualEvent):
             self.engine.set_trap(self.dest_row, self.dest_col, self.trap)
         elif self.engine.board[self.dest_row][self.dest_col].portal:
             self.engine.swap(
-                self.portal_end[0], self.portal_end[1], self.dest_row, self.dest_col
+                    self.portal_end[0], self.portal_end[1], self.dest_row, self.dest_col
             )
             if self.portal_end_trap:
                 self.engine.create_piece(
-                    self.portal_end[0], self.portal_end[1], self.deleted_piece
+                        self.portal_end[0], self.portal_end[1], self.deleted_piece
                 )
                 self.engine.swap(
-                    self.portal_end[0], self.portal_end[1], self.dest_row, self.dest_col
+                        self.portal_end[0], self.portal_end[1], self.dest_row, self.dest_col
                 )
                 self.engine.set_trap(
-                    self.portal_end[0], self.portal_end[1], self.portal_end_trap
+                        self.portal_end[0], self.portal_end[1], self.portal_end_trap
                 )
 
         # Move the piece back to the starting position.
@@ -3067,10 +3082,10 @@ class Swap(RitualEvent):
     """
 
     def __init__(
-        self,
-        engine: "Engine",
-        acting_tile: "Tile",
-        action_tile: Tuple[Tuple[int, int], Tuple[int, int]],
+            self,
+            engine: "Engine",
+            acting_tile: "Tile",
+            action_tile: Tuple[Tuple[int, int], Tuple[int, int]],
     ):
         """
         Initializes the Swap event.
@@ -3120,10 +3135,10 @@ class Swap(RitualEvent):
 
         # Store the remaining actions for the pieces.
         self.first_actions = self.engine.get_occupying(
-            self.row, self.col
+                self.row, self.col
         ).actions_remaining
         self.second_actions = self.engine.get_occupying(
-            self.dest_row, self.dest_col
+                self.dest_row, self.dest_col
         ).actions_remaining
 
         # Store the previously selected position.
@@ -3158,11 +3173,11 @@ class Swap(RitualEvent):
         elif self.first_is_portal:
             connected_portal = self.engine.board[self.row][self.col].connected_portal
             self.engine.swap(
-                self.row, self.col, connected_portal.row, connected_portal.col
+                    self.row, self.col, connected_portal.row, connected_portal.col
             )
             if self.first_portal_end_trap:
                 self.first_deleted_piece = self.engine.get_occupying(
-                    connected_portal.row, connected_portal.col
+                        connected_portal.row, connected_portal.col
                 )
                 self.engine.delete_piece(connected_portal.row, connected_portal.col)
                 self.engine.un_trap(connected_portal.row, connected_portal.col)
@@ -3170,7 +3185,7 @@ class Swap(RitualEvent):
         # Handle the second tile's trap or portal.
         if self.second_trap:
             self.second_deleted_piece = self.engine.get_occupying(
-                self.dest_row, self.dest_col
+                    self.dest_row, self.dest_col
             )
             self.engine.delete_piece(self.dest_row, self.dest_col)
             self.engine.un_trap(self.dest_row, self.dest_col)
@@ -3179,11 +3194,11 @@ class Swap(RitualEvent):
                 self.dest_col
             ].connected_portal
             self.engine.swap(
-                self.dest_row, self.dest_col, connected_portal.row, connected_portal.col
+                    self.dest_row, self.dest_col, connected_portal.row, connected_portal.col
             )
             if self.second_portal_end_trap:
                 self.second_deleted_piece = self.engine.get_occupying(
-                    connected_portal.row, connected_portal.col
+                        connected_portal.row, connected_portal.col
                 )
                 self.engine.delete_piece(connected_portal.row, connected_portal.col)
                 self.engine.un_trap(connected_portal.row, connected_portal.col)
@@ -3205,21 +3220,21 @@ class Swap(RitualEvent):
             connected_portal = self.engine.board[self.row][self.col].connected_portal
             if self.first_portal_end_trap:
                 self.engine.create_piece(
-                    connected_portal.row, connected_portal.col, self.first_deleted_piece
+                        connected_portal.row, connected_portal.col, self.first_deleted_piece
                 )
                 self.engine.set_trap(
-                    connected_portal.row,
-                    connected_portal.col,
-                    self.first_portal_end_trap,
+                        connected_portal.row,
+                        connected_portal.col,
+                        self.first_portal_end_trap,
                 )
             self.engine.swap(
-                self.row, self.col, connected_portal.row, connected_portal.col
+                    self.row, self.col, connected_portal.row, connected_portal.col
             )
 
         # Restore the second tile's piece and trap if it was deleted.
         if self.second_trap:
             self.engine.create_piece(
-                self.dest_row, self.dest_col, self.second_deleted_piece
+                    self.dest_row, self.dest_col, self.second_deleted_piece
             )
             self.engine.set_trap(self.dest_row, self.dest_col, self.second_trap)
         elif self.second_is_portal:
@@ -3228,17 +3243,17 @@ class Swap(RitualEvent):
             ].connected_portal
             if self.second_portal_end_trap:
                 self.engine.create_piece(
-                    connected_portal.row,
-                    connected_portal.col,
-                    self.second_deleted_piece,
+                        connected_portal.row,
+                        connected_portal.col,
+                        self.second_deleted_piece,
                 )
                 self.engine.set_trap(
-                    connected_portal.row,
-                    connected_portal.col,
-                    self.second_portal_end_trap,
+                        connected_portal.row,
+                        connected_portal.col,
+                        self.second_portal_end_trap,
                 )
             self.engine.swap(
-                self.dest_row, self.dest_col, connected_portal.row, connected_portal.col
+                    self.dest_row, self.dest_col, connected_portal.row, connected_portal.col
             )
 
         # Swap the pieces back to their original positions.
@@ -3335,7 +3350,7 @@ class Trade(GameEvent):
     """
 
     def __init__(
-        self, engine: "Engine", acting_tile: "Tile", action_tile: Optional["Tile"]
+            self, engine: "Engine", acting_tile: "Tile", action_tile: Optional["Tile"]
     ):
         """
         Initializes the Trade event.
@@ -3778,10 +3793,10 @@ class Portal(RitualEvent):
     """
 
     def __init__(
-        self,
-        engine: "Engine",
-        acting_tile: "Tile",
-        action_tile: Tuple[Tuple[int, int], Tuple[int, int]],
+            self,
+            engine: "Engine",
+            acting_tile: "Tile",
+            action_tile: Tuple[Tuple[int, int], Tuple[int, int]],
     ):
         """
         Initializes the Portal event.
@@ -3825,7 +3840,7 @@ class Portal(RitualEvent):
 
         # Create a portal on the source tile.
         self.engine.board[self.row][self.col].create_portal(
-            self.turn, self.engine.board[self.dest_row][self.dest_col]
+                self.turn, self.engine.board[self.dest_row][self.dest_col]
         )
 
         # Check if the destination tile already has a portal and save its state.
@@ -3835,7 +3850,7 @@ class Portal(RitualEvent):
 
         # Create a portal on the destination tile.
         self.engine.board[self.dest_row][self.dest_col].create_portal(
-            self.turn, self.engine.board[self.row][self.col]
+                self.turn, self.engine.board[self.row][self.col]
         )
 
         # Intercept pieces.
@@ -3862,7 +3877,7 @@ class Portal(RitualEvent):
         if self.second_saved_portal:
             portal = self.second_saved_portal
             self.engine.board[self.dest_row][self.dest_col].create_portal(
-                portal[0], portal[1]
+                    portal[0], portal[1]
             )
 
         # Reset the selected piece/tile.
@@ -3876,3 +3891,81 @@ class Portal(RitualEvent):
         self.engine.reset_unused_piece_highlight()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
+
+
+class ResetBoard(GameEvent):
+    def __init__(self, engine: "Engine", acting_tile: Optional["Tile"], action_tile: Optional["Tile"]):
+        super().__init__(engine, acting_tile, action_tile)
+        self.board_copy = self.engine.board[:]
+
+    def __repr__(self) -> str:
+        return "reset_board"
+
+    def complete(self):
+        super().complete()
+        # Play the resource creation sound
+        self.engine.sounds.play("create_resource")
+        # Iterate over each row on the board
+        for row in range(self.engine.rows):
+            # Iterate over each column in the current row
+            for col in range(self.engine.cols):
+                # Reinitialize the tile at the current position
+                self.engine.board[row][col] = Tile(row, col)
+
+    def undo(self):
+        super().undo()
+        self.engine.board = self.board_copy[:]
+
+
+class SelectMap(GameEvent):
+    """
+    Represents the event of selecting a map in the game.
+
+    This event handles the selection of a map, updating game state, and managing resources.
+    """
+
+    def __init__(self, engine: "Engine", acting_tile: Optional["Tile"], action_tile: Optional["Tile"]):
+        """
+        Initializes the SelectMap event.
+
+        :param engine: The game engine instance.
+        :param acting_tile: The tile initiating the select map action.
+        :param action_tile: The tile where the select map action occurs.
+        """
+        super().__init__(engine, acting_tile, action_tile)
+
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the SelectMap event.
+
+        :return: A string representation of this event.
+        """
+        return "select map"
+
+    def complete(self):
+        """
+        Completes the select map action, updating the game state accordingly.
+        """
+        super().complete()
+        # Select a random map from the available maps
+        self.engine.map = random.choice(self.engine.MAPS)(self.engine)
+        # Generate stone resources on the map
+        self.engine.map.generate_stone()
+        # Generate other resources on the map
+        self.engine.map.generate_resources()
+        # Play the resource creation sound
+        self.engine.sounds.play("create_resource")
+        # Set the values for the pieces based on the resources
+        self.engine.set_piece_values()
+
+    def synchronize(self, engine):
+        """
+        Synchronizes the game state with the selected map.
+        """
+        super().synchronize()
+        # Synchronize the game state with the selected map
+        engine.PIECE_COSTS = self.engine.PIECE_COSTS
+
+        engine.map = self.engine.map
+
+        engine.board = self.engine.board[:]

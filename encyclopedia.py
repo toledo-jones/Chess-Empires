@@ -277,7 +277,7 @@ class PieceDescription(Encyclopedia):
             self.cost = constant.PRAYER_COSTS[self.selected]["prayer"]
             self.type = "ritual"
         except KeyError:
-            self.cost = constant.PIECE_COSTS[self.selected]
+            self.cost = self.engine.PIECE_COSTS[self.selected]
             self.type = "piece"
 
         # Adjust layout for piece selection
@@ -299,8 +299,8 @@ class PieceDescription(Encyclopedia):
         if self.type == "piece":
             count: int = sum(
                 1
-                for cost in constant.PIECE_COSTS[self.selected]
-                if constant.PIECE_COSTS[self.selected][cost] != 0
+                for cost in self.engine.PIECE_COSTS[self.selected]
+                if self.engine.PIECE_COSTS[self.selected][cost] != 0
             )
             full_length: int = (
                 self.resources["wood"].get_width() * count
@@ -721,7 +721,7 @@ class Cost(Encyclopedia):
 
             # Get the piece and its cost
             piece: str = self.spawn_list[index]
-            cost: Dict[str, int] = constant.PIECE_COSTS[piece]
+            cost: Dict[str, int] = self.engine.PIECE_COSTS[piece]
 
             # Determine the piece identifier based on the engine's turn
             try:

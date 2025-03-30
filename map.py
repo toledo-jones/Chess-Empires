@@ -39,15 +39,6 @@ def set_decree_cost(resource_count: Dict[str, int]) -> Dict[str, int]:
     return {resource: decree_cost}
 
 
-def get_initial_piece_costs() -> Dict[str, Any]:
-    """
-    Retrieves the initial piece costs from constants.
-
-    :return: A dictionary with initial piece costs.
-    """
-    return constant.PIECE_COSTS
-
-
 def calculate_points_per_resource(
     resource_count: Dict[str, int], total_resources: int
 ) -> Dict[str, Dict[str, int]]:
@@ -266,7 +257,7 @@ class Map:
         constant.DECREE_COST = set_decree_cost(resource_count)
 
         # Define initial piece costs
-        initial_piece_costs: Dict[str, Any] = get_initial_piece_costs()
+        initial_piece_costs: Dict[str, Any] = self.engine.PIECE_COSTS
 
         # Assign costs to pieces
         self.assign_piece_costs(initial_piece_costs, points_per_resource)
@@ -303,7 +294,7 @@ class Map:
                 "gold": gold_cost,
             }
 
-        constant.PIECE_COSTS = self.PIECE_COSTS
+        self.engine.PIECE_COSTS = self.PIECE_COSTS
 
     def spawn_gold_nearby(self, row: int, col: int):
         """

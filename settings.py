@@ -366,8 +366,8 @@ DESCRIPTIONS = {
     ],
     "rogue_knight": [
         "leaps over another piece up two and over one.",
-        "'right click' to steal resources from enemy "
-        "pieces."
+        "'right click' to steal resources from enemy ",
+        "pieces.",
         "can land on forest tiles.",
     ],
     "rogue_pawn": [

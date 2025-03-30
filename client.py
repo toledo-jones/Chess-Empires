@@ -51,6 +51,10 @@ class GameClient:
         :param obj: The object to send.
         """
         try:
+            # Remove any pygame.Surface objects from the object before serialization
+            if isinstance(obj, dict) and 'surface' in obj:
+                del obj['surface']
+
             # Serialize the object and send it to the server
             serialized_obj: bytes = pickle.dumps(obj)
             self.client_socket.sendall(serialized_obj)

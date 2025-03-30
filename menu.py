@@ -1720,7 +1720,7 @@ class SpawningMenu(Menu):
 
         # Draw each resource and its costs
         for piece in self.action_list:
-            piece_cost = constant.PIECE_COSTS[piece]
+            piece_cost = self.engine.PIECE_COSTS[piece]
             piece = "quarry_1" if piece == "quarry_1" else f"{self.engine.turn}_{piece}"
 
             # Draw costs

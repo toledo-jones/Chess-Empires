@@ -226,7 +226,7 @@ class PieceInspector(SideBar):
 
         # Display the cost of the piece
         y_buffer += name_surface.get_height()
-        cost = constant.PIECE_COSTS[str(self.piece)]
+        cost = self.engine.PIECE_COSTS[str(self.piece)]
 
         for resource, amount in cost.items():
             if amount == 0:

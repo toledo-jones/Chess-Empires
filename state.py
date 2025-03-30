@@ -1236,7 +1236,7 @@ class PlaySelect(MainMenu):
                     self.engine.client = GameClient("192.168.1.114", 5555, self.engine)
 
                     # I may need to use a startingOnline state instead of starting. We'll see
-                    self.engine.set_state("starting")
+                    self.engine.set_state("starting online")
 
                 elif i == 2:
                     # Back

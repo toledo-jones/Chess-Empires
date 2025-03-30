@@ -7,9 +7,6 @@ from trades import *
 from player import Player
 
 
-# TODO: Clean and add docstrings to everything.
-
-
 def exit_game():
     """
     Exits the game.

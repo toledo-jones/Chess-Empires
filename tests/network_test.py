@@ -17,7 +17,7 @@ if __name__ == "__main__":
     event_manager = DummyEventManager()
     game_manager = DummyGameManager()
 
-    client = GameClient("127.0.0.1", 5555, event_manager)
+    client = GameClient("192.168.1.114", 5555, event_manager)
     client.game_manager = game_manager
     client.connect()
     client.start_listening_thread()

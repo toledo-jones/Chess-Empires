@@ -23,19 +23,7 @@ class GameServer:
         self.server_socket: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.clients: dict[socket.socket, int] = {}
         self.client_threads: dict[socket.socket, threading.Thread] = {}
-        self.data_handlers: dict[str, typing.Callable] = {
-            'mouse move': self.handle_mouse_movement,
-        }
-        self.current_player_id: int = 1
-
-    def handle_mouse_movement(self, data: dict):
-        """
-        Handles mouse movement data from clients.
-
-        :param data: The data received from the client.
-        """
-        # Broadcast the mouse movement event to all clients
-        self.broadcast_event_to_clients('mouse move', data)
+        self.current_player_id: int = 0
 
     def broadcast_event_to_clients(self, event_type: str, event_data: dict):
         """
@@ -57,7 +45,7 @@ class GameServer:
 
     def process_data(self, data: typing.Union[str, bytes, dict]):
         """
-        Processes the data received from clients.
+        Processes the data received from clients and broadcasts it to all clients.
 
         :param data: The data received from the client.
         """
@@ -76,11 +64,7 @@ class GameServer:
                 return
 
             data_type: str = data_dict.get('type')
-            handler: typing.Optional[typing.Callable] = self.data_handlers.get(data_type)
-            if handler:
-                handler(data_dict)
-            else:
-                print(f"Unsupported data type: {data_type}")
+            self.broadcast_event_to_clients(data_type, data_dict)
 
         except json.JSONDecodeError as e:
             print(f"Error decoding JSON data: {e}")
@@ -141,5 +125,5 @@ class GameServer:
 
 
 if __name__ == "__main__":
-    server = GameServer("192.168.1.149", 5555)
+    server = GameServer("192.168.1.114", 5555)
     server.start()

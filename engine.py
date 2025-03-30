@@ -6,6 +6,9 @@ from state import *
 from trades import *
 from player import Player
 
+if typing.TYPE_CHECKING:
+    from client import GameClient
+
 
 def exit_game():
     """
@@ -146,6 +149,7 @@ def initialize_states() -> dict[str, type]:
         "inspector": Inspector,
         "instructions": Instructions,
         "pause": Pause,
+        "play select": PlaySelect
     }
 
 
@@ -353,6 +357,12 @@ class Engine:
         self.cols: int = constant.BOARD_WIDTH_SQ
         # Set the number of rows
         self.rows: int = constant.BOARD_HEIGHT_SQ
+
+        # This flag is set true when the game is played over the network
+        self.online = False
+
+        # This will hold the client which will connect to the server
+        self._client = None
 
         if not board:
             # Initialize the game board with Tile objects
@@ -590,6 +600,27 @@ class Engine:
 
         return value
 
+    @property
+    def client(self) -> "GameClient":
+        """
+        Returns the client instance.
+        """
+        return self._client
+
+    @client.setter
+    def client(self, client: "GameClient"):
+        """
+        Sets the client instance.
+        """
+        # Connect the client to server
+        client.connect()
+        # Start listening thread
+        client.start_listening_thread()
+        # Set the online flag to True
+        self.online = True
+        # Set client instance to private variable
+        self._client = client
+
     def select_map(self):
         """
         Selects a random map, generates resources, and sets piece values.
@@ -666,7 +697,7 @@ class Engine:
             self.state.append(state)
         else:
             # Accepts 'state' string and converts it to state Object. Then adds it to State List
-            if state == "main menu":
+            if state == "main menu" or state == "play select":
                 from splash import SplashScreen
 
                 # Get the current window from the state

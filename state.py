@@ -952,6 +952,7 @@ class MainMenu(State):
         self.paper_texture: pygame.Surface = self.scale_paper_texture(self.win)
 
         # Menu logo and its position
+        self.splash_screen = splash_screen
         self.main_menu_logo: pygame.Surface = splash_screen.logo_image
         self.logo_position: Tuple[int, int] = splash_screen.logo_position
         self.color: str = constant.turn_to_color[splash_screen.logo_color]
@@ -1142,7 +1143,7 @@ class MainMenu(State):
                 # Perform action based on which button was clicked
                 if i == 0:
                     constant.PLAY_AGAINST_AI = False
-                    self.engine.set_state("starting")
+                    self.engine.set_state("play select")
                 elif i == 1:
                     # How to Play button
                     self.engine.state.append(Instructions(self.win, self.engine))
@@ -1151,6 +1152,94 @@ class MainMenu(State):
                     self.engine.state.append(Settings(self.win, self.engine))
                 elif i == 3:
                     exit_game()
+
+
+class PlaySelect(MainMenu):
+    def __init__(self, win: pygame.Surface, engine: Engine, splash_screen):
+        """
+        Initializes the PlaySelect state with buttons and UI elements.
+
+        :param win: The game window surface.
+        :param engine: The game engine instance.
+        """
+        super().__init__(
+            win, engine, splash_screen
+        )  # Call parent class initializer
+
+        # Set the font color based on the current turn
+        self.color = constant.turn_to_color[self.engine.turn]
+        splash_screen.color = self.color
+
+        # Define button labels for the play selection menu
+        buttons = ["local", "online", "back"]
+
+        # Create surfaces for each button text
+        self.button_surfaces = [
+            self.font.render(button, True, self.color) for button in buttons
+        ]
+
+        # Get button dimensions (assuming all buttons have the same size)
+        self.button_width = self.button_surfaces[1].get_width()
+        self.button_height = self.button_surfaces[1].get_height()
+
+        # Create a highlight rectangle (transparent overlay) for hovering effect
+        self.square = pygame.Surface((self.button_width, self.button_height))
+        self.square.set_alpha(constant.HIGHLIGHT_ALPHA)
+        self.square.fill(constant.MOVE_SQUARE_HIGHLIGHT_COLOR)
+
+        # Boolean list to track which button is currently highlighted
+        self.button_highlighted: list[bool] = [False] * len(buttons)
+
+        # List to store button positions for consistent layout
+        self.button_positions: list[Tuple[int, int]] = []
+
+        # Compute initial button positions
+        self.compute_button_positions()
+
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the state.
+
+        :return: The name of the state as a string.
+        """
+
+        # The string representation of this state, indicating it's the play selection menu
+        return "play select"
+
+    def left_click(self):
+        """
+        Handle left mouse clicks to select buttons.
+        This method checks which button the user clicked and takes appropriate action.
+        """
+
+        # Get the current mouse position
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        # Iterate over each button's position and check if the mouse click is within its range
+        for i, (button_x, button_y) in enumerate(self.button_positions):
+
+            # Check if the mouse click is within the button's clickable range
+            if (
+                button_x <= mouse_x <= button_x + self.button_width
+                and button_y <= mouse_y <= button_y + self.button_height
+            ):
+
+                # Perform action based on which button was clicked
+                if i == 0:
+                    # Local
+                    constant.PLAY_AGAINST_AI = False
+                    self.engine.set_state("starting")
+                elif i == 1:
+                    # Online
+                    from client import GameClient
+
+                    self.engine.client = GameClient("192.168.1.114", 5555, self.engine)
+
+                    self.engine.set_state("starting")
+
+                elif i == 2:
+                    # Back
+                    self.engine.set_state("main menu")
 
 
 class Instructions(State):

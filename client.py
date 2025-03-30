@@ -2,6 +2,9 @@ import socket
 import pickle
 import threading
 import typing
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from engine import Engine
 
 
 class GameClient:
@@ -9,24 +12,21 @@ class GameClient:
     Manages the client-side connection to the game server.
     """
 
-    def __init__(self, server_host: str, server_port: int, event_manager: typing.Any):
+    def __init__(self, server_host: str, server_port: int, engine: "Engine"):
         """
         Initializes the GameClient with the specified server host, port, and event manager.
 
         :param server_host: The host address of the server.
         :param server_port: The port number of the server.
-        :param event_manager: The event manager for handling game events.
+        :param engine: Game Engine for handling events and updating game state
         """
         self.server_host: str = server_host
         self.server_port: int = server_port
         self.client_socket: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.event_manager: typing.Any = event_manager
         self.player_id: typing.Optional[int] = None
         self.should_stop_listening: bool = False
-        self.last_mouse_event_time: float = 0
-        self.mouse_event_threshold: float = 0.05
         self.listening_thread: typing.Optional[threading.Thread] = None
-        self.game_manager: typing.Optional[typing.Any] = None
+        self.engine: "Engine" = engine
 
     def connect(self):
         """
@@ -116,7 +116,7 @@ class GameClient:
                 decoded_data: typing.Any = pickle.loads(data)
 
                 # Execute event
-                self.game_manager.execute_game_event(decoded_data)
+                self.engine.add_network_event(decoded_data)
             except OSError as e:
                 if "Bad file descriptor" in str(e):
                     # Socket has been closed, break out of the loop

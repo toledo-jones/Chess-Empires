@@ -1694,6 +1694,7 @@ class Engine:
 
         if event in self.events:
             if self.online:
+                event.engine = None
                 self.client.send_object(event)
 
         if determine_winner:

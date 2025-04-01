@@ -3,6 +3,7 @@ import pickle
 import threading
 import typing
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from engine import Engine
 
@@ -50,16 +51,10 @@ class GameClient:
 
         :param obj: The object to send.
         """
-        try:
-            # Remove any pygame.Surface objects from the object before serialization
-            if isinstance(obj, dict) and 'surface' in obj:
-                del obj['surface']
 
-            # Serialize the object and send it to the server
-            serialized_obj: bytes = pickle.dumps(obj)
-            self.client_socket.sendall(serialized_obj)
-        except Exception as e:
-            print(f"Error sending object to server: {e}")
+        # Serialize the object and send it to the server
+        serialized_obj: bytes = pickle.dumps(obj)
+        self.client_socket.sendall(serialized_obj)
 
     def send_string(self, message: str):
         """
@@ -119,12 +114,15 @@ class GameClient:
                 # Unpickle data
                 decoded_data: typing.Any = pickle.loads(data)
 
+                print(f"Executing event: {decoded_data}")
                 # Execute event
                 self.engine.add_network_event(decoded_data)
             except OSError as e:
                 if "Bad file descriptor" in str(e):
                     # Socket has been closed, break out of the loop
+                    print("Socket closed. Exiting event listener.")
                     break
+
                 else:
                     print(f"Error handling server event: {e}")
             except EOFError:

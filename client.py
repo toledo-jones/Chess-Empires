@@ -1,8 +1,9 @@
 import socket
 import pickle
 import threading
+import struct
 import typing
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from engine import Engine
@@ -77,13 +78,30 @@ class GameClient:
         :return: The deserialized object received from the server.
         """
         try:
-            # Receive data from the server
-            data: bytes = self.client_socket.recv(4096)  # Adjust buffer size as needed
+            # Receive the length of the incoming message
+            raw_message_length = self.receive_all(4)
+            if not raw_message_length:
+                return None
+            message_length = struct.unpack('>I', raw_message_length)[0]
+            # Receive the actual message data
+            data = self.receive_all(message_length)
             if data:
                 return pickle.loads(data)
         except Exception as e:
             print(f"Error receiving object from server: {e}")
         return None
+
+    def receive_all(self, n: int) -> Optional[bytes]:
+        """
+        Helper function to receive n bytes or return None if EOF is hit.
+        """
+        data = bytearray()
+        while len(data) < n:
+            packet = self.client_socket.recv(n - len(data))
+            if not packet:
+                return None
+            data.extend(packet)
+        return bytes(data)
 
     def close(self):
         """
@@ -115,8 +133,12 @@ class GameClient:
                 decoded_data: typing.Any = pickle.loads(data)
 
                 print(f"Executing event: {decoded_data}")
-                # Execute event
-                self.engine.add_network_event(decoded_data)
+                if isinstance(decoded_data, dict):
+                    # Handle the dictionary data if necessary
+                    print("Received a dictionary:", decoded_data)
+                else:
+                    # Assume decoded_data is the expected object type
+                    self.engine.add_network_event(decoded_data)
             except OSError as e:
                 if "Bad file descriptor" in str(e):
                     # Socket has been closed, break out of the loop

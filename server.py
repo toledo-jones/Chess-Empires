@@ -25,25 +25,22 @@ class GameServer:
         self.client_threads: dict[socket.socket, threading.Thread] = {}
         self.current_player_id: int = 0
 
-    def broadcast_event_to_clients(self, event_type: str, event_data: dict):
+    def broadcast_event_to_clients(self, event_type: str, event_data: typing.Any):
         """
         Broadcasts an event to all connected clients.
 
         :param event_type: The type of event to broadcast.
         :param event_data: The data associated with the event.
         """
-        # Iterate over connected clients and send the event data to each client
         for client_socket in list(self.clients.keys()):
             try:
-                # Check if the socket is still valid
                 if client_socket.fileno() != -1:
-                    # Serialize the event data and send it to the client
-                    serialized_data: bytes = pickle.dumps({'type': event_type, 'data': event_data})
+                    serialized_data: bytes = pickle.dumps(event_data)
                     client_socket.sendall(serialized_data)
             except Exception as e:
                 print(f"Error broadcasting event to client: {e}")
 
-    def process_data(self, data: typing.Union[str, bytes, dict]):
+    def process_data(self, data: typing.Union[str, bytes, typing.Any]):
         """
         Processes the data received from clients and broadcasts it to all clients.
 
@@ -51,25 +48,22 @@ class GameServer:
         """
         try:
             if isinstance(data, str):
-                # If data is a string, try to convert it to a dictionary
-                data_dict: dict = json.loads(data)
+                data_obj = json.loads(data)
             elif isinstance(data, bytes):
-                # If data is bytes, assume it's pickled and decode it
-                data_dict: dict = pickle.loads(data)
-            elif isinstance(data, dict):
-                # If data is already a dictionary, use it directly
-                data_dict = data
+                data_obj = pickle.loads(data)
             else:
-                print(f"Unsupported data type: {type(data)}")
-                return
+                data_obj = data
 
-            data_type: str = data_dict.get('type')
-            self.broadcast_event_to_clients(data_type, data_dict)
+            print("Received data:", data_obj)
+            self.broadcast_event_to_clients(type(data_obj).__name__, data_obj)
 
         except json.JSONDecodeError as e:
             print(f"Error decoding JSON data: {e}")
+
         except Exception as e:
+            import traceback
             print(f"Error processing data: {e}")
+            traceback.print_exc()
 
     def handle_client(self, client_socket: socket.socket, client_address: tuple[str, int]):
         """

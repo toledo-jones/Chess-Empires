@@ -3962,10 +3962,31 @@ class SelectMap(GameEvent):
         """
         Synchronizes the game state with the selected map.
         """
-        super().synchronize()
+        super().synchronize(engine)
         # Synchronize the game state with the selected map
         engine.PIECE_COSTS = self.engine.PIECE_COSTS
 
         engine.map = self.engine.map
 
         engine.board = self.engine.board[:]
+
+
+class TestObject():
+    def __init__(self):
+        self.row = 0
+        self.col = 20
+        self.some_stuff = True
+        self.foo = 100
+
+    def complete(self):
+        pass
+
+    def synchronize(self):
+        pass
+
+    def undo(self):
+        pass
+
+    def print_foo(self):
+        print(self.foo)
+        print(f"I have class attributes like: {self.row} and {self.col}")

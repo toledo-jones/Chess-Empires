@@ -1655,6 +1655,7 @@ class Engine:
 
         :param event: The event to add.
         """
+        event.engine = self
         # Complete the event.
         event.complete()
         # Append it to our list of game events.

@@ -123,14 +123,12 @@ class GameClient:
         """
         while not self.should_stop_listening:
             try:
-                # Receive data from the server
-                data: bytes = self.client_socket.recv(4096)  # Adjust buffer size as needed
-                if not data:
-                    # If data is empty, the socket has been closed
+                # Receive object from the server
+                decoded_data = self.receive_object()
+                if decoded_data is None:
+                    # If data is None, the socket has been closed
                     print("Server disconnected. Exiting event listener.")
                     break
-                # Unpickle data
-                decoded_data: typing.Any = pickle.loads(data)
 
                 print(f"Executing event: {decoded_data}")
                 if isinstance(decoded_data, dict):
@@ -144,7 +142,6 @@ class GameClient:
                     # Socket has been closed, break out of the loop
                     print("Socket closed. Exiting event listener.")
                     break
-
                 else:
                     print(f"Error handling server event: {e}")
             except EOFError:

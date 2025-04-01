@@ -2,6 +2,7 @@ import socket
 import pickle
 import threading
 import struct
+import traceback
 import typing
 from typing import TYPE_CHECKING, Optional
 
@@ -89,6 +90,7 @@ class GameClient:
                 return pickle.loads(data)
         except Exception as e:
             print(f"Error receiving object from server: {e}")
+            traceback.print_exc()
         return None
 
     def receive_all(self, n: int) -> Optional[bytes]:

@@ -25,37 +25,59 @@ class GameServer:
         self.client_threads: dict[socket.socket, threading.Thread] = {}
         self.current_player_id: int = 0
 
-    def broadcast_event_to_clients(self, event_type: str, event_data: typing.Any):
+    def get_client_socket_by_player_id(self, player_id: int) -> typing.Optional[socket.socket]:
         """
-        Broadcasts an event to all connected clients.
+        Retrieves the client socket associated with the given player ID.
+
+        :param player_id: The player ID of the target client.
+        :return: The socket of the target client, or None if not found.
+        """
+        with self.clients_lock:
+            for client_socket, pid in self.clients.items():
+                if pid == player_id:
+                    return client_socket
+        return None
+
+    def broadcast_event_to_clients(self, event_type: str, event_data: typing.Any, sender_id: int):
+        """
+        Broadcasts an event to all connected clients except the sender.
 
         :param event_type: The type of event to broadcast.
         :param event_data: The data associated with the event.
+        :param sender_id: The player ID of the client that sent the event.
         """
-        for client_socket in list(self.clients.keys()):
-            try:
-                if client_socket.fileno() != -1:
-                    serialized_data: bytes = pickle.dumps(event_data)
-                    client_socket.sendall(serialized_data)
-            except Exception as e:
-                print(f"Error broadcasting event to client: {e}")
+        for client_socket, player_id in list(self.clients.items()):
+            if player_id != sender_id:
+                try:
+                    if client_socket.fileno() != -1:
+                        serialized_data: bytes = pickle.dumps(event_data)
+                        client_socket.sendall(serialized_data)
+                except Exception as e:
+                    print(f"Error broadcasting event to client: {e}")
 
-    def process_data(self, data: typing.Union[str, bytes, typing.Any]):
+    def process_data(self, data: typing.Union[str, bytes, typing.Any], sender_id: int):
         """
-        Processes the data received from clients and broadcasts it to all clients.
+        Processes the data received from clients and broadcasts it to all clients except the sender.
 
         :param data: The data received from the client.
+        :param sender_id: The player ID of the client that sent the data.
         """
         try:
+            print(f"Raw data received: {data}")
+
             if isinstance(data, str):
                 data_obj = json.loads(data)
             elif isinstance(data, bytes):
-                data_obj = pickle.loads(data)
+                try:
+                    data_obj = pickle.loads(data)
+                except pickle.UnpicklingError as e:
+                    print(f"Error unpickling data: {e}")
+                    return
             else:
                 data_obj = data
 
-            print("Received data:", data_obj)
-            self.broadcast_event_to_clients(type(data_obj).__name__, data_obj)
+            print("Processed data:", data_obj)
+            self.broadcast_event_to_clients(type(data_obj).__name__, data_obj, sender_id)
 
         except json.JSONDecodeError as e:
             print(f"Error decoding JSON data: {e}")
@@ -88,7 +110,7 @@ class GameServer:
                     break
 
                 # Process the received data, including the player ID
-                self.process_data(data)
+                self.process_data(data, player_id)
 
         except Exception as e:
             print(f"Error handling client: {e}")

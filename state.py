@@ -1233,7 +1233,8 @@ class PlaySelect(MainMenu):
                     # Online
                     # TODO: Potentially move to a function
                     from client import GameClient
-                    self.engine.client = GameClient("192.168.1.114", 5555, self.engine)
+                    from network import HOST_IP
+                    self.engine.client = GameClient(HOST_IP, 5555, self.engine)
 
                     # I may need to use a startingOnline state instead of starting. We'll see
                     self.engine.set_state("starting")

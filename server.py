@@ -126,6 +126,7 @@ class GameServer:
         """
         Starts the game server and listens for incoming client connections.
         """
+        # self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.server_socket.bind((self.host, self.port))
         self.server_socket.listen(5)
         print(f"Server is listening on {self.host}:{self.port}")
@@ -141,5 +142,6 @@ class GameServer:
 
 
 if __name__ == "__main__":
-    server = GameServer("192.168.1.114", 5555)
+    from network import HOST_IP
+    server = GameServer(HOST_IP, 5555)
     server.start()

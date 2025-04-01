@@ -3971,7 +3971,7 @@ class SelectMap(GameEvent):
         engine.board = self.engine.board[:]
 
 
-class TestObject():
+class TestObject:
     def __init__(self):
         self.row = 0
         self.col = 20

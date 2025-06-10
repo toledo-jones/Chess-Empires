@@ -1305,9 +1305,12 @@ class Acrobat(Piece):
         # Check if the tile can be legally occupied
         if engine.can_be_legally_occupied(row, col):
             # Check if the tile is protected by an opposite color piece
-            if engine.board[row][col].is_protected_by_opposite_color(self.color):
+            try:
+                if engine.board[row][col].is_protected_by_opposite_color(self.color):
+                    return False
+                return True
+            except IndexError:
                 return False
-            return True
         return False
 
     def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
@@ -4502,7 +4505,7 @@ class Castle(Building):
         spawn_squares: list[tuple[int, int]] = []
 
         # Check if the castle can spawn units
-        if not str(engine.state[-1]) == "start spawn":
+        if not str(engine.get_current_state()) == "start spawn":
             if not self.can_spawn(engine):
                 return spawn_squares
 
@@ -4927,7 +4930,6 @@ class Ferz(Piece):
             ) and engine.has_no_units_or_resources(row, col):
                 mining_squares.append((row, col))
 
-        print(f"{str(self)} located at {self.row} {self.col} mining squares:")
         print(mining_squares)
         return mining_squares
 

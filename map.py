@@ -279,7 +279,7 @@ class Map:
 
             # Assign random weights for resources
             wood_points, stone_points, gold_points = assign_resource_random_weights(
-                points_to_fill
+                points_to_fill * 3
             )
 
             # Calculate resource costs based on available points

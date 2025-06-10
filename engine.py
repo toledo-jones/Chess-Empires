@@ -339,7 +339,7 @@ def piece_is_selected(piece: Unit) -> bool:
 
 class Engine:
     def __init__(
-        self, window: pygame.Surface, board: Optional[list[list[Tile]]] = None
+        self, window: Optional[pygame.Surface] = None, board: Optional[list[list[Tile]]] = None
     ):
         """
         Initializes the game engine and sets up game attributes.
@@ -363,6 +363,9 @@ class Engine:
 
         # This will hold the client which will connect to the server
         self._client = None
+
+        # Set the game board
+        self.board = board
 
         if not board:
             # Initialize the game board with Tile objects
@@ -439,7 +442,6 @@ class Engine:
         self.PIECE_COSTS = {
             "king": {"log": 0, "gold": 0, "stone": 0},
             "gold_general": {"log": 0, "gold": 0, "stone": 0},
-            "quarry_1": {"log": 3, "gold": 0, "stone": 0},
             "pawn": {"log": 6, "gold": 0, "stone": 0},
             "builder": {"log": 6, "gold": 0, "stone": 0},
             "monk": {"log": 6, "gold": 0, "stone": 1},
@@ -1154,7 +1156,7 @@ class Engine:
         # Add the trap to the player's pieces
         self.players[trap.get_color()].pieces.append(trap)
 
-    def spawn(self, destination_row: int, destination_col: int, spawned: str):
+    def spawn(self, destination_row: int, destination_col: int, spawned: str) -> Union[Unit, bool]:
         """
         Spawns a piece at the specified destination.
 
@@ -1162,12 +1164,19 @@ class Engine:
         :param destination_col: The column of the destination tile.
         :param spawned: The type of piece to spawn.
         """
+        # Do not spawn if a square is occupied
+        if self.get_occupying(destination_row, destination_col):
+            print(f"Did not spawn at {destination_row} {destination_col} because it is occupied.")
+            return False
+
         # Create the spawned piece object at the destination
         spawned_piece: Unit = self.PIECES[spawned](
             destination_row, destination_col, self.turn
         )
         # Store the piece on the board at the destination address
         self.create_piece(destination_row, destination_col, spawned_piece)
+
+        return spawned_piece
 
     def capture(
         self,
@@ -2352,12 +2361,14 @@ class Engine:
         # Add the event to the event list
         self.add_event(event)
 
-    def get_current_state(self) -> State:
+    def get_current_state(self) -> Optional[State]:
         """
         Returns the current state of the game.
 
         :return: The current state.
         """
+        if not self.state:
+            return None
         return self.state[-1]
 
     def can_trade(self) -> bool:

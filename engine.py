@@ -768,13 +768,13 @@ class Engine:
         if not self.players[self.turn].can_act():
             return False
 
-        # Check if rituals are banned
-        if self.rituals_banned:
-            return False
-
         # If there is no cost, the ritual is valid
         if not cost:
             return True
+
+        # Check if rituals are banned
+        if self.rituals_banned:
+            return False
 
         # Check if the player has enough prayer points
         if cost_type == "prayer":

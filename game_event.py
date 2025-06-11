@@ -397,6 +397,79 @@ class Steal(GameEvent):
             piece.unused_piece_highlight = True
 
 
+class Arm(GameEvent):
+    """
+    Represents an bomb arming action for the war tower to become ready to detonate.
+    """
+
+    def __init__(self, engine, acting_tile, action_tile):
+        """
+        Initializes the Arm event.
+
+        :param engine: The game engine instance.
+        :param acting_tile: The tile where the war tower is located.
+        :param action_tile: The tile where the arming action occurs (not actively used).
+        """
+        # Call the parent class constructor.
+        super().__init__(engine, acting_tile, action_tile)
+
+        # Store the war tower that is being armed.
+        self.war_tower: Optional[Piece] = self.acting_tile.get_occupying()
+
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the Arm event.
+
+        :return: A string representing the event.
+        """
+        return "arm"
+
+    def complete(self):
+        """
+        Completes the arming action, marking the war tower as ready to detonate.
+        """
+        # Call the parent class's complete method.
+        super().complete()
+
+        # Play the arming sound effect.
+        self.engine.sounds.play("move")
+
+        # Reduce the war tower's available actions by 1.
+        self.war_tower.actions_remaining -= 1
+
+        # Mark the war tower as armed.
+        self.war_tower.armed = True
+
+        # Perform player action for arming war tower
+        self.engine.players[self.engine.turn].do_action()
+
+    def undo(self):
+        """
+        Undoes the arming action, resetting the war tower's state.
+        """
+        # Call the parent class's undo method.
+        super().undo()
+
+        # Restore the war tower's available action.
+        self.war_tower.actions_remaining += 1
+
+        # Play the unarming sound effect.
+        self.engine.sounds.play("move")
+
+        # Mark the war tower as not armed.
+        self.war_tower.armed = False
+
+        # Count unused pieces to restore their highlights.
+        unused_pieces = self.engine.count_unused_pieces()
+        self.engine.reset_unused_piece_highlight()
+        # Restore highlights for all unused pieces.
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+
+        #  cost an action, undo that action usage.
+        self.engine.players[self.engine.turn].undo_action()
+
+
 class Mine(GameEvent):
     """
     Represents a mining action where a unit extracts resources from a tile.
@@ -932,6 +1005,15 @@ class ChangeTurn(GameEvent):
         # Save the list of protected tiles.
         self.protected_tiles = self.engine.protected_tiles[:]
 
+        # Save a list of squares that were destroyed by War Towers during the turn
+        self.destroyed_squares: list[Tile] = None
+
+        # save a list of pieces that were destroyed by war towers during this turn
+        self.destroyed_pieces: list[Unit] = None
+
+        # Save a list of destroyed portals during the turn end step
+        self.destroyed_portals: list[tuple[Tile, Tile]] = []
+
     def complete(self):
         """
         Completes the turn change, resetting game state and advancing to the next player.
@@ -990,6 +1072,20 @@ class ChangeTurn(GameEvent):
 
         # Update protected tiles.
         self.engine.tick_protected_tiles(self.engine.protected_tiles)
+
+        self.destroyed_squares, self.destroyed_pieces = self.engine.tick_war_towers()
+
+        for tile in self.destroyed_squares:
+            if tile.portal:
+                try:
+                    self.destroyed_portals.append((tile, tile.connected_portal))
+                    tile.connected_portal.portal = True
+                    tile.connected_portal.connected_portal = None
+                    tile.connected_portal = None
+                except AttributeError:
+                    self.destroyed_portals.append((tile, None))
+                tile.portal = False
+
 
         # Debug mode: Always append the full ritual set.
         if constant.DEBUG_RITUALS:
@@ -1061,6 +1157,8 @@ class ChangeTurn(GameEvent):
         """
         # Play the turn change sound.
         self.engine.sounds.play("change_turn")
+        
+        self.engine.un_tick_war_towers(self.destroyed_squares, self.destroyed_pieces)
 
         # Revert to the previous player's turn.
         self.engine.turn = constant.TURNS[self.engine.turn]
@@ -1113,6 +1211,13 @@ class ChangeTurn(GameEvent):
         # Restore protected tiles and undo their protection effects.
         self.engine.protected_tiles = self.protected_tiles
         self.engine.un_tick_protected_tiles(self.protected_tiles)
+
+        for tile, connected_portal in self.destroyed_portals:
+            tile.portal = True
+            tile.connected_portal = connected_portal
+            if tile.connected_portal:
+                tile.connected_portal.portal = True
+                tile.connected_portal.connected_portal = tile
 
         # Restore the board state for protected tiles.
         for tile in self.protected_tiles:
@@ -3591,6 +3696,7 @@ class LineDestroy(RitualEvent):
         # Record the squares and pieces to be destroyed.
         self.destroyed_squares = self.record_destroyed_squares()
         self.destroyed_pieces = self.record_destroyed_pieces()
+        self.destroyed_portals = []
 
     def __repr__(self) -> str:
         """
@@ -3668,6 +3774,17 @@ class LineDestroy(RitualEvent):
         """
         super().complete()
 
+        for tile in self.destroyed_squares:
+            if tile.portal:
+                try:
+                    self.destroyed_portals.append((tile, tile.connected_portal))
+                    tile.connected_portal.portal = True
+                    tile.connected_portal.connected_portal = None
+                    tile.connected_portal = None
+                except AttributeError:
+                    self.destroyed_portals.append((tile, None))
+                tile.portal = False
+
         # Destroy the squares in the selected range.
         self.destroy_squares()
 
@@ -3688,6 +3805,13 @@ class LineDestroy(RitualEvent):
 
         # Restore the destroyed pieces to the player's list.
         self.restore_destroyed_pieces_to_player_list()
+
+        for tile, connected_portal in self.destroyed_portals:
+            tile.portal = True
+            tile.connected_portal = connected_portal
+            if tile.connected_portal:
+                tile.connected_portal.portal = True
+                tile.connected_portal.connected_portal = tile
 
         # Replace the destroyed squares on the board.
         self.replace_destroyed_squares()
@@ -3766,6 +3890,8 @@ class Protect(RitualEvent):
         # Remove protection from the tile and remove it from the protected tiles list.
         self.engine.board[self.row][self.col].remove_protection()
         self.engine.protected_tiles.remove(self.engine.board[self.row][self.col])
+
+
 
         # Restore the protection if it was replaced.
         if self.replace_protect:

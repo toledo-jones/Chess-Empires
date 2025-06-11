@@ -2117,6 +2117,7 @@ class Contextual(Menu):
             "steal": self.engine.transfer_to_stealing_state,
             "build": self.engine.transfer_to_building_state,
             "ritual": self.engine.transfer_to_pre_ritual_state,
+            "arm": self.engine.arm_war_tower,
         }
 
         # Define requirements for each action
@@ -2146,6 +2147,7 @@ class Contextual(Menu):
             "steal": half_requirements,
             "build": no_requirements,
             "ritual": no_requirements,
+            "arm": standard_requirements,
         }
 
         # Map icons to actions

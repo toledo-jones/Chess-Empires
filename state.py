@@ -42,7 +42,7 @@ def _determine_special_move_type(
     piece: Unit = acting_tile.get_occupying()
 
     # Check if the action tile contains a portal
-    if action_tile.portal:
+    if action_tile.portal and action_tile.connected_portal:
         return (
             PortalMove
             if default_type == Move
@@ -175,7 +175,11 @@ class State:
         """
         Draws a piece at the mouse cursor position, centering it properly.
         """
-        piece_image = self.spawn_table[(self.engine.turn + "_" + str(piece))]
+        # Get the appropriate sprite based on the piece's color and type
+        piece_image = self.spawn_table[piece.color + "_" + str(piece)]
+        if str(piece) == "war_tower":
+            if piece.armed:
+                piece_image = self.spawn_table[f"{piece.color}_war_tower_{piece.explosion_timer}"]
         piece_rect = piece_image.get_rect(center=pos)
         self.win.blit(piece_image, piece_rect.topleft)
 
@@ -1997,13 +2001,13 @@ class Playing(State):
         if self.engine.menus:
             for menu in self.engine.menus:
                 menu.right_click()
-            return
+            return None
 
         # Reset dragging piece and selected piece if dragging
         if self.dragging:
             self.reset_dragging_piece()
             self.engine.reset_selected()
-            return
+            return None
 
         # Get the mouse position and convert it to board coordinates
         row, col = constant.convert_pos(pygame.mouse.get_pos())
@@ -2029,8 +2033,12 @@ class Playing(State):
             if len(piece.contextual_options) == 1 and str(piece) not in [
                 "queen",
                 "king",
+                "war_tower"
             ]:
                 self.engine.menus[-1].left_click()
+                return None
+            return None
+        return None
 
     def m(self):
         """

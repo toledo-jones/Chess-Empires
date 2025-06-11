@@ -18,11 +18,12 @@ DEBUG_STARTING_PRAYER = 200
 DEBUG_STARTING_WOOD = 100
 DEBUG_STARTING_GOLD = 100
 DEBUG_STARTING_STONE = 100
-DEBUG_STARTING_PIECES = ["castle", "king", "queen", "rogue_pawn"]
+DEBUG_STARTING_PIECES = ["castle", "king", "war_tower", "prayer_stone"]
+
 
 # Window and board sizes
 MAX_FPS = 120
-VERSION = "alpha 0.04"
+VERSION = "alpha 0.05"
 NUMBER = ""
 pygame.init()
 BOARD_HEIGHT_PX = pygame.display.Info().current_h
@@ -80,6 +81,7 @@ MASTER_COST_LIST = [
 ]
 STABLE_SPAWN_LIST = ["doe", "oxen", "unicorn", "ram", "elephant", "knight"]
 FORTRESS_SPAWN_LIST = [
+    "queen",
     "rogue_rook",
     "rogue_bishop",
     "rogue_knight",
@@ -88,7 +90,7 @@ FORTRESS_SPAWN_LIST = [
 ]
 CASTLE_SPAWN_LIST = ["pawn", "ferz", "cavalry", "builder", "pikeman", "monk", "trader"]
 BUILDER_SPAWN_LIST = ["wall", "stable", "castle", "barracks", "fortress", "circus"]
-BARRACKS_SPAWN_LIST = ["duke", "queen", "champion", "rook", "bishop"]
+BARRACKS_SPAWN_LIST = ["duke", "champion", "rook", "bishop", "war_tower"]
 CIRCUS_SPAWN_LIST = [
     "jester",
     "persuader",
@@ -187,7 +189,9 @@ MAX_PRAYER_STONE_RITUALS_PER_TURN = 2
 MAX_MAGICIAN_RITUALS_PER_TURN = 1
 
 # Dictionaries
-PIECE_POINT_VALUES = {'king': 8, 'queen': 32, 'rook': 16, 'bishop': 16, 'knight': 8, 'pawn': 4, 'castle': 4, 'monk': 4, 'fortress': 9, 'ram': 24, 'elephant': 16, 'barracks': 24, 'jester': 6, 'champion': 28, 'prayer_stone': 4, 'monolith': 8, 'pikeman': 8, 'rogue_rook': 16, 'rogue_bishop': 16, 'rogue_knight': 8, 'rogue_pawn': 4, 'builder': 7, 'unicorn': 16, 'stable': 18, 'gold_general': 32, 'duke': 32, 'oxen': 24, 'wall': 6, 'doe': 24, 'persuader': 8, 'trader': 4, 'circus': 12, 'trapper': 4, 'trap': 1, 'lion': 24, 'fire_spinner': 16, 'acrobat': 16, 'magician': 8, 'cavalry': 8, 'ferz': 4, 'assassin': 8}
+PIECE_POINT_VALUES = {'king': 8, 'queen': 32, 'rook': 16, 'bishop': 16, 'knight': 8, 'pawn': 4, 'castle': 4,
+                      'monk': 4, 'fortress': 13, 'ram': 24, 'elephant': 16, 'barracks': 24, 'jester': 6, 'champion':
+                          28, 'prayer_stone': 4, 'monolith': 8, 'pikeman': 8, 'rogue_rook': 16, 'rogue_bishop': 16, 'rogue_knight': 8, 'rogue_pawn': 4, 'builder': 7, 'unicorn': 16, 'stable': 18, 'gold_general': 32, 'duke': 32, 'oxen': 24, 'wall': 6, 'doe': 24, 'persuader': 8, 'trader': 4, 'circus': 12, 'trapper': 4, 'trap': 1, 'lion': 24, 'fire_spinner': 16, 'acrobat': 16, 'magician': 8, 'cavalry': 8, 'ferz': 4, 'assassin': 8, 'war_tower': 20}
 
 NOTIFICATIONS = {
     None: ["cannot select"],
@@ -393,7 +397,10 @@ DESCRIPTIONS = {
         "moves one space orthogonally after it's first move.",
         "'right click' to harvest resources.",
     ],
+    "war_tower": ["slides to move orthogonally.", "\'right click\' to arm for explosion.",
+                  "explosion destroys everything in a radius of 1 square."]
 }
+
 PIECE_POPULATION = {
     "king": 1,
     "queen": 1,
@@ -652,6 +659,9 @@ PIECE_IMAGE_MODIFY = {
     "cavalry": {"SCALE": DEFAULT_PIECE_SCALE, "OFFSET": (0, 0)},
     "ferz": {"SCALE": DEFAULT_PIECE_SCALE, "OFFSET": (0, 0)},
     "assassin": {"SCALE": DEFAULT_PIECE_SCALE, "OFFSET": (0, 0)},
+    "war_tower_0": {"SCALE": DEFAULT_PIECE_SCALE, "OFFSET": (0, 0)},
+    "war_tower_1": {"SCALE": DEFAULT_PIECE_SCALE, "OFFSET": (0, 0)},
+    "war_tower_2": {"SCALE": DEFAULT_PIECE_SCALE, "OFFSET": (0, 0)},
 }
 IMAGES_IMAGE_MODIFY = {
     "icon": {"SCALE": DEFAULT_PIECE_SCALE, "OFFSET": (0, 0)},
@@ -728,4 +738,5 @@ CONTEXTUAL_MENU_ICONS_IMAGE_MODIFY = {
     "b_decree": {"SCALE": DECREE_SCALE, "OFFSET": (0, 0)},
     "w_ritual": {"SCALE": DECREE_SCALE, "OFFSET": (0, 0)},
     "b_ritual": {"SCALE": DECREE_SCALE, "OFFSET": (0, 0)},
+    "arm": {"SCALE": DECREE_SCALE, "OFFSET": (0, 0)},
 }

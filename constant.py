@@ -92,6 +92,10 @@ w_pieces = [
     "w_acrobat",
     "w_magician",
     "w_cavalry",
+    "w_war_tower",
+    "w_war_tower_0",
+    "w_war_tower_1",
+    "w_war_tower_2",
 ]
 b_pieces = [
     "b_king",
@@ -128,6 +132,10 @@ b_pieces = [
     "b_acrobat",
     "b_magician",
     "b_cavalry",
+    "b_war_tower",
+    "b_war_tower_0",
+    "b_war_tower_1",
+    "b_war_tower_2",
 ]
 w_buildings = [
     "w_castle",
@@ -250,6 +258,7 @@ contextual_menu_icons = [
     "w_decree",
     "b_decree_u",
     "b_decree",
+    "arm",
     "w_ritual",
     "b_ritual",
 ]

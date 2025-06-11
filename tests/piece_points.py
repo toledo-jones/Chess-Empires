@@ -136,6 +136,7 @@ def test_piece_points() -> dict[str, int]:
         'trader'      : 4,
         'trap'        : 1,
         'magician'    : 8,
+        "war_tower"   : 32,
     }
     for key, value in hard_coded_points.items():
         piece_points[key] = value

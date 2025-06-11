@@ -1174,12 +1174,11 @@ class PlaySelect(MainMenu):
             win, engine, splash_screen
         )  # Call parent class initializer
 
-        # Set the font color based on the current turn
-        self.color = constant.turn_to_color[self.engine.turn]
-        splash_screen.color = self.color
+        # Set the font color based on the splash screen
+        self.color = constant.turn_to_color[splash_screen.logo_color]
 
         # Define button labels for the play selection menu
-        buttons = ["local", "online", "back"]
+        buttons = ["local", "online"]
 
         # Create surfaces for each button text
         self.button_surfaces = [
@@ -1246,11 +1245,6 @@ class PlaySelect(MainMenu):
 
                     # I may need to use a startingOnline state instead of starting. We'll see
                     self.engine.set_state("starting")
-
-                elif i == 2:
-                    # Back
-                    self.engine.set_state("main menu")
-
 
 class Instructions(State):
     def __init__(self, win: pygame.Surface, engine: Engine):

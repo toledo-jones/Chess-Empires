@@ -289,6 +289,10 @@ class State:
         It resets the engine flags, selected state, and closes any active menus before
         transitioning to the 'Playing' state.
         """
+        if self.dragging:
+            self.dragging_piece.dragging = False
+            self.dragging_piece = None
+
         self.dragging = False
 
         # Resets any flags related to current actions

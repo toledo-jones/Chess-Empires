@@ -67,13 +67,13 @@ def initialize_resources() -> dict[str, type]:
     """
     # Return a dictionary of resource types
     return {
-        "tree_tile_1"      : Wood,
-        "gold_tile_1"      : Gold,
-        "quarry_1"         : Quarry,
-        "tree_tile_2"      : Wood,
-        "tree_tile_3"      : Wood,
-        "tree_tile_4"      : Wood,
-        "sunken_quarry_1"  : SunkenQuarry,
+        "tree_tile_1": Wood,
+        "gold_tile_1": Gold,
+        "quarry_1": Quarry,
+        "tree_tile_2": Wood,
+        "tree_tile_3": Wood,
+        "tree_tile_4": Wood,
+        "sunken_quarry_1": SunkenQuarry,
         "depleted_quarry_1": DepletedQuarry,
     }
 
@@ -86,14 +86,14 @@ def initialize_menus() -> dict[str, type]:
     """
     # Return a dictionary of building menus
     return {
-        "stable"  : StableMenu,
+        "stable": StableMenu,
         "fortress": FortressMenu,
         "barracks": BarracksMenu,
-        "builder" : BuilderMenu,
-        "castle"  : CastleMenu,
-        "circus"  : CircusMenu,
-        "trapper" : TrapperMenu,
-        "monk"    : MonkMenu,
+        "builder": BuilderMenu,
+        "castle": CastleMenu,
+        "circus": CircusMenu,
+        "trapper": TrapperMenu,
+        "monk": MonkMenu,
     }
 
 
@@ -105,15 +105,15 @@ def initialize_cost_menus() -> dict[str, type]:
     """
     # Return a dictionary of cost menus
     return {
-        "builder"     : BuilderCosts,
-        "castle"      : CastleCosts,
-        "stable"      : StableCosts,
-        "fortress"    : FortressCosts,
+        "builder": BuilderCosts,
+        "castle": CastleCosts,
+        "stable": StableCosts,
+        "fortress": FortressCosts,
         "prayer_stone": PrayerStoneCosts,
-        "monolith"    : MonolithCosts,
-        "barracks"    : BarracksCosts,
-        "circus"      : CircusCosts,
-        "monk"        : MonkCosts,
+        "monolith": MonolithCosts,
+        "barracks": BarracksCosts,
+        "circus": CircusCosts,
+        "monk": MonkCosts,
     }
 
 
@@ -125,31 +125,31 @@ def initialize_states() -> dict[str, type]:
     """
     # Return a dictionary of game states
     return {
-        "playing"               : Playing,
-        "mining"                : Mining,
-        "spawning"              : Spawning,
-        "starting"              : Starting,
-        "start spawn"           : StartingSpawn,
-        "piece cost screen"     : PieceCost,
-        "building"              : PreBuilding,
-        "winner"                : Winner,
-        "surrender"             : SurrenderMenu,
-        "gold_general"          : SummonGoldGeneral,
-        "smite"                 : PerformSmite,
+        "playing": Playing,
+        "mining": Mining,
+        "spawning": Spawning,
+        "starting": Starting,
+        "start spawn": StartingSpawn,
+        "piece cost screen": PieceCost,
+        "building": PreBuilding,
+        "winner": Winner,
+        "surrender": SurrenderMenu,
+        "gold_general": SummonGoldGeneral,
+        "smite": PerformSmite,
         "select starting pieces": SelectStartingPieces,
-        "destroy_resource"      : PerformDestroyResource,
-        "create_resource"       : PerformCreateResource,
-        "portal"                : PerformPortal,
-        "teleport"              : PerformTeleport,
-        "swap"                  : PerformSwap,
-        "line_destroy"          : PerformLineDestroy,
-        "protect"               : PerformProtect,
-        "main menu"             : MainMenu,
-        "debug"                 : DebugStart,
-        "inspector"             : Inspector,
-        "instructions"          : Instructions,
-        "pause"                 : Pause,
-        "play select"           : PlaySelect,
+        "destroy_resource": PerformDestroyResource,
+        "create_resource": PerformCreateResource,
+        "portal": PerformPortal,
+        "teleport": PerformTeleport,
+        "swap": PerformSwap,
+        "line_destroy": PerformLineDestroy,
+        "protect": PerformProtect,
+        "main menu": MainMenu,
+        "debug": DebugStart,
+        "inspector": Inspector,
+        "instructions": Instructions,
+        "pause": Pause,
+        "play select": PlaySelect,
     }
 
 
@@ -161,11 +161,11 @@ def initialize_events() -> dict[str, type]:
     """
     # Return a dictionary of game events
     return {
-        "pray"   : Pray,
-        "steal"  : Steal,
-        "mine"   : Mine,
-        "spawn"  : Spawn,
-        "move"   : Move,
+        "pray": Pray,
+        "steal": Steal,
+        "mine": Mine,
+        "spawn": Spawn,
+        "move": Move,
         "capture": Capture,
     }
 
@@ -178,48 +178,48 @@ def initialize_pieces() -> dict[str, type]:
     """
     # Return a dictionary of game pieces
     return {
-        "king"        : King,
-        "queen"       : Queen,
-        "rook"        : Rook,
-        "bishop"      : Bishop,
-        "knight"      : Knight,
-        "pawn"        : Pawn,
-        "castle"      : Castle,
-        "monk"        : Monk,
-        "fortress"    : Fortress,
-        "ram"         : Ram,
-        "elephant"    : Elephant,
-        "barracks"    : Barracks,
-        "jester"      : Jester,
-        "champion"    : Champion,
+        "king": King,
+        "queen": Queen,
+        "rook": Rook,
+        "bishop": Bishop,
+        "knight": Knight,
+        "pawn": Pawn,
+        "castle": Castle,
+        "monk": Monk,
+        "fortress": Fortress,
+        "ram": Ram,
+        "elephant": Elephant,
+        "barracks": Barracks,
+        "jester": Jester,
+        "champion": Champion,
         "prayer_stone": PrayerStone,
-        "monolith"    : Monolith,
-        "pikeman"     : Pikeman,
-        "rogue_rook"  : RogueRook,
+        "monolith": Monolith,
+        "pikeman": Pikeman,
+        "rogue_rook": RogueRook,
         "rogue_bishop": RogueBishop,
         "rogue_knight": RogueKnight,
-        "rogue_pawn"  : RoguePawn,
-        "builder"     : Builder,
-        "unicorn"     : Unicorn,
-        "stable"      : Stable,
+        "rogue_pawn": RoguePawn,
+        "builder": Builder,
+        "unicorn": Unicorn,
+        "stable": Stable,
         "gold_general": GoldGeneral,
-        "duke"        : Duke,
-        "oxen"        : Oxen,
-        "wall"        : Wall,
-        "doe"         : Doe,
-        "persuader"   : Persuader,
-        "trader"      : Trader,
-        "circus"      : Circus,
-        "trapper"     : Trapper,
-        "trap"        : Trap,
-        "lion"        : Lion,
+        "duke": Duke,
+        "oxen": Oxen,
+        "wall": Wall,
+        "doe": Doe,
+        "persuader": Persuader,
+        "trader": Trader,
+        "circus": Circus,
+        "trapper": Trapper,
+        "trap": Trap,
+        "lion": Lion,
         "fire_spinner": FireSpinner,
-        "acrobat"     : Acrobat,
-        "magician"    : Magician,
-        "cavalry"     : Cavalry,
-        "ferz"        : Ferz,
-        "assassin"    : Assassin,
-        "war_tower"   : WarTower,
+        "acrobat": Acrobat,
+        "magician": Magician,
+        "cavalry": Cavalry,
+        "ferz": Ferz,
+        "assassin": Assassin,
+        "war_tower": WarTower,
     }
 
 
@@ -263,20 +263,20 @@ def initialize_rituals() -> list[list[str]]:
     # Generate available rituals based on game constants
     return [
         generate_available_rituals(
-                constant.MONOLITH_RITUALS, constant.MAX_MONOLITH_RITUALS_PER_TURN
+            constant.MONOLITH_RITUALS, constant.MAX_MONOLITH_RITUALS_PER_TURN
         ),
         generate_available_rituals(
-                constant.PRAYER_STONE_RITUALS,
-                constant.MAX_PRAYER_STONE_RITUALS_PER_TURN,
+            constant.PRAYER_STONE_RITUALS,
+            constant.MAX_PRAYER_STONE_RITUALS_PER_TURN,
         ),
         generate_available_rituals(
-                constant.MAGICIAN_RITUALS, constant.MAX_MAGICIAN_RITUALS_PER_TURN
+            constant.MAGICIAN_RITUALS, constant.MAX_MAGICIAN_RITUALS_PER_TURN
         ),
     ]
 
 
 def generate_stealing_offsets(
-        stealing_key: dict[str, dict[str, tuple[int, int]]],
+    stealing_key: dict[str, dict[str, tuple[int, int]]],
 ) -> list[int]:
     """
     Generates a list of stealing offsets based on the given stealing key.
@@ -340,7 +340,9 @@ def piece_is_selected(piece: Unit) -> bool:
 
 class Engine:
     def __init__(
-            self, window: Optional[pygame.Surface] = None, board: Optional[list[list[Tile]]] = None
+        self,
+        window: Optional[pygame.Surface] = None,
+        board: Optional[list[list[Tile]]] = None,
     ):
         """
         Initializes the game engine and sets up game attributes.
@@ -375,11 +377,11 @@ class Engine:
             ]
             # Create a surface for the board
             self.board_surface: pygame.Surface = pygame.Surface(
-                    (self.cols * constant.SQ_SIZE, self.rows * constant.SQ_SIZE)
+                (self.cols * constant.SQ_SIZE, self.rows * constant.SQ_SIZE)
             )
             # Create a surface for the display
             self.display_surface: pygame.Surface = pygame.Surface(
-                    (self.window.get_width(), self.rows * constant.SQ_SIZE)
+                (self.window.get_width(), self.rows * constant.SQ_SIZE)
             )
             # Initialize the map to None
             self.map: Optional[Map] = None
@@ -441,48 +443,48 @@ class Engine:
         self.piece_cost_screen: bool = False
 
         self.PIECE_COSTS = {
-            "king"        : {"log": 0, "gold": 0, "stone": 0},
+            "king": {"log": 0, "gold": 0, "stone": 0},
             "gold_general": {"log": 0, "gold": 0, "stone": 0},
-            "pawn"        : {"log": 6, "gold": 0, "stone": 0},
-            "builder"     : {"log": 6, "gold": 0, "stone": 0},
-            "monk"        : {"log": 6, "gold": 0, "stone": 1},
-            "pikeman"     : {"log": 0, "gold": 4, "stone": 4},
-            "castle"      : {"log": 10, "gold": 0, "stone": 0},
-            "stable"      : {"log": 10, "gold": 0, "stone": 10},
-            "barracks"    : {"log": 4, "gold": 10, "stone": 0},
-            "fortress"    : {"log": 0, "gold": 12, "stone": 12},
-            "queen"       : {"log": 0, "gold": 12, "stone": 12},
-            "rook"        : {"log": 0, "gold": 5, "stone": 5},
-            "bishop"      : {"log": 5, "gold": 5, "stone": 0},
-            "knight"      : {"log": 1, "gold": 0, "stone": 3},
-            "jester"      : {"log": 0, "gold": 10, "stone": 0},
-            "rogue_rook"  : {"log": 0, "gold": 10, "stone": 10},
+            "pawn": {"log": 6, "gold": 0, "stone": 0},
+            "builder": {"log": 6, "gold": 0, "stone": 0},
+            "monk": {"log": 6, "gold": 0, "stone": 1},
+            "pikeman": {"log": 0, "gold": 4, "stone": 4},
+            "castle": {"log": 10, "gold": 0, "stone": 0},
+            "stable": {"log": 10, "gold": 0, "stone": 10},
+            "barracks": {"log": 4, "gold": 10, "stone": 0},
+            "fortress": {"log": 0, "gold": 12, "stone": 12},
+            "queen": {"log": 0, "gold": 12, "stone": 12},
+            "rook": {"log": 0, "gold": 5, "stone": 5},
+            "bishop": {"log": 5, "gold": 5, "stone": 0},
+            "knight": {"log": 1, "gold": 0, "stone": 3},
+            "jester": {"log": 0, "gold": 10, "stone": 0},
+            "rogue_rook": {"log": 0, "gold": 10, "stone": 10},
             "rogue_bishop": {"log": 7, "gold": 7, "stone": 0},
             "rogue_knight": {"log": 5, "gold": 0, "stone": 5},
-            "rogue_pawn"  : {"log": 6, "gold": 0, "stone": 0},
-            "elephant"    : {"log": 8, "gold": 0, "stone": 8},
-            "ram"         : {"log": 8, "gold": 0, "stone": 8},
-            "unicorn"     : {"log": 12, "gold": 0, "stone": 12},
-            "monolith"    : {"log": 0, "gold": 0, "stone": 16},
+            "rogue_pawn": {"log": 6, "gold": 0, "stone": 0},
+            "elephant": {"log": 8, "gold": 0, "stone": 8},
+            "ram": {"log": 8, "gold": 0, "stone": 8},
+            "unicorn": {"log": 12, "gold": 0, "stone": 12},
+            "monolith": {"log": 0, "gold": 0, "stone": 16},
             "prayer_stone": {"log": 0, "gold": 0, "stone": 8},
-            "duke"        : {"log": 6, "gold": 12, "stone": 13},
-            "oxen"        : {"log": 12, "gold": 0, "stone": 12},
-            "champion"    : {"log": 0, "gold": 7, "stone": 7},
-            "wall"        : {"log": 0, "gold": 0, "stone": 3},
-            "persuader"   : {"log": 0, "gold": 14, "stone": 0},
-            "doe"         : {"log": 14, "gold": 0, "stone": 14},
-            "trader"      : {"log": 6, "gold": 0, "stone": 0},
-            "circus"      : {"log": 0, "gold": 10, "stone": 0},
-            "trapper"     : {"log": 6, "gold": 0, "stone": 0},
-            "trap"        : {"log": 0, "gold": 0, "stone": 1},
-            "lion"        : {"log": 0, "gold": 20, "stone": 0},
+            "duke": {"log": 6, "gold": 12, "stone": 13},
+            "oxen": {"log": 12, "gold": 0, "stone": 12},
+            "champion": {"log": 0, "gold": 7, "stone": 7},
+            "wall": {"log": 0, "gold": 0, "stone": 3},
+            "persuader": {"log": 0, "gold": 14, "stone": 0},
+            "doe": {"log": 14, "gold": 0, "stone": 14},
+            "trader": {"log": 6, "gold": 0, "stone": 0},
+            "circus": {"log": 0, "gold": 10, "stone": 0},
+            "trapper": {"log": 6, "gold": 0, "stone": 0},
+            "trap": {"log": 0, "gold": 0, "stone": 1},
+            "lion": {"log": 0, "gold": 20, "stone": 0},
             "fire_spinner": {"log": 0, "gold": 18, "stone": 0},
-            "acrobat"     : {"log": 0, "gold": 18, "stone": 0},
-            "magician"    : {"log": 0, "gold": 10, "stone": 0},
-            "cavalry"     : {"log": 4, "gold": 1, "stone": 0},
-            "ferz"        : {"log": 6, "gold": 0, "stone": 0},
-            "assassin"    : {"log": 0, "gold": 10, "stone": 0},
-            "war_tower"   : {"log": 0, "gold": 14, "stone": 0},
+            "acrobat": {"log": 0, "gold": 18, "stone": 0},
+            "magician": {"log": 0, "gold": 10, "stone": 0},
+            "cavalry": {"log": 4, "gold": 1, "stone": 0},
+            "ferz": {"log": 6, "gold": 0, "stone": 0},
+            "assassin": {"log": 0, "gold": 10, "stone": 0},
+            "war_tower": {"log": 0, "gold": 14, "stone": 0},
         }
 
         # Game Modifiers
@@ -534,9 +536,9 @@ class Engine:
         self.STEALING_VALUES: dict[str, int] = {"wood": 0, "gold": 1, "stone": 2}
         # Initialize the kind to stealing list dictionary
         self.KIND_TO_STEALING_LIST: [dict[str, dict[str, int | tuple[int, int]]]] = {
-            "piece"   : self.piece_stealing_offsets,
+            "piece": self.piece_stealing_offsets,
             "building": self.building_stealing_offsets,
-            "trader"  : self.trader_stealing_offsets,
+            "trader": self.trader_stealing_offsets,
         }
 
         # Trade & Sounds
@@ -569,7 +571,7 @@ class Engine:
         """
         # Calculate the vertical offset to center the display surface
         offset_y: int = (
-                self.window.get_height() // 2 - self.display_surface.get_height() // 2
+            self.window.get_height() // 2 - self.display_surface.get_height() // 2
         )
         # Blit the display surface onto the window at the calculated offset
         self.window.blit(self.display_surface, (0, offset_y))
@@ -846,17 +848,17 @@ class Engine:
 
                     # Draw the square
                     pygame.draw.rect(
-                            self.board_surface,
-                            color,
-                            pygame.Rect(x, y, rect_size[0], rect_size[1]),
+                        self.board_surface,
+                        color,
+                        pygame.Rect(x, y, rect_size[0], rect_size[1]),
                     )
 
                     # Draw the tile using blend mode (avoid re-evaluating color calculation)
                     tile_color: str = self.COLORS[(row + col) % 2]
                     self.board_surface.blit(
-                            constant.BOARD_TILES[tile_color][self.board[row][col].index],
-                            (x, y),
-                            special_flags=pygame.BLEND_RGBA_MULT,
+                        constant.BOARD_TILES[tile_color][self.board[row][col].index],
+                        (x, y),
+                        special_flags=pygame.BLEND_RGBA_MULT,
                     )
 
             # Draw the board pieces highlights
@@ -889,7 +891,7 @@ class Engine:
         return None
 
     def set_highlight(
-            self, squares_list: list[tuple[int, int]], boolean: bool, highlight_type: str
+        self, squares_list: list[tuple[int, int]], boolean: bool, highlight_type: str
     ) -> bool:
         """
         Sets the highlight of a set of squares to on or off.
@@ -907,7 +909,7 @@ class Engine:
         if highlight_type not in valid_types:
             # Raise an error if the highlight type is invalid
             raise ValueError(
-                    f"Invalid highlight type: {highlight_type}. Valid inputs are: {', '.join(valid_types)}"
+                f"Invalid highlight type: {highlight_type}. Valid inputs are: {', '.join(valid_types)}"
             )
 
         try:
@@ -930,7 +932,7 @@ class Engine:
         """
         # Check if any piece of the player is an instance of King
         does_king_exist: bool = any(
-                isinstance(piece, King) for piece in self.players[player_key].pieces
+            isinstance(piece, King) for piece in self.players[player_key].pieces
         )
         return not does_king_exist
 
@@ -1023,7 +1025,7 @@ class Engine:
         for piece in self.players[self.turn].pieces:
             # Add the additional piece limit for the piece to the player's piece limit
             self.players[self.turn].add_additional_piece_limit(
-                    piece.get_additional_piece_limit()
+                piece.get_additional_piece_limit()
             )
 
     def reset_selected(self):
@@ -1115,7 +1117,7 @@ class Engine:
         try:
             # Check if the tile can contain a quarry and is not a depleted quarry
             return self.board[row][col].can_contain_quarry and not self.has_resource(
-                    row, col, DepletedQuarry
+                row, col, DepletedQuarry
             )
         except IndexError:
             return False
@@ -1158,7 +1160,9 @@ class Engine:
         # Add the trap to the player's pieces
         self.players[trap.get_color()].pieces.append(trap)
 
-    def spawn(self, destination_row: int, destination_col: int, spawned: str) -> Union[Unit, bool]:
+    def spawn(
+        self, destination_row: int, destination_col: int, spawned: str
+    ) -> Union[Unit, bool]:
         """
         Spawns a piece at the specified destination.
 
@@ -1168,12 +1172,14 @@ class Engine:
         """
         # Do not spawn if a square is occupied
         if self.get_occupying(destination_row, destination_col):
-            print(f"Did not spawn at {destination_row} {destination_col} because it is occupied.")
+            print(
+                f"Did not spawn at {destination_row} {destination_col} because it is occupied."
+            )
             return False
 
         # Create the spawned piece object at the destination
         spawned_piece: Unit = self.PIECES[spawned](
-                destination_row, destination_col, self.turn
+            destination_row, destination_col, self.turn
         )
         # Store the piece on the board at the destination address
         self.create_piece(destination_row, destination_col, spawned_piece)
@@ -1181,11 +1187,11 @@ class Engine:
         return spawned_piece
 
     def capture(
-            self,
-            moving_row: int,
-            moving_col: int,
-            destination_row: int,
-            destination_col: int,
+        self,
+        moving_row: int,
+        moving_col: int,
+        destination_row: int,
+        destination_col: int,
     ):
         """
         Captures a piece at the destination and moves the capturing piece.
@@ -1197,7 +1203,7 @@ class Engine:
         """
         # Remove the captured piece from the enemy player's pieces
         self.players[constant.TURNS[self.turn]].pieces.remove(
-                self.board[destination_row][destination_col].get_occupying()
+            self.board[destination_row][destination_col].get_occupying()
         )
         # Empty the captured square
         self.board[destination_row][destination_col].set_occupying(None)
@@ -1205,11 +1211,11 @@ class Engine:
         self.move(moving_row, moving_col, destination_row, destination_col)
 
     def swap(
-            self,
-            moving_row: int,
-            moving_col: int,
-            destination_row: int,
-            destination_col: int,
+        self,
+        moving_row: int,
+        moving_col: int,
+        destination_row: int,
+        destination_col: int,
     ):
         """
         Swaps the positions of two pieces on the board.
@@ -1221,11 +1227,11 @@ class Engine:
         """
         # Get the first piece to swap
         first_piece_to_swap: Optional[Piece] = self.get_occupying(
-                moving_row, moving_col
+            moving_row, moving_col
         )
         # Get the second piece to swap
         second_piece_to_swap: Optional[Piece] = self.get_occupying(
-                destination_row, destination_col
+            destination_row, destination_col
         )
 
         # Swap the positions of the pieces on the board
@@ -1239,11 +1245,11 @@ class Engine:
             second_piece_to_swap.change_pos(moving_row, moving_col)
 
     def move(
-            self,
-            moving_row: int,
-            moving_col: int,
-            destination_row: int,
-            destination_col: int,
+        self,
+        moving_row: int,
+        moving_col: int,
+        destination_row: int,
+        destination_col: int,
     ):
         """
         Moves a piece from one position to another on the board.
@@ -1313,7 +1319,7 @@ class Engine:
         return monoliths
 
     def has_resource(
-            self, row: int, col: int, resource_type: Optional[type] = None
+        self, row: int, col: int, resource_type: Optional[type] = None
     ) -> bool:
         """
         Checks if a square contains a resource. If resource_types are provided,
@@ -1372,7 +1378,7 @@ class Engine:
         return isinstance(occupant, unit_type)
 
     def has_disqualifying_resource(
-            self, row: int, col: int, disqualifying_resources: set[type]
+        self, row: int, col: int, disqualifying_resources: set[type]
     ) -> bool:
         """
         Checks if the tile has any resource that prevents occupation.
@@ -1384,12 +1390,12 @@ class Engine:
         """
         # Check if the tile has any disqualifying resource
         return any(
-                self.has_resource(row, col, resource)
-                for resource in disqualifying_resources
+            self.has_resource(row, col, resource)
+            for resource in disqualifying_resources
         )
 
     def is_occupyable_with_units(
-            self, row: int, col: int, extra_resources: set[type]
+        self, row: int, col: int, extra_resources: set[type]
     ) -> bool:
         """
         Checks if the tile can be occupied based on its contents, allowing occupation even if a unit is present.
@@ -1400,19 +1406,19 @@ class Engine:
         :return: True if the tile can be occupied, False otherwise.
         """
         return (
-                self.has_no_units_or_resources(row, col)
-                or self.has_resource(row, col, Quarry)
-                or self.has_resource(row, col, DepletedQuarry)
-                or self.has_occupying(
+            self.has_no_units_or_resources(row, col)
+            or self.has_resource(row, col, Quarry)
+            or self.has_resource(row, col, DepletedQuarry)
+            or self.has_occupying(
                 row, col
-        )  # Allows occupation even if a unit is present
-                or any(
+            )  # Allows occupation even if a unit is present
+            or any(
                 self.has_resource(row, col, resource) for resource in extra_resources
-        )
+            )
         )
 
     def is_occupyable_without_units(
-            self, row: int, col: int, allow_resources: set[type]
+        self, row: int, col: int, allow_resources: set[type]
     ) -> bool:
         """
         Checks if the tile can be occupied based on its contents, but only if there is no occupying unit.
@@ -1423,19 +1429,19 @@ class Engine:
         :return: True if the tile can be occupied without an occupying unit, False otherwise.
         """
         return (
-                self.has_no_units_or_resources(row, col)
-                or (
-                        not self.has_occupying(row, col) and self.has_resource(row, col, Quarry)
-                )
-                or (
-                        not self.has_occupying(row, col)
-                        and self.has_resource(row, col, DepletedQuarry)
-                )
-                or any(
+            self.has_no_units_or_resources(row, col)
+            or (
+                not self.has_occupying(row, col) and self.has_resource(row, col, Quarry)
+            )
+            or (
+                not self.has_occupying(row, col)
+                and self.has_resource(row, col, DepletedQuarry)
+            )
+            or any(
                 not self.has_occupying(row, col)
                 and self.has_resource(row, col, resource)
                 for resource in allow_resources
-        )
+            )
         )
 
     def can_be_legally_occupied(self, row: int, col: int) -> bool:
@@ -1490,7 +1496,7 @@ class Engine:
         """Checks if the specified tile can be occupied by a gold general."""
         try:
             return self.is_occupyable_without_units(
-                    row, col, {Gold, Wood, SunkenQuarry}
+                row, col, {Gold, Wood, SunkenQuarry}
             )
         except IndexError:
             return False
@@ -1675,10 +1681,10 @@ class Engine:
         event.synchronize(self)
 
     def add_event(
-            self,
-            event: GameEvent,
-            constrain_check: bool = True,
-            determine_winner: bool = True,
+        self,
+        event: GameEvent,
+        constrain_check: bool = True,
+        determine_winner: bool = True,
     ):
         """
         Adds a new event to the game and updates the game state.
@@ -1812,7 +1818,7 @@ class Engine:
         for piece in self.players[self.turn].pieces:
             # Add the additional actions of the piece to the player's total
             self.players[self.turn].add_additional_actions(
-                    piece.get_additional_actions()
+                piece.get_additional_actions()
             )
             # Increment the tally of additional actions
             tally_additional_actions += piece.get_additional_actions()
@@ -1985,10 +1991,10 @@ class Engine:
         except IndexError:
             return False
         if (
-                isinstance(resource, Wood)
-                or isinstance(resource, Quarry)
-                or isinstance(resource, Gold)
-                or isinstance(resource, SunkenQuarry)
+            isinstance(resource, Wood)
+            or isinstance(resource, Quarry)
+            or isinstance(resource, Gold)
+            or isinstance(resource, SunkenQuarry)
         ):
             return True
         return False
@@ -2027,7 +2033,7 @@ class Engine:
 
         # Check if rituals are not banned and the building is a PrayerStone or Monolith
         if not self.rituals_banned and (
-                isinstance(building, PrayerStone) or isinstance(building, Monolith)
+            isinstance(building, PrayerStone) or isinstance(building, Monolith)
         ):
             return True
         return False
@@ -2288,7 +2294,7 @@ class Engine:
         # Check if there are mine-able resources or no units/resources on the squares
         for m in mining_squares:
             if self.has_mine_able_resource(
-                    m[0], m[1]
+                m[0], m[1]
             ) or self.has_no_units_or_resources(m[0], m[1]):
                 allow_mine = True
         # If mining is allowed, transfer to the mining state
@@ -2388,13 +2394,13 @@ class Engine:
         """
         # Define the ritual key mapping
         ritual_key: dict[str, tuple[Optional[str], list[str]]] = {
-            "magician"    : ("gold", self.magician_rituals[self.turn_count_actual]),
+            "magician": ("gold", self.magician_rituals[self.turn_count_actual]),
             "prayer_stone": (
                 "prayer",
                 self.prayer_stone_rituals[self.turn_count_actual],
             ),
-            "monolith"    : ("prayer", self.monolith_rituals[self.turn_count_actual]),
-            "assassin"    : (None, constant.ASSASSIN_RITUALS),
+            "monolith": ("prayer", self.monolith_rituals[self.turn_count_actual]),
+            "assassin": (None, constant.ASSASSIN_RITUALS),
         }
         # Get the cost type and ritual list for the occupying unit
         cost_type, ritual_list = ritual_key[str(self.get_occupying(row, col))]
@@ -2402,7 +2408,7 @@ class Engine:
         return self.create_ritual_menu(row, col, ritual_list, cost_type)
 
     def create_ritual_menu(
-            self, row: int, col: int, ritual_list: list[str], cost_type: str = "prayer"
+        self, row: int, col: int, ritual_list: list[str], cost_type: str = "prayer"
     ) -> bool:
         """
         Creates a ritual menu for the specified tile.
@@ -2417,7 +2423,7 @@ class Engine:
         self.get_occupying(row, col).casting = True
         # Create a new RitualMenu
         ritual_menu: RitualMenu = RitualMenu(
-                row, col, self.state[-1].win, self, ritual_list, cost_type
+            row, col, self.state[-1].win, self, ritual_list, cost_type
         )
         # Add the ritual menu to the menus list
         self.menus.append(ritual_menu)
@@ -2502,7 +2508,7 @@ class Engine:
         return self.create_trader_menu(row, col)
 
     def create_trader_menu(
-            self, row: int, col: int, set_new_piece_trading: bool = True
+        self, row: int, col: int, set_new_piece_trading: bool = True
     ) -> bool:
         """
         Creates a trader menu for the specified tile.
@@ -2529,7 +2535,7 @@ class Engine:
                 self.piece_trading = self.get_occupying(row, col)
             # Create a new GiveMenu
             trader_menu: GiveMenu = GiveMenu(
-                    row, col, self.state[-1].win, self, resource_list
+                row, col, self.state[-1].win, self, resource_list
             )
             # Add the trader menu to the menus list
             self.menus.append(trader_menu)
@@ -2537,7 +2543,7 @@ class Engine:
         return False
 
     def create_contextual_menu(
-            self, row: int, col: int, win: pygame.Surface, menu_list: list[str]
+        self, row: int, col: int, win: pygame.Surface, menu_list: list[str]
     ) -> bool:
         """
         Creates a contextual menu for the specified tile.

@@ -189,9 +189,50 @@ MAX_PRAYER_STONE_RITUALS_PER_TURN = 2
 MAX_MAGICIAN_RITUALS_PER_TURN = 1
 
 # Dictionaries
-PIECE_POINT_VALUES = {'king': 8, 'queen': 32, 'rook': 16, 'bishop': 16, 'knight': 8, 'pawn': 4, 'castle': 4,
-                      'monk': 4, 'fortress': 13, 'ram': 24, 'elephant': 16, 'barracks': 24, 'jester': 6, 'champion':
-                          28, 'prayer_stone': 4, 'monolith': 8, 'pikeman': 8, 'rogue_rook': 16, 'rogue_bishop': 16, 'rogue_knight': 8, 'rogue_pawn': 4, 'builder': 7, 'unicorn': 16, 'stable': 18, 'gold_general': 32, 'duke': 32, 'oxen': 24, 'wall': 6, 'doe': 24, 'persuader': 8, 'trader': 4, 'circus': 12, 'trapper': 4, 'trap': 1, 'lion': 24, 'fire_spinner': 16, 'acrobat': 16, 'magician': 8, 'cavalry': 8, 'ferz': 4, 'assassin': 8, 'war_tower': 20}
+PIECE_POINT_VALUES = {
+    "king": 8,
+    "queen": 32,
+    "rook": 16,
+    "bishop": 16,
+    "knight": 8,
+    "pawn": 4,
+    "castle": 4,
+    "monk": 4,
+    "fortress": 13,
+    "ram": 24,
+    "elephant": 16,
+    "barracks": 24,
+    "jester": 6,
+    "champion": 28,
+    "prayer_stone": 4,
+    "monolith": 8,
+    "pikeman": 8,
+    "rogue_rook": 16,
+    "rogue_bishop": 16,
+    "rogue_knight": 8,
+    "rogue_pawn": 4,
+    "builder": 7,
+    "unicorn": 16,
+    "stable": 18,
+    "gold_general": 32,
+    "duke": 32,
+    "oxen": 24,
+    "wall": 6,
+    "doe": 24,
+    "persuader": 8,
+    "trader": 4,
+    "circus": 12,
+    "trapper": 4,
+    "trap": 1,
+    "lion": 24,
+    "fire_spinner": 16,
+    "acrobat": 16,
+    "magician": 8,
+    "cavalry": 8,
+    "ferz": 4,
+    "assassin": 8,
+    "war_tower": 20,
+}
 
 NOTIFICATIONS = {
     None: ["cannot select"],
@@ -397,8 +438,11 @@ DESCRIPTIONS = {
         "moves one space orthogonally after it's first move.",
         "'right click' to harvest resources.",
     ],
-    "war_tower": ["slides to move orthogonally.", "\'right click\' to arm for explosion.",
-                  "explosion destroys everything in a radius of 1 square."]
+    "war_tower": [
+        "slides to move orthogonally.",
+        "'right click' to arm for explosion.",
+        "explosion destroys everything in a radius of 1 square.",
+    ],
 }
 
 PIECE_POPULATION = {

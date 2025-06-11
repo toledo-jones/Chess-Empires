@@ -179,7 +179,9 @@ class State:
         piece_image = self.spawn_table[piece.color + "_" + str(piece)]
         if str(piece) == "war_tower":
             if piece.armed:
-                piece_image = self.spawn_table[f"{piece.color}_war_tower_{piece.explosion_timer}"]
+                piece_image = self.spawn_table[
+                    f"{piece.color}_war_tower_{piece.explosion_timer}"
+                ]
         piece_rect = piece_image.get_rect(center=pos)
         self.win.blit(piece_image, piece_rect.topleft)
 
@@ -1170,9 +1172,7 @@ class PlaySelect(MainMenu):
         :param win: The game window surface.
         :param engine: The game engine instance.
         """
-        super().__init__(
-            win, engine, splash_screen
-        )  # Call parent class initializer
+        super().__init__(win, engine, splash_screen)  # Call parent class initializer
 
         # Set the font color based on the splash screen
         self.color = constant.turn_to_color[splash_screen.logo_color]
@@ -1241,10 +1241,12 @@ class PlaySelect(MainMenu):
                     # TODO: Potentially move to a function
                     from client import GameClient
                     from network import HOST_IP
+
                     self.engine.client = GameClient(HOST_IP, 5555, self.engine)
 
                     # I may need to use a startingOnline state instead of starting. We'll see
                     self.engine.set_state("starting")
+
 
 class Instructions(State):
     def __init__(self, win: pygame.Surface, engine: Engine):
@@ -2031,7 +2033,7 @@ class Playing(State):
             if len(piece.contextual_options) == 1 and str(piece) not in [
                 "queen",
                 "king",
-                "war_tower"
+                "war_tower",
             ]:
                 self.engine.menus[-1].left_click()
                 return None

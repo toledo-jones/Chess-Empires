@@ -36,18 +36,18 @@ class Unit:
         # This piece has not moved yet
         self.first_move: bool = True
         self.rect: pygame.Rect = pygame.Rect(
-                col * constant.SQ_SIZE,
-                row * constant.SQ_SIZE,
-                constant.SQ_SIZE,
-                constant.SQ_SIZE,
+            col * constant.SQ_SIZE,
+            row * constant.SQ_SIZE,
+            constant.SQ_SIZE,
+            constant.SQ_SIZE,
         )
 
         # Initialize sprites
         self.sprites: dict = (
-                constant.W_PIECES
-                | constant.W_BUILDINGS
-                | constant.B_PIECES
-                | constant.B_BUILDINGS
+            constant.W_PIECES
+            | constant.W_BUILDINGS
+            | constant.B_PIECES
+            | constant.B_BUILDINGS
         )
 
         # Initialize state flags
@@ -90,7 +90,7 @@ class Unit:
 
         # Initialize drawing attributes
         self.square: pygame.Surface = pygame.Surface(
-                (constant.SQ_SIZE, constant.SQ_SIZE), pygame.SRCALPHA
+            (constant.SQ_SIZE, constant.SQ_SIZE), pygame.SRCALPHA
         )
         self.self_selected_square_color: tuple = constant.SELF_SQUARE_HIGHLIGHT_COLOR
         self.unused_square_color: tuple = constant.UNUSED_PIECE_HIGHLIGHT_COLOR
@@ -98,14 +98,14 @@ class Unit:
         self.check_color: tuple = constant.CHECK_SQUARE_HIGHLIGHT_COLOR
         self.is_effected_by_jester: bool = True
         self.square_list: dict[str, list] = {
-            "spawn"      : self.spawn_squares_list,
-            "stealing"   : self.stealing_squares_list,
-            "praying"    : self.praying_squares_list,
-            "mining"     : self.mining_squares_list,
-            "move"       : self.move_squares_list,
-            "ritual"     : self.ritual_squares_list,
-            "capture"    : self.capture_squares_list,
-            "persuader"  : self.persuader_squares_list,
+            "spawn": self.spawn_squares_list,
+            "stealing": self.stealing_squares_list,
+            "praying": self.praying_squares_list,
+            "mining": self.mining_squares_list,
+            "move": self.move_squares_list,
+            "ritual": self.ritual_squares_list,
+            "capture": self.capture_squares_list,
+            "persuader": self.persuader_squares_list,
             "interceptor": self.interceptor_squares_list,
         }
         self.flag_to_action = [
@@ -168,7 +168,9 @@ class Unit:
             sprite = self.sprites[self.color + "_" + str(self)]
             if str(self) == "war_tower":
                 if self.armed:
-                    sprite = self.sprites[f"{self.color}_war_tower_{self.explosion_timer}"]
+                    sprite = self.sprites[
+                        f"{self.color}_war_tower_{self.explosion_timer}"
+                    ]
 
             # Calculate the x position based on the column and offset
             x = (self.col * constant.SQ_SIZE) + self.offset[0]
@@ -189,11 +191,11 @@ class Unit:
         # Fill the square with the specified color
         self.square_fill(color)
         win.blit(
-                self.square, (self.col * constant.SQ_SIZE, self.row * constant.SQ_SIZE)
+            self.square, (self.col * constant.SQ_SIZE, self.row * constant.SQ_SIZE)
         )
 
     def draw_squares_in_list(
-            self, win: pygame.Surface, square_list: list[Tuple[int, int]], color: tuple
+        self, win: pygame.Surface, square_list: list[Tuple[int, int]], color: tuple
     ):
         """
         Draws squares from a list on the game window.
@@ -207,8 +209,8 @@ class Unit:
         # Draw each square in the list
         for square in square_list:
             win.blit(
-                    self.square,
-                    (square[1] * constant.SQ_SIZE, square[0] * constant.SQ_SIZE),
+                self.square,
+                (square[1] * constant.SQ_SIZE, square[0] * constant.SQ_SIZE),
             )
 
     def draw_highlight(self, win: pygame.Surface, square_type: str):
@@ -222,9 +224,9 @@ class Unit:
         if square_type in self.square_list:
             # Draw the squares of the specified type
             self.draw_squares_in_list(
-                    win,
-                    getattr(self, f"{square_type}_squares_list"),
-                    self.move_square_color,
+                win,
+                getattr(self, f"{square_type}_squares_list"),
+                self.move_square_color,
             )
 
     def highlight_self_square_check(self, win: pygame.Surface):
@@ -253,8 +255,8 @@ class Unit:
         """
         # Draw the sparkle image on the unit's square
         win.blit(
-                constant.IMAGES["sparkle"],
-                (self.col * constant.SQ_SIZE, self.row * constant.SQ_SIZE),
+            constant.IMAGES["sparkle"],
+            (self.col * constant.SQ_SIZE, self.row * constant.SQ_SIZE),
         )
 
     def highlight_self_square(self, win: pygame.Surface):
@@ -406,7 +408,7 @@ class Unit:
 
         # Check if the capture tile is a valid square
         valid_square = isinstance(capture_piece, Piece) or isinstance(
-                capture_piece, Building
+            capture_piece, Building
         )
         if not valid_square:
             return False
@@ -421,12 +423,12 @@ class Unit:
         return self.default_can_capture(r, c, engine, capture_piece)
 
     def _can_capture(
-            self,
-            r: int,
-            c: int,
-            engine: "Engine",
-            capture_piece: "Unit",
-            check_rogue: bool = False,
+        self,
+        r: int,
+        c: int,
+        engine: "Engine",
+        capture_piece: "Unit",
+        check_rogue: bool = False,
     ) -> bool:
         """
         Checks if a unit can capture a piece at the given position.
@@ -454,22 +456,22 @@ class Unit:
         return False
 
     def general_can_capture(
-            self, r: int, c: int, engine: "Engine", capture_tile: "Unit"
+        self, r: int, c: int, engine: "Engine", capture_tile: "Unit"
     ) -> bool:
         return self._can_capture(r, c, engine, capture_tile, check_rogue=True)
 
     def cavalry_can_capture(
-            self, r: int, c: int, engine: "Engine", capture_tile: "Unit"
+        self, r: int, c: int, engine: "Engine", capture_tile: "Unit"
     ) -> bool:
         return self._can_capture(r, c, engine, capture_tile)
 
     def rogue_can_capture(
-            self, r: int, c: int, engine: "Engine", capture_tile: "Unit"
+        self, r: int, c: int, engine: "Engine", capture_tile: "Unit"
     ) -> bool:
         return self._can_capture(r, c, engine, capture_tile, check_rogue=True)
 
     def default_can_capture(
-            self, r: int, c: int, engine: "Engine", capture_tile: "Unit"
+        self, r: int, c: int, engine: "Engine", capture_tile: "Unit"
     ) -> bool:
         return self._can_capture(r, c, engine, capture_tile)
 
@@ -546,7 +548,7 @@ class Piece(Unit):
         self.unit_kind: str = "piece"
 
     def can_move(
-            self, engine: "Engine", row: int, col: int, can_be_occupied_function
+        self, engine: "Engine", row: int, col: int, can_be_occupied_function
     ) -> bool:
         """
         Determines if the piece can move to the given position based on the provided criteria.
@@ -625,12 +627,12 @@ class Piece(Unit):
         # Check if the tile is within bounds
         if engine.tile_in_bounds(row, col):
             return (
-                    not engine.has_occupying(row, col)
-                    and not engine.has_portal(row, col)
-                    and not engine.has_trap(row, col)
-                    and not engine.board[row][col].is_protected_by_opposite_color(
+                not engine.has_occupying(row, col)
+                and not engine.has_portal(row, col)
+                and not engine.has_trap(row, col)
+                and not engine.board[row][col].is_protected_by_opposite_color(
                     self.color
-            )
+                )
             )
         return False
 
@@ -1824,7 +1826,7 @@ class Pawn(Piece):
                     mining_squares.append((row, col))
             # Check if the tile can contain a quarry and is empty
             elif engine.can_contain_quarry(
-                    row, col
+                row, col
             ) and engine.has_no_units_or_resources(row, col):
                 # Add the position to mining squares
                 mining_squares.append((row, col))
@@ -2399,14 +2401,14 @@ class RoguePawn(Piece):
             if engine.has_mine_able_resource(row, col):
                 # If there is no occupying piece or the occupying piece is of the same color
                 if (
-                        not occupying_piece
-                        or engine.get_occupying_color(row, col) is self.color
+                    not occupying_piece
+                    or engine.get_occupying_color(row, col) is self.color
                 ):
                     # Add the position to the mining squares list
                     mining_squares.append((row, col))
             # Check if the tile can contain a quarry and is empty
             elif engine.can_contain_quarry(
-                    row, col
+                row, col
             ) and engine.has_no_units_or_resources(row, col):
                 # Add the position to the mining squares list
                 mining_squares.append((row, col))
@@ -2670,7 +2672,7 @@ class Monk(Piece):
             if self.base_spawn_criteria(engine, row, col):
                 # Check if the tile has no resource or has a depleted quarry
                 if not engine.has_resource(row, col) or engine.has_resource(
-                        row, col, DepletedQuarry
+                    row, col, DepletedQuarry
                 ):
                     # Add the position to the spawn squares list
                     spawn_squares.append((row, col))
@@ -2745,13 +2747,13 @@ class Ram(Piece):
 
         # Extra move directions for the ram
         self.extra_move_directions: dict = {
-            constant.TWO_UP_RIGHT  : constant.UP_RIGHT,
-            constant.TWO_UP_LEFT   : constant.UP_LEFT,
-            constant.TWO_RIGHT_UP  : constant.UP_RIGHT,
+            constant.TWO_UP_RIGHT: constant.UP_RIGHT,
+            constant.TWO_UP_LEFT: constant.UP_LEFT,
+            constant.TWO_RIGHT_UP: constant.UP_RIGHT,
             constant.TWO_RIGHT_DOWN: constant.DOWN_RIGHT,
-            constant.TWO_LEFT_UP   : constant.UP_LEFT,
-            constant.TWO_LEFT_DOWN : constant.DOWN_LEFT,
-            constant.TWO_DOWN_LEFT : constant.DOWN_LEFT,
+            constant.TWO_LEFT_UP: constant.UP_LEFT,
+            constant.TWO_LEFT_DOWN: constant.DOWN_LEFT,
+            constant.TWO_DOWN_LEFT: constant.DOWN_LEFT,
             constant.TWO_DOWN_RIGHT: constant.DOWN_RIGHT,
         }
 
@@ -2862,14 +2864,14 @@ class Elephant(Piece):
 
         # Extra move directions for the elephant
         self.directions_to_extra_moves: dict = {
-            constant.TWO_UP_RIGHT  : constant.UP,
-            constant.TWO_RIGHT_UP  : constant.RIGHT,
+            constant.TWO_UP_RIGHT: constant.UP,
+            constant.TWO_RIGHT_UP: constant.RIGHT,
             constant.TWO_DOWN_RIGHT: constant.DOWN,
             constant.TWO_RIGHT_DOWN: constant.RIGHT,
-            constant.TWO_UP_LEFT   : constant.UP,
-            constant.TWO_LEFT_UP   : constant.LEFT,
-            constant.TWO_DOWN_LEFT : constant.DOWN,
-            constant.TWO_LEFT_DOWN : constant.LEFT,
+            constant.TWO_UP_LEFT: constant.UP,
+            constant.TWO_LEFT_UP: constant.LEFT,
+            constant.TWO_DOWN_LEFT: constant.DOWN,
+            constant.TWO_LEFT_DOWN: constant.LEFT,
         }
 
         # Maximum distance the elephant can move
@@ -3382,7 +3384,7 @@ class Builder(Piece):
                 elif not engine.has_occupying(row, col):
                     mining_squares.append((row, col))
             elif engine.can_contain_quarry(
-                    row, col
+                row, col
             ) and engine.has_no_units_or_resources(row, col):
                 mining_squares.append((row, col))
 
@@ -3433,7 +3435,7 @@ class Builder(Piece):
             # Check if the base spawn criteria are met
             if self.base_spawn_criteria(engine, row, col):
                 if not engine.has_resource(row, col) or engine.has_resource(
-                        row, col, DepletedQuarry
+                    row, col, DepletedQuarry
                 ):
                     spawn_squares.append((row, col))
 
@@ -3498,14 +3500,14 @@ class Unicorn(Piece):
 
         # Mapping of knight directions to extra moves
         self.knight_directions_to_extra_moves: dict = {
-            constant.TWO_UP_RIGHT  : constant.TWO_RIGHT_UP,
-            constant.TWO_RIGHT_UP  : constant.TWO_UP_RIGHT,
+            constant.TWO_UP_RIGHT: constant.TWO_RIGHT_UP,
+            constant.TWO_RIGHT_UP: constant.TWO_UP_RIGHT,
             constant.TWO_DOWN_RIGHT: constant.TWO_RIGHT_DOWN,
             constant.TWO_RIGHT_DOWN: constant.TWO_DOWN_RIGHT,
-            constant.TWO_UP_LEFT   : constant.TWO_LEFT_UP,
-            constant.TWO_LEFT_UP   : constant.TWO_UP_LEFT,
-            constant.TWO_DOWN_LEFT : constant.TWO_LEFT_DOWN,
-            constant.TWO_LEFT_DOWN : constant.TWO_DOWN_LEFT,
+            constant.TWO_UP_LEFT: constant.TWO_LEFT_UP,
+            constant.TWO_LEFT_UP: constant.TWO_UP_LEFT,
+            constant.TWO_DOWN_LEFT: constant.TWO_LEFT_DOWN,
+            constant.TWO_LEFT_DOWN: constant.TWO_DOWN_LEFT,
         }
 
         # Maximum distance the unicorn can move
@@ -3623,10 +3625,10 @@ class Champion(Piece):
 
         # Extra move directions for the champion
         self.extra_move_directions: dict = {
-            constant.UP_RIGHT  : (constant.UP, constant.RIGHT),
-            constant.UP_LEFT   : (constant.UP, constant.LEFT),
+            constant.UP_RIGHT: (constant.UP, constant.RIGHT),
+            constant.UP_LEFT: (constant.UP, constant.LEFT),
             constant.DOWN_RIGHT: (constant.DOWN, constant.RIGHT),
-            constant.DOWN_LEFT : (constant.DOWN, constant.LEFT),
+            constant.DOWN_LEFT: (constant.DOWN, constant.LEFT),
         }
 
         # Contextual options available for the champion
@@ -3780,14 +3782,14 @@ class Oxen(Piece):
 
         # Extra move directions for the oxen
         self.extra_move_directions: dict = {
-            constant.TWO_UP_RIGHT  : constant.UP,
-            constant.TWO_RIGHT_UP  : constant.RIGHT,
+            constant.TWO_UP_RIGHT: constant.UP,
+            constant.TWO_RIGHT_UP: constant.RIGHT,
             constant.TWO_DOWN_RIGHT: constant.DOWN,
             constant.TWO_RIGHT_DOWN: constant.RIGHT,
-            constant.TWO_UP_LEFT   : constant.UP,
-            constant.TWO_LEFT_UP   : constant.LEFT,
-            constant.TWO_DOWN_LEFT : constant.DOWN,
-            constant.TWO_LEFT_DOWN : constant.LEFT,
+            constant.TWO_UP_LEFT: constant.UP,
+            constant.TWO_LEFT_UP: constant.LEFT,
+            constant.TWO_DOWN_LEFT: constant.DOWN,
+            constant.TWO_LEFT_DOWN: constant.LEFT,
         }
 
         # Maximum distance the oxen can move
@@ -5027,14 +5029,14 @@ class Ferz(Piece):
             if engine.has_mine_able_resource(row, col):
                 # Check if the tile is empty or occupied by a unit of the same color
                 if (
-                        not occupying_unit
-                        or engine.get_occupying_color(row, col) == self.color
+                    not occupying_unit
+                    or engine.get_occupying_color(row, col) == self.color
                 ):
                     mining_squares.append((row, col))
 
             # Check if the tile can contain a quarry and has no units or resources
             elif engine.can_contain_quarry(
-                    row, col
+                row, col
             ) and engine.has_no_units_or_resources(row, col):
                 mining_squares.append((row, col))
 
@@ -5243,7 +5245,7 @@ class Cavalry(Piece):
                 elif not engine.has_occupying(row, col):
                     mining_squares.append((row, col))
             elif engine.can_contain_quarry(
-                    row, col
+                row, col
             ) and engine.has_no_units_or_resources(row, col):
                 mining_squares.append((row, col))
 

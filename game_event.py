@@ -1123,6 +1123,7 @@ class ChangeTurn(GameEvent):
             self.engine.trade_conversions.append(
                 self.engine.trade_handler.get_conversions()
             )
+
         if self.engine.turn_count_actual == len(self.engine.piece_stealing_offsets) - 1:
             self.engine.piece_stealing_offsets.append(
                 generate_stealing_offsets(constant.STEALING_KEY["piece"])
@@ -2950,13 +2951,13 @@ class RitualEvent(GameEvent):
 
         # Set the ritual cost if the cost type is available.
         if self.cost_type:
-            self.ritual_cost = constant.PRAYER_COSTS[str(self)][self.cost_type]
+            self.ritual_cost = self.engine.RITUAL_COSTS[str(self)][self.cost_type]
 
         # Set the monk cost based on the cost type.
         if self.cost_type == "gold" or not self.cost_type:
             self.monk_cost = 0
         else:
-            self.monk_cost = constant.PRAYER_COSTS[str(self)]["monk"]
+            self.monk_cost = self.engine.RITUAL_COSTS[str(self)]["monk"]
 
         # Store the current turn and player.
         self.turn = self.engine.turn
@@ -3715,7 +3716,7 @@ class DestroyResource(RitualEvent):
 
         :return: A string representation of this event.
         """
-        return "destroy resource"
+        return "destroy_resource"
 
     def complete(self):
         """
@@ -4232,8 +4233,10 @@ class SelectMap(GameEvent):
         self.engine.set_piece_values()
         # Update upgrade costs for this map
         self.engine.upgrades.map = self.engine.map
-
+        # Generate upgrade costs based on the selected map
         self.engine.upgrades.generate_upgrade_costs()
+        # Set prayer costs for map
+        self.engine.map.assign_ritual_costs(self.engine.RITUAL_COSTS)
 
     def synchronize(self, engine):
         """

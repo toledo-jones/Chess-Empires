@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import math
 import typing
-from typing import Any, Dict, Set, List, Callable
+from typing import Any, Dict, Set, List, Callable, Union
 
 import squares
 from resource import *
+from settings import RITUAL_STRENGTH
 
 if typing.TYPE_CHECKING:
     pass
@@ -49,73 +50,102 @@ def calculate_points_per_resource(
     :param total_resources: The total number of resources.
     :return: A dictionary with resource names as keys and their points and availability as values.
     """
-    points_per_resource: Dict[str, Dict[str, int]] = {}
+    print(f"\n[DEBUG] Starting calculate_points_per_resource")
+    print(f"[DEBUG] Initial resource_count: {resource_count}")
+
+    total_resources = sum(resource_count.values())
+    print(f"[DEBUG] Recalculated total_resources from values: {total_resources}")
+
+    points_per_resource: dict = {}
 
     for resource, count in resource_count.items():
+        original_resource = resource
+        print(f"\n[DEBUG] Processing resource: {original_resource}, count: {count}")
+
+        # Normalize resource name
         if resource == "quarry":
             resource = "stone"
-        try:
-            # Player can only ever hope to achieve 1/3 of available resources
-            points: int = round(1 / (count / total_resources)) if count > 0 else 0
-        except ZeroDivisionError:
-            points = 0
 
-        total_points_possible: int = points * round(count)
+        # Skip zero-count resources
+        if count <= 0:
+            print(f"[DEBUG] Resource '{resource}' has zero or negative count. Assigning 0 points and availability.")
+            points_per_resource[resource] = {"points": 0, "available": 0}
+            continue
+
+        # Step 1: Scarcity
+        scarcity = 1 - (count / total_resources)
+        print(f"[DEBUG] Scarcity for '{resource}': {scarcity:.4f} (1 - ({count} / {total_resources}))")
+
+        # Step 2: Weight based on scarcity (exaggerated by squaring)
+        weight = 1 + (scarcity ** 2) * 2
+        print(f"[DEBUG] Weight for '{resource}': {weight:.4f} (1 + ({scarcity} ** 2) * 2)")
+
+        # Step 3: Base points
+        base_points = total_resources / count
+        points = round(base_points * weight)
+        print(f"[DEBUG] Base points for '{resource}': {base_points:.4f} ({total_resources} / {count})")
+        print(f"[DEBUG] Final points (rounded) for '{resource}': {points} ({base_points} * {weight})")
+
+        # Step 4: Nonlinear access curve to simulate realistic availability
+        const = 1
+        realistic_count = round(count ** const)
+        print(f"[DEBUG] Realistic count for '{resource}': {realistic_count} (rounded {count} ** {const}")
+
+        total_points_possible = points * realistic_count
+        print(f"[DEBUG] Total points possible for '{resource}': {total_points_possible} ({points} * {realistic_count})")
+
         points_per_resource[resource] = {
-            "points"   : points,
+            "points": points,
             "available": total_points_possible,
         }
 
+    print(f"\n[DEBUG] Final points_per_resource: {points_per_resource}\n")
     return points_per_resource
+
+
+import random
+from typing import Tuple, List
 
 
 def assign_resource_random_weights(points_to_fill: int) -> Tuple[int, int, int]:
     """
-    Assigns random weighted values to wood, stone, and gold while ensuring the total
-    sum remains equal to the given `points_to_fill`.
-
-    The function generates three random weights that sum to 1, then applies these
-    weights to distribute `points_to_fill` among wood, stone, and gold.
+    Fairly assigns random weighted values to wood, stone, and gold such that their
+    sum equals `points_to_fill`. Avoids bias by using consistent base values for all resources.
 
     :param points_to_fill: The total number of points to distribute.
     :return: A tuple containing the assigned points for wood, stone, and gold, respectively.
     """
-    # Generate a random weight for the first resource
-    first_weight: float = random.random()
+    # Step 1: Generate three weights that sum to 1
+    first_weight = random.random()
+    second_weight = random.uniform(0, 1 - first_weight)
+    third_weight = 1 - (first_weight + second_weight)
+    weights = [first_weight, second_weight, third_weight]
 
-    # Generate a second weight, ensuring that the sum of the first two is ≤ 1
-    second_weight: float = random.uniform(0, 1 - first_weight)
-
-    # The third weight is whatever remains to ensure all weights sum to 1
-    third_weight: float = 1 - (first_weight + second_weight)
-
-    # Store weights in a list
-    weights: List[float] = [first_weight, second_weight, third_weight]
-
-    # Shuffle the weights to randomize their assignment to resources
+    # Step 2: Randomly assign the weights to the three resources
     random.shuffle(weights)
+    wood_weight, stone_weight, gold_weight = weights
 
-    # Assign shuffled weights to log, stone, and gold respectively
-    log_weight: float = weights[0]
-    stone_weight: float = weights[1]
-    gold_weight: float = weights[2]
+    # Step 3: Compute points for all three using the same total base
+    wood_points = round(wood_weight * points_to_fill)
+    stone_points = round(stone_weight * points_to_fill)
+    gold_points = round(gold_weight * points_to_fill)
 
-    # Calculate wood points based on its weight
-    wood_points: int = round(log_weight * points_to_fill)
+    # Step 4: Adjust for any rounding error
+    total_assigned = wood_points + stone_points + gold_points
+    difference = points_to_fill - total_assigned
 
-    # Subtract assigned wood points from the total available points
-    points_to_fill -= wood_points
+    if difference != 0:
+        # Find the index of the resource with the largest weight
+        max_weight = max(weights)
+        max_index = weights.index(max_weight)
 
-    # Calculate stone points based on its weight
-    stone_points: int = round(stone_weight * points_to_fill)
+        if max_index == 0:
+            wood_points += difference
+        elif max_index == 1:
+            stone_points += difference
+        else:
+            gold_points += difference
 
-    # Subtract assigned stone points from the remaining available points
-    points_to_fill -= stone_points
-
-    # The remaining points are assigned to gold
-    gold_points: int = round(gold_weight * points_to_fill)
-
-    # Return the assigned point values for wood, stone, and gold
     return wood_points, stone_points, gold_points
 
 
@@ -193,6 +223,9 @@ class Map:
         # Initialize a dictionary to store piece costs
         self.PIECE_COSTS: Dict[str, dict[str, int]] = {}
 
+        # Initialize a dictionary to store ritual costs
+        self.RITUAL_COSTS: Dict[str, Union[dict[str, int], int]] = {}
+
     def place_trees_around_point(
             self,
             center: Tuple[int, int],
@@ -263,6 +296,32 @@ class Map:
 
         # Assign costs to pieces
         self.assign_piece_costs(initial_piece_costs, self.points_per_resource)
+
+    def assign_ritual_costs(self, initial_ritual_costs):
+        self.RITUAL_COSTS = initial_ritual_costs.copy()
+        for ritual, costs in initial_ritual_costs.items():
+            points_to_fill: int = constant.RITUAL_STRENGTH[ritual]
+
+            # Assign random weights for resources
+            wood_points, stone_points, gold_points = assign_resource_random_weights(
+                    points_to_fill * 12
+            )
+
+            # Calculate resource costs based on available points
+            wood_cost, stone_cost, gold_cost = calculate_resource_costs(
+                    wood_points, stone_points, gold_points, self.points_per_resource
+            )
+
+            # Assign costs to the piece
+            self.RITUAL_COSTS[ritual]["resource"] = {
+                "log"  : wood_cost,
+                "stone": stone_cost,
+                "gold" : gold_cost,
+            }
+            self.RITUAL_COSTS[ritual]["monk"] = self.engine.RITUAL_COSTS[ritual]["monk"]
+            self.RITUAL_COSTS[ritual]["prayer"] = RITUAL_STRENGTH[ritual]
+
+        self.engine.RITUAL_COSTS = self.RITUAL_COSTS
 
     def assign_piece_costs(
             self,

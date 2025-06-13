@@ -18,7 +18,7 @@ DEBUG_STARTING_PRAYER = 200
 DEBUG_STARTING_WOOD = 100
 DEBUG_STARTING_GOLD = 100
 DEBUG_STARTING_STONE = 100
-DEBUG_STARTING_PIECES = ["castle", "king", "duke"]
+DEBUG_STARTING_PIECES = ["castle", "king", "magician", "monk", "prayer_stone"]
 
 # Window and board sizes
 MAX_FPS = 120
@@ -227,7 +227,7 @@ PIECE_POINT_VALUES = {
     "gold_general": 32,
     "duke": 32,
     "oxen": 24,
-    "wall": 6,
+    "wall": 12,
     "doe": 24,
     "persuader": 8,
     "trader": 4,
@@ -504,26 +504,37 @@ PIECE_POPULATION = {
     "ferz": 1,
     "assassin": 1,
 }
-PRAYER_COSTS = {
-    "gold_general": {
-        "prayer": 12,
-        "monk": 2,
-        "gold": 0,
-    },  # monk yields 3, other pieces yield 2
-    "smite": {
-        "prayer": 12,
-        "monk": 1,
-        "gold": 0,
-    },  # rituals have a prayer cost & monk cost
-    "destroy_resource": {"prayer": 6, "monk": 0, "gold": 0},
-    # & a gold cost, accessed by the magician or rogue monk?
-    "create_resource": {"prayer": 5, "monk": 0, "gold": 0},
-    "teleport": {"prayer": 6, "monk": 0, "gold": 4},
-    "swap": {"prayer": 2, "monk": 0, "gold": 3},
-    "line_destroy": {"prayer": 9, "monk": 1, "gold": 0},
-    "portal": {"prayer": 2, "monk": 0, "gold": 2},
-    "protect": {"prayer": 2, "monk": 0, "gold": 0},
+RITUAL_STRENGTH = {"gold_general": 12,
+                   "smite": 12,
+                   "destroy_resource": 6,
+                   "create_resource": 5,
+                   "teleport": 6,
+                   "swap": 2,
+                   "line_destroy": 9,
+                   "portal": 2,
+                   "protect": 2
 }
+
+
+# PRAYER_COSTS = {
+#     "gold_general": {
+#         "prayer": 12,
+#         "monk": 2,
+#         "gold": 0,
+#     },
+#     "smite": {
+#         "prayer": 12,
+#         "monk": 1,
+#         "gold": 0,
+#     },
+#     "destroy_resource": {"prayer": 6, "monk": 0, "gold": 0},
+#     "create_resource": {"prayer": 5, "monk": 0, "gold": 0},
+#     "teleport": {"prayer": 6, "monk": 0, "gold": 4},
+#     "swap": {"prayer": 2, "monk": 0, "gold": 3},
+#     "line_destroy": {"prayer": 9, "monk": 1, "gold": 0},
+#     "portal": {"prayer": 2, "monk": 0, "gold": 2},
+#     "protect": {"prayer": 2, "monk": 0, "gold": 0},
+# }
 ADDITIONAL_PIECE_LIMIT = {
     "castle": 5,
     "castle_0": 9,

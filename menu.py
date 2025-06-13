@@ -520,12 +520,12 @@ class RitualMenu(Menu):
         :param ritual_list: The list of rituals.
         :param cost_type: The type of cost for the rituals.
         """
-        # Set the cost type and ritual list
-        self.cost_type: str = cost_type
-
         # Set the row and column positions
         self.row: int = row
         self.col: int = col
+
+        # Set the cost type and ritual list
+        self.cost_type: str = cost_type
 
         # Initialize the parent Menu class
         super().__init__(win, engine)
@@ -539,6 +539,10 @@ class RitualMenu(Menu):
             os.path.join("files/fonts", "font.ttf"), self.font_size
         )
 
+        # Buffers for spacing
+        self.vertical_buffer_between_pieces: int = constant.SQ_SIZE // 6
+        self.horizontal_buffer_between_costs: int = round(constant.SQ_SIZE * 1.3)
+
         # Get the current player
         self.player = self.engine.players[self.engine.turn]
 
@@ -547,10 +551,6 @@ class RitualMenu(Menu):
             self.col * constant.SQ_SIZE + constant.SQ_SIZE // 2,
             self.row * constant.SQ_SIZE + constant.SQ_SIZE // 2,
         )
-
-        # Buffers for spacing
-        self.vertical_buffer_between_pieces: int = constant.SQ_SIZE // 6
-        self.horizontal_buffer_between_costs: int = round(constant.SQ_SIZE * 1.3)
 
         # Bar dimensions
         self.bar_width: int = constant.IMAGES["prayer_bar"].get_width()
@@ -564,15 +564,18 @@ class RitualMenu(Menu):
 
         # Gold icon setup
         self.gold_icon = constant.MENU_ICONS["gold_coin"]
-        self.gold_icon_display_x: int = (
-            self.ritual_width + self.vertical_buffer_between_pieces
-        )
-        self.gold_cost_text_display_x: int = (
-            self.ritual_width + self.vertical_buffer_between_pieces * 2
-        )
+
+        # # Define spacing for costs dynamically
+        # first_third = self.menu_width // 3
+        # cost_section_width = (self.menu_width - first_third) // 3
+        #
+        # # Set positions for cost icons & text
+        # self.log_x = first_third
+        # self.gold_x = self.log_x + cost_section_width
+        # self.stone_x = self.gold_x + cost_section_width
 
         # Menu dimensions
-        if not self.cost_type == "gold":
+        if not self.cost_type == "resource":
             self.menu_width: int = (
                 self.ritual_width
                 + self.vertical_buffer_between_pieces
@@ -586,7 +589,13 @@ class RitualMenu(Menu):
                 + self.gold_icon.get_width() * 2
             )
 
+        # Calculate menu dimensions
+        self.menu_width: int = constant.SQ_SIZE * 5
         self.menu_height: int = len(ritual_list) * self.ritual_height
+
+        # self.menu_height: int = len(ritual_list) * self.ritual_height
+        self.gold_icon, self.stone_icon, self.wood_icon = constant.MENU_ICONS["gold_coin"], constant.MENU_ICONS[
+            "stone"], constant.MENU_ICONS["log"]
 
         # Correct menu boundary
         self.menu_position_x: int
@@ -699,7 +708,7 @@ class RitualMenu(Menu):
         # Cache values to avoid redundant dictionary lookups
         turn: str = self.engine.turn
         rituals: Dict[str, pygame.Surface] = self.rituals
-        prayer_costs: Dict[str, Dict[str, int]] = constant.PRAYER_COSTS
+        prayer_costs: Dict[str, Dict[str, int]] = self.engine.RITUAL_COSTS
         cost_type: str = self.cost_type
         player_gold: int = self.player.gold
 
@@ -730,25 +739,39 @@ class RitualMenu(Menu):
 
                     y_buffer_prayer += self.y_buffer + self.ritual_height // 2
 
-            elif cost_type == "gold" and cost_data["gold"] > 0:
-                gold_cost: int = cost_data["gold"]
-                gold_color: Tuple[int, int, int] = (
-                    constant.turn_to_color[turn]
-                    if player_gold >= gold_cost
-                    else constant.RED
-                )
-                gold_surface: pygame.Surface = self.font.render(
-                    str(gold_cost), True, gold_color
-                )
+            elif cost_type == "resource":
+                resource_costs: Dict[str, int] = cost_data["resource"]
+                icon_y: int = y_buffer_ritual + self.gold_icon.get_height() // 2
+                # Starting X position to the right of the ritual image
 
-                # Compute Y positions for gold icon and cost text
-                gold_icon_y: int = y_buffer_ritual + self.gold_icon.get_height() // 2
-                gold_text_y: int = y_buffer_ritual + gold_surface.get_height() // 2
+                resource_icon_x: int = self.ritual_width + 10
+                spacing: int = self.horizontal_buffer_between_costs  # horizontal space between icons
 
-                self.menu.blit(self.gold_icon, (self.gold_icon_display_x, gold_icon_y))
-                self.menu.blit(
-                    gold_surface, (self.gold_cost_text_display_x, gold_text_y)
-                )
+                for resource_type in ["gold", "wood", "stone"]:
+                    cost_amount = resource_costs.get(resource_type, 0)
+                    if cost_amount > 0:
+                        # Choose icon and check if the player can afford the resource
+                        icon = getattr(self, f"{resource_type}_icon")
+                        player_resource = getattr(self.player, resource_type)
+                        color = (
+                            constant.turn_to_color[turn]
+                            if player_resource >= cost_amount
+                            else constant.RED
+                        )
+                        # Render cost text
+                        cost_surface = self.font.render(str(cost_amount), True, color)
+                        # Draw icon and text side-by-side
+                        self.menu.blit(icon, (resource_icon_x, icon_y))
+                        self.menu.blit(
+                            cost_surface,
+                            (
+                                resource_icon_x + icon.get_width() + 2,
+                                icon_y
+                                + (icon.get_height() - cost_surface.get_height()) // 2,
+                            ),
+                        )
+                        # Update X for next resource
+                        resource_icon_x += spacing
 
             # Draw the ritual icon
             ritual_key: str = f"{turn}_{ritual}"
@@ -1423,12 +1446,12 @@ class ResourceMenu(Menu):
         self.menu_boundary_buffer_x: int = self.menu_width + self.menu_boundary_buffer
 
         # Initialize highlight list for spawn items
-        self.spawn_highlight_list: list[bool] = []
+        self.highlight_list: list[bool] = []
         self.square: pygame.Surface = pygame.Surface(
             (self.menu_width, round(1 / len(self.action_list) * self.menu_height))
         )
         for _ in self.action_list:
-            self.spawn_highlight_list.append(False)
+            self.highlight_list.append(False)
 
     def left_click(self) -> bool:
         """
@@ -1477,7 +1500,7 @@ class ResourceMenu(Menu):
         # Highlight selected items
         for index in range(len(self.action_list)):
             start_y: float = (index / len(self.action_list)) * self.menu_height
-            if self.spawn_highlight_list[index]:
+            if self.highlight_list[index]:
                 self.menu.blit(self.square, (0, start_y))
 
         # Set highlight properties once (instead of inside a loop)
@@ -1539,16 +1562,14 @@ class SpawningMenu(Menu):
         # Set list of actions for this menu
         self.action_list: list[str] = spawn_list
 
-        # Set vertical buffer between pieces
-        self.vertical_buffer_between_pieces: int = constant.SQ_SIZE // 4
-
-        # Set font size
+        # Font setup
         self.font_size: int = round(constant.SQ_SIZE / 2)
-
-        # Create font object
         self.font: pygame.font.Font = pygame.font.Font(
             os.path.join("files/fonts", "font.ttf"), self.font_size
         )
+
+        # Set vertical buffer between pieces
+        self.vertical_buffer_between_pieces: int = constant.SQ_SIZE // 4
 
         # Render test text to calculate menu width
         self.test_text: pygame.Surface = self.font.render("10", True, constant.RED)

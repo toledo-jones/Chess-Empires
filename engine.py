@@ -489,6 +489,17 @@ class Engine:
             "assassin": {"log": 0, "gold": 10, "stone": 0},
             "war_tower": {"log": 0, "gold": 14, "stone": 0},
         }
+        self.RITUAL_COSTS = {
+            "gold_general"    : {"prayer": 12, "monk": 2, "resource": {"gold": 0, "log": 0, "stone": 0}},
+            "smite"           : {"prayer": 12,"monk": 1, "resource": {"gold": 0, "log": 0, "stone": 0}},
+            "destroy_resource": {"prayer": 6, "monk": 0, "resource": {"gold": 0, "log": 0, "stone": 0}},
+            "create_resource" : {"prayer": 5, "monk": 0, "resource": {"gold": 0, "log": 0, "stone": 0}},
+            "teleport"        : {"prayer": 6, "monk": 0, "resource": {"gold": 0, "log": 0, "stone": 0}},
+            "swap"            : {"prayer": 2, "monk": 0, "resource": {"gold": 0, "log": 0, "stone": 0}},
+            "line_destroy"    : {"prayer": 9, "monk": 1, "resource": {"gold": 0, "log": 0, "stone": 0}},
+            "portal"          : {"prayer": 2, "monk": 0, "resource": {"gold": 0, "log": 0, "stone": 0}},
+            "protect"         : {"prayer":  2, "monk": 0, "resource": {"gold": 0, "log": 0, "stone": 0}},
+        }
 
         # Game Modifiers
         # Initialize the protected tiles list
@@ -788,7 +799,7 @@ class Engine:
         if len(self.state) == 2:
             del self.state[0]
 
-    def valid_ritual(self, cost: Optional[int], cost_type: str) -> bool:
+    def valid_ritual(self, cost: Union[Dict[str, int], int], cost_type: str) -> bool:
         """
         Checks if a ritual can be performed based on the cost and cost type.
 
@@ -813,9 +824,8 @@ class Engine:
             return self.players[self.turn].prayer - cost >= 0
 
         # Check if the player has enough gold
-        elif cost_type == "gold":
-            return self.players[self.turn].gold - cost >= 0
-
+        elif cost_type == "resource":
+            return self.valid_purchase(cost)
         return False
 
     def valid_purchase(self, cost: dict[str, int]) -> bool:
@@ -1964,7 +1974,7 @@ class Engine:
         if not cost_type:
             ritual_cost = None
         else:
-            ritual_cost = constant.PRAYER_COSTS[ritual][cost_type]
+            ritual_cost = self.RITUAL_COSTS[ritual][cost_type]
         return self.valid_ritual(ritual_cost, cost_type)
 
     def player_has_gold_general(self, color: str) -> bool:
@@ -2517,7 +2527,7 @@ class Engine:
         """
         # Define the ritual key mapping
         ritual_key: dict[str, tuple[Optional[str], list[str]]] = {
-            "magician": ("gold", self.magician_rituals[self.turn_count_actual]),
+            "magician": ("resource", self.magician_rituals[self.turn_count_actual]),
             "prayer_stone": (
                 "prayer",
                 self.prayer_stone_rituals[self.turn_count_actual],

@@ -157,8 +157,11 @@ class Player:
         if not cost_type:
             return
 
-        resource = getattr(self, cost_type)
-        setattr(self, cost_type, resource - cost)
+        try:
+            resource = getattr(self, cost_type)
+            setattr(self, cost_type, resource - cost)
+        except AttributeError:
+            self.purchase(cost)
 
     def undo_ritual(self, cost: int, cost_type: str):
         """
@@ -169,8 +172,11 @@ class Player:
         """
         if not cost_type:
             return
-        resource = getattr(self, cost_type)
-        setattr(self, cost_type, resource + cost)
+        try:
+            resource = getattr(self, cost_type)
+            setattr(self, cost_type, resource + cost)
+        except AttributeError:
+            self.un_purchase(cost)
 
     def set_prayer(self, prayer: int):
         """

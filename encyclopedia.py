@@ -276,7 +276,7 @@ class PieceDescription(Encyclopedia):
 
         # Determine cost and type based on selection
         try:
-            self.cost = constant.PRAYER_COSTS[self.selected]["prayer"]
+            self.cost = self.engine.RITUAL_COSTS[self.selected]["prayer"]
             self.type = "ritual"
         except KeyError:
             self.cost = self.engine.PIECE_COSTS[self.selected]

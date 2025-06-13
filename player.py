@@ -211,11 +211,11 @@ class Player:
             count += piece.get_population_value()
         return count
 
-    def can_trade(self) -> bool:
+    def has_resources(self) -> bool:
         """
-        Checks if the player has resources to trade.
+        Checks if the player has resources to trade or spend, of any kind.
 
-        :return: True if the player can trade, False otherwise.
+        :return: True if the player has any resource of any kind, False otherwise.
         """
         return self.gold != 0 or self.wood != 0 or self.stone != 0
 

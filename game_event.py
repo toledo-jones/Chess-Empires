@@ -1141,7 +1141,6 @@ class ChangeTurn(GameEvent):
             self.engine.trader_stealing_offsets.append(
                 generate_stealing_offsets(constant.STEALING_KEY["trader"])
             )
-
         # Highlight all unused pieces.
         unused_pieces = self.engine.count_unused_pieces()
         for piece in unused_pieces:
@@ -1149,6 +1148,9 @@ class ChangeTurn(GameEvent):
 
         # Check if the current player is in check.
         self.set_player_in_check()
+
+        if self.engine.turn_count_actual != 0:
+            self.engine.set_winner()
 
     def undo(self):
         """
@@ -1252,9 +1254,6 @@ class SpawnResource(GameEvent):
         # Store the entity responsible for spawning.
         self.spawner = self.acting_tile.get_occupying()
 
-        # Get the cost associated with spawning the resource.
-        self.piece_cost = engine.PIECE_COSTS[self.engine.spawning]
-
     def __repr__(self) -> str:
         """
         Returns the string representation of the event.
@@ -1275,10 +1274,6 @@ class SpawnResource(GameEvent):
 
         # Add the resource to the game engine.
         self.engine.create_resource(self.dest[0], self.dest[1], resource)
-
-        # Deduct resource cost if quarrying consumes resources.
-        if constant.QUARRY_COSTS_RESOURCE:
-            self.engine.players[self.engine.turn].purchase(self.piece_cost)
 
         # Play the resource mining sound effect.
         self.engine.sounds.play("mine_stone")
@@ -1311,10 +1306,6 @@ class SpawnResource(GameEvent):
 
         # Play the resource mining sound effect again.
         self.engine.sounds.play("mine_stone")
-
-        # Refund the resource cost if it was deducted.
-        if constant.QUARRY_COSTS_RESOURCE:
-            self.engine.players[self.engine.turn].un_purchase(self.piece_cost)
 
         # Remove the resource from the game engine.
         self.engine.delete_resource(self.dest[0], self.dest[1])
@@ -1943,6 +1934,155 @@ class Spawn(GameEvent):
         unused_pieces = self.engine.count_unused_pieces()
         for piece in unused_pieces:
             piece.unused_piece_highlight = True
+
+
+class Upgrade(GameEvent):
+    """
+    Represents the event of upgrading a piece on the game board.
+
+    This event handles creating a piece, updating game state, and managing resources.
+    """
+
+    def __init__(self, engine: "Engine", acting_tile: "Tile", action_tile: "Tile"):
+        """
+        Initializes the Spawn event.
+
+        :param engine: The game engine instance.
+        :param acting_tile: The tile initiating the spawn action.
+        :param action_tile: The tile where the piece will be spawned.
+        """
+        super().__init__(engine, acting_tile, action_tile)
+
+        # Store the current player's color.
+        self.color = self.engine.turn
+
+        # Store the piece occupying the acting tile.
+        self.spawner = self.acting_tile.get_occupying()
+
+        # Initialize additional piece limit and actions.
+        self.additional_piece_limit = 0
+        self.additional_actions = 0
+
+        # Store the cost of the piece being spawned.
+        self.cost = self.engine.upgrades.upgrade_costs[str(self.spawner)][
+            self.spawner.rank + 1
+        ]
+
+        # If this flag is true, replace upgrade contextual option when undoing
+        self.replace_upgrade = False
+
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the Upgrade event.
+
+        :return: A string representation of this event.
+        """
+        return "upgrade"
+
+    def complete(self):
+        """
+        Completes the upgrade action, placing the unit on the board and handling necessary updates.
+        """
+        super().complete()
+        self.engine.players[self.engine.turn].remove_additional_piece_limit(
+            self.spawner.get_additional_piece_limit()
+        )
+
+        # Spawn the unit at the designated location.
+        self.spawner.upgrade()
+
+        # Get the type of unit spawned.
+        kind = self.spawner.unit_kind
+
+        # Play the corresponding spawn sound effect.
+        self.engine.sounds.play("spawn_" + kind)
+
+        # Reduce the spawner's remaining actions by 1.
+        self.spawner.actions_remaining -= 1
+
+        # Mark the spawn as successful.
+        self.engine.spawn_success = True
+
+        # Clear any active menus.
+        self.engine.menus = []
+
+        # Reset the selected piece/tile.
+        self.engine.reset_selected()
+
+        # Deduct the cost of the piece from the player's resources.
+        self.engine.players[self.engine.turn].purchase(self.cost)
+
+        # Perform the action, subtracting one from the players total turn actions.
+        self.engine.players[self.engine.turn].do_action()
+
+        # Update additional piece limit.
+        self.additional_piece_limit = self.spawner.get_additional_piece_limit()
+        self.engine.players[self.engine.turn].add_additional_piece_limit(
+            self.additional_piece_limit
+        )
+
+        # Intercept pieces.
+        self.engine.intercept_pieces()
+
+        # Reset unused piece highlights.
+        self.engine.reset_unused_piece_highlight()
+
+        # Highlight all unused pieces.
+        unused_pieces = self.engine.count_unused_pieces()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+
+        if self.engine.is_max_upgrade(self.spawner):
+            self.spawner.contextual_options.remove("purchase")
+            self.replace_upgrade = True
+
+    def undo(self):
+        """
+        Undoes the spawn action, reverting the game state to before the spawn occurred.
+        """
+        super().undo()
+        # Remove additional piece limit from the player.
+        self.engine.players[self.engine.turn].remove_additional_piece_limit(
+            self.additional_piece_limit
+        )
+        # Restore the spawner's remaining actions.
+        self.spawner.actions_remaining += 1
+
+        # Get the type of unit spawned.
+        kind = self.spawner.unit_kind
+
+        # Play the corresponding spawn sound effect.
+        self.engine.sounds.play("spawn_" + kind)
+
+        # Refund the cost of the piece to the player.
+        self.engine.players[self.engine.turn].un_purchase(self.cost)
+
+        # Remove the spawned piece from the board.
+        self.spawner.demote()
+
+        # Undo the action deduction.
+        self.engine.players[self.engine.turn].undo_action()
+
+        self.additional_piece_limit = self.spawner.get_additional_piece_limit()
+        self.engine.players[self.engine.turn].add_additional_piece_limit(
+            self.additional_piece_limit
+        )
+
+        # Correct any interceptions.
+        self.engine.correct_interceptions()
+
+        # Reset unused piece highlights.
+        self.engine.reset_unused_piece_highlight()
+
+        # Highlight all unused pieces.
+        unused_pieces = self.engine.count_unused_pieces()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+
+        # Replace upgrade functionality if piece was at max upgrade level.
+        if self.replace_upgrade:
+            self.spawner.contextual_options.append("purchase")
+            self.replace_upgrade = False
 
 
 class PortalMove(GameEvent):
@@ -4090,6 +4230,10 @@ class SelectMap(GameEvent):
         self.engine.sounds.play("create_resource")
         # Set the values for the pieces based on the resources
         self.engine.set_piece_values()
+        # Update upgrade costs for this map
+        self.engine.upgrades.map = self.engine.map
+
+        self.engine.upgrades.generate_upgrade_costs()
 
     def synchronize(self, engine):
         """

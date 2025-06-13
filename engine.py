@@ -3,8 +3,9 @@ import sys
 from map import *
 from sound import *
 from state import *
-from trades import *
+from trades import Trades
 from player import Player
+from upgrades import Upgrades
 
 if typing.TYPE_CHECKING:
     from client import GameClient
@@ -14,7 +15,7 @@ def exit_game():
     """
     Exits the game.
     """
-    # Save settings to file
+    # Save settings to fKeyError: castleile
     constant.save_settings()
     # Quit the game
     pygame.quit()
@@ -435,6 +436,8 @@ class Engine:
         self.piece_trading: Optional[Piece] = None
         # Initialize the trading list
         self.trading: list[Tuple[str, int]] = []
+        # Initialize the upgrades object for handling piece upgrades
+        self.upgrades: Upgrades = Upgrades(self)
 
         # UI Elements
         # Initialize the menus list
@@ -502,14 +505,7 @@ class Engine:
         self.monolith_rituals, self.prayer_stone_rituals, self.magician_rituals = (
             initialize_rituals()
         )
-        # Initialize the stealing offsets
-        (
-            self.piece_stealing_offsets,
-            self.building_stealing_offsets,
-            self.trader_stealing_offsets,
-        ) = initialize_stealing_offsets()
-
-        # Events
+        # Even
         # Initialize the events list
         self.events: list[GameEvent] = []
         # Initialize the decrees count
@@ -534,13 +530,24 @@ class Engine:
         self.EVENTS: dict[str, type] = initialize_events()
         # Initialize the stealing values dictionary
         self.STEALING_VALUES: dict[str, int] = {"wood": 0, "gold": 1, "stone": 2}
+        self.piece_stealing_offsets = []
+        self.piece_stealing_offsets.append(
+            generate_stealing_offsets(constant.STEALING_KEY["piece"])
+        )
+        self.building_stealing_offsets = []
+        self.building_stealing_offsets.append(
+            generate_stealing_offsets(constant.STEALING_KEY["building"])
+        )
+        self.trader_stealing_offsets = []
+        self.trader_stealing_offsets.append(
+            generate_stealing_offsets(constant.STEALING_KEY["trader"])
+        )
         # Initialize the kind to stealing list dictionary
         self.KIND_TO_STEALING_LIST: [dict[str, dict[str, int | tuple[int, int]]]] = {
             "piece": self.piece_stealing_offsets,
             "building": self.building_stealing_offsets,
             "trader": self.trader_stealing_offsets,
         }
-
         # Trade & Sounds
         # Initialize the trade handler
         self.trade_handler: Trades = Trades(self)
@@ -550,6 +557,27 @@ class Engine:
         ]
         # Initialize the sounds
         self.sounds: Sounds = Sounds()
+
+    def determine_spawn_list(self, unit: "Unit") -> list[str]:
+        """
+        Determines the spawn list for a given unit based on its rank.
+        :param unit: Unit object for which to determine the spawn list.
+        :return: list of spawnable items for the unit.
+        """
+        # If the unit has no rank, return the default spawn list for that unit
+        if unit.rank is None:
+            return constant.SPAWN_LISTS[str(unit)]
+
+        # If the unit's rank is -1, return the spawn list for that unit at rank -1
+        if unit.rank == -1:
+            return constant.SPAWN_LISTS[str(unit)][unit.rank]
+
+        spawn_list = []
+        for i in range(-1, unit.rank + 1):
+            for piece in constant.SPAWN_LISTS[str(unit)][i]:
+                # Append the unit to the spawn list
+                spawn_list.append(piece)
+        return spawn_list
 
     def reset(self):
         """
@@ -1916,6 +1944,15 @@ class Engine:
         """
         self.determine_winner()
 
+    def steal(self, location, previously_selected):
+        row, col = location
+        self.close_menus()
+        action_tile: Tile = self.board[row][col]
+        acting_tile: Tile = self.board[previously_selected.row][previously_selected.col]
+        event: Steal = Steal(self, acting_tile, action_tile)
+        self.add_event(event)
+        return True
+
     def is_legal_ritual(self, ritual: str, cost_type: Optional[str]) -> bool:
         """
         Checks if a ritual can be performed based on the cost and cost type.
@@ -1941,6 +1978,47 @@ class Engine:
             if isinstance(piece, GoldGeneral):
                 return True
         return False
+
+    def upgrade(self, row, col):
+        event = Upgrade(self, self.board[row][col], None)
+        self.add_event(event)
+
+    def is_max_upgrade(self, piece: Unit) -> bool:
+        """
+        Checks if the piece has reached its maximum upgrade level.
+
+        :param piece: The piece to check.
+        :return: True if the piece is at maximum upgrade level, False otherwise.
+        """
+        return piece.rank == max(constant.SPAWN_LISTS[str(piece)].keys())
+
+    def is_legal_upgrade(self, rank: int, spawner: Unit) -> bool:
+        """
+        Checks if the spawner can be legally upgraded.
+
+        :param rank: The level that the piece will be upgraded to.
+        :param spawner: The unit that is being upgraded the piece.
+        :return: True if the piece can be legally upgraded, False otherwise.
+        """
+        cost = self.upgrades.upgrade_costs[str(spawner)][rank]
+
+        # Check if the spawner can act
+        if not spawner.can_act():
+            return False
+
+        # Check if the piece can be purchased
+        if not self.valid_purchase(cost):
+            return False
+
+        # Special check for 'trapper' piece
+        if str(spawner) == "trapper":
+            return True
+
+        # Check if the player can act
+        if not self.players[self.turn].can_act():
+            return False
+
+        return True
 
     def is_legal_spawn(self, spawning: str, spawner: Unit) -> bool:
         """
@@ -2252,6 +2330,51 @@ class Engine:
             return True
         return False
 
+    def transfer_to_upgrade_state(self, row: int, col: int) -> bool:
+        """
+        Transfers the game state to the upgrade state.
+
+        :param row: The row of the tile.
+        :param col: The column of the tile.
+        :return: True if the state was successfully transferred, False otherwise.
+        """
+        # # Define the ritual key mapping
+        # ritual_key: dict[str, tuple[Optional[str], list[str]]] = {
+        #     "magician": ("gold", self.magician_rituals[self.turn_count_actual]),
+        #     "prayer_stone": (
+        #         "prayer",
+        #         self.prayer_stone_rituals[self.turn_count_actual],
+        #     ),
+        #     "monolith": ("prayer", self.monolith_rituals[self.turn_count_actual]),
+        #     "assassin": (None, constant.ASSASSIN_RITUALS),
+        # }
+        # # Get the cost type and ritual list for the occupying unit
+        # cost_type, ritual_list = ritual_key[str(self.get_occupying(row, col))]
+        # # Create the ritual menu
+        return self.create_upgrade_menu(row, col)
+
+    def create_upgrade_menu(self, row: int, col: int) -> bool:
+        """
+        Creates a ritual menu for the specified tile.
+
+        :param row: The row of the tile.
+        :param col: The column of the tile.
+        :return: True if the ritual menu was successfully created, False otherwise.
+        """
+        # Set the casting flag for the occupying unit
+        self.get_occupying(row, col).casting = True
+        # Create a new RitualMenu
+        upgrade_menu: UpgradeMenu = UpgradeMenu(
+            row,
+            col,
+            self.state[-1].win,
+            self,
+            self.get_occupying(row, col),
+        )
+        # Add the ritual menu to the menus list
+        self.menus.append(upgrade_menu)
+        return True
+
     def transfer_to_persuading_state(self, row: int, col: int) -> bool:
         """
         Transfers the game state to the persuading state if the conditions are met.
@@ -2476,7 +2599,7 @@ class Engine:
 
         :return: True if the player can trade, False otherwise.
         """
-        return self.players[self.turn].can_trade()
+        return self.players[self.turn].has_resources()
 
     def trade(self) -> None:
         """

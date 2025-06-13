@@ -75,6 +75,8 @@ class Encyclopedia(Menu):
         self.title_text_format_key: Dict[str, str] = {"prayer_stone": "floating stone"}
         self.menu_logo: Optional[pygame.Surface] = self.get_menu_logo(str(self))
         self.title_text: str = self.format_title_text(str(self))
+        if self.title_text.endswith(" 0"):
+            self.title_text = self.title_text[:-2]  # Remove trailing "_0" if present
         self.text_surf: pygame.Surface = self.large_font.render(
             self.title_text, True, self.color
         )
@@ -822,6 +824,23 @@ class Cost(Encyclopedia):
         return None
 
 
+def full_spawn_list(spawn_list: dict[int, list[str]]) -> list[str]:
+    """
+    Composes a full list of pieces from the given spawn list.
+    :param spawn_list: dictionary of spawn lists, where keys are ranks (integers) and values are lists of strings.
+    :return: list of strings representing all pieces in all ranks in the spawn list
+    """
+    # Initialize an empty list to hold all pieces
+    _full_spawn_list: list[str] = []
+    # Iterate through the spawn list and append each piece to the full list
+    for key, value in spawn_list.items():
+        # Iterate over each piece in the value list.
+        for piece in value:
+            # Append piece to full spawn list
+            _full_spawn_list.append(piece)
+    return _full_spawn_list
+
+
 class Master(Cost):
     """
     Represents the Master cost menu in the game, displaying various costs for spawning items.
@@ -898,7 +917,7 @@ class CastleCosts(Cost):
         :param win: The game window surface.
         :param engine: The game engine.
         """
-        spawn_list: List[str] = constant.CASTLE_SPAWN_LIST
+        spawn_list: List[str] = full_spawn_list(constant.CASTLE_SPAWN_LIST)
         super().__init__(win, engine, spawn_list)
 
     def __repr__(self) -> str:
@@ -907,7 +926,7 @@ class CastleCosts(Cost):
 
         :return: The string "castle".
         """
-        return "castle"
+        return "castle_0"
 
 
 class StableCosts(Cost):
@@ -922,7 +941,7 @@ class StableCosts(Cost):
         :param win: The game window surface.
         :param engine: The game engine.
         """
-        spawn_list: List[str] = constant.STABLE_SPAWN_LIST
+        spawn_list: List[str] = full_spawn_list(constant.STABLE_SPAWN_LIST)
         super().__init__(win, engine, spawn_list)
 
     def __repr__(self) -> str:
@@ -931,7 +950,7 @@ class StableCosts(Cost):
 
         :return: The string "stable".
         """
-        return "stable"
+        return "stable_0"
 
 
 class CircusCosts(Cost):
@@ -946,7 +965,7 @@ class CircusCosts(Cost):
         :param win: The game window surface.
         :param engine: The game engine.
         """
-        spawn_list: List[str] = constant.CIRCUS_SPAWN_LIST
+        spawn_list: List[str] = full_spawn_list(constant.CIRCUS_SPAWN_LIST)
         super().__init__(win, engine, spawn_list)
 
     def __repr__(self) -> str:
@@ -955,7 +974,7 @@ class CircusCosts(Cost):
 
         :return: The string "circus".
         """
-        return "circus"
+        return "circus_0"
 
 
 class MonkCosts(Cost):
@@ -1009,7 +1028,7 @@ class FortressCosts(Cost):
         :param win: The game window surface.
         :param engine: The game engine.
         """
-        spawn_list: List[str] = constant.FORTRESS_SPAWN_LIST
+        spawn_list: List[str] = full_spawn_list(constant.FORTRESS_SPAWN_LIST)
         super().__init__(win, engine, spawn_list)
 
     def __repr__(self) -> str:
@@ -1018,7 +1037,7 @@ class FortressCosts(Cost):
 
         :return: The string "fortress".
         """
-        return "fortress"
+        return "fortress_0"
 
 
 class BarracksCosts(Cost):
@@ -1033,7 +1052,7 @@ class BarracksCosts(Cost):
         :param win: The game window surface.
         :param engine: The game engine.
         """
-        spawn_list: List[str] = constant.BARRACKS_SPAWN_LIST
+        spawn_list: List[str] = full_spawn_list(constant.BARRACKS_SPAWN_LIST)
         super().__init__(win, engine, spawn_list)
 
     def __repr__(self) -> str:
@@ -1042,7 +1061,7 @@ class BarracksCosts(Cost):
 
         :return: The string "barracks".
         """
-        return "barracks"
+        return "barracks_0"
 
 
 class RitualCosts(Cost):

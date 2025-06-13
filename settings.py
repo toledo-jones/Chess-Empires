@@ -18,8 +18,7 @@ DEBUG_STARTING_PRAYER = 200
 DEBUG_STARTING_WOOD = 100
 DEBUG_STARTING_GOLD = 100
 DEBUG_STARTING_STONE = 100
-DEBUG_STARTING_PIECES = ["castle", "king", "war_tower", "prayer_stone"]
-
+DEBUG_STARTING_PIECES = ["castle", "king", "duke"]
 
 # Window and board sizes
 MAX_FPS = 120
@@ -79,27 +78,38 @@ MASTER_COST_LIST = [
     "fortress",
     "circus",
 ]
-STABLE_SPAWN_LIST = ["doe", "oxen", "unicorn", "ram", "elephant", "knight"]
-FORTRESS_SPAWN_LIST = [
-    "queen",
-    "rogue_rook",
-    "rogue_bishop",
-    "rogue_knight",
-    "rogue_pawn",
-    "trapper",
-]
-CASTLE_SPAWN_LIST = ["pawn", "ferz", "cavalry", "builder", "pikeman", "monk", "trader"]
+STABLE_SPAWN_LIST = {
+    -1: ["unicorn", "elephant", "knight"],
+    0: ["doe", "oxen", "ram"],
+}
+FORTRESS_SPAWN_LIST = {
+    0: ["duke"],
+    -1: ["rogue_rook", "rogue_bishop", "rogue_knight", "rogue_pawn", "trapper"],
+}
+CASTLE_SPAWN_LIST = {
+    -1: ["pawn", "ferz", "builder", "monk", "trader"],
+    0: ["cavalry", "pikeman"],
+}
 BUILDER_SPAWN_LIST = ["wall", "stable", "castle", "barracks", "fortress", "circus"]
-BARRACKS_SPAWN_LIST = ["duke", "champion", "rook", "bishop", "war_tower"]
-CIRCUS_SPAWN_LIST = [
-    "jester",
-    "persuader",
-    "lion",
-    "fire_spinner",
-    "acrobat",
-    "magician",
-    "assassin",
-]
+BARRACKS_SPAWN_LIST = {
+    -1: ["rook", "bishop"],
+    0: ["war_tower", "queen", "champion"],
+}
+CIRCUS_SPAWN_LIST = {
+    -1: [
+        "jester",
+        "persuader",
+        "assassin",
+    ],
+    0: [
+        "lion",
+        "fire_spinner",
+        "acrobat",
+        "magician",
+    ],
+}
+
+
 TRAPPER_SPAWN_LIST = ["trap"]
 MONK_SPAWN_LIST = ["monolith", "prayer_stone"]
 STARTING_PIECES = ["castle", "king"]
@@ -379,7 +389,8 @@ DESCRIPTIONS = {
     "duke": [
         "the brother of the queen.",
         "slides to move and captures in all " "directions.",
-        "'right click' to pray at monoliths or prayer stones to cast powerful rituals.",
+        "'right click' to steal resources from enemy pieces.",
+        "can move through and land on forest tiles.",
     ],
     "smite": [
         "select one piece or building to be destroyed.",
@@ -515,10 +526,16 @@ PRAYER_COSTS = {
 }
 ADDITIONAL_PIECE_LIMIT = {
     "castle": 5,
+    "castle_0": 9,
+    "castle_1": 100,
     "barracks": 5,
+    "barracks_0": 9,
     "fortress": 3,
+    "fortress_0": 7,
     "stable": 3,
+    "stable_0": 7,
     "circus": 3,
+    "circus_0": 6,
     "king": 0,
     "queen": 0,
     "rook": 0,
@@ -706,6 +723,11 @@ PIECE_IMAGE_MODIFY = {
     "war_tower_0": {"SCALE": DEFAULT_PIECE_SCALE, "OFFSET": (0, 0)},
     "war_tower_1": {"SCALE": DEFAULT_PIECE_SCALE, "OFFSET": (0, 0)},
     "war_tower_2": {"SCALE": DEFAULT_PIECE_SCALE, "OFFSET": (0, 0)},
+    "castle_0": {"SCALE": DEFAULT_PIECE_SCALE, "OFFSET": (0, 0)},
+    "stable_0": {"SCALE": DEFAULT_PIECE_SCALE, "OFFSET": (0, 0)},
+    "fortress_0": {"SCALE": DEFAULT_PIECE_SCALE, "OFFSET": (0, 0)},
+    "circus_0": {"SCALE": DEFAULT_PIECE_SCALE, "OFFSET": (0, 0)},
+    "barracks_0": {"SCALE": DEFAULT_PIECE_SCALE, "OFFSET": (0, 0)},
 }
 IMAGES_IMAGE_MODIFY = {
     "icon": {"SCALE": DEFAULT_PIECE_SCALE, "OFFSET": (0, 0)},
@@ -746,6 +768,8 @@ IMAGES_IMAGE_MODIFY = {
     "steal": {"SCALE": PICKAXE_SCALE, "OFFSET": (0, 0)},
     "sparkle": {"SCALE": DEFAULT_PIECE_SCALE, "OFFSET:": (0, 0)},
     "paper": {"SCALE": (8000, 5422), "OFFSET": (0, 0)},
+    "w_upgrade": {"SCALE": DEFAULT_PIECE_SCALE, "OFFSET": (0, 0)},
+    "b_upgrade": {"SCALE": DEFAULT_PIECE_SCALE, "OFFSET": (0, 0)},
 }
 RESOURCES_IMAGE_MODIFY = {
     "gold_tile_1": {"SCALE": GOLD_SCALE, "OFFSET": GOLD_OFFSET},
@@ -783,4 +807,5 @@ CONTEXTUAL_MENU_ICONS_IMAGE_MODIFY = {
     "w_ritual": {"SCALE": DECREE_SCALE, "OFFSET": (0, 0)},
     "b_ritual": {"SCALE": DECREE_SCALE, "OFFSET": (0, 0)},
     "arm": {"SCALE": DECREE_SCALE, "OFFSET": (0, 0)},
+    "purchase": {"SCALE": DECREE_SCALE, "OFFSET": (0, 0)},
 }

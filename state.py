@@ -1237,15 +1237,16 @@ class PlaySelect(MainMenu):
                     constant.PLAY_AGAINST_AI = False
                     self.engine.set_state("starting")
                 elif i == 1:
-                    # Online
-                    # TODO: Potentially move to a function
-                    from client import GameClient
-                    from network import HOST_IP
-
-                    self.engine.client = GameClient(HOST_IP, 5555, self.engine)
-
-                    # I may need to use a startingOnline state instead of starting. We'll see
-                    self.engine.set_state("starting")
+                    pass
+                    # # Online
+                    # # TODO: Potentially move to a function
+                    # from client import GameClient
+                    # from network import HOST_IP
+                    #
+                    # self.engine.client = GameClient(HOST_IP, 5555, self.engine)
+                    #
+                    # # I may need to use a startingOnline state instead of starting. We'll see
+                    # self.engine.set_state("starting")
 
 
 class Instructions(State):
@@ -3178,7 +3179,6 @@ class Mining(State):
 
             # Add the event to the engine and reset the selected piece
             self.engine.add_event(event)
-            print("added event")
             return self.revert_to_playing_state()
 
     def tab(self):
@@ -3372,22 +3372,12 @@ class Stealing(State):
         if self.engine.menus:
             return any(menu.left_click() for menu in self.engine.menus)
 
-        # If stealing is in progress, execute the steal action
-        if self.engine.stealing:
-            self.engine.close_menus()
-            action_tile: Tile = self.engine.board[self.row][self.col]
-            acting_tile: Tile = self.engine.board[self.previously_selected.row][
-                self.previously_selected.col
-            ]
-            event: Steal = Steal(self.engine, acting_tile, action_tile)
-            self.engine.add_event(event)
-            self.engine.stealing = None
-            return self.revert_to_playing_state()
-
         # Check if the clicked square is a valid stealing target
         if self.click_valid_square(row, col):
             self.row, self.col = row, col
-            self.engine.menus.append(StealingMenu(row, col, self.win, self.engine))
+            menu = StealingMenu(row, col, self.win, self.engine)
+            menu.previously_selected = self.previously_selected
+            self.engine.menus.append(menu)
             return True
 
         # Default case: return to playing state if no action occurred
@@ -3401,7 +3391,12 @@ class Stealing(State):
         :param col: The column index of the clicked square.
         :return: True if the square is valid for stealing, False otherwise.
         """
-        return (row, col) in self.previously_selected.stealing_squares_list
+        return (
+            row,
+            col,
+        ) in self.previously_selected.stealing_squares_list and self.engine.players[
+            constant.TURNS[self.engine.turn]
+        ].has_resources()
 
     def right_click(self):
         """

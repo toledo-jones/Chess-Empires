@@ -1146,6 +1146,9 @@ class StealingMenu(Menu):
         # Initialize the type of entity being stolen from
         self.type_stolen_from = None
 
+        # Holds the piece who created this menu
+        self.previously_selected = None
+
         # Call the parent class constructor
         super().__init__(win, engine)
 
@@ -1177,10 +1180,9 @@ class StealingMenu(Menu):
             "gold_coin": self.engine.stealing_values("gold", self.type_stolen_from),
             "stone": self.engine.stealing_values("stone", self.type_stolen_from),
         }
-        for resource in self.action_list:
-            if self.amounts[resource] == 0:
-                self.action_list.remove(resource)
-
+        self.action_list = [
+            resource for resource in self.action_list if self.amounts[resource] != 0
+        ]
         # Set up menu dimensions and appearance
 
         # Set the horizontal buffer between elements to the size of a square
@@ -1327,7 +1329,9 @@ class StealingMenu(Menu):
             # Set the stealing state with the selected resource and amount
             self.engine.stealing = [self.key[stolen_resource], amount]
 
-            return True
+            self.engine.steal((self.row, self.col), self.previously_selected)
+
+            return self.engine.state[-1].revert_to_playing_state()
 
         # Reset the stealing state and revert to the playing state
         self.engine.stealing = None
@@ -1720,7 +1724,12 @@ class SpawningMenu(Menu):
 
         # Draw each resource and its costs
         for piece in self.action_list:
-            piece_cost = self.engine.PIECE_COSTS[piece]
+            if str(self) == "upgrade":
+                piece_cost = self.engine.upgrades.upgrade_costs[str(self.spawner)][
+                    self.spawner.rank + 1
+                ]
+            else:
+                piece_cost = self.engine.PIECE_COSTS[piece]
             piece = "quarry_1" if piece == "quarry_1" else f"{self.engine.turn}_{piece}"
 
             # Draw costs
@@ -1734,7 +1743,10 @@ class SpawningMenu(Menu):
                 "stone", self.stone_x, piece_cost["stone"], self.player.stone, y_buffer
             )
 
-            piece_surface = self.pieces[self.engine.turn][piece]
+            try:
+                piece_surface = self.pieces[self.engine.turn][piece]
+            except KeyError:
+                piece_surface = constant.IMAGES[piece]
 
             # Get menu's first third width
             third_width = self.menu.get_width() // 3
@@ -1776,7 +1788,7 @@ class StableMenu(SpawningMenu):
         :param spawner: The spawner object.
         """
         # Set the list of items that can be spawned
-        spawn_list: list[str] = constant.STABLE_SPAWN_LIST
+        spawn_list: list[str] = engine.determine_spawn_list(spawner)
 
         # Set the spawner object
         self.spawner: "Unit" = spawner
@@ -1811,7 +1823,7 @@ class FortressMenu(SpawningMenu):
         :param spawner: The spawner object.
         """
         # Set the list of items that can be spawned
-        spawn_list: list[str] = constant.FORTRESS_SPAWN_LIST
+        spawn_list: list[str] = engine.determine_spawn_list(spawner)
 
         # Set the spawner object
         self.spawner: "Unit" = spawner
@@ -1881,7 +1893,7 @@ class CastleMenu(SpawningMenu):
         :param spawner: The spawner object.
         """
         # Set the list of items that can be spawned
-        spawn_list: list[str] = constant.CASTLE_SPAWN_LIST
+        spawn_list: list[str] = engine.determine_spawn_list(spawner)
 
         # Set the spawner object
         self.spawner: "Unit" = spawner
@@ -1916,7 +1928,7 @@ class BarracksMenu(SpawningMenu):
         :param spawner: The spawner object.
         """
         # Set the list of items that can be spawned
-        spawn_list: list[str] = constant.BARRACKS_SPAWN_LIST
+        spawn_list: list[str] = engine.determine_spawn_list(spawner)
 
         # Set the spawner object
         self.spawner: "Unit" = spawner
@@ -1951,7 +1963,7 @@ class CircusMenu(SpawningMenu):
         :param spawner: The spawner object.
         """
         # Set the list of items that can be spawned
-        spawn_list: list[str] = constant.CIRCUS_SPAWN_LIST
+        spawn_list: list[str] = engine.determine_spawn_list(spawner)
 
         # Set the spawner object
         self.spawner: "Unit" = spawner
@@ -1966,6 +1978,60 @@ class CircusMenu(SpawningMenu):
         :return: The string representation of the circus menu.
         """
         return "circus"
+
+
+class UpgradeMenu(SpawningMenu):
+    """
+    Represents a spawning menu for the monk in the game with various attributes and methods.
+    """
+
+    def __init__(
+        self, row: int, col: int, win: pygame.Surface, engine: "Engine", spawner: "Unit"
+    ):
+        """
+        Initializes the monk spawning menu at the given board position.
+
+        :param row: The row position of the spawning menu.
+        :param col: The column position of the spawning menu.
+        :param win: The game window surface.
+        :param engine: The game engine.
+        :param spawner: The spawner object.
+        """
+        # Set the list of items that can be spawned
+        spawn_list: list[str] = ["upgrade"]
+
+        # Set the spawner object
+        self.spawner: "Unit" = spawner
+
+        # Initialize the parent SpawningMenu class
+        super().__init__(row, col, win, engine, spawn_list, spawner)
+
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the upgrade menu.
+
+        :return: The string representation of the upgrade menu.
+        """
+        return "upgrade"
+
+    def left_click(self) -> bool:
+        """
+        Handles the left-click action for selecting and upgrading a unit.
+
+        :return: True if an upgrade is successfully selected, otherwise reverts to the playing state.
+        """
+        # Determine the selected upgrade based on the mouse position
+        self.spawning: Optional[str] = self.get_option_selected(self.action_list)
+
+        if not self.spawning or not self.engine.is_legal_upgrade(
+            self.spawner.rank + 1, self.spawner
+        ):
+            self.engine.state[-1].revert_to_playing_state()
+            return True
+
+        # Clear current menus and set the upgrading state
+        self.engine.menus = []
+        return self.engine.upgrade(self.row, self.col)
 
 
 class MonkMenu(SpawningMenu):
@@ -2118,6 +2184,7 @@ class Contextual(Menu):
             "build": self.engine.transfer_to_building_state,
             "ritual": self.engine.transfer_to_pre_ritual_state,
             "arm": self.engine.arm_war_tower,
+            "purchase": self.engine.transfer_to_upgrade_state,
         }
 
         # Define requirements for each action
@@ -2148,6 +2215,7 @@ class Contextual(Menu):
             "build": no_requirements,
             "ritual": no_requirements,
             "arm": standard_requirements,
+            "purchase": no_requirements,
         }
 
         # Map icons to actions

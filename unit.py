@@ -28,6 +28,9 @@ class Unit:
         self.color: str = color
         self.unit_kind: Optional[str] = None
 
+        # Some units (buildings) will have a rank
+        self.rank = None
+
         # Initialize other attributes
         self.check: Optional[bool] = None
         self.offset: tuple[int, int] = self.get_sprite_offset()
@@ -74,7 +77,6 @@ class Unit:
         self.additional_actions: int = 0
         self.actions_remaining: int = 0
         self.population_value: int = constant.PIECE_POPULATION[str(self)]
-        self.additional_piece_limit: int = constant.ADDITIONAL_PIECE_LIMIT[str(self)]
 
         # Initialize square lists
         self.praying_squares_list: list[Tuple[int, int]] = []
@@ -171,6 +173,12 @@ class Unit:
                     sprite = self.sprites[
                         f"{self.color}_war_tower_{self.explosion_timer}"
                     ]
+
+            if self.rank is not None and self.rank > -1:
+                # If the piece has a rank, get the sprite for that rank
+                sprite = self.sprites[
+                    self.color + "_" + str(self) + "_" + str(self.rank)
+                ]
 
             # Calculate the x position based on the column and offset
             x = (self.col * constant.SQ_SIZE) + self.offset[0]
@@ -307,8 +315,11 @@ class Unit:
 
         :return: The additional piece limit.
         """
-        # Return the additional piece limit
-        return self.additional_piece_limit
+        if self.rank is None or self.rank == -1:
+            # Return the additional piece limit
+            return constant.ADDITIONAL_PIECE_LIMIT[str(self)]
+        else:
+            return constant.ADDITIONAL_PIECE_LIMIT[f"{str(self)}_{self.rank}"]
 
     def get_additional_actions(self) -> int:
         """
@@ -372,7 +383,7 @@ class Unit:
         :return: True if the unit can spawn, False otherwise.
         """
         # Get the spawn list for the unit
-        spawn_list = constant.SPAWN_LISTS[str(self)]
+        spawn_list = engine.determine_spawn_list(self)
         legal_spawns = []
 
         # Check each spawn in the list
@@ -421,6 +432,30 @@ class Unit:
         if self.is_general:
             return self.general_can_capture(r, c, engine, capture_piece)
         return self.default_can_capture(r, c, engine, capture_piece)
+
+    def upgrade(self) -> bool:
+        """
+        Increases the rank of the unit by 1.
+        :return: bool if the rank was successfully increased.
+        """
+        # Only perform change if the unit has a rank.
+        if self.rank:
+            # Increase rank
+            self.rank += 1
+            return True
+        return False
+
+    def demote(self) -> bool:
+        """
+        Decrease the rank of the unit by 1.
+        :return: bool if the rank was successfully decreased.
+        """
+        # Only perform change if the unit has a rank.
+        if self.rank is not None:
+            # Decrease rank
+            self.rank -= 1
+            return True
+        return False
 
     def _can_capture(
         self,
@@ -507,7 +542,7 @@ class Building(Unit):
         self.is_effected_by_jester: bool = False
 
         # Contextual options available for the building
-        self.contextual_options: list[str] = ["build"]
+        self.contextual_options: list[str] = ["build", "purchase"]
 
         # Yield when the building is prayed
         self.yield_when_prayed: int = 0
@@ -842,6 +877,9 @@ class Duke(Piece):
         """
         super().__init__(row, col, color)
 
+        # Indicates if the duke is a rogue
+        self.is_rogue: bool = True
+
         # Directions the duke can move
         self.directions: tuple = (
             constant.RIGHT,
@@ -858,26 +896,27 @@ class Duke(Piece):
         self.distance: int = constant.BOARD_WIDTH_SQ
 
         # Contextual options available for the duke
-        self.contextual_options: list[str] = ["pray"]
+        self.contextual_options: list[str] = ["steal"]
 
-    def praying_squares(self, engine: "Engine") -> list[tuple[int, int]]:
+    def stealing_squares(self, engine: "Engine") -> list[tuple[int, int]]:
         """
-        Determines the squares the duke can pray at.
+        Determines the squares the duke can steal from.
 
         :param engine: The game engine.
-        :return: A list of squares the duke can pray at.
+        :return: A list of squares the rogue pawn can steal from.
         """
-        moves: list[tuple[int, int]] = []
+        squares: list[tuple[int, int]] = []
 
-        # Check each direction for praying
+        # Iterate over each direction in the stealing directions
         for direction in self.directions:
-            row: int = self.row + direction[0]
-            col: int = self.col + direction[0]
-            if engine.has_pray_able_building(row, col):
-                if engine.get_occupying(row, col).color is self.color:
-                    moves.append((row, col))
+            row: int = self.row - direction[0]
+            col: int = self.col - direction[1]
 
-        return moves
+            # Check if the duke can capture at the position
+            if self.can_capture(row, col, engine):
+                squares.append((row, col))
+
+        return squares
 
     def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:
         """
@@ -898,7 +937,7 @@ class Duke(Piece):
                 if self.can_capture(row, col, engine):
                     squares.append((row, col))
                     break
-                if not self.base_move_criteria(engine, row, col):
+                if not self.rogue_move_criteria(engine, row, col):
                     break
 
         return squares
@@ -919,7 +958,7 @@ class Duke(Piece):
                 col: int = self.col + direction[1] * distance
                 if not engine.tile_in_bounds(row, col):
                     break
-                if not self.base_move_criteria(engine, row, col):
+                if not self.rogue_move_criteria(engine, row, col):
                     break
                 else:
                     squares.append((row, col))
@@ -4430,6 +4469,9 @@ class Stable(Building):
         """
         super().__init__(row, col, color)
 
+        # Indicates this building can be upgraded.
+        self.rank = -1
+
         # Directions the stable can spawn units
         self.directions: tuple = (
             constant.RIGHT,
@@ -4508,6 +4550,9 @@ class Barracks(Building):
         """
         super().__init__(row, col, color)
 
+        # Indicates this building can be upgraded.
+        self.rank = -1
+
         # Directions the barracks can spawn units
         self.directions: tuple = (
             constant.RIGHT,
@@ -4585,6 +4630,9 @@ class Castle(Building):
         :param color: The color of the castle.
         """
         super().__init__(row, col, color)
+
+        # Indicates this building can be upgraded.
+        self.rank = -1
 
         # Directions the castle can spawn units
         self.directions: tuple = (
@@ -4669,6 +4717,9 @@ class Circus(Building):
         """
         super().__init__(row, col, color)
 
+        # Indicates this building can be upgraded.
+        self.rank = -1
+
         # Directions the circus can spawn units
         self.directions: tuple = (
             constant.RIGHT,
@@ -4747,6 +4798,9 @@ class Fortress(Building):
         :param color: The color of the fortress.
         """
         super().__init__(row, col, color)
+
+        # Indicates this building can be upgraded.
+        self.rank = -1
 
         # Directions the fortress can spawn units
         self.directions: tuple = (
@@ -5040,7 +5094,6 @@ class Ferz(Piece):
             ) and engine.has_no_units_or_resources(row, col):
                 mining_squares.append((row, col))
 
-        print(mining_squares)
         return mining_squares
 
     def capture_squares(self, engine: "Engine") -> list[tuple[int, int]]:

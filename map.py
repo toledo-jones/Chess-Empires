@@ -40,7 +40,7 @@ def set_decree_cost(resource_count: Dict[str, int]) -> Dict[str, int]:
 
 
 def calculate_points_per_resource(
-    resource_count: Dict[str, int], total_resources: int
+        resource_count: Dict[str, int], total_resources: int
 ) -> Dict[str, Dict[str, int]]:
     """
     Calculates the points per resource based on the provided resource count and total resources.
@@ -62,7 +62,7 @@ def calculate_points_per_resource(
 
         total_points_possible: int = points * round(count)
         points_per_resource[resource] = {
-            "points": points,
+            "points"   : points,
             "available": total_points_possible,
         }
 
@@ -120,10 +120,10 @@ def assign_resource_random_weights(points_to_fill: int) -> Tuple[int, int, int]:
 
 
 def calculate_resource_costs(
-    wood_points: int,
-    stone_points: int,
-    gold_points: int,
-    points_per_resource: Dict[str, Dict[str, int]],
+        wood_points: int,
+        stone_points: int,
+        gold_points: int,
+        points_per_resource: Dict[str, Dict[str, int]],
 ) -> Tuple[int, int, int]:
     """
     Calculates the resource costs based on the provided points and points per resource.
@@ -188,13 +188,15 @@ class Map:
             constant.DOWN_LEFT,
         ]
 
+        self.points_per_resource: Dict[str, Dict[str, int]] = {}
+
         # Initialize a dictionary to store piece costs
         self.PIECE_COSTS: Dict[str, dict[str, int]] = {}
 
     def place_trees_around_point(
-        self,
-        center: Tuple[int, int],
-        radius: int,
+            self,
+            center: Tuple[int, int],
+            radius: int,
     ) -> List[Tuple[int, int]]:
         """
         Places trees around a central point in a somewhat random but controlled pattern.
@@ -249,8 +251,8 @@ class Map:
         total_resources: int = sum(resource_count.values())
 
         # Calculate points per resource
-        points_per_resource: Dict[str, Dict[str, int]] = calculate_points_per_resource(
-            resource_count, total_resources
+        self.points_per_resource: Dict[str, Dict[str, int]] = calculate_points_per_resource(
+                resource_count, total_resources
         )
 
         # Set Decree Cost
@@ -260,12 +262,12 @@ class Map:
         initial_piece_costs: Dict[str, Any] = self.engine.PIECE_COSTS
 
         # Assign costs to pieces
-        self.assign_piece_costs(initial_piece_costs, points_per_resource)
+        self.assign_piece_costs(initial_piece_costs, self.points_per_resource)
 
     def assign_piece_costs(
-        self,
-        initial_piece_costs: Dict[str, Any],
-        points_per_resource: Dict[str, Dict[str, int]],
+            self,
+            initial_piece_costs: Dict[str, Any],
+            points_per_resource: Dict[str, Dict[str, int]],
     ):
         """
         Assigns costs to game pieces based on initial piece costs and points per resource.
@@ -279,19 +281,19 @@ class Map:
 
             # Assign random weights for resources
             wood_points, stone_points, gold_points = assign_resource_random_weights(
-                points_to_fill * 3
+                    points_to_fill * 3
             )
 
             # Calculate resource costs based on available points
             wood_cost, stone_cost, gold_cost = calculate_resource_costs(
-                wood_points, stone_points, gold_points, points_per_resource
+                    wood_points, stone_points, gold_points, points_per_resource
             )
 
             # Assign costs to the piece
             self.PIECE_COSTS[piece] = {
-                "log": wood_cost,
+                "log"  : wood_cost,
                 "stone": stone_cost,
-                "gold": gold_cost,
+                "gold" : gold_cost,
             }
 
         self.engine.PIECE_COSTS = self.PIECE_COSTS
@@ -319,11 +321,11 @@ class Map:
             self.spawn_gold_nearby(row, col)
 
     def populate_randomly(
-        self,
-        row: int,
-        col: int,
-        choices: Optional[List[Callable[[int, int], None]]] = None,
-        directions: Optional[List[Tuple[int, int]]] = None,
+            self,
+            row: int,
+            col: int,
+            choices: Optional[List[Callable[[int, int], None]]] = None,
+            directions: Optional[List[Tuple[int, int]]] = None,
     ):
         """
         Randomly spawns a resource at (row, col) and a neighboring tile, recursively continuing in some cases.
@@ -464,10 +466,10 @@ class Map:
                 neighbors: List[Tuple[int, int]] = [
                     (neighbor_row, neighbor_col)
                     for neighbor_row in range(
-                        max(0, row - 1), min(self.engine.rows, row + 2)
+                            max(0, row - 1), min(self.engine.rows, row + 2)
                     )
                     for neighbor_col in range(
-                        max(0, col - 1), min(self.engine.cols, col + 2)
+                            max(0, col - 1), min(self.engine.cols, col + 2)
                     )
                     if (neighbor_row, neighbor_col) in quarry_positions
                 ]
@@ -488,10 +490,10 @@ class Map:
             neighbors: List[Tuple[int, int]] = [
                 (neighbor_row, neighbor_col)
                 for neighbor_row in range(
-                    max(0, row - 1), min(self.engine.rows, row + 2)
+                        max(0, row - 1), min(self.engine.rows, row + 2)
                 )
                 for neighbor_col in range(
-                    max(0, col - 1), min(self.engine.cols, col + 2)
+                        max(0, col - 1), min(self.engine.cols, col + 2)
                 )
                 if (neighbor_row, neighbor_col) in quarry_positions
             ]
@@ -549,7 +551,7 @@ class Map:
         self.engine.create_resource(row, col, Wood(row, col))
 
     def delete_resources_in_sequential_cols(
-        self, boundaries: List[int] = None, iterations: int = 1
+            self, boundaries: List[int] = None, iterations: int = 1
     ) -> None:
         """
         Deletes resources in sequential columns within the specified boundaries.
@@ -567,8 +569,8 @@ class Map:
         # Randomly select 'iterations' number of sequential columns to delete
         start_index: int = random.randint(0, len(column_sequence) - iterations)
         columns_to_delete: List[int] = column_sequence[
-            start_index : start_index + iterations
-        ]
+                                       start_index: start_index + iterations
+                                       ]
 
         # Delete resources in the selected columns sequentially
         for col in columns_to_delete:
@@ -576,7 +578,7 @@ class Map:
                 self.engine.delete_resource(row, col)
 
     def delete_resources_in_random_row(
-        self, boundaries: List[int] = None, iterations: int = 1
+            self, boundaries: List[int] = None, iterations: int = 1
     ) -> None:
         """
         Deletes resources in random rows within the specified boundaries.
@@ -673,7 +675,7 @@ class Map:
         """
         # Randomly choose between spawning a quarry or a depleted quarry
         resource_type: Callable[[int, int], None] = random.choice(
-            [self.spawn_quarry, self.spawn_depleted_quarry]
+                [self.spawn_quarry, self.spawn_depleted_quarry]
         )
         # Spawn the chosen resource type
         resource_type(row, col)
@@ -1547,7 +1549,7 @@ class GoldTopRight(Map):
 
         # Spawn gold in the top right corner squares
         top_right_squares: List[Tuple[int, int]] = random.sample(
-            squares.top_right_corner(), 4
+                squares.top_right_corner(), 4
         )
         for square in top_right_squares:
             row: int = square[0]
@@ -1731,7 +1733,7 @@ class TopBottomModified(Map):
                 row += direction[0]
                 col += direction[1]
                 if isinstance(
-                    self.engine.get_resource(row, col), Wood
+                        self.engine.get_resource(row, col), Wood
                 ) or not self.engine.get_resource(row, col):
                     self.spawn_gold(row, col)
                     break
@@ -1804,7 +1806,7 @@ class LeftRightModified(Map):
                 row += direction[0]
                 col += direction[1]
                 if isinstance(
-                    self.engine.get_resource(row, col), Wood
+                        self.engine.get_resource(row, col), Wood
                 ) or not self.engine.get_resource(row, col):
                     self.spawn_gold(row, col)
                     break
@@ -2050,14 +2052,14 @@ class FourCorners(Map):
                 # Check if the tile has no resource and randomly decide to populate it
                 if not self.engine.has_resource(row, col) and get_random() > 95:
                     self.populate_randomly(
-                        row,
-                        col,
-                        [
-                            self.spawn_depleted_quarry,
-                            self.spawn_quarry,
-                            self.spawn_wood,
-                        ],
-                        self.directions,
+                            row,
+                            col,
+                            [
+                                self.spawn_depleted_quarry,
+                                self.spawn_quarry,
+                                self.spawn_wood,
+                            ],
+                            self.directions,
                     )
 
     def spread_wood(self, row: int, col: int):

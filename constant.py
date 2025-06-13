@@ -139,8 +139,11 @@ b_pieces = [
 ]
 w_buildings = [
     "w_castle",
+    "w_castle_0",
     "w_fortress",
+    "w_fortress_0",
     "w_barracks",
+    "w_barracks_0",
     "w_wall",
     "w_monolith",
     "w_prayer_stone",
@@ -148,13 +151,19 @@ w_buildings = [
     "w_barracks",
     "w_war_tower",
     "w_stable",
+    "w_stable_0",
     "w_circus",
+    "w_circus_0",
     "w_trap",
 ]
+
 b_buildings = [
     "b_castle",
+    "b_castle_0",
     "b_fortress",
+    "b_fortress_0",
     "b_barracks",
+    "b_barracks_0",
     "b_wall",
     "b_monolith",
     "b_prayer_stone",
@@ -162,9 +171,12 @@ b_buildings = [
     "b_barracks",
     "b_war_tower",
     "b_stable",
+    "b_stable_0",
     "b_circus",
+    "b_circus_0",
     "b_trap",
 ]
+
 board_tiles = ["light", "dark"]
 w_prayer_rituals = [
     "w_gold_general",
@@ -224,6 +236,8 @@ images = [
     "b_decree",
     "w_decree_u",
     "b_decree_u",
+    "w_upgrade",
+    "b_upgrade",
     "give",
     "receive",
     "sparkle",
@@ -261,6 +275,7 @@ contextual_menu_icons = [
     "arm",
     "w_ritual",
     "b_ritual",
+    "purchase",
 ]
 sounds = []
 ambience = []

@@ -4253,7 +4253,7 @@ class SelectMap(GameEvent):
         Undoes the select map action, restoring the game state to before the map was selected.
         """
         super().undo()
-        self.engine.set_state("starting")
+        self.engine.state[-1].revert_to_starting_state(first=True)
 
     def complete(self):
         """

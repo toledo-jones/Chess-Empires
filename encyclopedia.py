@@ -1162,7 +1162,7 @@ class RitualCosts(Cost):
         # Iterate over each piece to draw the rituals and their costs
         for i in range(len(self.spawn_list)):
             piece: str = self.spawn_list[i]
-            cost: Dict[str, int] = constant.PRAYER_COSTS[piece]
+            cost: Dict[str, int] = self.engine.RITUAL_COSTS[piece]
 
             # Determine the ritual identifier based on the engine's turn
             try:

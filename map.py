@@ -52,10 +52,6 @@ def calculate_points_per_resource(
     """
     print(f"\n[DEBUG] Starting calculate_points_per_resource")
     print(f"[DEBUG] Initial resource_count: {resource_count}")
-
-    total_resources = sum(resource_count.values())
-    print(f"[DEBUG] Recalculated total_resources from values: {total_resources}")
-
     points_per_resource: dict = {}
 
     for resource, count in resource_count.items():
@@ -77,7 +73,7 @@ def calculate_points_per_resource(
         print(f"[DEBUG] Scarcity for '{resource}': {scarcity:.4f} (1 - ({count} / {total_resources}))")
 
         # Step 2: Weight based on scarcity (exaggerated by squaring)
-        weight = 1 + (scarcity ** 2) * 2
+        weight = 1 + (scarcity ** 2) * 4
         print(f"[DEBUG] Weight for '{resource}': {weight:.4f} (1 + ({scarcity} ** 2) * 2)")
 
         # Step 3: Base points
@@ -340,7 +336,7 @@ class Map:
 
             # Assign random weights for resources
             wood_points, stone_points, gold_points = assign_resource_random_weights(
-                    points_to_fill * 3
+                    points_to_fill * 4
             )
 
             # Calculate resource costs based on available points

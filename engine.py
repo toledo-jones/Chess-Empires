@@ -29,6 +29,7 @@ def initialize_maps() -> list[type]:
 
     :return: A list of map classes.
     """
+    return [BabyG, Joy]
     # Return a list of map classes
     return [
         Default,
@@ -57,6 +58,8 @@ def initialize_maps() -> list[type]:
         OctoBalanced,
         FirstClass,
         Perfect,
+        Joy,
+        BabyG
     ]
 
 
@@ -1733,6 +1736,7 @@ class Engine:
         :param determine_winner: Allow the game to end if a king is not discovered. Some events will take place before
         a king is spawned, so it is useful to be able to bypass this check.
         """
+        print(f"{event}")
         # Complete the event
         event.complete()
         # Add the event to the list of events

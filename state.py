@@ -943,7 +943,11 @@ class Pause(State):
         elif button_index == 2:
             # Reset the game board
             self.engine.reset_board()
+            self.engine.first = True
+            self.engine.turn_count_actual = -1
+            self.engine.turn_count_display = .5
             self.engine.set_state("starting")
+
 
         # If the "Settings" button was clicked
         elif button_index == 3:

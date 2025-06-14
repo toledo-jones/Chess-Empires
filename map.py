@@ -977,6 +977,130 @@ class IslandsModified(Map):
             self.spawn_gold(row, col)
 
 
+class BabyG(Map):
+    """
+    A class representing a perfect map with specific resource spawning patterns.
+
+    :param engine: The game engine.
+    """
+
+    def __init__(self, engine: Any):
+        """
+        Initializes the Perfect map with the given engine.
+
+        :param engine: The game engine.
+        """
+        super().__init__(engine)
+
+        # Define the center tiles pattern
+        gold_tiles: List[List[str]] = [
+            [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+            [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+            [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+            [" ", " ", " ", "x", " ", " ", " ", " ", " ", " ", " ", " ", "x", " "],
+            [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+            [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+            [" ", "x", " ", " ", " ", " ", " ", " ", " ", " ", "x", " ", " ", " "],
+            [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+            [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+            [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+        ]
+
+        # Define the gold tiles pattern
+        wood_tiles: List[List[str]] = [
+            [" ", " ", " ", " ", "x", "x", " ", " ", "x", "x", " ", " ", " ", " "],
+            [" ", " ", " ", "x", "x", " ", " ", " ", " ", "x", "x", " ", " ", " "],
+            ["x", "x", "x", "x", "x", " ", " ", " ", " ", "x", "x", "x", "x", " "],
+            [" ", " ", " ", " ", "x", "x", " ", " ", "x", "x", " ", " ", " ", "x"],
+            [" ", " ", " ", " ", " ", "x", "x", "x", "x", " ", " ", " ", " ", "x"],
+            ["x", " ", " ", " ", " ", "x", "x", "x", "x", " ", " ", " ", " ", " "],
+            ["x", " ", " ", " ", "x", " ", " ", " ", " ", "x", " ", " ", " ", " "],
+            [" ", "x", "x", "x", "x", " ", " ", " ", " ", "x", "x", "x", "x", "x"],
+            [" ", " ", " ", "x", " ", " ", " ", " ", " ", " ", "x", " ", " ", " "],
+            [" ", " ", " ", " ", "x", "x", " ", " ", "x", "x", " ", " ", " ", " "],
+        ]
+
+        # Convert the patterns to coordinates
+        self.wood_tiles: List[Tuple[int, int]] = squares.custom(wood_tiles)
+        self.gold_tiles: List[Tuple[int, int]] = squares.custom(gold_tiles)
+
+    def generate_resources(self):
+        """
+        Generates resources on the map with specific patterns.
+        """
+        super().generate_resources()
+
+        # Spawn wood nearby in the center tree squares with a 10% chance
+        for square in self.wood_tiles:
+            self.spawn_wood(square[0], square[1])
+
+        # Spawn gold in the gold tile squares
+        for square in self.gold_tiles:
+            self.spawn_gold(square[0], square[1])
+
+class Joy(Map):
+    """
+    A class representing a perfect map with specific resource spawning patterns.
+
+    :param engine: The game engine.
+    """
+
+    def __init__(self, engine: Any):
+        """
+        Initializes the Perfect map with the given engine.
+
+        :param engine: The game engine.
+        """
+        super().__init__(engine)
+
+        # Define the center tiles pattern
+        gold_tiles: List[List[str]] = [
+            [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+            [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", "x", " ", " ", " "],
+            [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+            [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+            [" ", " ", " ", "x", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+            [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", "x", " ", " ", " "],
+            [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+            [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+            [" ", " ", " ", "x", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+            [" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "],
+        ]
+
+        # Define the gold tiles pattern
+        wood_tiles: List[List[str]] = [
+            [" ", " ", " ", "x", "x", " ", " ", " ", " ", " ", "x", "x", "x", " "],
+            [" ", " ", "x", "x", " ", " ", " ", " ", " ", " ", " ", "x", "x", "x"],
+            [" ", " ", "x", " ", " ", " ", " ", " ", " ", " ", " ", " ", "x", "x"],
+            ["x", "x", "x", " ", " ", " ", " ", " ", " ", " ", " ", " ", "x", "x"],
+            ["x", "x", "x", " ", " ", " ", " ", " ", " ", " ", " ", "x", "x", "x"],
+            ["x", "x", "x", " ", " ", " ", " ", " ", " ", " ", " ", "x", "x", "x"],
+            ["x", "x", " ", " ", " ", " ", " ", " ", " ", " ", " ", "x", "x", " "],
+            ["x", "x", " ", " ", " ", " ", " ", " ", " ", " ", " ", "x", " ", " "],
+            ["x", "x", "x", " ", " ", " ", " ", " ", " ", " ", "x", " ", " ", " "],
+            [" ", "x", "x", "x", " ", " ", " ", " ", " ", "x", " ", " ", " ", " "],
+        ]
+
+        # Convert the patterns to coordinates
+        self.wood_tiles: List[Tuple[int, int]] = squares.custom(wood_tiles)
+        self.gold_tiles: List[Tuple[int, int]] = squares.custom(gold_tiles)
+
+    def generate_resources(self):
+        """
+        Generates resources on the map with specific patterns.
+        """
+        super().generate_resources()
+
+        # Spawn wood nearby in the center tree squares with a 10% chance
+        for square in self.wood_tiles:
+            self.spawn_wood(square[0], square[1])
+
+        # Spawn gold in the gold tile squares
+        for square in self.gold_tiles:
+            self.spawn_gold(square[0], square[1])
+
+
+
 class Perfect(Map):
     """
     A class representing a perfect map with specific resource spawning patterns.

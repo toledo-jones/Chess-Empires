@@ -3250,8 +3250,7 @@ class Teleport(RitualEvent):
         # Set the moved piece's remaining actions to 0.
         self.engine.get_occupying(self.dest_row, self.dest_col).actions_remaining = 0
 
-        # Intercept pieces.
-        self.engine.intercept_pieces()
+
 
         # Handle the trap if it exists.
         if self.trap:
@@ -3272,6 +3271,19 @@ class Teleport(RitualEvent):
                 self.engine.delete_piece(self.portal_end[0], self.portal_end[1])
                 self.engine.un_trap(self.portal_end[0], self.portal_end[1])
                 return
+
+        # Intercept pieces.
+        self.engine.intercept_pieces()
+
+        self.engine.correct_interceptions()
+
+        # Reset unused piece highlights.
+        self.engine.reset_unused_piece_highlight()
+
+        # Highlight all unused pieces.
+        unused_pieces = self.engine.count_unused_pieces()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
 
     def undo(self):
         """
@@ -3301,11 +3313,24 @@ class Teleport(RitualEvent):
         # Move the piece back to the starting position.
         self.engine.move(self.dest_row, self.dest_col, self.row, self.col)
 
+        self.engine.intercept_pieces()
+
+        self.engine.correct_interceptions()
+
+        self.engine.reset_unused_piece_highlight()
+
+        unused_pieces = self.engine.count_unused_pieces()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
+
         # Restore the moved piece's remaining actions.
         self.engine.get_occupying(self.row, self.col).actions_remaining = 1
 
         # Reset the selected piece/tile.
         self.engine.reset_selected()
+
+        #
+        self.engine.intercept_pieces()
 
         # Correct any interceptions.
         self.engine.correct_interceptions()
@@ -3448,8 +3473,15 @@ class Swap(RitualEvent):
                 self.engine.delete_piece(connected_portal.row, connected_portal.col)
                 self.engine.un_trap(connected_portal.row, connected_portal.col)
 
-        # Intercept pieces.
         self.engine.intercept_pieces()
+
+        self.engine.correct_interceptions()
+
+        self.engine.reset_unused_piece_highlight()
+
+        unused_pieces = self.engine.count_unused_pieces()
+        for piece in unused_pieces:
+            piece.unused_piece_highlight = True
 
     def undo(self):
         """
@@ -4215,6 +4247,13 @@ class SelectMap(GameEvent):
         :return: A string representation of this event.
         """
         return "select map"
+
+    def undo(self):
+        """
+        Undoes the select map action, restoring the game state to before the map was selected.
+        """
+        super().undo()
+        self.engine.set_state("starting")
 
     def complete(self):
         """

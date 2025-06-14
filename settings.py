@@ -97,15 +97,15 @@ BARRACKS_SPAWN_LIST = {
 }
 CIRCUS_SPAWN_LIST = {
     -1: [
-        "jester",
+        "magician",
         "persuader",
-        "assassin",
+        "acrobat",
+        "fire_spinner"
     ],
     0: [
         "lion",
-        "fire_spinner",
-        "acrobat",
-        "magician",
+        "assassin",
+        "jester",
     ],
 }
 

@@ -50,13 +50,10 @@ def calculate_points_per_resource(
     :param total_resources: The total number of resources.
     :return: A dictionary with resource names as keys and their points and availability as values.
     """
-    print(f"\n[DEBUG] Starting calculate_points_per_resource")
-    print(f"[DEBUG] Initial resource_count: {resource_count}")
     points_per_resource: dict = {}
 
     for resource, count in resource_count.items():
         original_resource = resource
-        print(f"\n[DEBUG] Processing resource: {original_resource}, count: {count}")
 
         # Normalize resource name
         if resource == "quarry":
@@ -64,83 +61,66 @@ def calculate_points_per_resource(
 
         # Skip zero-count resources
         if count <= 0:
-            print(f"[DEBUG] Resource '{resource}' has zero or negative count. Assigning 0 points and availability.")
             points_per_resource[resource] = {"points": 0, "available": 0}
             continue
 
         # Step 1: Scarcity
         scarcity = 1 - (count / total_resources)
-        print(f"[DEBUG] Scarcity for '{resource}': {scarcity:.4f} (1 - ({count} / {total_resources}))")
 
         # Step 2: Weight based on scarcity (exaggerated by squaring)
-        weight = 1 + (scarcity ** 2) * 4
-        print(f"[DEBUG] Weight for '{resource}': {weight:.4f} (1 + ({scarcity} ** 2) * 2)")
+        weight = 1 + (scarcity ** 2) * 1
 
         # Step 3: Base points
         base_points = total_resources / count
         points = round(base_points * weight)
-        print(f"[DEBUG] Base points for '{resource}': {base_points:.4f} ({total_resources} / {count})")
-        print(f"[DEBUG] Final points (rounded) for '{resource}': {points} ({base_points} * {weight})")
 
         # Step 4: Nonlinear access curve to simulate realistic availability
         const = 1
         realistic_count = round(count ** const)
-        print(f"[DEBUG] Realistic count for '{resource}': {realistic_count} (rounded {count} ** {const}")
 
         total_points_possible = points * realistic_count
-        print(f"[DEBUG] Total points possible for '{resource}': {total_points_possible} ({points} * {realistic_count})")
 
         points_per_resource[resource] = {
-            "points": points,
+            "points"   : points,
             "available": total_points_possible,
         }
 
-    print(f"\n[DEBUG] Final points_per_resource: {points_per_resource}\n")
     return points_per_resource
-
-
-import random
-from typing import Tuple, List
 
 
 def assign_resource_random_weights(points_to_fill: int) -> Tuple[int, int, int]:
     """
-    Fairly assigns random weighted values to wood, stone, and gold such that their
-    sum equals `points_to_fill`. Avoids bias by using consistent base values for all resources.
-
-    :param points_to_fill: The total number of points to distribute.
-    :return: A tuple containing the assigned points for wood, stone, and gold, respectively.
+    Assigns random weights to wood, stone, and gold such that their sum equals `points_to_fill`.
+    All resources are treated with equal weight and no bias.
     """
-    # Step 1: Generate three weights that sum to 1
-    first_weight = random.random()
-    second_weight = random.uniform(0, 1 - first_weight)
-    third_weight = 1 - (first_weight + second_weight)
-    weights = [first_weight, second_weight, third_weight]
+    # Step 1: Generate three random values from exponential distribution
+    r1 = random.gammavariate(1, 1)
+    r2 = random.gammavariate(1, 1)
+    r3 = random.gammavariate(1, 1)
 
-    # Step 2: Randomly assign the weights to the three resources
-    random.shuffle(weights)
-    wood_weight, stone_weight, gold_weight = weights
+    total = r1 + r2 + r3
+    weights = [r1 / total, r2 / total, r3 / total]
 
-    # Step 3: Compute points for all three using the same total base
-    wood_points = round(wood_weight * points_to_fill)
-    stone_points = round(stone_weight * points_to_fill)
-    gold_points = round(gold_weight * points_to_fill)
+    # Step 2: Assign weights directly to resources
+    wood_points = round(weights[0] * points_to_fill)
+    stone_points = round(weights[1] * points_to_fill)
+    gold_points = round(weights[2] * points_to_fill)
 
-    # Step 4: Adjust for any rounding error
+    # Step 3: Fix any rounding issues
     total_assigned = wood_points + stone_points + gold_points
-    difference = points_to_fill - total_assigned
-
-    if difference != 0:
-        # Find the index of the resource with the largest weight
-        max_weight = max(weights)
-        max_index = weights.index(max_weight)
-
+    diff = points_to_fill - total_assigned
+    if diff != 0:
+        # Add/subtract the difference to the one with the highest remainder
+        remainders = [weights[0] * points_to_fill % 1,
+                      weights[1] * points_to_fill % 1,
+                      weights[2] * points_to_fill % 1]
+        max_index = remainders.index(max(remainders))
         if max_index == 0:
-            wood_points += difference
+            wood_points += diff
         elif max_index == 1:
-            stone_points += difference
+            stone_points += diff
         else:
-            gold_points += difference
+            gold_points += diff
 
     return wood_points, stone_points, gold_points
 

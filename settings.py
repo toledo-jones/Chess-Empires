@@ -92,18 +92,18 @@ CASTLE_SPAWN_LIST = {
 }
 BUILDER_SPAWN_LIST = ["wall", "stable", "castle", "barracks", "fortress", "circus"]
 BARRACKS_SPAWN_LIST = {
-    -1: ["rook", "bishop"],
-    0: ["war_tower", "queen", "champion"],
+    -1: ["rook", "bishop", "war_tower"],
+    0: ["queen", "champion"],
 }
 CIRCUS_SPAWN_LIST = {
     -1: [
-        "magician",
         "persuader",
         "acrobat",
         "fire_spinner"
     ],
     0: [
         "lion",
+        "magician",
         "assassin",
         "jester",
     ],
@@ -212,7 +212,7 @@ PIECE_POINT_VALUES = {
     "ram": 24,
     "elephant": 16,
     "barracks": 24,
-    "jester": 6,
+    "jester": 10,
     "champion": 28,
     "prayer_stone": 4,
     "monolith": 8,
@@ -236,12 +236,12 @@ PIECE_POINT_VALUES = {
     "trap": 1,
     "lion": 24,
     "fire_spinner": 16,
-    "acrobat": 16,
+    "acrobat": 18,
     "magician": 8,
     "cavalry": 8,
     "ferz": 4,
     "assassin": 8,
-    "war_tower": 20,
+    "war_tower": 18,
 }
 
 NOTIFICATIONS = {

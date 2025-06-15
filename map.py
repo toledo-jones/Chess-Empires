@@ -68,7 +68,8 @@ def calculate_points_per_resource(
         scarcity = 1 - (count / total_resources)
 
         # Step 2: Weight based on scarcity (exaggerated by squaring)
-        weight = 1 + (scarcity ** 2) * 1
+        scale = 0.01
+        weight = 1 + math.log1p(scarcity) * scale
 
         # Step 3: Base points
         base_points = total_resources / count
@@ -85,32 +86,60 @@ def calculate_points_per_resource(
             "available": total_points_possible,
         }
 
+    print(points_per_resource)
     return points_per_resource
 
 
 def assign_resource_random_weights(points_to_fill: int) -> Tuple[int, int, int]:
     """
-    Assigns random weights to wood, stone, and gold such that their sum equals `points_to_fill`.
-    All resources are treated with equal weight and no bias.
+    Assigns resource points to wood, stone, and gold such that their sum equals `points_to_fill`.
+    Sometimes balanced, sometimes skewed, sometimes only one or two resources are used.
     """
-    # Step 1: Generate three random values from exponential distribution
-    r1 = random.gammavariate(1, 1)
-    r2 = random.gammavariate(1, 1)
-    r3 = random.gammavariate(1, 1)
 
-    total = r1 + r2 + r3
-    weights = [r1 / total, r2 / total, r3 / total]
+    strategy = random.choices(
+        ["balanced", "semi_skewed", "extreme_skewed"],
+        weights=[0.4, 0.4, 0.2],
+        k=1
+    )[0]
 
-    # Step 2: Assign weights directly to resources
+    if strategy == "balanced":
+        # Use a balanced distribution with random weights
+        r1 = random.gammavariate(1, 1)
+        r2 = random.gammavariate(1, 1)
+        r3 = random.gammavariate(1, 1)
+
+        total = r1 + r2 + r3
+        weights = [r1 / total, r2 / total, r3 / total]
+
+    elif strategy == "semi_skewed":
+        # Zero out one resource
+        zero_index = random.randint(0, 2)
+        values = [random.gammavariate(1, 1) for _ in range(2)]
+        total = sum(values)
+        weights = []
+        j = 0
+        for i in range(3):
+            if i == zero_index:
+                weights.append(0)
+            else:
+                weights.append(values[j] / total)
+                j += 1
+
+    else:  # extreme_skewed
+        # All points go to a single random resource
+        chosen = random.randint(0, 2)
+        weights = [0, 0, 0]
+        weights[chosen] = 1.0
+
+    # Convert weights to actual points
     wood_points = round(weights[0] * points_to_fill)
     stone_points = round(weights[1] * points_to_fill)
     gold_points = round(weights[2] * points_to_fill)
 
-    # Step 3: Fix any rounding issues
+    # Fix rounding issues
     total_assigned = wood_points + stone_points + gold_points
     diff = points_to_fill - total_assigned
     if diff != 0:
-        # Add/subtract the difference to the one with the highest remainder
         remainders = [weights[0] * points_to_fill % 1,
                       weights[1] * points_to_fill % 1,
                       weights[2] * points_to_fill % 1]
@@ -316,7 +345,7 @@ class Map:
 
             # Assign random weights for resources
             wood_points, stone_points, gold_points = assign_resource_random_weights(
-                    points_to_fill * 4
+                    points_to_fill * 3
             )
 
             # Calculate resource costs based on available points

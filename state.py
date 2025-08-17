@@ -4421,8 +4421,9 @@ class PerformSmite(Ritual):
 
             # Check if the piece is not a King and is not protected
             if not isinstance(piece, King):
-                if not self.engine.board[row][col].is_protected():
-                    list_of_enemy_pieces.append((row, col))
+                if not isinstance(piece, Building):
+                    if not self.engine.board[row][col].is_protected():
+                        list_of_enemy_pieces.append((row, col))
 
         return list_of_enemy_pieces
 

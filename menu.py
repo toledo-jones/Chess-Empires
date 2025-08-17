@@ -2213,12 +2213,12 @@ class Contextual(Menu):
             self.engine.players[self.engine.turn].can_act()
             and self.engine.get_occupying(self.row, self.col).can_act()
         )
-        pray_requirements: bool = (
-            standard_requirements and not self.engine.rituals_banned
-        )
         half_requirements: bool = self.engine.get_occupying(
             self.row, self.col
         ).can_act()
+        pray_requirements: bool = (
+                half_requirements and not self.engine.rituals_banned
+        )
         no_requirements: bool = True
         trade_requirements: bool = half_requirements and self.engine.can_trade()
         queen_requirements: bool = standard_requirements and self.engine.can_decree(

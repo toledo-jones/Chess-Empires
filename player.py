@@ -139,6 +139,22 @@ class Player:
         else:
             self.prayer = constant.STARTING_PRAYER
 
+    def tick_down_prayer(self):
+        """
+        Decreases the player's prayer by the PRAYER_DECREMENT value in the constant.py file. This is typically done
+        at the end of each turn.
+        """
+
+        # This early return is for debugging purposes, to allow the player to start with a specific prayer value.
+        if constant.DEBUG_START:
+            self.prayer = constant.DEBUG_STARTING_PRAYER
+            return
+
+        # Decrease the player's prayer by the constant value defined in constant.py
+        self.prayer = max(0, self.prayer - constant.PRAYER_DECREMENT)
+
+
+
     def get_prayer(self) -> int:
         """
         Retrieves the player's current prayer amount.

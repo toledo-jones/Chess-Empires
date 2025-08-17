@@ -1047,8 +1047,8 @@ class ChangeTurn(GameEvent):
         # Reset intercepted and used pieces.
         self.engine.used_and_intercepted_pieces = []
 
-        # Reset the new player's prayer.
-        self.engine.players[self.engine.turn].reset_prayer()
+        # Tick the player's prayer down by the specified amount.
+        self.engine.players[self.engine.turn].tick_down_prayer()
 
         # Reset and update the player's action and piece limits.
         self.engine.reset_player_actions_remaining(self.engine.turn)

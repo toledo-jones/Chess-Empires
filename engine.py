@@ -6,6 +6,7 @@ from state import *
 from trades import Trades
 from player import Player
 from upgrades import Upgrades
+from board import Board
 
 if typing.TYPE_CHECKING:
     from client import GameClient
@@ -375,10 +376,9 @@ class Engine:
         self.board = board
 
         if not board:
-            # Initialize the game board with Tile objects
-            self.board: list[list[Tile]] = [
-                [Tile(x, y) for y in range(self.cols)] for x in range(self.rows)
-            ]
+            # Create board object for storing grid
+            self.board = Board(self.rows, self.cols)
+
             # Create a surface for the board
             self.board_surface: pygame.Surface = pygame.Surface(
                 (self.cols * constant.SQ_SIZE, self.rows * constant.SQ_SIZE)
@@ -592,6 +592,17 @@ class Engine:
                 # Append the unit to the spawn list
                 spawn_list.append(piece)
         return spawn_list
+
+    def board_to_dict(self):
+        """
+        Converts the game board to a dictionary representation.
+
+        :return: A dictionary representation of the game board.
+        """
+        # Create a dictionary to hold the board data
+        board_data: dict[str, list[list[Tile]]] = {"board": self.board}
+        # Return the board data
+        return board_data
 
     def reset(self):
         """

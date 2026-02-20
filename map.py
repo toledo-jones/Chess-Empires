@@ -160,27 +160,43 @@ def calculate_resource_costs(
         gold_points: int,
         points_per_resource: Dict[str, Dict[str, int]],
 ) -> Tuple[int, int, int]:
-    """
-    Calculates the resource costs based on the provided points and points per resource.
 
-    :param wood_points: The points assigned to wood.
-    :param stone_points: The points assigned to stone.
-    :param gold_points: The points assigned to gold.
-    :param points_per_resource: A dictionary with resource names as keys and their points and availability as values.
-    :return: A tuple containing the calculated costs for wood, stone, and gold.
-    """
+    SOFT_CAP = 35.0
+
+    def soft_cap_with_spikes(
+            x: float,
+            cap: float = 20.0,
+            spike_chance: float = 0.05,  # 5% at extreme values
+            spike_strength: float = 0.25  # how much overflow leaks through
+    ) -> int:
+        base = soft_cap(x, cap)
+
+        overflow = max(0.0, x - cap)
+
+        if overflow > 0:
+            # chance increases with overflow but is capped
+            chance = min(spike_chance * (overflow / cap), spike_chance)
+
+            if random.random() < chance:
+                base += overflow * spike_strength
+
+        return round(base)
+
+    def soft_cap(value: float, cap) -> int:
+        return round(SOFT_CAP * value / (value + SOFT_CAP))
+
     try:
-        # Calculate the cost for wood
-        wood_cost: int = round(wood_points / points_per_resource["wood"]["points"])
-        # Calculate the cost for stone
-        stone_cost: int = round(stone_points / points_per_resource["stone"]["points"])
-        # Calculate the cost for gold
-        gold_cost: int = round(gold_points / points_per_resource["gold"]["points"])
-    except ZeroDivisionError:
-        # Handle division by zero by setting costs to 0
-        wood_cost, stone_cost, gold_cost = 0, 0, 0
+        wood_raw = wood_points / points_per_resource["wood"]["points"]
+        stone_raw = stone_points / points_per_resource["stone"]["points"]
+        gold_raw = gold_points / points_per_resource["gold"]["points"]
 
-    # Return the calculated costs for wood, stone, and gold
+        wood_cost = soft_cap_with_spikes(wood_raw)
+        stone_cost = soft_cap_with_spikes(stone_raw)
+        gold_cost = soft_cap_with_spikes(gold_raw)
+
+    except ZeroDivisionError:
+        return 0, 0, 0
+
     return wood_cost, stone_cost, gold_cost
 
 

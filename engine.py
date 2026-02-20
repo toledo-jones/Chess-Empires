@@ -30,7 +30,7 @@ def initialize_maps() -> list[type]:
 
     :return: A list of map classes.
     """
-    return [BabyG, Joy]
+    # return [BabyG, Joy]
     # Return a list of map classes
     return [
         Default,
